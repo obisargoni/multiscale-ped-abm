@@ -16,11 +16,15 @@ public class Source {
 	// static means this variable is shared between all instances of this class
 	static ArrayList<Ped> allPeds = new ArrayList<Ped>();
 	static NdPoint endPoint;
+	private int worldL, worldW;
 	
 	/*
 	 * Instance method for Source. Source also contains method calls to move peds.
 	 */
 	public Source(int worldL, int worldW) {
+		
+		this.worldL = worldL;
+		this.worldW = worldW;
 		
 		// Initialise the endPoint for all pedestrians - this needs to be a separate agent so can be visuallised
 		Random randCoord = new Random();
@@ -38,8 +42,8 @@ public class Source {
     	
     	// These should be random
 		Random randCoord = new Random();
-		int xCoord = randCoord.nextInt(500);
-		int yCoord = randCoord.nextInt(500);
+		int xCoord = randCoord.nextInt(this.worldW);
+		int yCoord = randCoord.nextInt(this.worldL);
         Ped addedPed = addPed(pedDirection, xCoord, yCoord, Source.endPoint);
         Source.allPeds.add(addedPed);
 

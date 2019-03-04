@@ -24,18 +24,18 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	public Context<Object> build(Context<Object> context) {
 	    
 		context.setId("repastSocialForce");
-		int roadL = 500;
+		int worldL = 500;
 		int worldW = 500;
 		
 		ContinuousSpaceFactory spaceFactory = 
 	            ContinuousSpaceFactoryFinder.createContinuousSpaceFactory(null);
 	    ContinuousSpace<Object> space = 
 	            spaceFactory.createContinuousSpace("space",context, new SimpleCartesianAdder<Object>(),
-	                                               new WrapAroundBorders(), roadL, worldW);
+	                                               new WrapAroundBorders(), worldL, worldW);
 	    ISchedule clock = RunEnvironment.getInstance().getCurrentSchedule();
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    Source flowSource = new Source();
+	    Source flowSource = new Source(worldL, worldW);
 	    
 	    context.add(space);
 	    context.add(clock);
