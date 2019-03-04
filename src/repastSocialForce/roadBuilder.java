@@ -9,7 +9,7 @@ import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.SimpleCartesianAdder;
-import repast.simphony.space.continuous.StrictBorders;
+import repast.simphony.space.continuous.WrapAroundBorders;
 
 public class roadBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
@@ -31,7 +31,7 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	            ContinuousSpaceFactoryFinder.createContinuousSpaceFactory(null);
 	    ContinuousSpace<Object> space = 
 	            spaceFactory.createContinuousSpace("space",context, new SimpleCartesianAdder<Object>(),
-	                                               new StrictBorders(), roadL, worldW);
+	                                               new WrapAroundBorders(), roadL, worldW);
 	    ISchedule clock = RunEnvironment.getInstance().getCurrentSchedule();
 	    
 	    // A separate class is used to handle the creation of pedestrians

@@ -14,7 +14,7 @@ import repast.simphony.util.ContextUtils;
  */
 public class Source {
 	// static means this variable is shared between all instances of this class
-	static ArrayList<Ped>   allPeds;
+	static ArrayList<Ped> allPeds = new ArrayList<Ped>();
 	static NdPoint endPoint;
 	
 	/*
@@ -42,15 +42,14 @@ public class Source {
 		int yCoord = randCoord.nextInt(500);
         Ped addedPed = addPed(pedDirection, xCoord, yCoord, Source.endPoint);
         Source.allPeds.add(addedPed);
-        if (allPeds == null) {
-        	int test = 1;
-        }
+
         for (Ped a : allPeds) {
             a.calc();
         }
         for (Ped b : allPeds) {
             b.walk();
         }
+        
     }
 
     public Ped addPed(int direction, int x, int y, NdPoint endPoint) {

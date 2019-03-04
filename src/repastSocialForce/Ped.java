@@ -23,14 +23,38 @@ public class Ped {
     private double[] v, dv, newV;
     private double xTime, accT, maxV;
     private int dir;         // dir = 1 walks up, -1 walks down
+    
+    /*
+     * Instance method for the Ped class.
+     * 
+     * @param contextSpace the continuousspace the Ped exists in
+     * @param direction the pedestrian's direction
+     */
+    public Ped(ContinuousSpace<Object> contextSpace, int direction, NdPoint endPoint) {
+        this.space = contextSpace;
+        this.endPt = endPoint;
+        this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
+        this.dir   = direction; // 1 moves up, -1 moves down - need to make direction an angle ting
+        this.v     = new double[] {0,(double)dir*.5*maxV}; // Pedestrians initialised with some velocity
+        this.age   = 0; // Placeholder 
 
+        //3-circle variables - from Helbing, et al (2000) [r from Rouphail et al 1998]
+        this.accT  = 0.5/UserPanel.tStep;                        //acceleration time
+        this.m     = 80;                                         //avg ped mass in kg
+        this.horiz = 5/roadBuilder.spaceScale;                   //distance at which peds affect each other
+        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/roadBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
+        this.B     = 0.08/roadBuilder.spaceScale;                    //ped distance interaction constant (space units)
+        this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
+        this.r     = 0.275/roadBuilder.spaceScale;                   //ped radius (space units)
+    }
+    
     /*
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, direction and destination.
      */
     public void calc() {
         this.myLoc = space.getLocation(this);
-        this.dv    = accel(myLoc,dir,destination);
+        this.dv    = accel(myLoc,dir,endPt);
         this.newV  = sumV(v,dv);
         this.newV  = limitV(newV);
     }
@@ -158,27 +182,4 @@ public class Ped {
         return c;
     }    
     
-    /*
-     * Instance method for the Ped class.
-     * 
-     * @param contextSpace the continuousspace the Ped exists in
-     * @param direction the pedestrian's direction
-     */
-    public Ped(ContinuousSpace<Object> contextSpace, int direction, NdPoint endPoint) {
-        this.space = contextSpace;
-        this.endPt = endPoint;
-        this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
-        this.dir   = direction; // 1 moves up, -1 moves down - need to make direction an angle ting
-        this.v     = new double[] {0,(double)dir*.5*maxV}; // Pedestrians initialised with some velocity
-        this.age   = 0; // Placeholder 
-
-        //3-circle variables - from Helbing, et al (2000) [r from Rouphail et al 1998]
-        this.accT  = 0.5/UserPanel.tStep;                        //acceleration time
-        this.m     = 80;                                         //avg ped mass in kg
-        this.horiz = 5/roadBuilder.spaceScale;                   //distance at which peds affect each other
-        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/roadBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
-        this.B     = 0.08/roadBuilder.spaceScale;                    //ped distance interaction constant (space units)
-        this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
-        this.r     = 0.275/roadBuilder.spaceScale;                   //ped radius (space units)
-    }
 }
