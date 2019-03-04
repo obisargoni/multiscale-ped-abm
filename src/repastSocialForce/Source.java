@@ -20,12 +20,12 @@ public class Source {
 	/*
 	 * Instance method for Source. Source also contains method calls to move peds.
 	 */
-	public Source() {
+	public Source(int worldL, int worldW) {
 		
 		// Initialise the endPoint for all pedestrians - this needs to be a separate agent so can be visuallised
 		Random randCoord = new Random();
-		int xCoord = randCoord.nextInt(500);
-		int yCoord = randCoord.nextInt(500);
+		int xCoord = randCoord.nextInt(worldW);
+		int yCoord = randCoord.nextInt(worldL);
 		NdPoint pt = new NdPoint(xCoord, yCoord);
 		Source.endPoint = pt;
 	}
