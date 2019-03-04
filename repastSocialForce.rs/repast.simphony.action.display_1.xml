@@ -3,11 +3,19 @@
   <type>2D</type>
   <styles>
     <entry>
+      <string>repastSocialForce.Destination</string>
+      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+    </entry>
+    <entry>
       <string>repastSocialForce.Ped</string>
       <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
     </entry>
   </styles>
   <editedStyles>
+    <entry>
+      <string>repastSocialForce.Destination</string>
+      <string>repastSocialForce.Destination.style_1.xml</string>
+    </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
       <string>repastSocialForce.Ped.style_0.xml</string>
@@ -23,15 +31,19 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-80101550</hashCode>
+    <hashCode>212940282</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>repastSocialForce.Ped</string>
+      <string>repastSocialForce.Destination</string>
       <int>0</int>
+    </entry>
+    <entry>
+      <string>repastSocialForce.Ped</string>
+      <int>1</int>
     </entry>
   </layerOrder>
   <projections>

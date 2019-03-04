@@ -6,20 +6,23 @@ import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
 
+import repast.simphony.engine.schedule.ScheduleParameters;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
 
 public class Ped {
     private ContinuousSpace<Object> space;
     private List<Double> forcesX, forcesY; 
-    private NdPoint endPt;
     private Random rnd = new Random();
     private int age;
+    public int destExtent; // Distance from extent to exit simulation
     private double endPtDist, endPtTheta, critGap;
     //private double side = roadBuilder.sidewalk;
     private double wS, etaS, wV, etaV, sigR;    //errors
     private double m, horiz, A, B, k, r;        //interactive force constants (accT is also)
-    private NdPoint myLoc, destination;
+    private NdPoint myLoc;
+    public NdPoint endPt;
     private double[] v, dv, newV;
     private double xTime, accT, maxV;
     private int dir;         // dir = 1 walks up, -1 walks down
@@ -27,12 +30,12 @@ public class Ped {
     /*
      * Instance method for the Ped class.
      * 
-     * @param contextSpace the continuousspace the Ped exists in
+     * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(ContinuousSpace<Object> contextSpace, int direction, NdPoint endPoint) {
-        this.space = contextSpace;
-        this.endPt = endPoint;
+    public Ped(ContinuousSpace<Object> space, int direction, Destination d) {
+        this.space = space;
+        this.endPt = space.getLocation(d);
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // 1 moves up, -1 moves down - need to make direction an angle ting
         this.v     = new double[] {0,(double)dir*.5*maxV}; // Pedestrians initialised with some velocity
@@ -48,10 +51,21 @@ public class Ped {
         this.r     = 0.275/roadBuilder.spaceScale;                   //ped radius (space units)
     }
     
+    /* 
+     * The pedestrian method to be scheduled. This method updates the pedestrian's
+     * acceleration and velocity and walks the pedestrians following this update
+     */
+    //@ScheduledMethod(start = 1, interval = 1)
+    public void step() {
+    	calc(); // Calculate the pedestrian's new acceleration and velocity
+    	walk(); // Walk the pedestrian
+    }
+    
     /*
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, direction and destination.
      */
+    @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void calc() {
         this.myLoc = space.getLocation(this);
         this.dv    = accel(myLoc,dir,endPt);
@@ -62,9 +76,16 @@ public class Ped {
     /*
      * Move the pedestrian to a new location.
      */
+    @ScheduledMethod(start = 1, interval = 1, priority = 1)
     public void walk() {
         this.v = newV;
         move(v);
+    }
+    
+    public void exit() {
+    	if (this.space.getDistanceSq(this.space.getLocation(this), this.endPt) < this.endPtDist) {
+    		
+    	}
     }
     
     /*
