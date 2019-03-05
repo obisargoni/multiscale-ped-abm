@@ -15,7 +15,7 @@ import repast.simphony.util.ContextUtils;
  */
 public class Source {
 	// static means this variable is shared between all instances of this class
-	static ArrayList<Ped> removedPeds = new ArrayList<Ped>();
+	static int countRemovedPeds = 0;
 	private int worldL, worldW;
 	private Destination d;
 	
@@ -58,14 +58,25 @@ public class Source {
         Context<Object> context = ContextUtils.getContext(this);
         ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection("space");
         
+        ArrayList<Ped> PedsToRemove = new ArrayList<Ped>();
+        
         // Iterate over peds and remove them if they have arrive at the destination
         for (Object p :context.getObjects(Ped.class)) {
         	Ped P = (Ped) p;
         	NdPoint endPt = P.endPt;
-        	if (space.getDistance(space.getLocation(p), endPt) < P.destExtent) {
-        		context.remove(p);
+        	int destExtent = P.destExtent;
+        	NdPoint locP = space.getLocation(P);
+        	if (space.getDistance(locP, endPt) < destExtent) {
+        		//Source.removedPeds.add(P);
+        		PedsToRemove.add(P);
+        		break; // End the iteration since iterating over context having modified it can throw an exception
         	}
         }
+        // Now iterate over all of the peds to remove and remove them from the context
+        // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
+        for (Ped P : PedsToRemove) {
+        	context.remove(P);
+        	this.countRemovedPeds ++;	
+        }
     }
-    
 }
