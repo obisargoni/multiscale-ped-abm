@@ -40,7 +40,7 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	    context.add(clock);
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    Destination d = addRandomDestination(context, space, worldL, worldW, 2);
+	    Destination d = addRandomDestination(context, space, worldL, worldW, 5);
 	    Source flowSource = new Source(worldL, worldW, d);
 	    context.add(flowSource);
 		return context;
