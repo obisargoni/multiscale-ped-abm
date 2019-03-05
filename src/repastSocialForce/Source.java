@@ -32,18 +32,21 @@ public class Source {
 	
 	
 	// Only want to add a new ped infrequently
-    @ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
+    @ScheduledMethod(start = 1, priority = ScheduleParameters.FIRST_PRIORITY)
     public void addPeds() {
-    	int pedDirection = 1; // currently treated as being either 1 or -1 (up or down), don't think direction changes either
     	
-    	// These should be random
-		Random randCoord = new Random();
-		int xCoord = randCoord.nextInt(this.worldW);
-		int yCoord = randCoord.nextInt(this.worldL);
-        Ped addedPed = addPed(pedDirection, xCoord, yCoord, d);
+    	double[] pedDirection = {0,1}; // Unit vector indicating the initial pedestrian direction
+    	
+    	for (int i =0;i<100;i++) {
+        	// These should be random
+    		Random randCoord = new Random();
+    		int xCoord = randCoord.nextInt(this.worldW);
+    		int yCoord = randCoord.nextInt(this.worldL);
+            Ped addedPed = addPed(pedDirection, xCoord, yCoord, d);
+    	}
     }
 
-    public Ped addPed(int direction, int x, int y, Destination d) {
+    public Ped addPed(double[] direction, int x, int y, Destination d) {
         Context<Object> context = ContextUtils.getContext(this);
         ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection("space");
         Ped newPed = new Ped(space,direction, d);
