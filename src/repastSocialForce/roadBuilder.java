@@ -9,8 +9,8 @@ import repast.simphony.context.space.continuous.ContinuousSpaceFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.space.continuous.ContinuousSpace;
-import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.continuous.SimpleCartesianAdder;
 import repast.simphony.space.continuous.WrapAroundBorders;
 
@@ -40,7 +40,8 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	    context.add(clock);
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    Destination d = addRandomDestination(context, space, worldL, worldW, 5);
+	    //Destination d = addRandomDestination(context, space, worldL, worldW, 5);
+	    Destination d = addUserDestination(context, space, 5);
 	    Source flowSource = new Source(worldL, worldW, d);
 	    context.add(flowSource);
 		return context;
@@ -57,6 +58,19 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 		space.moveTo(d,  xCoord, yCoord);
 		
 		return d;
+	}
+	
+	public Destination addUserDestination(Context<Object> context, ContinuousSpace<Object> space, int destExtent) {
+		// Get the x&y coords for the destination set by the user
+		Parameters  params = RunEnvironment.getInstance().getParameters();
+		double xCoord = (double)params.getInteger("destX");
+		double yCoord = (double)params.getInteger("destY");
+		
+		Destination d = new Destination(space, destExtent);
+		context.add(d);
+		space.moveTo(d,  xCoord, yCoord);
+		
+		return d;		
 	}
 
 }

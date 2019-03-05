@@ -12,12 +12,6 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="destY" displayName="Destination Y Coord" type="int" 
-						defaultValue="0" 
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
 		</parameters>
 
 
