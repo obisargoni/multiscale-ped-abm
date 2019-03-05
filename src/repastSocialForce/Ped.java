@@ -6,10 +6,12 @@ import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
 
+import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.util.ContextUtils;
 
 public class Ped {
     private ContinuousSpace<Object> space;
@@ -65,7 +67,7 @@ public class Ped {
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, direction and destination.
      */
-    @ScheduledMethod(start = 1, interval = 1, priority = 2)
+    @ScheduledMethod(start = 1, interval = 100, priority = 2)
     public void calc() {
         this.myLoc = space.getLocation(this);
         this.dv    = accel(myLoc,dir,endPt);
@@ -76,7 +78,7 @@ public class Ped {
     /*
      * Move the pedestrian to a new location.
      */
-    @ScheduledMethod(start = 1, interval = 1, priority = 1)
+    @ScheduledMethod(start = 1, interval = 100, priority = 1)
     public void walk() {
         this.v = newV;
         move(v);
@@ -119,11 +121,15 @@ public class Ped {
 
         //calculate interactive forces
         //TODO: write code to make a threshold for interaction instead of the arbitrary horizon
-        for (Ped a : Source.allPeds) {
-            if (a != this) {
-                NdPoint otherLoc = space.getLocation(a);
+                
+        // Iterate over peds and remove them if they have arrive at the destination
+        Context<Object> context = ContextUtils.getContext(this);
+        for (Object p :context.getObjects(Ped.class)) {
+        	Ped P = (Ped) p;
+        	if (P != this) {
+                NdPoint otherLoc = space.getLocation(P);
 
-                // Is other pedestrian in front or behind
+        		// Is other pedestrian in front or behind
                 // Not sure where dir get's set
                 // Why isn't x taken into account?
                 double  visible  = Math.signum((double)dir*(otherLoc.getY()-location.getY()));
@@ -137,11 +143,15 @@ public class Ped {
                         double signFx  = Math.signum(delX);
                         double signFy  = Math.signum(delY);
                         double theta   = FastMath.asin(delXabs/absDist);
-                        double rij     = this.r + a.r;
+                        double rij     = this.r + P.r;
                         double interFx = signFx*A*Math.exp((rij-absDist)/B)*Math.sin(theta)/m;
                         double interFy = signFy*A*Math.exp((rij-absDist)/B)*Math.cos(theta)/m;
                         forcesX.add(interFx);
-                        forcesY.add(interFy);}}}}
+                        forcesY.add(interFy);
+                        }
+                    }
+                }
+        	}
 
         //sum all forces
         for (Double b : forcesX) {
