@@ -13,5 +13,9 @@ public class Destination {
 		this.space = space;
 		this.ext = extent;
 	}
+	
+	public int getExtent() {
+		return this.ext;
+	}
 
 }

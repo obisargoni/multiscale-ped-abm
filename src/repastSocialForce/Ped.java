@@ -38,6 +38,7 @@ public class Ped {
     public Ped(ContinuousSpace<Object> space, int direction, Destination d) {
         this.space = space;
         this.endPt = space.getLocation(d);
+        this.destExtent = d.getExtent();
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // 1 moves up, -1 moves down - need to make direction an angle ting
         this.v     = new double[] {0,(double)dir*.5*maxV}; // Pedestrians initialised with some velocity
@@ -67,7 +68,7 @@ public class Ped {
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, direction and destination.
      */
-    @ScheduledMethod(start = 1, interval = 100, priority = 2)
+    @ScheduledMethod(start = 1, interval = 1, priority = 3)
     public void calc() {
         this.myLoc = space.getLocation(this);
         this.dv    = accel(myLoc,dir,endPt);
@@ -78,7 +79,7 @@ public class Ped {
     /*
      * Move the pedestrian to a new location.
      */
-    @ScheduledMethod(start = 1, interval = 100, priority = 1)
+    @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void walk() {
         this.v = newV;
         move(v);

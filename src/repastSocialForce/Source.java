@@ -32,7 +32,7 @@ public class Source {
 	
 	
 	// Only want to add a new ped infrequently
-    @ScheduledMethod(start = 1, interval = 100, priority = ScheduleParameters.FIRST_PRIORITY)
+    @ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.FIRST_PRIORITY)
     public void addPeds() {
     	int pedDirection = 1; // currently treated as being either 1 or -1 (up or down), don't think direction changes either
     	
@@ -53,7 +53,7 @@ public class Source {
         return newPed;
     }
     
-    @ScheduledMethod(start = 1, interval = 100, priority = ScheduleParameters.LAST_PRIORITY)
+    @ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
     public void removePeds() {
         Context<Object> context = ContextUtils.getContext(this);
         ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection("space");
