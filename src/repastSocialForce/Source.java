@@ -1,5 +1,6 @@
 package repastSocialForce;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -21,13 +22,12 @@ public class Source {
 	static int countRemovedPeds = 0;
 	private int worldL, worldW, nPeds; // World dimensions and number of pedestrians to add
 	private Destination d;
-	private ArrayList<Ped> allPeds = new ArrayList<Ped>(); // For storing all peds created from this source
-	private String col; // Colour to use for styling the pedestrians
+	private Color col; // Colour to use for styling the pedestrians
 	
 	/*
 	 * Instance method for Source. Source also contains method calls to move peds.
 	 */
-	public Source(int worldL, int worldW, Destination d, int nPeds, String col) {
+	public Source(int worldL, int worldW, Destination d, int nPeds, Color col) {
 		
 		this.worldL = worldL;
 		this.worldW = worldW;
@@ -36,15 +36,7 @@ public class Source {
 		this.col = col;
 
 	}
-	
-	public Destination getDest() {
-		return this.d;
-	}
-	
-	public ArrayList<Ped> getPeds(){
-		return allPeds;
-	}
-	
+
 	
 	// Only want to add a new ped infrequently
     @ScheduledMethod(start = 1, priority = ScheduleParameters.FIRST_PRIORITY)
@@ -60,14 +52,13 @@ public class Source {
     		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
     		
             Ped addedPed = addPed(dir, xCoord, yCoord, d);
-            allPeds.add(addedPed);
     	}
     }
 
     public Ped addPed(double[] direction, int x, int y, Destination d) {
         Context<Object> context = ContextUtils.getContext(this);
         ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection("space");
-        Ped newPed = new Ped(space,direction, d);
+        Ped newPed = new Ped(space,direction, d, col);
         context.add(newPed);
         space.moveTo(newPed,x,y);
         newPed.setLoc(space.getLocation(newPed));

@@ -2,6 +2,8 @@ package repastSocialForce;
 
 import java.util.Random;
 
+import java.awt.Color;
+
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.continuous.ContinuousSpaceFactory;
@@ -44,8 +46,8 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	    //Destination d = addRandomDestination(context, space, worldL, worldW, 5);
 	    Destination d1 = addUserDestination(context, space, "destX1", "destY1", 5);
 	    Destination d2 = addUserDestination(context, space, "destX2", "destY2", 5);
-	    Source flowSource1 = new Source(worldL, worldW, d1, 100, "red");
-	    Source flowSource2 = new Source(worldL, worldW, d2, 100, "blue");
+	    Source flowSource1 = new Source(worldL, worldW, d1, 100, Color.RED);
+	    Source flowSource2 = new Source(worldL, worldW, d2, 100, Color.BLUE);
 	    context.add(flowSource1);
 	    context.add(flowSource2);
 		return context;

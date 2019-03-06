@@ -1,5 +1,6 @@
 package repastSocialForce;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -7,7 +8,6 @@ import java.util.Random;
 import org.apache.commons.math3.util.FastMath;
 
 import repast.simphony.context.Context;
-import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
@@ -27,6 +27,7 @@ public class Ped {
     public NdPoint endPt;
     private double[] v, dv, newV, dir; 
     private double xTime, accT, maxV;
+    private Color col; // Colour of the pedestrian
     
     /*
      * Instance method for the Ped class.
@@ -34,12 +35,13 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(ContinuousSpace<Object> space, double[] direction, Destination d) {
+    public Ped(ContinuousSpace<Object> space, double[] direction, Destination d, Color col) {
         this.space = space;
         this.endPt = space.getLocation(d);
         this.destExtent = d.getExtent();
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // a 2D unit vector indicating the position
+        this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
         this.v = new double[this.dir.length];
@@ -189,6 +191,10 @@ public class Ped {
             input[0] = input[0]*norm;
             input[1] = input[1]*norm;}
         return input;
-    }  
+    }
+    
+    public Color getColor() {
+    	return this.col;
+    }
     
 }

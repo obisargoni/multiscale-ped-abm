@@ -8,7 +8,7 @@
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
-      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+      <string>repastSocialForce.PedStyler</string>
     </entry>
   </styles>
   <editedStyles>
@@ -18,7 +18,7 @@
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
-      <string>repastSocialForce.Ped.style_0.xml</string>
+      <null/>
     </entry>
   </editedStyles>
   <netStyles/>
@@ -31,7 +31,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>212940282</hashCode>
+    <hashCode>116110734</hashCode>
   </schedParams>
   <layoutClassName>foo.bar.baz</layoutClassName>
   <layoutProjection>space</layoutProjection>
