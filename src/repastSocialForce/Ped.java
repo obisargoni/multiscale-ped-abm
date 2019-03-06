@@ -25,8 +25,7 @@ public class Ped {
     private double m, horiz, A, B, k, r;        //interactive force constants (accT is also)
     private NdPoint myLoc;
     public NdPoint endPt;
-    private double[] v, dv, newV; 
-    private double[] dir;  // Unit vector indicating the direction of the pedestrian
+    private double[] v, dv, newV, dir; 
     private double xTime, accT, maxV;
     
     /*
@@ -42,8 +41,8 @@ public class Ped {
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // a 2D unit vector indicating the position
         
-        // Set the pedestrian velocity
-        this.v = this.dir;
+        // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
+        this.v = new double[this.dir.length];
         for (int i = 0; i < dir.length;i++) {
         	this.v[i] = dir[i]*0.5*this.maxV;
         }
@@ -72,12 +71,12 @@ public class Ped {
     
     /*
      * Calculate the pedestrian's acceleration and resulting velocity
-     * given its location, direction and destination.
+     * given its location, north and destination.
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 3)
     public void calc() {
         this.myLoc = space.getLocation(this);
-        this.dv    = accel(myLoc,dir,endPt);
+        this.dv    = accel(myLoc,endPt);
         this.newV  = Vector.sumV(v,dv);
         this.newV  = limitV(newV);
     }
@@ -86,10 +85,9 @@ public class Ped {
      * Move the pedestrian to a new location.
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
-    public void walk() {
-        // Update the direction to point in the direction of the velocity vector
-        this.dir = Vector.unitV(this.newV);
-        
+    public void walk() { 
+    	// Update the direction and velocity of pedestrian
+    	this.dir = Vector.unitV(newV);
         this.v = newV;
         move(v);
     }
@@ -99,12 +97,12 @@ public class Ped {
      * Calculate the acceleration of the pedestrian.
      * 
      * @param location ndpoint representing the pedestrian's location
-     * @param direct integer giving the pedestrian's direction
+     * @param north Vector indicating the direction against which bearings are taken
      * @param endPt ndpoint representing the pedestrian's destination 
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel(NdPoint location, double[] dir, NdPoint endPt) {
+    public double[] accel(NdPoint location, NdPoint endPt) {
         forcesX = new ArrayList<Double>();
         forcesY = new ArrayList<Double>();
         double xF, yF;
@@ -115,11 +113,11 @@ public class Ped {
         double[] dirToEnd = this.space.getDisplacement(location, endPt);        
         dirToEnd = Vector.unitV(dirToEnd);
         
-        // Calculate dot product between vectors and use to find the angle between the two vectors
-        double dpEnd = Vector.dotProd(dir, dirToEnd);
+        // Calculate the bearing to the end point
+        double dpEnd = Vector.dotProd(roadBuilder.north, dirToEnd);
         double endPtTheta = FastMath.acos(dpEnd);
-
-        //calculate motive force - drive towards end point
+        
+        //calculate motive force 
         double motFx = (maxV*Math.sin(endPtTheta) - v[0])/accT;
         double motFy = (maxV*Math.cos(endPtTheta) - v[1])/accT;
         forcesX.add(motFx);
@@ -127,7 +125,7 @@ public class Ped {
 
         //calculate interactive forces
         //TODO: write code to make a threshold for interaction instead of the arbitrary horizon
-                
+        
         // Iterate over peds and remove them if they have arrive at the destination
         Context<Object> context = ContextUtils.getContext(this);
         for (Object p :context.getObjects(Ped.class)) {
@@ -141,16 +139,15 @@ public class Ped {
                 double[] dirToPed = this.space.getDisplacement(location, otherLoc);
                 dirToPed = Vector.unitV(dirToPed);
                 
-                double dpPed  = Vector.dotProd(dir, dirToPed);
+                double dpPed  = Vector.dotProd(this.dir, dirToPed);
+                double dpNPed = Vector.dotProd(roadBuilder.north, dirToPed);
                 
                 if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
                     double absDist = space.getDistance(location, otherLoc);
                     if (absDist < horiz) { // peds only affected by others within their horizon
-                        double delX    = location.getX()-otherLoc.getX();
-                        double delY    = location.getY()-otherLoc.getY();
-                        double signFx  = Math.signum(delX); // Don't think these are needed since theta is calculated using the dot product
-                        double signFy  = Math.signum(delY);
-                        double theta   = FastMath.acos(dpPed);
+                        double signFx  = Math.signum(dirToPed[0]); 
+                        double signFy  = Math.signum(dirToPed[1]);
+                        double theta   = FastMath.acos(dpNPed);
                         double rij     = this.r + P.r;
                         double interFx = A*Math.exp((rij-absDist)/B)*Math.sin(theta)/m;
                         double interFy = A*Math.exp((rij-absDist)/B)*Math.cos(theta)/m;
@@ -160,6 +157,7 @@ public class Ped {
                     }
                 }
         	}
+        	
 
         //sum all forces
         for (Double b : forcesX) {

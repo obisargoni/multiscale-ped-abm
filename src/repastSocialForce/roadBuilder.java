@@ -17,6 +17,7 @@ import repast.simphony.space.continuous.WrapAroundBorders;
 public class roadBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
 	static double spaceScale = 1;
+	static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)

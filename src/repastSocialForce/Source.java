@@ -3,7 +3,10 @@ package repastSocialForce;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.apache.commons.math3.util.FastMath;
+
 import repast.simphony.context.Context;
+import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.continuous.ContinuousSpace;
@@ -33,16 +36,18 @@ public class Source {
 	
 	// Only want to add a new ped infrequently
     @ScheduledMethod(start = 1, priority = ScheduleParameters.FIRST_PRIORITY)
-    public void addPeds() {
-    	
-    	double[] pedDirection = {0,1}; // Unit vector indicating the initial pedestrian direction
-    	
+    public void addPeds() {    	
     	for (int i =0;i<100;i++) {
         	// These should be random
     		Random randCoord = new Random();
     		int xCoord = randCoord.nextInt(this.worldW);
     		int yCoord = randCoord.nextInt(this.worldL);
-            Ped addedPed = addPed(pedDirection, xCoord, yCoord, d);
+    		
+    		// Generate a random initial direction for the pedestrian
+    		double randBearing = randCoord.nextFloat() * FastMath.PI * 2;
+    		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
+    		
+            Ped addedPed = addPed(dir, xCoord, yCoord, d);
     	}
     }
 
@@ -62,6 +67,11 @@ public class Source {
         ContinuousSpace<Object> space = (ContinuousSpace<Object>) context.getProjection("space");
         
         ArrayList<Ped> PedsToRemove = new ArrayList<Ped>();
+        
+        // If there are no pedestrians to remove end the simulation
+        if (context.getObjects(Ped.class).size() == 0) {
+        	RunEnvironment.getInstance().endRun();
+        }
         
         // Iterate over peds and remove them if they have arrive at the destination
         for (Object p :context.getObjects(Ped.class)) {
