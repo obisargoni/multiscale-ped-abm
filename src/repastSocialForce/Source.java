@@ -19,25 +19,37 @@ import repast.simphony.util.ContextUtils;
 public class Source {
 	// static means this variable is shared between all instances of this class
 	static int countRemovedPeds = 0;
-	private int worldL, worldW;
+	private int worldL, worldW, nPeds; // World dimensions and number of pedestrians to add
 	private Destination d;
+	private ArrayList<Ped> allPeds = new ArrayList<Ped>(); // For storing all peds created from this source
+	private String col; // Colour to use for styling the pedestrians
 	
 	/*
 	 * Instance method for Source. Source also contains method calls to move peds.
 	 */
-	public Source(int worldL, int worldW, Destination d) {
+	public Source(int worldL, int worldW, Destination d, int nPeds, String col) {
 		
 		this.worldL = worldL;
 		this.worldW = worldW;
 		this.d = d;
+		this.nPeds = nPeds;
+		this.col = col;
 
+	}
+	
+	public Destination getDest() {
+		return this.d;
+	}
+	
+	public ArrayList<Ped> getPeds(){
+		return allPeds;
 	}
 	
 	
 	// Only want to add a new ped infrequently
     @ScheduledMethod(start = 1, priority = ScheduleParameters.FIRST_PRIORITY)
     public void addPeds() {    	
-    	for (int i =0;i<100;i++) {
+    	for (int i =0;i<nPeds;i++) {
         	// These should be random
     		Random randCoord = new Random();
     		int xCoord = randCoord.nextInt(this.worldW);
@@ -48,6 +60,7 @@ public class Source {
     		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
     		
             Ped addedPed = addPed(dir, xCoord, yCoord, d);
+            allPeds.add(addedPed);
     	}
     }
 

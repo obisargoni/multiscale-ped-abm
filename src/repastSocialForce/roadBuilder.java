@@ -42,9 +42,12 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 	    
 	    // A separate class is used to handle the creation of pedestrians
 	    //Destination d = addRandomDestination(context, space, worldL, worldW, 5);
-	    Destination d = addUserDestination(context, space, 5);
-	    Source flowSource = new Source(worldL, worldW, d);
-	    context.add(flowSource);
+	    Destination d1 = addUserDestination(context, space, "destX1", "destY1", 5);
+	    Destination d2 = addUserDestination(context, space, "destX2", "destY2", 5);
+	    Source flowSource1 = new Source(worldL, worldW, d1, 100, "red");
+	    Source flowSource2 = new Source(worldL, worldW, d2, 100, "blue");
+	    context.add(flowSource1);
+	    context.add(flowSource2);
 		return context;
 	}
 	
@@ -61,11 +64,11 @@ public class roadBuilder extends DefaultContext<Object> implements ContextBuilde
 		return d;
 	}
 	
-	public Destination addUserDestination(Context<Object> context, ContinuousSpace<Object> space, int destExtent) {
+	public Destination addUserDestination(Context<Object> context, ContinuousSpace<Object> space, String paramX, String paramY, int destExtent) {
 		// Get the x&y coords for the destination set by the user
 		Parameters  params = RunEnvironment.getInstance().getParameters();
-		double xCoord = (double)params.getInteger("destX");
-		double yCoord = (double)params.getInteger("destY");
+		double xCoord = (double)params.getInteger(paramX);
+		double yCoord = (double)params.getInteger(paramY);
 		
 		Destination d = new Destination(space, destExtent);
 		context.add(d);
