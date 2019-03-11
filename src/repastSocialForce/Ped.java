@@ -20,7 +20,7 @@ public class Ped {
     private int age;
     public int destExtent; // Distance from extent to exit simulation
     private double endPtDist, endPtTheta, critGap;
-    //private double side = roadBuilder.sidewalk;
+
     private double wS, etaS, wV, etaV, sigR;    //errors
     private double m, horiz, A, B, k, r;        //interactive force constants (accT is also)
     private NdPoint myLoc;
@@ -54,11 +54,11 @@ public class Ped {
         //3-circle variables - from Helbing, et al (2000) [r from Rouphail et al 1998]
         this.accT  = 0.5/UserPanel.tStep;                        //acceleration time, also termed 'relaxation time'. The time over which the pedestrian regains its desired velocity
         this.m     = 80;                                         //avg ped mass in kg
-        this.horiz = 5/roadBuilder.spaceScale;                   //distance at which peds affect each other
-        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/roadBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
-        this.B     = 0.08/roadBuilder.spaceScale;                    //ped distance interaction constant (space units)
+        this.horiz = 5/SpaceBuilder.spaceScale;                   //distance at which peds affect each other
+        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
+        this.B     = 0.08/SpaceBuilder.spaceScale;                    //ped distance interaction constant (space units)
         this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
-        this.r     = 0.275/roadBuilder.spaceScale;                   //ped radius (space units)
+        this.r     = 0.275/SpaceBuilder.spaceScale;                   //ped radius (space units)
     }
     
     /* 
@@ -116,7 +116,7 @@ public class Ped {
         dirToEnd = Vector.unitV(dirToEnd);
         
         // Calculate the bearing to the end point
-        double dpEnd = Vector.dotProd(roadBuilder.north, dirToEnd);
+        double dpEnd = Vector.dotProd(SpaceBuilder.north, dirToEnd);
         double endPtTheta = FastMath.acos(dpEnd);
         
         //calculate motive force 
@@ -142,7 +142,7 @@ public class Ped {
                 dirToPed = Vector.unitV(dirToPed);
                 
                 double dpPed  = Vector.dotProd(this.dir, dirToPed);
-                double dpNPed = Vector.dotProd(roadBuilder.north, dirToPed);
+                double dpNPed = Vector.dotProd(SpaceBuilder.north, dirToPed);
                 
                 if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
                     double absDist = space.getDistance(location, otherLoc);
