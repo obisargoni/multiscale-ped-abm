@@ -52,7 +52,7 @@ public class Ped {
         this.age   = 0; // Placeholder 
 
         //3-circle variables - from Helbing, et al (2000) [r from Rouphail et al 1998]
-        this.accT  = 0.5/UserPanel.tStep;                        //acceleration time
+        this.accT  = 0.5/UserPanel.tStep;                        //acceleration time, also termed 'relaxation time'. The time over which the pedestrian regains its desired velocity
         this.m     = 80;                                         //avg ped mass in kg
         this.horiz = 5/roadBuilder.spaceScale;                   //distance at which peds affect each other
         this.A     = 2000*UserPanel.tStep*UserPanel.tStep/roadBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
