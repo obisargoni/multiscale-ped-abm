@@ -1,5 +1,5 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian Number</name>
+  <name>Pedestrian Count</name>
   <type>AGGREGATE</type>
   <inclTick>true</inclTick>
   <inclBatchRun>false</inclBatchRun>
@@ -11,7 +11,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>776760809</hashCode>
+    <hashCode>84087121</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map"/>

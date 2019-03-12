@@ -7,24 +7,26 @@ import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
-import repast.simphony.space.continuous.ContinuousSpace;
 import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 
 public class Ped {
-    private ContinuousSpace<Object> space;
+    private Geography<Object> geography;
     private List<Double> forcesX, forcesY; 
     private Random rnd = new Random();
     private int age;
-    public int destExtent; // Distance from extent to exit simulation
+    public Destination destination; // Distance from extent to exit simulation
     private double endPtDist, endPtTheta, critGap;
 
     private double wS, etaS, wV, etaV, sigR;    //errors
     private double m, horiz, A, B, k, r;        //interactive force constants (accT is also)
-    private NdPoint myLoc;
-    public NdPoint endPt;
+
     private double[] v, dv, newV, dir; 
     private double xTime, accT, maxV;
     private Color col; // Colour of the pedestrian
@@ -35,10 +37,9 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(ContinuousSpace<Object> space, double[] direction, Destination d, Color col) {
-        this.space = space;
-        this.endPt = space.getLocation(d);
-        this.destExtent = d.getExtent();
+    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col) {
+        this.geography = geography;
+        this.destination = d;
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // a 2D unit vector indicating the position
         this.col = col;
@@ -77,8 +78,10 @@ public class Ped {
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 3)
     public void calc() {
-        this.myLoc = space.getLocation(this);
-        this.dv    = accel(myLoc,endPt);
+    	Coordinate pLoc = this.geography.getGeometry(this).getCoordinate();
+    	Coordinate dLoc = this.geography.getGeometry(this.destination).getCoordinate();
+    	
+        this.dv    = accel(pLoc,dLoc);
         this.newV  = Vector.sumV(v,dv);
         this.newV  = limitV(newV);
     }
@@ -104,7 +107,7 @@ public class Ped {
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel(NdPoint location, NdPoint endPt) {
+    public double[] accel(Coordinate pedLocation, Coordinate destLocation) {
         forcesX = new ArrayList<Double>();
         forcesY = new ArrayList<Double>();
         double xF, yF;
@@ -112,7 +115,7 @@ public class Ped {
         xF = yF = 0;
 
         //calculate heading to endpoint and convert to a unit vector
-        double[] dirToEnd = this.space.getDisplacement(location, endPt);        
+        double[] dirToEnd = {destLocation.x - pedLocation.x, destLocation.y - pedLocation.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
         // Calculate the bearing to the end point
@@ -133,19 +136,19 @@ public class Ped {
         for (Object p :context.getObjects(Ped.class)) {
         	Ped P = (Ped) p;
         	if (P != this) {
-                NdPoint otherLoc = space.getLocation(P);
+                Coordinate otherLoc = geography.getGeometry(P).getCoordinate();
 
         		// Is other pedestrian in front or behind
                 // Get displacement to other pedestrian and use to calculate dot product
                 // If dot product is between 0-1 then other pedestrian is visible
-                double[] dirToPed = this.space.getDisplacement(location, otherLoc);
+                double[] dirToPed = {otherLoc.x - pedLocation.x, otherLoc.y - pedLocation.y};
                 dirToPed = Vector.unitV(dirToPed);
                 
                 double dpPed  = Vector.dotProd(this.dir, dirToPed);
                 double dpNPed = Vector.dotProd(SpaceBuilder.north, dirToPed);
                 
                 if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
-                    double absDist = space.getDistance(location, otherLoc);
+                    double absDist = pedLocation.distance(otherLoc);
                     if (absDist < horiz) { // peds only affected by others within their horizon
                         double signFx  = Math.signum(dirToPed[0]); 
                         double signFy  = Math.signum(dirToPed[1]);
@@ -174,15 +177,14 @@ public class Ped {
         double[] zero = new double[] {0,0};
 
         if (displacement != zero) { 
-            space.moveByDisplacement(this,displacement);
-            setLoc(space.getLocation(this)); // Update the local location variable
-        } 
+        	Geometry pedGeom = geography.getGeometry(this);
+            Coordinate pedLocation = pedGeom.getCoordinate();
+            pedLocation.x += displacement[0];
+            pedLocation.y += displacement[1];
+            geography.move(this,  pedGeom);
+        }
     }
     
-    public void setLoc(NdPoint newLoc) {
-    	this.myLoc = newLoc;
-    }
-
     public double[] limitV(double[] input) {
         double totalV = Vector.mag(input);
         

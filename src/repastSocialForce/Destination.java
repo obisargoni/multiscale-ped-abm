@@ -1,21 +1,14 @@
 package repastSocialForce;
 
-import java.util.Random;
-
 import repast.simphony.space.continuous.ContinuousSpace;
-import repast.simphony.space.continuous.NdPoint;
+import repast.simphony.space.gis.Geography;
 
 public class Destination {
-	private int ext;
-	private ContinuousSpace<Object> space;
+
+	private Geography<Object> geography;
 		
-	public Destination(ContinuousSpace<Object> space, int extent) {
-		this.space = space;
-		this.ext = extent;
-	}
-	
-	public int getExtent() {
-		return this.ext;
+	public Destination(Geography<Object> geography) {
+		this.geography = geography;
 	}
 
 }

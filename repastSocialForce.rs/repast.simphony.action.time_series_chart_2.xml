@@ -1,9 +1,9 @@
 <repast.simphony.chart2.engine.TimeSeriesChartDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian Count Time Series</name>
-  <dataSet>Pedestrian Number</dataSet>
+  <name>Pedestrian Counts</name>
+  <dataSet>Pedestrian Count</dataSet>
   <xAxisLabel>Tick Count</xAxisLabel>
   <yAxisLabel></yAxisLabel>
-  <chartTitle>Pedestrian Count</chartTitle>
+  <chartTitle>Pedestrian Counts</chartTitle>
   <type>TIME_SERIES</type>
   <background>
     <red>192</red>

@@ -1,20 +1,20 @@
-<repast.simphony.visualization.engine.CartesianDisplayDescriptor simphonyVersion="2.6.0">
-  <name>Ped Display</name>
-  <type>2D</type>
+<repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
+  <name>Ped 3D Display</name>
+  <type>GIS 3D</type>
   <styles>
     <entry>
       <string>repastSocialForce.Destination</string>
-      <string>repast.simphony.visualization.editedStyle.EditedStyle2D</string>
+      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
-      <string>repastSocialForce.PedStyler</string>
+      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
       <string>repastSocialForce.Destination</string>
-      <string>repastSocialForce.Destination.style_1.xml</string>
+      <null/>
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
@@ -23,7 +23,7 @@
   </editedStyles>
   <netStyles/>
   <editedNetStyles/>
-  <frequency>ON_MOVE</frequency>
+  <frequency>ON_NEW</frequency>
   <schedParams>
     <start>1.0</start>
     <interval>1.0</interval>
@@ -31,10 +31,8 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>116110734</hashCode>
+    <hashCode>1109362975</hashCode>
   </schedParams>
-  <layoutClassName>foo.bar.baz</layoutClassName>
-  <layoutProjection>space</layoutProjection>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
@@ -48,39 +46,18 @@
   </layerOrder>
   <projections>
     <repast.simphony.scenario.data.ProjectionData>
-      <id>space</id>
+      <id>Geography</id>
       <attributes/>
-      <type>continuous space</type>
+      <type>geography</type>
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
-  <visualizationProperties class="repast.simphony.visualization.UnitSizeLayoutProperties">
-    <unitSize>15.0</unitSize>
-  </visualizationProperties>
   <projectionDescriptors>
     <entry>
-      <string>space</string>
-      <repast.simphony.visualization.continuous.ContinuousProjectionDescriptor>
+      <string>Geography</string>
+      <repast.simphony.visualization.gis.GisProjectionDescriptor>
         <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData"/>
-        <props>
-          <entry>
-            <string>repast.simphony.visualization.continuous.ContinuousDecorator</string>
-            <map>
-              <entry>
-                <string>COLOR</string>
-                <int>-16777216</int>
-              </entry>
-              <entry>
-                <string>UNIT_SIZE</string>
-                <float>15.0</float>
-              </entry>
-              <entry>
-                <string>SHOW</string>
-                <boolean>true</boolean>
-              </entry>
-            </map>
-          </entry>
-        </props>
-      </repast.simphony.visualization.continuous.ContinuousProjectionDescriptor>
+        <props/>
+      </repast.simphony.visualization.gis.GisProjectionDescriptor>
     </entry>
   </projectionDescriptors>
   <props/>
@@ -90,5 +67,10 @@
     <blue>255</blue>
     <alpha>255</alpha>
   </backgroundColor>
-  <valueLayers/>
-</repast.simphony.visualization.engine.CartesianDisplayDescriptor>
+  <renderQuality>MEDIUM</renderQuality>
+  <viewType>FLAT</viewType>
+  <trackAgents>false</trackAgents>
+  <globeLayers/>
+  <staticCoverages/>
+  <coverageLayers/>
+</repast.simphony.gis.visualization.engine.GISDisplayDescriptor>
