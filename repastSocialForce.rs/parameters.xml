@@ -7,7 +7,7 @@
 									
 		/>
 				<parameter name="nPeds" displayName="Number of Pedestrians" type="int" 
-						defaultValue="400" 
+						defaultValue="50" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

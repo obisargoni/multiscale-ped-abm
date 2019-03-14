@@ -1,8 +1,12 @@
 package repastSocialForce;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -11,29 +15,19 @@ import org.opengis.feature.simple.SimpleFeature;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-
-import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.engine.schedule.ISchedule;
-import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.gis.RepastCoverageFactory;
+import repast.simphony.space.gis.WritableGridCoverage2D;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
@@ -52,14 +46,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	   
 		// Initiate geographic spaces
 		GeographyParameters geoParams = new GeographyParameters();
+		//geoParams.setCrs("EPSG:27700");
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
-	    context.add(geography);
+	    
+		// Add raster coverage from file to the geography
+		//File osmaster_raster = new File("S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\Clipped layers\\Masterma_1250_clipped.tif");
+		//WritableGridCoverage2D coverage = RepastCoverageFactory.createWritableCoverageFromFile(osmaster_raster, true);
+		//geography.addCoverage("osraster", coverage);
+		
+		context.add(geography);
 	    
 		GeometryFactory fac = new GeometryFactory();
 	    
 	    // Code below taken from the 'Geography' repast example
 		// Create an area in which to create agents.  This border is loaded from a shapefile.
-		String boundaryFilename = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\JunctClip.shp";
+		String boundaryFilename = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\JunctClipWSG84.shp";
 		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
 		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
 		
