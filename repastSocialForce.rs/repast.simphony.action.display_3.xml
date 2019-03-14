@@ -1,5 +1,5 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian 3D GIS</name>
+  <name>Ped 3D GIS Display</name>
   <type>GIS 3D</type>
   <styles>
     <entry>
@@ -31,7 +31,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>136105948</hashCode>
+    <hashCode>1323238437</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
@@ -70,17 +70,7 @@
   <renderQuality>MEDIUM</renderQuality>
   <viewType>FLAT</viewType>
   <trackAgents>false</trackAgents>
-  <globeLayers>
-    <entry>
-      <string>Open Street Map</string>
-      <boolean>false</boolean>
-    </entry>
-  </globeLayers>
-  <staticCoverages>
-    <entry>
-      <string>./data/Masterma_1250_clippedWSG84.tif</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultCoverageStyle</string>
-    </entry>
-  </staticCoverages>
+  <globeLayers/>
+  <staticCoverages/>
   <coverageLayers/>
 </repast.simphony.gis.visualization.engine.GISDisplayDescriptor>
