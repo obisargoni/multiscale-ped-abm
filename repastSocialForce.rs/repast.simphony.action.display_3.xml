@@ -8,7 +8,7 @@
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
+      <string>repastSocialForce.GISStyler</string>
     </entry>
   </styles>
   <editedStyles>
@@ -31,7 +31,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-757757669</hashCode>
+    <hashCode>136105948</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>

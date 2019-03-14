@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.geotools.renderer.style.MarkStyle2D;
 
+import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.render.BasicWWTexture;
 import gov.nasa.worldwind.render.Material;
@@ -21,18 +22,22 @@ import repast.simphony.visualization.gis3D.style.MarkStyle;
 public class PedGISStyle implements MarkStyle<Ped> {
 	
 	private Map<String, WWTexture> textureMap;
+	private Offset labelOffset;
 	
 	public PedGISStyle(){
+		
+		labelOffset = new Offset(1.2d, 0.6d, AVKey.FRACTION, AVKey.FRACTION);
+
 		
 		/**
 		 * Use of a map to store textures significantly reduces CPU and memory use
 		 * since the same texture can be reused.  Textures can be created for different
 		 * agent states and re-used when needed.
-		 */
+		 */		
 		textureMap = new HashMap<String, WWTexture>();
 		
 		BufferedImage image = PatternFactory.createPattern(PatternFactory.PATTERN_CIRCLE, 
-				new Dimension(10, 10), 0.7f,  Color.BLUE);
+				new Dimension(50, 50), 0.7f,  Color.BLUE);
 		
 		textureMap.put("blue circle", new BasicWWTexture(image));
 		
@@ -47,12 +52,16 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	 */
 	@Override
 	public WWTexture getTexture(Ped object, WWTexture texture) {
+		/*
 		if (((Ped)object).getColor() == Color.RED){
 			return textureMap.get("red circle");
 		}
 		else{
 			return textureMap.get("blue circle");
 		}
+		*/
+		
+		return textureMap.get("blue circle");
 	}
 
 	/* (non-Javadoc)
@@ -70,7 +79,14 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public PlaceMark getPlaceMark(Ped object, PlaceMark mark) {
 		// TODO Auto-generated method stub
-		return null;
+		// PlaceMark is null on first call.
+		if (mark == null)
+			mark = new PlaceMark();
+		
+		mark.setAltitudeMode(WorldWind.RELATIVE_TO_GROUND);
+		mark.setLineEnabled(false);
+		
+		return mark;
 	}
 
 	/* (non-Javadoc)
@@ -79,7 +95,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public Offset getIconOffset(Ped obj) {
 		// TODO Auto-generated method stub
-		return null;
+		return Offset.CENTER;
 	}
 
 	/* (non-Javadoc)
@@ -115,7 +131,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public Color getLabelColor(Ped obj) {
 		// TODO Auto-generated method stub
-		return null;
+		return ((Ped)obj).getColor();
 	}
 
 	/* (non-Javadoc)
@@ -133,7 +149,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public Offset getLabelOffset(Ped obj) {
 		// TODO Auto-generated method stub
-		return null;
+		return labelOffset;
 	}
 
 	/* (non-Javadoc)
@@ -151,7 +167,11 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public Material getLineMaterial(Ped obj, Material lineMaterial) {
 		// TODO Auto-generated method stub
-		return null;
+		if (lineMaterial == null){
+			lineMaterial = new Material(Color.RED);
+		}
+		
+		return lineMaterial;
 	}
 	
 	

@@ -65,8 +65,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    Destination d1 = addRandomDestination(context, geography, fac, boundary, 0.01);
-	    Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01);
+	    Destination d1 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
+	    Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
 	    //Destination d1 = addUserDestination(context, geography, fac, "destX1", "destY1", 5);
 	    //Destination d2 = addUserDestination(context, geography, fac, "destX2", "destY2", 5);
 	    
@@ -91,9 +91,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return context;
 	}
 	
-	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent) {
+	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c) {
 		
-		Destination d = new Destination(geography);
+		Destination d = new Destination(geography, c);
 		context.add(d);
 		
 		// Initialize random coordinates for the destination
@@ -107,9 +107,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return d;
 	}
 	
-	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent) {
+	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent, Color c) {
 		
-		Destination d = new Destination(geography);
+		Destination d = new Destination(geography, c);
 		context.add(d);
 		
 		// Get the x&y coords for the destination set by the user
@@ -130,10 +130,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double[] direction, Coordinate coord, Destination d, Color color) {
+    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double[] direction, Coordinate coord, Destination d, Color c) {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, direction, d, color);
+        Ped newPed = new Ped(geography, direction, d, c);
         context.add(newPed);
         
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 

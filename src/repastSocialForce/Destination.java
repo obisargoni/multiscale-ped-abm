@@ -1,5 +1,6 @@
 package repastSocialForce;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -15,9 +16,11 @@ import repast.simphony.util.ContextUtils;
 public class Destination {
 
 	private Geography<Object> geography;
+	private Color colour; // Colour of the destination
 		
-	public Destination(Geography<Object> geography) {
+	public Destination(Geography<Object> geography, Color col) {
 		this.geography = geography;
+		this.colour = col;
 	}
 	
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
