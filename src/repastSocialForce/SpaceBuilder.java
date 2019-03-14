@@ -17,8 +17,11 @@ import org.opengis.feature.simple.SimpleFeature;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -50,25 +53,36 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	   
 		// Initiate geographic spaces
 		GeographyParameters geoParams = new GeographyParameters();
-		//geoParams.setCrs("EPSG:27700");
+		
+		// Use GB Coordinate projection
+		geoParams.setCrs("EPSG:27700");
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
 		
+		String checkCRS = geoParams.getCrs();
 		context.add(geography);
 	    
 		GeometryFactory fac = new GeometryFactory();
 	    
 	    // Code below taken from the 'Geography' repast example
 		// Create an area in which to create agents.  This border is loaded from a shapefile.
-		String boundaryFilename = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\JunctClipWSG84.shp";
+		String boundaryFilename = ".//data//JunctClip.shp";
 		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
 		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
 		
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    Destination d1 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
-	    Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
+	    //Destination d1 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
+	    //Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
 	    //Destination d1 = addUserDestination(context, geography, fac, "destX1", "destY1", 5);
 	    //Destination d2 = addUserDestination(context, geography, fac, "destX2", "destY2", 5);
+		List<Destination> destinations = loadFeatures (".//data//destCoords.shp", context, geography);
+	    
+	    // Calculate the distance between destinations to better understand units
+	    Geometry g1 = (Point)geography.getGeometry(destinations.get(0));
+	    Geometry g2 = (Point)geography.getGeometry(destinations.get(1));
+	    
+	    double dist = g2.distance(g1);
+	    
 	    
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
@@ -85,7 +99,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		double randBearing = randCoord.nextFloat() * FastMath.PI * 2;
     		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
 			
-    		Ped newPed = addPed(context, geography, fac, dir,coord, d1, Color.BLUE);
+    		Ped newPed = addPed(context, geography, fac, dir,coord, destinations.get(0), Color.BLUE);
 		}
 		
 		return context;
@@ -178,6 +192,52 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		return features;
+	}
+	
+	/**
+	 * Loads features from the specified shapefile.  The appropriate type of agents
+	 * will be created depending on the geometry type in the shapefile (point, 
+	 * line, polygon).
+	 * 
+	 * @param filename the name of the shapefile from which to load agents
+	 * @param context the context
+	 * @param geography the geography
+	 */
+	private List<Destination> loadFeatures (String filename, Context context, Geography geography){
+
+		List<SimpleFeature> features = loadFeaturesFromShapefile(filename);
+		List<Destination> destinations = new ArrayList<Destination>();
+		
+		// For each feature in the file
+		for (SimpleFeature feature : features){
+			Geometry geom = (Geometry)feature.getDefaultGeometry();
+			Object agent = null;
+
+			if (!geom.isValid()){
+				System.out.println("Invalid geometry: " + feature.getID());
+			}
+			
+
+			// For Points, create Destination agents
+			if (geom instanceof Point){
+				geom = (Point)feature.getDefaultGeometry();		
+				
+				agent = new Destination(geography, Color.RED);
+				
+				destinations.add((Destination)agent);
+								
+			}
+
+			if (agent != null){
+				context.add(agent);
+				geography.move(agent, geom);
+			}
+			else{
+				System.out.println("Error creating agent for  " + geom);
+			}
+		}
+		
+		return destinations;
 	}
 	
 }
