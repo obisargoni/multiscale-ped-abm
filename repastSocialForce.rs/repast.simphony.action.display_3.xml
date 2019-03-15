@@ -31,17 +31,21 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1323238437</hashCode>
+    <hashCode>-1915566953</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
       <string>repastSocialForce.Destination</string>
-      <int>0</int>
+      <int>1</int>
     </entry>
     <entry>
       <string>repastSocialForce.Ped</string>
-      <int>1</int>
+      <int>2</int>
+    </entry>
+    <entry>
+      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
+      <int>0</int>
     </entry>
   </layerOrder>
   <projections>
@@ -71,6 +75,11 @@
   <viewType>FLAT</viewType>
   <trackAgents>false</trackAgents>
   <globeLayers/>
-  <staticCoverages/>
+  <staticCoverages>
+    <entry>
+      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
+      <string>repast.simphony.visualization.gis3D.style.DefaultCoverageStyle</string>
+    </entry>
+  </staticCoverages>
   <coverageLayers/>
 </repast.simphony.gis.visualization.engine.GISDisplayDescriptor>

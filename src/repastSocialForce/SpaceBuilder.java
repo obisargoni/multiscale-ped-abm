@@ -13,28 +13,23 @@ import org.apache.commons.math3.util.FastMath;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.engine.schedule.ScheduleParameters;
-import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.util.ContextUtils;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
@@ -52,20 +47,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.setId("repastSocialForce");
 	   
 		// Initiate geographic spaces
-		GeographyParameters geoParams = new GeographyParameters();
-		
+		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
+
 		// Use GB Coordinate projection
-		geoParams.setCrs("EPSG:27700");
+		geoParams.setCrs("EPSG:4277"); // 4277
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
 		
-		String checkCRS = geoParams.getCrs();
+		CoordinateReferenceSystem crs = geography.getCRS();
 		context.add(geography);
 	    
 		GeometryFactory fac = new GeometryFactory();
 	    
 	    // Code below taken from the 'Geography' repast example
 		// Create an area in which to create agents.  This border is loaded from a shapefile.
-		String boundaryFilename = ".//data//JunctClip.shp";
+		String boundaryFilename = ".//data//JunctClipEPSG4277.shp";
 		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
 		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
 		
@@ -75,7 +70,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    //Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
 	    //Destination d1 = addUserDestination(context, geography, fac, "destX1", "destY1", 5);
 	    //Destination d2 = addUserDestination(context, geography, fac, "destX2", "destY2", 5);
-		List<Destination> destinations = loadFeatures (".//data//destCoords.shp", context, geography);
+		List<Destination> destinations = loadFeatures (".//data//destCoordsEPSG4277.shp", context, geography);
 	    
 	    // Calculate the distance between destinations to better understand units
 	    Geometry g1 = (Point)geography.getGeometry(destinations.get(0));

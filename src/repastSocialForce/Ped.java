@@ -80,7 +80,7 @@ public class Ped {
     public void calc() {
     	Coordinate pLoc = this.geography.getGeometry(this).getCoordinate();
     	Coordinate dLoc = this.geography.getGeometry(this.destination).getCoordinate();
-    	
+
         this.dv    = accel(pLoc,dLoc);
         this.newV  = Vector.sumV(v,dv);
         this.newV  = limitV(newV);
