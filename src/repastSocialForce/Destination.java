@@ -27,11 +27,9 @@ public class Destination {
 	private MathTransform transformtoMetre;
 	private MathTransform transformtoDegree;
 		
-	public Destination(Geography<Object> geography, Color col, MathTransform ttM, MathTransform ttD) {
+	public Destination(Geography<Object> geography, Color col) {
 		this.geography = geography;
 		this.colour = col;
-		this.transformtoMetre = ttM;
-		this.transformtoDegree = ttD;
 	}
 	
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
@@ -50,14 +48,12 @@ public class Destination {
 	        for (Object p :context.getObjects(Ped.class)) {
 	        	Ped P = (Ped) p;
 	        	
-	        	// Get the geometries and transform to projection in metres
-	        	
-	        	Geometry dGeom = JTS.transform(geography.getGeometry(P.destination), this.transformtoMetre);
-	        	Geometry coordP = JTS.transform(geography.getGeometry(P), this.transformtoMetre);
+	        	// Get the geometries in the CRS used for spatial calculations
+	        	Geometry dGeom = SpaceBuilder.getGeometryForCalculation(this.geography, P.destination);
+	        	Geometry coordP = SpaceBuilder.getGeometryForCalculation(this.geography, P);
 	        	
 	        	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
 	        	if (dGeom.isWithinDistance(coordP, this.arrivalDist)) {
-	        		//Source.removedPeds.add(P);
 	        		PedsToRemove.add(P);
 	        		break; // End the iteration since iterating over context having modified it can throw an exception
 	        	}
