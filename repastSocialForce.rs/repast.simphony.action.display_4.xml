@@ -1,5 +1,5 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>Ped 2D GIS Display</name>
+  <name>Ped 2D Display</name>
   <type>GIS</type>
   <styles>
     <entry>
@@ -22,7 +22,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>391457706</hashCode>
+    <hashCode>1999146972</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
@@ -57,8 +57,15 @@
       <map/>
     </entry>
   </props>
+  <renderQuality>MEDIUM</renderQuality>
+  <viewType>FLAT</viewType>
   <trackAgents>false</trackAgents>
   <globeLayers/>
   <staticCoverages/>
-  <coverageLayers/>
+  <coverageLayers>
+    <entry>
+      <string>intersection</string>
+      <null/>
+    </entry>
+  </coverageLayers>
 </repast.simphony.gis.visualization.engine.GISDisplayDescriptor>
