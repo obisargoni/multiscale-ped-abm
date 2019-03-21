@@ -134,8 +134,8 @@ public class Ped {
         double endPtTheta = FastMath.acos(dpEnd);
         
         //calculate motive force 
-        double motFx = Math.signum(dirToEnd[0])*Math.abs(maxV*Math.sin(endPtTheta) - v[0])/accT;
-        double motFy = Math.signum(dirToEnd[1])*Math.abs(maxV*Math.cos(endPtTheta) - v[1])/accT;
+        double motFx = Math.signum(dirToEnd[0])*Math.abs(Math.abs(maxV*Math.sin(endPtTheta)) - v[0])/accT;
+        double motFy = Math.signum(dirToEnd[1])*Math.abs(Math.abs(maxV*Math.cos(endPtTheta)) - v[1])/accT;
         forcesX.add(motFx);
         forcesY.add(motFy);
 
@@ -175,7 +175,6 @@ public class Ped {
                     }
                 }
         	}
-        	
 
         //sum all forces
         for (Double b : forcesX) {
