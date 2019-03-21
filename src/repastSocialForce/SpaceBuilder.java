@@ -12,8 +12,12 @@ import java.util.Random;
 import org.apache.commons.math3.util.FastMath;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.factory.Hints;
+import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -49,12 +53,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 
-		// Use GB Coordinate projection
+		// Use GB Coordinate projection, also define a transform between degree and metre projections
 		geoParams.setCrs("EPSG:4277"); // 4277
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
-		
-		CoordinateReferenceSystem crs = geography.getCRS();
 		context.add(geography);
+		
+
+		// Not sure what this line does and whether it is required
+		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
+		CoordinateReferenceSystem sourceCRS = null;
+		CoordinateReferenceSystem targetCRS = null;
+		MathTransform transformtoMetre = null;
+		MathTransform transformtoDegree = null;
+		try {
+			sourceCRS = CRS.decode("EPSG:4277");
+			targetCRS = CRS.decode("EPSG:27700");
+			transformtoMetre = CRS.findMathTransform(sourceCRS, targetCRS);
+			transformtoDegree = CRS.findMathTransform(targetCRS, sourceCRS);
+
+		} catch (FactoryException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	    
 		GeometryFactory fac = new GeometryFactory();
 	    
@@ -66,18 +86,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	    
 	    // A separate class is used to handle the creation of pedestrians
-	    //Destination d1 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
-	    //Destination d2 = addRandomDestination(context, geography, fac, boundary, 0.01, Color.RED);
-	    //Destination d1 = addUserDestination(context, geography, fac, "destX1", "destY1", 5);
-	    //Destination d2 = addUserDestination(context, geography, fac, "destX2", "destY2", 5);
-		List<Destination> destinations = loadFeatures (".//data//destCoordsEPSG4277.shp", context, geography);
-	    
-	    // Calculate the distance between destinations to better understand units
-	    Geometry g1 = (Point)geography.getGeometry(destinations.get(0));
-	    Geometry g2 = (Point)geography.getGeometry(destinations.get(1));
-	    
-	    double dist = g2.distance(g1);
-	    
+		List<Destination> destinations = loadFeatures (".//data//destCoordsEPSG4277.shp", context, geography, transformtoMetre, transformtoDegree);	    
 	    
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
@@ -94,15 +103,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		double randBearing = randCoord.nextFloat() * FastMath.PI * 2;
     		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
 			
-    		Ped newPed = addPed(context, geography, fac, dir,coord, destinations.get(0), Color.BLUE);
+    		Ped newPed = addPed(context, geography, fac, dir,coord, destinations.get(0), Color.BLUE, transformtoMetre, transformtoDegree);
 		}
 		
 		return context;
 	}
 	
-	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c) {
+	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c, MathTransform ttM, MathTransform ttD) {
 		
-		Destination d = new Destination(geography, c);
+		Destination d = new Destination(geography, c, ttM, ttD);
 		context.add(d);
 		
 		// Initialize random coordinates for the destination
@@ -116,9 +125,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return d;
 	}
 	
-	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent, Color c) {
+	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent, Color c, MathTransform ttM, MathTransform ttD) {
 		
-		Destination d = new Destination(geography, c);
+		Destination d = new Destination(geography, c, ttM, ttD);
 		context.add(d);
 		
 		// Get the x&y coords for the destination set by the user
@@ -139,10 +148,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double[] direction, Coordinate coord, Destination d, Color c) {
+    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double[] direction, Coordinate coord, Destination d, Color c, MathTransform ttM, MathTransform ttD) {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, direction, d, c);
+        Ped newPed = new Ped(geography, direction, d, c, ttM, ttD);
         context.add(newPed);
         
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 
@@ -198,7 +207,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param context the context
 	 * @param geography the geography
 	 */
-	private List<Destination> loadFeatures (String filename, Context context, Geography geography){
+	private List<Destination> loadFeatures (String filename, Context context, Geography geography, MathTransform ttM, MathTransform ttD){
 
 		List<SimpleFeature> features = loadFeaturesFromShapefile(filename);
 		List<Destination> destinations = new ArrayList<Destination>();
@@ -217,7 +226,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			if (geom instanceof Point){
 				geom = (Point)feature.getDefaultGeometry();		
 				
-				agent = new Destination(geography, Color.RED);
+				agent = new Destination(geography, Color.RED, ttM, ttD);
 				
 				destinations.add((Destination)agent);
 								
