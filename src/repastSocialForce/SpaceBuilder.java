@@ -85,7 +85,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Load the raster data as coverage
-		File coverageFile = new File("Masterma_1250_clippedEPSG4277.tif");
+		File coverageFile = new File(".//data//Masterma_1250_clippedEPSG4277.tif");
 		WritableGridCoverage2D intersection = RepastCoverageFactory.createWritableCoverageFromFile(coverageFile, true);
 		geography.addCoverage("intersection", intersection);
 	    
