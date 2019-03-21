@@ -46,7 +46,7 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col, MathTransform ttM, MathTransform ttD) {
+    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
@@ -69,9 +69,7 @@ public class Ped {
         this.B     = 0.08/SpaceBuilder.spaceScale;                    //ped distance interaction constant (space units)
         this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
         this.r     = 0.275/SpaceBuilder.spaceScale; //ped radius (space units)
-        
-        this.transformtoMetre = ttM;
-        this.transformtoDegree = ttD;
+
     }
     
     
@@ -82,14 +80,11 @@ public class Ped {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void walk() throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException {
     	
-    	// Change the CRS of the pedestrian geometry so that units are in meters, makes the model easier to compute
-    	Geometry pGeom = this.geography.getGeometry(this);
-    	pGeom = JTS.transform(pGeom, this.transformtoMetre);
-    	Coordinate pLoc = pGeom.getCoordinate();
-    	
-    	Geometry lGeom = this.geography.getGeometry(this.destination);
-    	lGeom =  JTS.transform(lGeom, this.transformtoMetre);   	
-    	Coordinate dLoc = lGeom.getCoordinate();
+    	// Get the geometry of the pedestrian agent and its destination in the CRS used for spatial calculations
+    	Geometry pGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this);
+     	Coordinate pLoc = pGeom.getCoordinate();
+    	Geometry dGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this.destination);
+    	Coordinate dLoc = dGeom.getCoordinate();
     	
         this.dv    = accel(pLoc,dLoc);
         this.newV  = Vector.sumV(v,dv);
@@ -102,10 +97,9 @@ public class Ped {
         pLoc.x += this.v[0];
         pLoc.y += this.v[1];
         
-        // Transform the vgGeometry back to the CRS used by the geography
-        pGeom = JTS.transform(pGeom, this.transformtoDegree);
-        geography.move(this, pGeom);
-        
+        // Move the agent to the new location. This requires transforming the geometry 
+        // back to the geometry used by the geography, which is what this function does.
+        SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeom, this);
     }
     
 
@@ -147,8 +141,8 @@ public class Ped {
         for (Object p :context.getObjects(Ped.class)) {
         	Ped P = (Ped) p;
         	if (P != this) {
-        		// Transform coordinate of other pedestrian so that units are also in metres
-        		Geometry otherGeom = JTS.transform(geography.getGeometry(P), this.transformtoMetre);
+        		// Get the geometry of the other pedestrian agent in the CRS used for spatial calculations
+        		Geometry otherGeom = SpaceBuilder.getGeometryForCalculation(this.geography, P);
                 Coordinate otherLoc = otherGeom.getCoordinate();
 
         		// Is other pedestrian in front or behind
