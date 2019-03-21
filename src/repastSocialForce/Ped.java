@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
+import org.geotools.geometry.jts.JTS;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -35,13 +37,16 @@ public class Ped {
     private double xTime, accT, maxV;
     private Color col; // Colour of the pedestrian
     
+    private MathTransform transformtoMetre;
+	private MathTransform transformtoDegree;
+    
     /*
      * Instance method for the Ped class.
      * 
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col) {
+    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col, MathTransform ttM, MathTransform ttD) {
         this.geography = geography;
         this.destination = d;
         this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
@@ -63,7 +68,10 @@ public class Ped {
         this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
         this.B     = 0.08/SpaceBuilder.spaceScale;                    //ped distance interaction constant (space units)
         this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
-        this.r     = 0.275/SpaceBuilder.spaceScale;                   //ped radius (space units)
+        this.r     = 0.275/SpaceBuilder.spaceScale; //ped radius (space units)
+        
+        this.transformtoMetre = ttM;
+        this.transformtoDegree = ttD;
     }
     
     
@@ -72,15 +80,15 @@ public class Ped {
      * given its location, north and destination.
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
-    public void walk() {
+    public void walk() throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException {
     	
     	// Change the CRS of the pedestrian geometry so that units are in meters, makes the model easier to compute
     	Geometry pGeom = this.geography.getGeometry(this);
-    	pGeom =  Vector.geomCRSTrans(pGeom, "EPSG:4277", "EPSG:27700");
+    	pGeom = JTS.transform(pGeom, this.transformtoMetre);
     	Coordinate pLoc = pGeom.getCoordinate();
     	
     	Geometry lGeom = this.geography.getGeometry(this.destination);
-    	lGeom =  Vector.geomCRSTrans(lGeom, "EPSG:4277", "EPSG:27700");    	
+    	lGeom =  JTS.transform(lGeom, this.transformtoMetre);   	
     	Coordinate dLoc = lGeom.getCoordinate();
     	
         this.dv    = accel(pLoc,dLoc);
@@ -95,7 +103,7 @@ public class Ped {
         pLoc.y += this.v[1];
         
         // Transform the vgGeometry back to the CRS used by the geography
-        pGeom = Vector.geomCRSTrans(pGeom, "EPSG:27700", "EPSG:4277");
+        pGeom = JTS.transform(pGeom, this.transformtoDegree);
         geography.move(this, pGeom);
         
     }
@@ -110,7 +118,7 @@ public class Ped {
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel(Coordinate pedLocation, Coordinate destLocation) {
+    public double[] accel(Coordinate pedLocation, Coordinate destLocation) throws MismatchedDimensionException, TransformException {
         forcesX = new ArrayList<Double>();
         forcesY = new ArrayList<Double>();
         double xF, yF;
@@ -139,7 +147,9 @@ public class Ped {
         for (Object p :context.getObjects(Ped.class)) {
         	Ped P = (Ped) p;
         	if (P != this) {
-                Coordinate otherLoc = geography.getGeometry(P).getCoordinate();
+        		// Transform coordinate of other pedestrian so that units are also in metres
+        		Geometry otherGeom = JTS.transform(geography.getGeometry(P), this.transformtoMetre);
+                Coordinate otherLoc = otherGeom.getCoordinate();
 
         		// Is other pedestrian in front or behind
                 // Get displacement to other pedestrian and use to calculate dot product
