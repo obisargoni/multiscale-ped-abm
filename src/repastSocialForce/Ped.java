@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
+import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -62,39 +66,38 @@ public class Ped {
         this.r     = 0.275/SpaceBuilder.spaceScale;                   //ped radius (space units)
     }
     
-    /* 
-     * The pedestrian method to be scheduled. This method updates the pedestrian's
-     * acceleration and velocity and walks the pedestrians following this update
-     */
-    //@ScheduledMethod(start = 1, interval = 1)
-    public void step() {
-    	calc(); // Calculate the pedestrian's new acceleration and velocity
-    	walk(); // Walk the pedestrian
-    }
     
     /*
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, north and destination.
      */
-    @ScheduledMethod(start = 1, interval = 1, priority = 3)
-    public void calc() {
-    	Coordinate pLoc = this.geography.getGeometry(this).getCoordinate();
-    	Coordinate dLoc = this.geography.getGeometry(this.destination).getCoordinate();
-
+    @ScheduledMethod(start = 1, interval = 1, priority = 2)
+    public void walk() {
+    	
+    	// Change the CRS of the pedestrian geometry so that units are in meters, makes the model easier to compute
+    	Geometry pGeom = this.geography.getGeometry(this);
+    	pGeom =  Vector.geomCRSTrans(pGeom, "EPSG:4277", "EPSG:27700");
+    	Coordinate pLoc = pGeom.getCoordinate();
+    	
+    	Geometry lGeom = this.geography.getGeometry(this.destination);
+    	lGeom =  Vector.geomCRSTrans(lGeom, "EPSG:4277", "EPSG:27700");    	
+    	Coordinate dLoc = lGeom.getCoordinate();
+    	
         this.dv    = accel(pLoc,dLoc);
         this.newV  = Vector.sumV(v,dv);
         this.newV  = limitV(newV);
-    }
-
-    /*
-     * Move the pedestrian to a new location.
-     */
-    @ScheduledMethod(start = 1, interval = 1, priority = 2)
-    public void walk() { 
+        
     	// Update the direction and velocity of pedestrian
     	this.dir = Vector.unitV(newV);
         this.v = newV;
-        move(v);
+                
+        pLoc.x += this.v[0];
+        pLoc.y += this.v[1];
+        
+        // Transform the vgGeometry back to the CRS used by the geography
+        pGeom = Vector.geomCRSTrans(pGeom, "EPSG:27700", "EPSG:4277");
+        geography.move(this, pGeom);
+        
     }
     
 
@@ -123,8 +126,8 @@ public class Ped {
         double endPtTheta = FastMath.acos(dpEnd);
         
         //calculate motive force 
-        double motFx = (maxV*Math.sin(endPtTheta) - v[0])/accT;
-        double motFy = (maxV*Math.cos(endPtTheta) - v[1])/accT;
+        double motFx = Math.signum(dirToEnd[0])*Math.abs(maxV*Math.sin(endPtTheta) - v[0])/accT;
+        double motFy = Math.signum(dirToEnd[1])*Math.abs(maxV*Math.cos(endPtTheta) - v[1])/accT;
         forcesX.add(motFx);
         forcesY.add(motFy);
 
@@ -154,8 +157,8 @@ public class Ped {
                         double signFy  = Math.signum(dirToPed[1]);
                         double theta   = FastMath.acos(dpNPed);
                         double rij     = this.r + P.r;
-                        double interFx = A*Math.exp((rij-absDist)/B)*Math.sin(theta)/m;
-                        double interFy = A*Math.exp((rij-absDist)/B)*Math.cos(theta)/m;
+                        double interFx = signFx*A*Math.exp((rij-absDist)/B)*Math.abs(Math.sin(theta))/m;
+                        double interFy = signFy*A*Math.exp((rij-absDist)/B)*Math.abs(Math.cos(theta))/m;
                         forcesX.add(interFx);
                         forcesY.add(interFy);
                         }
@@ -173,17 +176,6 @@ public class Ped {
         return acc;
     }
 
-    public void move(double[] displacement) {
-        double[] zero = new double[] {0,0};
-
-        if (displacement != zero) { 
-        	Geometry pedGeom = geography.getGeometry(this);
-            Coordinate pedLocation = pedGeom.getCoordinate();
-            pedLocation.x += displacement[0];
-            pedLocation.y += displacement[1];
-            geography.move(this,  pedGeom);
-        }
-    }
     
     public double[] limitV(double[] input) {
         double totalV = Vector.mag(input);
