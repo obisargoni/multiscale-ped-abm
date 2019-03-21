@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math3.util.FastMath;
-import org.geotools.geometry.jts.JTS;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
@@ -18,7 +17,6 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
-import repast.simphony.space.continuous.NdPoint;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 
@@ -113,14 +111,24 @@ public class Ped {
      * @return a double representing the pedestrian's new acceleration
      */
     public double[] accel(Coordinate pedLocation, Coordinate destLocation) throws MismatchedDimensionException, TransformException {
-        forcesX = new ArrayList<Double>();
-        forcesY = new ArrayList<Double>();
-        double xF, yF;
-        double[] acc;
-        xF = yF = 0;
+        
+        double[] drivingForce, interactionForce, acc;
+        
+        // Calculate driving force
+        drivingForce = sfDrivingForce(pedLocation, destLocation);
 
+
+        //calculate interactive forces        
+        interactionForce = sfTotalInteractiveForce(pedLocation);
+        
+        acc = new double[] {drivingForce[0] + interactionForce[0], drivingForce[1] + interactionForce[1]};
+        return acc;
+    }
+    
+    public double[] sfDrivingForce(Coordinate pLoc, Coordinate dLoc) {
+    	
         //calculate heading to endpoint and convert to a unit vector
-        double[] dirToEnd = {destLocation.x - pedLocation.x, destLocation.y - pedLocation.y};        
+        double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
         // Calculate the bearing to the end point
@@ -130,55 +138,64 @@ public class Ped {
         //calculate motive force 
         double motFx = Math.signum(dirToEnd[0])*Math.abs(Math.abs(maxV*Math.sin(endPtTheta)) - v[0])/accT;
         double motFy = Math.signum(dirToEnd[1])*Math.abs(Math.abs(maxV*Math.cos(endPtTheta)) - v[1])/accT;
-        forcesX.add(motFx);
-        forcesY.add(motFy);
-
-        //calculate interactive forces
-        //TODO: write code to make a threshold for interaction instead of the arbitrary horizon
         
-        // Iterate over peds and remove them if they have arrive at the destination
+        double[] motF = {motFx, motFy};
+
+        return motF;
+    }
+    
+    public double[] sfSingleInteractiveForce(Coordinate pLoc, Coordinate otherPLoc, double rij) {
+    	
+    	double[] F = {0,0};
+		// Is other pedestrian in front or behind
+        // Get displacement to other pedestrian and use to calculate dot product
+        // If dot product is between 0-1 then other pedestrian is visible
+        double[] dirToPed = {otherPLoc.x - pLoc.x, otherPLoc.y - pLoc.y};
+        dirToPed = Vector.unitV(dirToPed);
+        
+        double dpPed  = Vector.dotProd(this.dir, dirToPed);
+        double dpNPed = Vector.dotProd(SpaceBuilder.north, dirToPed);
+        
+        if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
+            double absDist = pLoc.distance(otherPLoc);
+            if (absDist < horiz) { // peds only affected by others within their horizon
+                double signFx  = Math.signum(dirToPed[0]); 
+                double signFy  = Math.signum(dirToPed[1]);
+                double theta   = FastMath.acos(dpNPed);
+                double interFx = signFx*A*Math.exp((rij-absDist)/B)*Math.abs(Math.sin(theta))/m;
+                double interFy = signFy*A*Math.exp((rij-absDist)/B)*Math.abs(Math.cos(theta))/m;
+                
+                F[0] = interFx;
+                F[1] = interFy;
+                }
+            }
+        return F;
+    }
+    
+    public double[] sfTotalInteractiveForce(Coordinate pLoc) throws MismatchedDimensionException, TransformException {
         Context<Object> context = ContextUtils.getContext(this);
-        for (Object p :context.getObjects(Ped.class)) {
+
+    	double Fx, Fy;
+    	Fx = Fy = 0;
+    	
+    	for (Object p :context.getObjects(Ped.class)) {
         	Ped P = (Ped) p;
         	if (P != this) {
         		// Get the geometry of the other pedestrian agent in the CRS used for spatial calculations
         		Geometry otherGeom = SpaceBuilder.getGeometryForCalculation(this.geography, P);
                 Coordinate otherLoc = otherGeom.getCoordinate();
-
-        		// Is other pedestrian in front or behind
-                // Get displacement to other pedestrian and use to calculate dot product
-                // If dot product is between 0-1 then other pedestrian is visible
-                double[] dirToPed = {otherLoc.x - pedLocation.x, otherLoc.y - pedLocation.y};
-                dirToPed = Vector.unitV(dirToPed);
+                double rij     = this.r + P.r;
                 
-                double dpPed  = Vector.dotProd(this.dir, dirToPed);
-                double dpNPed = Vector.dotProd(SpaceBuilder.north, dirToPed);
-                
-                if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
-                    double absDist = pedLocation.distance(otherLoc);
-                    if (absDist < horiz) { // peds only affected by others within their horizon
-                        double signFx  = Math.signum(dirToPed[0]); 
-                        double signFy  = Math.signum(dirToPed[1]);
-                        double theta   = FastMath.acos(dpNPed);
-                        double rij     = this.r + P.r;
-                        double interFx = signFx*A*Math.exp((rij-absDist)/B)*Math.abs(Math.sin(theta))/m;
-                        double interFy = signFy*A*Math.exp((rij-absDist)/B)*Math.abs(Math.cos(theta))/m;
-                        forcesX.add(interFx);
-                        forcesY.add(interFy);
-                        }
-                    }
+                double[] interF = sfSingleInteractiveForce(pLoc, otherLoc, rij);
+                Fx += interF[0];
+                Fy += interF[1];
                 }
         	}
-
-        //sum all forces
-        for (Double b : forcesX) {
-            xF += b;}
-        for (Double c : forcesY) {
-            yF += c;}
-        acc = new double[] {xF, yF};
-        return acc;
+    	double[] F = {Fx, Fy};
+    	
+    	return F;
+    	
     }
-
     
     public double[] limitV(double[] input) {
         double totalV = Vector.mag(input);
