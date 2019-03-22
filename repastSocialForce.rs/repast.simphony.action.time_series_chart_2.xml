@@ -1,9 +1,9 @@
 <repast.simphony.chart2.engine.TimeSeriesChartDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian Number Time Series</name>
-  <dataSet>Pedestrian Number</dataSet>
+  <name>Pedestrian Counts</name>
+  <dataSet>Pedestrian Count</dataSet>
   <xAxisLabel>Tick Count</xAxisLabel>
   <yAxisLabel></yAxisLabel>
-  <chartTitle>Number of Pedestrians (Particles) in Simulation</chartTitle>
+  <chartTitle>Pedestrian Counts</chartTitle>
   <type>TIME_SERIES</type>
   <background>
     <red>192</red>
@@ -17,17 +17,17 @@
     <blue>255</blue>
     <alpha>255</alpha>
   </gridLineColor>
-  <showGrid>false</showGrid>
+  <showGrid>true</showGrid>
   <showLegend>true</showLegend>
   <seriesIds>
     <entry>
-      <string>Ped Count</string>
+      <string>PedCount</string>
       <SeriesData>
-        <label>Ped Count</label>
+        <label>PedCount</label>
         <color>
-          <red>255</red>
-          <green>204</green>
-          <blue>204</blue>
+          <red>0</red>
+          <green>0</green>
+          <blue>255</blue>
           <alpha>255</alpha>
         </color>
       </SeriesData>
