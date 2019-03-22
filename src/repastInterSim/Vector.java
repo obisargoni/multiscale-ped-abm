@@ -75,4 +75,15 @@ public class Vector {
         return c;
     }
     
+    /*
+     * Rotate vector by the given angle
+     * 
+     * @param double[] u. 2D vector to rotate.
+     * @param double theta. The angle in radians to rotate by 
+     */
+    public static double[] rotate2D(double[] u, double theta) {
+    	double[] v = {Math.cos(theta)*u[0] - Math.sin(theta)*u[1],Math.sin(theta)*u[0] + Math.cos(theta)*u[1]};
+    	return v;    	
+    }
+    
 }
