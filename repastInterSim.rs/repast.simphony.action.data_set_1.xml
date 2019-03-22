@@ -19,7 +19,7 @@
     <entry>
       <string>PedCount</string>
       <repast.simphony.data2.engine.CountSourceDefinition>
-        <typeName>repastSocialForce.Ped</typeName>
+        <typeName>repastInterSim.Ped</typeName>
         <id>PedCount</id>
       </repast.simphony.data2.engine.CountSourceDefinition>
     </entry>

@@ -3,21 +3,21 @@
   <type>GIS 3D</type>
   <styles>
     <entry>
-      <string>repastSocialForce.Destination</string>
+      <string>repastInterSim.Destination</string>
       <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
     </entry>
     <entry>
-      <string>repastSocialForce.Ped</string>
-      <string>repastSocialForce.GISStyler</string>
+      <string>repastInterSim.Ped</string>
+      <string>repastInterSim.GISStyler</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
-      <string>repastSocialForce.Destination</string>
+      <string>repastInterSim.Destination</string>
       <null/>
     </entry>
     <entry>
-      <string>repastSocialForce.Ped</string>
+      <string>repastInterSim.Ped</string>
       <null/>
     </entry>
   </editedStyles>
@@ -36,11 +36,11 @@
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>repastSocialForce.Destination</string>
+      <string>repastInterSim.Destination</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>repastSocialForce.Ped</string>
+      <string>repastInterSim.Ped</string>
       <int>2</int>
     </entry>
     <entry>

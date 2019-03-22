@@ -1,4 +1,4 @@
-package repastSocialForce;
+package repastInterSim;
 
 import java.awt.Color;
 import java.io.File;
@@ -58,7 +58,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	@Override
 	public Context<Object> build(Context<Object> context) {
 	    
-		context.setId("repastSocialForce");
+		context.setId("repastInterSim");
 	   
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();

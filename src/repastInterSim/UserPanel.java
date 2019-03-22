@@ -1,4 +1,4 @@
-package repastSocialForce;
+package repastInterSim;
 
 /*
  * A placeholder until the real user panel is set up.
