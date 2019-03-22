@@ -1,4 +1,4 @@
-package repastSocialForce;
+package repastInterSim;
 
 import org.apache.commons.math3.util.FastMath;
 import org.geotools.factory.Hints;

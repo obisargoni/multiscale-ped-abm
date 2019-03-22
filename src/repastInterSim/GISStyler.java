@@ -1,4 +1,4 @@
-package repastSocialForce;
+package repastInterSim;
 
 import java.net.URL;
 
