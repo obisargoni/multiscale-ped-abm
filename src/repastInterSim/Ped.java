@@ -2,18 +2,20 @@ package repastInterSim;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import org.apache.commons.math3.util.FastMath;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
@@ -21,22 +23,25 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 
 public class Ped {
-    private Geography<Object> geography;
-    private List<Double> forcesX, forcesY; 
-    private Random rnd = new Random();
-    private int age;
-    public Destination destination; // Distance from extent to exit simulation
-    private double endPtDist, endPtTheta, critGap;
-
-    private double wS, etaS, wV, etaV, sigR;    //errors
-    private double m, horiz, A, B, k, r;        //interactive force constants (accT is also)
-
-    private double[] v, dv, newV, dir; 
-    private double xTime, accT, maxV;
+    private Geography<Object> geography; // Space the agent exists in
+    public Destination destination; // The destination agent that this pedestrian agents is heading towards.
+    
+    private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
+    
+    private double A, B, r, k; // Constants related to the interaction between agents and the desired velocity of this agent
+    
+    // Variables related to the pedestrians vision and movements
+    private double theta; // Field of vision extends from -theta to + theta from the normal to the agent (ie agent's direction)
+    private double m; // Agent's mass
+    private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
+    private double v0; // Desired walking spped of pedestrian agent
+    private double a0; // Angle to the destination
+    private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
+    private double angres; // Angular resolution used when ampling the field of vision
+    private double[] v, dv, newV, dir; // Velocity and direction vectors
+    
     private Color col; // Colour of the pedestrian
     
-    private MathTransform transformtoMetre;
-	private MathTransform transformtoDegree;
     
     /*
      * Instance method for the Ped class.
@@ -47,26 +52,27 @@ public class Ped {
     public Ped(Geography<Object> geography, double[] direction, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
-        this.maxV  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
+        this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.dir   = direction; // a 2D unit vector indicating the position
+        
+        this.a0 = Math.acos(Vector.dotProd(SpaceBuilder.north, this.dir)); // Need to think about acute vs obtuse angles
         this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
         this.v = new double[this.dir.length];
         for (int i = 0; i < dir.length;i++) {
-        	this.v[i] = dir[i]*0.5*this.maxV;
+        	this.v[i] = dir[i]*0.5*this.v0;
         }
-        
-        this.age   = 0; // Placeholder 
 
-        //3-circle variables - from Helbing, et al (2000) [r from Rouphail et al 1998]
-        this.accT  = 0.5/UserPanel.tStep;                        //acceleration time, also termed 'relaxation time'. The time over which the pedestrian regains its desired velocity
-        this.m     = 80;                                         //avg ped mass in kg
-        this.horiz = 5/SpaceBuilder.spaceScale;                   //distance at which peds affect each other
-        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;    //ped interaction constant (kg*space units/time units^2)
-        this.B     = 0.08/SpaceBuilder.spaceScale;                    //ped distance interaction constant (space units)
-        this.k     = 120000*UserPanel.tStep*UserPanel.tStep;         //wall force constant, no currently used
-        this.r     = 0.275/SpaceBuilder.spaceScale; //ped radius (space units)
+        this.tau  = 0.5/UserPanel.tStep;
+        this.m     = 80;
+        this.dmax = 10/SpaceBuilder.spaceScale; 
+        this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
+        this.theta = (2*Math.PI*75) / 360; // 75 degrees
+        
+        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;
+        this.B     = 0.08/SpaceBuilder.spaceScale;
+        this.r     = 0.275/SpaceBuilder.spaceScale;
 
     }
     
@@ -84,16 +90,16 @@ public class Ped {
     	Geometry dGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this.destination);
     	Coordinate dLoc = dGeom.getCoordinate();
     	
-        this.dv    = accel(pLoc,dLoc);
+        double[] a = accel(pLoc,dLoc);
+        double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
-        this.newV  = limitV(newV);
         
     	// Update the direction and velocity of pedestrian
     	this.dir = Vector.unitV(newV);
         this.v = newV;
-                
-        pLoc.x += this.v[0];
-        pLoc.y += this.v[1];
+
+        pLoc.x += this.v[0]*this.tau;
+        pLoc.y += this.v[1]*this.tau;
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
@@ -112,96 +118,149 @@ public class Ped {
      */
     public double[] accel(Coordinate pedLocation, Coordinate destLocation) throws MismatchedDimensionException, TransformException {
         
-        double[] drivingForce, interactionForce, acc;
+        double[] fovA;
         
-        // Calculate driving force
-        drivingForce = sfDrivingForce(pedLocation, destLocation);
+        // Calculate acceleration due to field of vision consideration
+        fovA = motiveAcceleration();
 
 
         //calculate interactive forces        
-        interactionForce = sfTotalInteractiveForce(pedLocation);
-        
-        acc = new double[] {drivingForce[0] + interactionForce[0], drivingForce[1] + interactionForce[1]};
-        return acc;
+        //interactionForce = sfTotalInteractiveForce(pedLocation);
+        //acc = new double[] {drivingForce[0] + interactionForce[0], drivingForce[1] + interactionForce[1]};
+        return fovA;
     }
     
-    public double[] sfDrivingForce(Coordinate pLoc, Coordinate dLoc) {
+    
+    // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
+    public double[] motiveAcceleration() throws MismatchedDimensionException, TransformException {
     	
-        //calculate heading to endpoint and convert to a unit vector
-        double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
-        dirToEnd = Vector.unitV(dirToEnd);
-        
-        // Calculate the bearing to the end point
-        double dpEnd = Vector.dotProd(SpaceBuilder.north, dirToEnd);
-        double endPtTheta = FastMath.acos(dpEnd);
-        
-        //calculate motive force 
-        double motFx = Math.signum(dirToEnd[0])*Math.abs(Math.abs(maxV*Math.sin(endPtTheta)) - v[0])/accT;
-        double motFy = Math.signum(dirToEnd[1])*Math.abs(Math.abs(maxV*Math.cos(endPtTheta)) - v[1])/accT;
-        
-        double[] motF = {motFx, motFy};
-
-        return motF;
-    }
-    
-    public double[] sfSingleInteractiveForce(Coordinate pLoc, Coordinate otherPLoc, double rij) {
+    	double[] desiredVelocity = desiredVelocity();
     	
-    	double[] F = {0,0};
-		// Is other pedestrian in front or behind
-        // Get displacement to other pedestrian and use to calculate dot product
-        // If dot product is between 0-1 then other pedestrian is visible
-        double[] dirToPed = {otherPLoc.x - pLoc.x, otherPLoc.y - pLoc.y};
-        dirToPed = Vector.unitV(dirToPed);
-        
-        double dpPed  = Vector.dotProd(this.dir, dirToPed);
-        double dpNPed = Vector.dotProd(SpaceBuilder.north, dirToPed);
-        
-        if (0 <= dpPed & dpPed <= 1) {     //peds only affected by those in front of them
-            double absDist = pLoc.distance(otherPLoc);
-            if (absDist < horiz) { // peds only affected by others within their horizon
-                double signFx  = Math.signum(dirToPed[0]); 
-                double signFy  = Math.signum(dirToPed[1]);
-                double theta   = FastMath.acos(dpNPed);
-                double interFx = signFx*A*Math.exp((rij-absDist)/B)*Math.abs(Math.sin(theta))/m;
-                double interFy = signFy*A*Math.exp((rij-absDist)/B)*Math.abs(Math.cos(theta))/m;
-                
-                F[0] = interFx;
-                F[1] = interFy;
-                }
-            }
-        return F;
+    	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
+    	double[] a = {0,0};
+    	a[0] = (desiredVelocity[0] - this.v[0]) / this.tau;
+    	a[1] = (desiredVelocity[1] - this.v[1]) / this.tau;
+    	
+    	return a;
     }
     
-    public double[] sfTotalInteractiveForce(Coordinate pLoc) throws MismatchedDimensionException, TransformException {
+    
+    // Function to sample field of vision
+    public List<Double> sampleFoV() {
+    	
+    	// Initialise a list to hole the sampled field of vision vectors
+    	List<Double> sampledAngles = new ArrayList<Double>();
+    	
+    	double sampleAngle = -this.theta; // First angle to sample
+    	while (sampleAngle <= this.theta) {
+    		sampledAngles.add(sampleAngle);
+    		sampleAngle+=this.angres;
+    	}
+    	
+    	return sampledAngles;
+    	
+    }
+    
+    // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
+    public double distanceToObject(double alpha) throws MismatchedDimensionException, TransformException {
+    	
+    	// Initialise distance to nearest object as the max distance in the field of vision
+    	double d = this.dmax;
+    	
+    	// Get coordinate of this agent and the end of the vision ray
+    	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
+    	
+    	// Get unit vector in the direction of the sampled angle
+    	double[] rayVector = Vector.rotate2D(dir, alpha);
+    	
+    	// Get the coordinate of the end of the field of vision in this direction
+    	Coordinate rayEnd = new Coordinate(pLoc.x + rayVector[0]*this.dmax, pLoc.y + rayVector[1]*this.dmax);
+    	
+    	Coordinate[] lineCoords = {pLoc, rayEnd};
+    	// Create a line from the pedestrian to the end of the field of vision in this direction
+    	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
+    	
+    	// Check to see if this line intersects with any agents
         Context<Object> context = ContextUtils.getContext(this);
-
-    	double Fx, Fy;
-    	Fx = Fy = 0;
-    	
-    	for (Object p :context.getObjects(Ped.class)) {
-        	Ped P = (Ped) p;
+        for (Object agent :context.getObjects(Ped.class)) {
+        	Ped P = (Ped)agent;
         	if (P != this) {
-        		// Get the geometry of the other pedestrian agent in the CRS used for spatial calculations
-        		Geometry otherGeom = SpaceBuilder.getGeometryForCalculation(this.geography, P);
-                Coordinate otherLoc = otherGeom.getCoordinate();
-                double rij     = this.r + P.r;
-                
-                double[] interF = sfSingleInteractiveForce(pLoc, otherLoc, rij);
-                Fx += interF[0];
-                Fy += interF[1];
-                }
+               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	if (agentG.intersects(sampledRay)) {
+               		double dAgent = agentG.distance(sampledRay);
+               		
+               		if (dAgent < d) {
+               			d = dAgent;
+               		}
+               	}
         	}
-    	double[] F = {Fx, Fy};
-    	
-    	return F;
-    	
+        }
+        
+        return d;    	
     }
+    
+    // Function to calculate d(a) using cos rule
+    public double displacementDistance(double alpha) throws MismatchedDimensionException, TransformException {
+    	
+    	// Get the distance to nearest object for this angle
+    	double fAlpha =  distanceToObject(alpha);
+    	
+    	double dAlpha = Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
+    	
+    	return dAlpha;
+    }
+    
+    // Wrapper function that identifies the chosen walking direction
+    public Map<String, Double> desiredDirection() throws MismatchedDimensionException, TransformException {
+    	
+    	// Sample field of vision
+    	List<Double> sampledAngles = sampleFoV();
+    	
+    	// Initialise the displacement distance (which must be minimised) and the direction of travel
+    	// The angle here is relative to the direction of the agent
+    	double d = displacementDistance(sampledAngles.get(0));
+    	double alpha = sampledAngles.get(0);    
+    	
+    	// Loop through the remaining angles and find the angle which minimises the displacement distance
+    	for (int i = 1;i<sampledAngles.size(); i++) {
+    		
+    		double dDist = displacementDistance(sampledAngles.get(i));
+    		
+    		if (dDist < d) {
+    			d = dDist;
+    			alpha = sampledAngles.get(i);
+    		}
+    	}
+    	
+    	Map<String, Double> output = new HashMap<String, Double>();
+    	output.put("angle", alpha);
+    	output.put("collision_distance", d);
+    	
+    	return output;    	
+    }
+    
+    public double[] desiredVelocity() throws MismatchedDimensionException, TransformException {
+    	
+    	// Get the desired direction of travel and minimum distance to collision in that direction
+    	Map<String, Double> desiredDirection = desiredDirection();
+    	
+    	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
+    	double desiredSpeed = Math.min(this.v0, desiredDirection.get("collision_distance") / this.tau);
+    	
+    	// Need to correct this calculation since alpha is relative to the direction of the agent
+    	double alphaPed = Math.acos(Vector.dotProd(SpaceBuilder.north, this.dir));
+    	double phi = alphaPed + desiredDirection.get("angle");
+    	double[] v = {desiredSpeed*Math.sin(phi), desiredSpeed*Math.cos(phi)};
+    	
+    	return v;
+    }
+    
     
     public double[] limitV(double[] input) {
         double totalV = Vector.mag(input);
         
-        if (totalV > maxV) {
-        	double norm = maxV/totalV;
+        if (totalV > v0) {
+        	double norm = v0/totalV;
             input[0] = input[0]*norm;
             input[1] = input[1]*norm;}
         return input;
