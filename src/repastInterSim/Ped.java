@@ -102,6 +102,7 @@ public class Ped {
         SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeom, this);
         
         seta0();
+        setPedAngleFromVelocity(this.v);
     }
     
 
@@ -122,9 +123,7 @@ public class Ped {
         fovA = motiveAcceleration();
 
 
-        //calculate interactive forces        
-        //interactionForce = sfTotalInteractiveForce(pedLocation);
-        //acc = new double[] {drivingForce[0] + interactionForce[0], drivingForce[1] + interactionForce[1]};
+        // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
         return fovA;
     }
     
@@ -165,7 +164,7 @@ public class Ped {
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
     	
-    	// Get coordinate of this agent and the end of the vision ray
+    	// Get coordinate of this agent
     	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
@@ -249,9 +248,6 @@ public class Ped {
     	double alpha = desiredDirection.get("angle");
     	double[] v = {desiredSpeed*Math.cos(alpha), desiredSpeed*Math.sin(alpha)};
     	
-    	// This update should be elsewhere but can't think where right now
-    	this.aP = alpha;
-    	
     	return v;
     }
     
@@ -276,8 +272,19 @@ public class Ped {
         Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
-        double dpEnd = Vector.dotProd(SpaceBuilder.north, dirToEnd);
-        this.a0 = Math.acos(dpEnd);
+        
+        this.a0 = Vector.angleBetweenNorthAndUnitVector(dirToEnd);
+    }
+    
+    /*
+     * Set the direction of the pedestrian to be the same as the direction of the velocity vector
+     */
+    public void setPedAngleFromVelocity(double[] v) {
+    	
+    	double[] unitV = Vector.unitV(v);
+    	
+    	this.aP = Vector.angleBetweenNorthAndUnitVector(unitV);
+    	
     }
     
 }
