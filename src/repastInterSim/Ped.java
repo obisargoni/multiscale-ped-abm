@@ -318,4 +318,8 @@ public class Ped {
     	return this.rad;
     }
     
+    public double getSpeed() {
+    	return Vector.mag(this.v);
+    }
+    
 }
