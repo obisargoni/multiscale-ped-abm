@@ -95,14 +95,11 @@ public class Vector {
         double dp = Vector.dotProd(n, u);
         double a = Math.acos(dp);
         
-        // Need to get the correct angle
-        if (signX == 1 & signY == 1) {
+        // Dot product gives angle between vectors. We need angle clockwise from north
+        if (signX == 1) {
         	return a;
         }
-        else if (signY == -1) {
-        	return a + Math.PI;
-        }
-        else if (signX == -1 & signY == 1) {
+        else if (signX == -1) {
         	return 2*Math.PI - a;
         }
         else {
