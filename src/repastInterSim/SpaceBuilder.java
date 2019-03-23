@@ -104,7 +104,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
-
+    	nP=1;
+    	
 		// Generate random points in the area to create agents.
 		List<Coordinate> agentCoords = GeometryUtil.generateRandomPointsInPolygon(boundary, nP);
 		
@@ -168,13 +169,18 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     public Ped addPed(Context context, Geography geography, GeometryFactory gF, double pedAngle, Coordinate coord, Destination d, Color c) throws MismatchedDimensionException, TransformException {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, pedAngle, d, c);
+        Ped newPed = new Ped(geography, gF, pedAngle, d, c);
         context.add(newPed);
         
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 
         // pedestrian agent becomes associated with this geometry.
-		Point geom = gF.createPoint(coord);
-		geography.move(newPed, geom);
+		Point pt = gF.createPoint(coord);
+		
+		// Transform the coordinate so that the circle can be created using a radius in metres
+		Point ptCalc = (Point)JTS.transform(pt, transformToCalc);
+		Geometry circle = ptCalc.buffer(newPed.getRad());
+		moveAgentToCalculationGeometry(geography, circle, newPed);
+		//geography.move(newPed, circle);
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
 		double a0 = newPed.seta0FromDestinationCoord();
