@@ -13,9 +13,11 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
@@ -39,7 +41,9 @@ public class Ped {
     private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
     private double angres; // Angular resolution used when ampling the field of vision
-    private double[] v, newV, dir; // Velocity and direction vectors
+    private double[] v, newV; // Velocity and direction vectors
+    private double rad; // Radius of circle representing pedestrian, metres
+    private GeometryFactory gF;
     
     private Color col; // Colour of the pedestrian
     
@@ -50,11 +54,14 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, double aP, Destination d, Color col) {
+    public Ped(Geography<Object> geography, GeometryFactory gF, double aP, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
+        this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
+        this.rad = m / 320; // As per Moussaid
         this.aP = aP;
+        this.gF = gF;
         
         this.col = col;
         
@@ -84,22 +91,27 @@ public class Ped {
     	
     	// Get the geometry of the pedestrian agent and its destination in the CRS used for spatial calculations
     	Geometry pGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this);
-     	Coordinate pLoc = pGeom.getCoordinate();
+     	Coordinate pLoc = pGeom.getCentroid().getCoordinate();
     	
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
-        
-    	// Update the direction and velocity of pedestrian
-    	this.dir = Vector.unitV(newV);
         this.v = newV;
 
         pLoc.x += this.v[0]*this.tau;
         pLoc.y += this.v[1]*this.tau;
         
+        // Now create new geometry at the location of the new centroid
+        Coordinate[] pLocArray = {pLoc};
+        CoordinateSequence cs = gF.getCoordinateSequenceFactory().create(pLocArray);
+        Point pt = new Point(cs, this.gF);
+		Geometry pGeomNew = pt.buffer(this.rad);
+        
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeom, this);
+        SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeomNew, this);
+        
+     	Coordinate pLoc_ = pGeomNew.getCentroid().getCoordinate();
         
         seta0FromDestinationCoord();
         setPedAngleFromVelocity(this.v);
@@ -166,7 +178,7 @@ public class Ped {
     	double d = this.dmax;
     	
     	// Get coordinate of this agent
-    	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
+    	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
@@ -270,7 +282,8 @@ public class Ped {
     public double seta0FromDestinationCoord() throws MismatchedDimensionException, TransformException {
         // Calculate bearing to destination and convert to a unit vector
         Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
-        Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
+        Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
@@ -299,6 +312,10 @@ public class Ped {
     
     public void setaP(double aP) {
     	this.aP = aP;
+    }
+    
+    public double getRad() {
+    	return this.rad;
     }
     
 }
