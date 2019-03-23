@@ -59,7 +59,7 @@ public class Ped {
         this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
-        double[] v = {0.5*this.v0*Math.cos(aP), 0.5*this.v0*Math.sin(aP)};
+        double[] v = {0,0};
         this.v =  v;
 
         this.tau  = 0.5/UserPanel.tStep;
@@ -101,7 +101,7 @@ public class Ped {
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeom, this);
         
-        seta0();
+        seta0FromDestinationCoord();
         setPedAngleFromVelocity(this.v);
     }
     
@@ -149,7 +149,8 @@ public class Ped {
     	List<Double> sampledAngles = new ArrayList<Double>();
     	
     	double sampleAngle = this.aP-this.theta; // First angle to sample
-    	while (sampleAngle <= this.aP + this.theta) {
+    	double sampleAnglemax = this.aP + this.theta;
+    	while (sampleAngle <= sampleAnglemax) {
     		sampledAngles.add(sampleAngle);
     		sampleAngle+=this.angres;
     	}
@@ -168,7 +169,7 @@ public class Ped {
     	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
-    	double[] rayVector = {Math.cos(alpha), Math.sin(alpha)};
+    	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
     	
     	// Get the coordinate of the end of the field of vision in this direction
     	Coordinate rayEnd = new Coordinate(pLoc.x + rayVector[0]*this.dmax, pLoc.y + rayVector[1]*this.dmax);
@@ -231,7 +232,7 @@ public class Ped {
     	
     	Map<String, Double> output = new HashMap<String, Double>();
     	output.put("angle", alpha);
-    	output.put("collision_distance", d);
+    	output.put("collision_distance", distanceToObject(alpha));
     	
     	return output;    	
     }
@@ -246,7 +247,7 @@ public class Ped {
     	
     	// Get the desired direction for the pedestrian and use to set velocity
     	double alpha = desiredDirection.get("angle");
-    	double[] v = {desiredSpeed*Math.cos(alpha), desiredSpeed*Math.sin(alpha)};
+    	double[] v = {desiredSpeed*Math.sin(alpha), desiredSpeed*Math.cos(alpha)};
     	
     	return v;
     }
@@ -266,7 +267,7 @@ public class Ped {
     	return this.col;
     }
     
-    public void seta0() throws MismatchedDimensionException, TransformException {
+    public double seta0FromDestinationCoord() throws MismatchedDimensionException, TransformException {
         // Calculate bearing to destination and convert to a unit vector
         Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
         Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
@@ -274,17 +275,30 @@ public class Ped {
         dirToEnd = Vector.unitV(dirToEnd);
         
         this.a0 = Vector.angleBetweenNorthAndUnitVector(dirToEnd);
+        
+        return this.a0;
     }
     
     /*
      * Set the direction of the pedestrian to be the same as the direction of the velocity vector
      */
-    public void setPedAngleFromVelocity(double[] v) {
+    public double setPedAngleFromVelocity(double[] v) {
+    	
+    	// If velocity is 0 then don't update the pedestrian direction
+    	if (Vector.mag(v)==0) {
+    		return this.aP;
+    	}
     	
     	double[] unitV = Vector.unitV(v);
     	
     	this.aP = Vector.angleBetweenNorthAndUnitVector(unitV);
     	
+    	return this.aP;
+    	
+    }
+    
+    public void setaP(double aP) {
+    	this.aP = aP;
     }
     
 }
