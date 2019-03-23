@@ -86,4 +86,28 @@ public class Vector {
     	return v;    	
     }
     
+    public static double angleBetweenNorthAndUnitVector(double[] u) {
+    	double[] n = {0,1};
+    	
+    	double signX = Math.signum(u[0]);
+        double signY = Math.signum(u[1]);
+        
+        double dp = Vector.dotProd(n, u);
+        double a = Math.acos(dp);
+        
+        // Need to get the correct angle
+        if (signX == 1 & signY == 1) {
+        	return a;
+        }
+        else if (signY == -1) {
+        	return a + Math.PI;
+        }
+        else if (signX == -1 & signY == 1) {
+        	return 2*Math.PI - a;
+        }
+        else {
+        	return a;
+        }
+    }
+    
 }
