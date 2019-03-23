@@ -110,17 +110,25 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Create the agents from the collection of random coords.
 		Random randCoord = new Random();
+		int i = 0;
+		int destinationIndex = 0;
 		for (Coordinate coord : agentCoords) {
 			
 			// Generate a random initial direction for the pedestrian
     		double randBearing = randCoord.nextFloat() * 2 * Math.PI;
+    		
+    		// Crude way to assign different destinations
+    		if (i > nP / 2) {
+    			destinationIndex = 1; 
+    		}
 			
     		try {
-				Ped newPed = addPed(context, geography, fac, randBearing, coord, destinations.get(0), Color.BLUE);
+				Ped newPed = addPed(context, geography, fac, randBearing, coord, destinations.get(destinationIndex), Color.BLUE);
 			} catch (MismatchedDimensionException | TransformException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+    		i+=1;
 		}
 		
 		return context;
