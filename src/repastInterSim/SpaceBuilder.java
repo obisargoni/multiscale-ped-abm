@@ -104,7 +104,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
-    	nP = 1;
 
 		// Generate random points in the area to create agents.
 		List<Coordinate> agentCoords = GeometryUtil.generateRandomPointsInPolygon(boundary, nP);
@@ -177,8 +176,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Point geom = gF.createPoint(coord);
 		geography.move(newPed, geom);
 		
-		// Set the angle to the destination
-		newPed.seta0();
+		// Set the angle to the destination and point the pedestrian in the direction of that direction.
+		double a0 = newPed.seta0FromDestinationCoord();
+		newPed.setaP(a0);
         	
         return newPed;
     }
