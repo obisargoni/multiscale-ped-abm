@@ -104,6 +104,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
+    	nP = 1;
 
 		// Generate random points in the area to create agents.
 		List<Coordinate> agentCoords = GeometryUtil.generateRandomPointsInPolygon(boundary, nP);
@@ -113,10 +114,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		for (Coordinate coord : agentCoords) {
 			
 			// Generate a random initial direction for the pedestrian
-    		double randBearing = randCoord.nextFloat();
-    		double[] dir = {FastMath.sin(randBearing), FastMath.cos(randBearing)};
+    		double randBearing = randCoord.nextFloat() * 2 * Math.PI;
 			
-    		Ped newPed = addPed(context, geography, fac, dir,coord, destinations.get(0), Color.BLUE);
+    		try {
+				Ped newPed = addPed(context, geography, fac, randBearing, coord, destinations.get(0), Color.BLUE);
+			} catch (MismatchedDimensionException | TransformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		return context;
@@ -161,16 +166,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double[] direction, Coordinate coord, Destination d, Color c) {
+    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double pedAngle, Coordinate coord, Destination d, Color c) throws MismatchedDimensionException, TransformException {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, direction, d, c);
+        Ped newPed = new Ped(geography, pedAngle, d, c);
         context.add(newPed);
         
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 
         // pedestrian agent becomes associated with this geometry.
 		Point geom = gF.createPoint(coord);
 		geography.move(newPed, geom);
+		
+		// Set the angle to the destination
+		newPed.seta0();
         	
         return newPed;
     }

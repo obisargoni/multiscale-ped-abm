@@ -36,9 +36,10 @@ public class Ped {
     private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
     private double v0; // Desired walking spped of pedestrian agent
     private double a0; // Angle to the destination
+    private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
     private double angres; // Angular resolution used when ampling the field of vision
-    private double[] v, dv, newV, dir; // Velocity and direction vectors
+    private double[] v, newV, dir; // Velocity and direction vectors
     
     private Color col; // Colour of the pedestrian
     
@@ -49,20 +50,17 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, double[] direction, Destination d, Color col) {
+    public Ped(Geography<Object> geography, double aP, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
-        this.dir   = direction; // a 2D unit vector indicating the position
+        this.aP = aP;
         
-        this.a0 = Math.acos(Vector.dotProd(SpaceBuilder.north, this.dir)); // Need to think about acute vs obtuse angles
         this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
-        this.v = new double[this.dir.length];
-        for (int i = 0; i < dir.length;i++) {
-        	this.v[i] = dir[i]*0.5*this.v0;
-        }
+        double[] v = {0.5*this.v0*Math.cos(aP), 0.5*this.v0*Math.sin(aP)};
+        this.v =  v;
 
         this.tau  = 0.5/UserPanel.tStep;
         this.m     = 80;
@@ -87,10 +85,8 @@ public class Ped {
     	// Get the geometry of the pedestrian agent and its destination in the CRS used for spatial calculations
     	Geometry pGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this);
      	Coordinate pLoc = pGeom.getCoordinate();
-    	Geometry dGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this.destination);
-    	Coordinate dLoc = dGeom.getCoordinate();
     	
-        double[] a = accel(pLoc,dLoc);
+        double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
         
@@ -104,6 +100,8 @@ public class Ped {
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeom, this);
+        
+        seta0();
     }
     
 
@@ -116,7 +114,7 @@ public class Ped {
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel(Coordinate pedLocation, Coordinate destLocation) throws MismatchedDimensionException, TransformException {
+    public double[] accel() throws MismatchedDimensionException, TransformException {
         
         double[] fovA;
         
@@ -151,8 +149,8 @@ public class Ped {
     	// Initialise a list to hole the sampled field of vision vectors
     	List<Double> sampledAngles = new ArrayList<Double>();
     	
-    	double sampleAngle = -this.theta; // First angle to sample
-    	while (sampleAngle <= this.theta) {
+    	double sampleAngle = this.aP-this.theta; // First angle to sample
+    	while (sampleAngle <= this.aP + this.theta) {
     		sampledAngles.add(sampleAngle);
     		sampleAngle+=this.angres;
     	}
@@ -171,7 +169,7 @@ public class Ped {
     	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
-    	double[] rayVector = Vector.rotate2D(dir, alpha);
+    	double[] rayVector = {Math.cos(alpha), Math.sin(alpha)};
     	
     	// Get the coordinate of the end of the field of vision in this direction
     	Coordinate rayEnd = new Coordinate(pLoc.x + rayVector[0]*this.dmax, pLoc.y + rayVector[1]*this.dmax);
@@ -247,10 +245,12 @@ public class Ped {
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
     	double desiredSpeed = Math.min(this.v0, desiredDirection.get("collision_distance") / this.tau);
     	
-    	// Need to correct this calculation since alpha is relative to the direction of the agent
-    	double alphaPed = Math.acos(Vector.dotProd(SpaceBuilder.north, this.dir));
-    	double phi = alphaPed + desiredDirection.get("angle");
-    	double[] v = {desiredSpeed*Math.sin(phi), desiredSpeed*Math.cos(phi)};
+    	// Get the desired direction for the pedestrian and use to set velocity
+    	double alpha = desiredDirection.get("angle");
+    	double[] v = {desiredSpeed*Math.cos(alpha), desiredSpeed*Math.sin(alpha)};
+    	
+    	// This update should be elsewhere but can't think where right now
+    	this.aP = alpha;
     	
     	return v;
     }
@@ -268,6 +268,16 @@ public class Ped {
     
     public Color getColor() {
     	return this.col;
+    }
+    
+    public void seta0() throws MismatchedDimensionException, TransformException {
+        // Calculate bearing to destination and convert to a unit vector
+        Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
+        Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCoordinate();
+        double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
+        dirToEnd = Vector.unitV(dirToEnd);
+        double dpEnd = Vector.dotProd(SpaceBuilder.north, dirToEnd);
+        this.a0 = Math.acos(dpEnd);
     }
     
 }
