@@ -107,4 +107,24 @@ public class Vector {
         }
     }
     
+    public static double[] difference(double[] u, double[] v) {
+    	
+    	// Initialise the difference vector
+    	double[] diff = new double[Math.min(u.length, v.length)];
+    	
+    	for (int i = 0 ; i < Math.min(u.length, v.length); i++) {
+    		diff[i] = u[i] - v[i];
+    	}
+    	
+    	return diff;
+    }
+    
+    public static double distanceBetweenVectors(double[] u, double[] v) {
+    	double[] diff = difference(u,v);
+    	
+    	double dist = mag(diff);
+    	
+    	return dist;
+    }
+    
 }
