@@ -23,7 +23,7 @@ public class Destination {
 
 	private Geography<Object> geography;
 	private Color colour; // Colour of the destination
-	private double arrivalDist = 5; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
+	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
 	private MathTransform transformtoMetre;
 	private MathTransform transformtoDegree;
 		
