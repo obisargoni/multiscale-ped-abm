@@ -74,6 +74,7 @@ public class Ped {
         this.dmax = 10/SpaceBuilder.spaceScale; 
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
+        this.k = UserPanel.interactionForceConstant;
         
         this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;
         this.B     = 0.08/SpaceBuilder.spaceScale;
@@ -129,14 +130,18 @@ public class Ped {
      */
     public double[] accel() throws MismatchedDimensionException, TransformException {
         
-        double[] fovA;
+        double[] totA, fovA, contA;
         
         // Calculate acceleration due to field of vision consideration
         fovA = motiveAcceleration();
 
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
-        return fovA;
+        contA = totalContactAcceleration();
+        
+        totA = Vector.sumV(fovA, contA);
+        
+        return totA;
     }
     
     
@@ -153,6 +158,61 @@ public class Ped {
     	return a;
     }
     
+    /* 
+     * Calculates the acceleration due to contact with other agents.
+     * performs spatial query to identify pedestrian agents that are in 
+     * contact with the ego agent. Calculates the force due to each contacting 
+     * agents and sums the forces and divides by the ego agent's mass to produce
+     * the acceleration. 
+     */
+    public double[] totalContactAcceleration() throws MismatchedDimensionException, TransformException {
+    	double[] cATotal = {0,0};
+    	
+    	// Get the geometry of the ego agent
+    	Geometry thisGeom = SpaceBuilder.getGeometryForCalculation(geography, this);
+    	
+    	
+    	
+    	// Iterate over all other pedestrian agents and for those that touch the 
+    	// ego agent calculate the interaction force
+    	// Check to see if this line intersects with any agents
+        Context<Object> context = ContextUtils.getContext(this);
+        for (Object agent :context.getObjects(Ped.class)) {
+        	Ped P = (Ped)agent;
+        	if (P != this) {
+               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	if (agentG.intersects((thisGeom))) {
+               		double[] cA = contactAcceleration(this, thisGeom, P, agentG);
+               		cATotal = Vector.sumV(cATotal, cA);
+               	}
+        	}
+        }    	    	
+    	
+    	return cATotal;
+    	
+    }
+    
+    public double[] contactAcceleration(Ped egoPed, Geometry egoGeom, Ped agentPed, Geometry agentGeom) {
+    	
+    	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
+    	double r_i = egoPed.rad;
+    	double r_j = agentPed.rad;
+    	
+    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
+    	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
+    	double d_ij = egoCoord.distance(agentCoord);
+    	
+    	// Get the vector that points from centorid of other agent to the ego agent,
+    	// this is the direction that the force acts in
+    	double[] n = {egoCoord.x - agentCoord.x, egoCoord.y - agentCoord.y};
+    	n = Vector.unitV(n);
+    	
+    	double magA = this.k * (r_i + r_j - d_ij) / this.m;
+    	double[] A  = {magA*n[0], magA*n[1]};
+    	
+    	return A;
+    	
+    }
     
     // Function to sample field of vision
     public List<Double> sampleFoV() {
