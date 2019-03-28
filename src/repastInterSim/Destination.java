@@ -21,7 +21,8 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 
 public class Destination implements FixedGeography{
-
+	
+	private Context<Object> context;
 	private Geography<Object> geography;
 	private Coordinate coord;
 	private Color colour; // Colour of the destination
@@ -29,20 +30,13 @@ public class Destination implements FixedGeography{
 	private MathTransform transformtoMetre;
 	private MathTransform transformtoDegree;
 		
-	public Destination(Geography<Object> geography, Color col) {
-		this.geography = geography;
-		this.colour = col;
-	}
-	
 	public Destination() {
 
 	}
 	
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	 public void removePeds() throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException {
-	        Context<Object> context = ContextUtils.getContext(this);
-	        Geography<Object> geography = this.geography;
-	        
+		
 	        ArrayList<Ped> PedsToRemove = new ArrayList<Ped>();
 	        
 	        // If there are no pedestrians to remove end the simulation
@@ -79,6 +73,14 @@ public class Destination implements FixedGeography{
 	@Override
 	public void setCoords(Coordinate c) {
 		this.coord = c;
+	}
+	
+	public void setGeography(Geography<Object> G) {
+		this.geography = G;
+	}
+	
+	public void setContext(Context<Object> C) {
+		this.context = C;
 	}
 
 }
