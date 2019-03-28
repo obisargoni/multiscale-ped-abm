@@ -1,5 +1,10 @@
 
 <context id="repastInterSim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
+	<context id="roadContext">
+		<projection type="geography" id="roadGeography"></projection></context>
+	<context id="destContext">
+		<projection type="geography" id="destGeography"></projection></context>
+	<context id="pedContext">
+		<projection type="geography" id="pedGeography"></projection></context>
   	<projection type="geography" id="Geography"></projection>
-  	<projection type="coverage layer" id="intersection"></projection>
 </context>

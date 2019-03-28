@@ -2,6 +2,7 @@ package repastInterSim;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.commons.math3.util.FastMath;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.Hints;
@@ -28,6 +28,9 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 
+import contexts.DestinationContext;
+import contexts.PedestrianContext;
+import contexts.RoadContext;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -37,39 +40,61 @@ import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.gis.RepastCoverageFactory;
-import repast.simphony.space.gis.WritableGridCoverage2D;
+import repast.simphony.space.gis.ShapefileLoader;
+import repast.simphony.space.gis.SimpleAdder;
+import repast.simphony.util.collections.IndexedIterable;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
-	static double spaceScale = 1;
-	static double[] north = {0,1}; // Defines north, against which bearings are taken
+	public static double spaceScale = 1;
+	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
-	static String geographyCRSString = "EPSG:4277";
-	static String calculationCRSString = "EPSG:27700";
-	static MathTransform transformToGeog;
-	static MathTransform transformToCalc;
+	public static String geographyCRSString = "EPSG:4277";
+	public static String calculationCRSString = "EPSG:27700";
+	public static MathTransform transformToGeog;
+	public static MathTransform transformToCalc;
 	
-	    /* (non-Javadoc)
+	// Initialise contexts and geographies	
+	private static Context<Object> mainContext;
+	
+	public static Context<Road> roadContext;
+	public static Geography<Road> roadGeography;
+	private static Context<Ped> pedContext;
+	private static Geography<Ped> pedGeography;
+	private static Context<Destination> destContext;
+	private static Geography<Destination> destGeography;
+	
+	
+	
+	 /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
 	 * 
 	 */
 	@Override
 	public Context<Object> build(Context<Object> context) {
-	    
-		context.setId("repastInterSim");
+		
+		mainContext = context;
+		mainContext.setId(UserPanel.MAIN_CONTEXT);
 	   
-		// Initiate geographic spaces
-		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-
+		// Initiate geography parameters
+		GeographyParameters<Object> geoParams = new GeographyParameters<Object>(new SimpleAdder<Object>());
+		GeographyParameters<Road> geoParamsRoad = new GeographyParameters<Road>(new SimpleAdder<Road>());
+		GeographyParameters<Ped> geoParamsPed = new GeographyParameters<Ped>(new SimpleAdder<Ped>());
+		GeographyParameters<Destination> geoParamsDest = new GeographyParameters<Destination>(new SimpleAdder<Destination>());
+		
 		// Use GB Coordinate projection, also define a transform between degree and metre projections
 		geoParams.setCrs(geographyCRSString);
-		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
-		context.add(geography);
+		geoParamsRoad.setCrs(geographyCRSString);
+		geoParamsPed.setCrs(geographyCRSString);
+		geoParamsDest.setCrs(geographyCRSString);
+		
+		
+		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", mainContext, geoParams);
+		mainContext.add(geography);
 		
 
-		// Not sure what this line does and whether it is required
+		// Not sure what this line does and whether it is required for coordinate transformation
 		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
 		CoordinateReferenceSystem geographyCRS = null;
 		CoordinateReferenceSystem calculationCRS = null;
@@ -83,11 +108,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		// Load the raster data as coverage
-		File coverageFile = new File(".//data//Masterma_1250_clippedEPSG4277.tif");
-		WritableGridCoverage2D intersection = RepastCoverageFactory.createWritableCoverageFromFile(coverageFile, true);
-		geography.addCoverage("intersection", intersection);
 	    
 		GeometryFactory fac = new GeometryFactory();
 	    
@@ -97,13 +117,54 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
 		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
 		
-	    
-	    // A separate class is used to handle the creation of pedestrians
-		List<Destination> destinations = loadFeatures (".//data//destCoordsEPSG4277.shp", context, geography);	    
+
+		
+		try {
+			// Add the pedestrian and vehicle roadways to the simulation - need to figure out how to assign priority to road when being read in from file
+			roadContext = new RoadContext();
+			roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(
+					UserPanel.ROAD_GEOGRAPHY, roadContext, geoParamsRoad);
+			String vehicleRoadFile = UserPanel.GISDataDir + UserPanel.VehicleRoadShapefile;
+			String pedestrianRoadFile = UserPanel.GISDataDir + UserPanel.PedestrianRoadShapefile;
+			readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
+			readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
+			// Not sure what this line does
+			//SpatialIndexManager.createIndex(roadGeography, Road.class);
+			mainContext.addSubContext(roadContext);
+			
+			
+			// Add destinations to the model
+			destContext = new DestinationContext();
+			destGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(
+					UserPanel.DESTINATION_GEOGRAPHY, destContext, geoParamsDest);
+			String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
+			readShapefile(Destination.class, destinationsFile, destGeography, destContext);
+			// Not sure what this line does
+			//SpatialIndexManager.createIndex(destGeography, Destination.class);
+			mainContext.addSubContext(destContext);
+			
+			// Create the pedestrian context but do not yet add pedestrians to the model
+			pedContext = new PedestrianContext();
+			pedGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(
+					UserPanel.PEDESTRIAN_GEOGRAPHY, pedContext, geoParamsPed);
+			mainContext.addSubContext(pedContext);
+			
+			
+		} catch (MalformedURLException | FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		           
+	    // Get the destinations so that they can be assigned to pedestrian agents
+		IndexedIterable<Destination> destinations = destContext.getObjects(Destination.class); 
+		
+		// Comment out anything to do with adding pedestrians to the simulation
+		
 	    
     	// Get the number of pedetrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
+    	nP= 0;
     	
 		// Generate random points in the area to create agents.
 		List<Coordinate> agentCoords = GeometryUtil.generateRandomPointsInPolygon(boundary, nP);
@@ -131,7 +192,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		i+=1;
 		}
 		
-		return context;
+		return mainContext;
 	}
 	
 	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c, MathTransform ttM, MathTransform ttD) {
@@ -287,5 +348,51 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
 		G.move(agent, JTS.transform(geomCalc, transformToGeog));
 	}
+	
+	/**
+	 * Taken from Nick Malleson's RepastCity.
+	 * 
+	 * Nice generic function :-) that reads in objects from shapefiles.
+	 * <p>
+	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
+	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
+	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
+	 * the shapefile has been read and the objects have been given coordinates in their projection.
+	 * 
+	 * @param <T>
+	 *            The type of object to be read (e.g. PecsHouse). Must exted
+	 * @param cl
+	 *            The class of the building being read (e.g. PecsHouse.class).
+	 * @param shapefileLocation
+	 *            The location of the shapefile containing the objects.
+	 * @param geog
+	 *            A geography to add the objects to.
+	 * @param context
+	 *            A context to add the objects to.
+	 * @throws MalformedURLException
+	 *             If the location of the shapefile cannot be converted into a URL
+	 * @throws FileNotFoundException
+	 *             if the shapefile does not exist.
+	 * @see FixedGeography
+	 */
+	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
+			Geography<T> geog, Context<T> context) throws MalformedURLException, FileNotFoundException {
+		File shapefile = null;
+		
+		// ShapefileLoader is useful when the attributes of the features of the shapefile are to be assigned to agents
+		// Might need to take care to ensure the agents has an attribute/method that matches the attributes of the shapefile features.
+		ShapefileLoader<T> loader = null;
+		shapefile = new File(shapefileLocation);
+		if (!shapefile.exists()) {
+			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
+		}
+		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geog, context);
+		while (loader.hasNext()) {
+			loader.next();
+		}
+		for (T obj : context.getObjects(cl)) {
+			obj.setCoords(geog.getGeometry(obj).getCentroid().getCoordinate());
+		}
+}
 
 }

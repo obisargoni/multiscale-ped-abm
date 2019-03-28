@@ -1,29 +1,13 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>Ped 3D GIS Display</name>
+  <name>New Display</name>
   <type>GIS 3D</type>
   <styles>
-    <entry>
-      <string>repastInterSim.Destination</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.Ped</string>
-      <string>repastInterSim.GISStyler</string>
-    </entry>
     <entry>
       <string>repastInterSim.Road</string>
       <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
     </entry>
   </styles>
   <editedStyles>
-    <entry>
-      <string>repastInterSim.Destination</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.Ped</string>
-      <null/>
-    </entry>
     <entry>
       <string>repastInterSim.Road</string>
       <null/>
@@ -45,19 +29,23 @@
   <layerOrder>
     <entry>
       <string>repastInterSim.Road</string>
+      <int>1</int>
+    </entry>
+    <entry>
+      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
       <int>0</int>
     </entry>
   </layerOrder>
   <projections>
     <repast.simphony.scenario.data.ProjectionData>
-      <id>Geography</id>
+      <id>roadGeography</id>
       <attributes/>
       <type>geography</type>
     </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <projectionDescriptors>
     <entry>
-      <string>Geography</string>
+      <string>roadGeography</string>
       <repast.simphony.visualization.gis.GisProjectionDescriptor>
         <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData"/>
         <props/>
