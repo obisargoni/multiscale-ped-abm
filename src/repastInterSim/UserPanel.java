@@ -17,4 +17,7 @@ public class UserPanel {
 	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaPedestrian_EPSG4277.shp";
 	public static String DestinationsFile = "destCoordsEPSG4277.shp";
 	
+	public static String MAIN_CONTEXT = "repastInterSim";
+	public static String MAIN_GEOGRAPHY = "Geography";
+	
 }
