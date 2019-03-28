@@ -2,6 +2,7 @@ package repastInterSim;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.commons.math3.util.FastMath;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.Hints;
@@ -37,8 +37,8 @@ import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.gis.RepastCoverageFactory;
-import repast.simphony.space.gis.WritableGridCoverage2D;
+//import repast.simphony.space.gis.ShapefileLoader;
+import repast.simphony.util.collections.IndexedIterable;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
@@ -58,17 +58,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	@Override
 	public Context<Object> build(Context<Object> context) {
 	    
-		context.setId("repastInterSim");
+		context.setId(UserPanel.MAIN_CONTEXT);
 	   
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
+		GeometryFactory fac = new GeometryFactory();
 
 		// Use GB Coordinate projection, also define a transform between degree and metre projections
 		geoParams.setCrs(geographyCRSString);
-		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("Geography", context, geoParams);
+		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(UserPanel.MAIN_GEOGRAPHY, context, geoParams);
 		context.add(geography);
 		
-
 		// Not sure what this line does and whether it is required
 		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
 		CoordinateReferenceSystem geographyCRS = null;
@@ -84,24 +84,31 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			e.printStackTrace();
 		}
 		
-		// Load the raster data as coverage
-		File coverageFile = new File(".//data//Masterma_1250_clippedEPSG4277.tif");
-		WritableGridCoverage2D intersection = RepastCoverageFactory.createWritableCoverageFromFile(coverageFile, true);
-		geography.addCoverage("intersection", intersection);
 	    
-		GeometryFactory fac = new GeometryFactory();
-	    
+	    // A separate class is used to handle the creation of pedestrians
+		String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
+		try {
+			readShapefile(Destination.class, destinationsFile, geography, context);
+		} catch (MalformedURLException | FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		// Set the internal context and geography attributes of the destination agents
+		// This saves setting them on the fly at each tick
+		IndexedIterable<Object> destinations = context.getObjects(Destination.class);
+		for (Object d : destinations) {
+			((Destination)d).setContext(context);
+			((Destination)d).setGeography(geography);
+			
+		}
+		
 	    // Code below taken from the 'Geography' repast example
 		// Create an area in which to create agents.  This border is loaded from a shapefile.
 		String boundaryFilename = ".//data//JunctClipEPSG4277.shp";
 		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
 		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
-		
-	    
-	    // A separate class is used to handle the creation of pedestrians
-		List<Destination> destinations = loadFeatures (".//data//destCoordsEPSG4277.shp", context, geography);	    
-	    
-    	// Get the number of pedetrian agent to add to the space from the parameters
+
+    	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
     	
@@ -123,7 +130,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		}
 			
     		try {
-				Ped newPed = addPed(context, geography, fac, randBearing, coord, destinations.get(destinationIndex), Color.BLUE);
+				Ped newPed = addPed(context, geography, fac, randBearing, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
 			} catch (MismatchedDimensionException | TransformException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -136,7 +143,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c, MathTransform ttM, MathTransform ttD) {
 		
-		Destination d = new Destination(geography, c);
+		Destination d = new Destination();
 		context.add(d);
 		
 		// Initialize random coordinates for the destination
@@ -152,7 +159,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent, Color c, MathTransform ttM, MathTransform ttD) {
 		
-		Destination d = new Destination(geography, c);
+		Destination d = new Destination();
 		context.add(d);
 		
 		// Get the x&y coords for the destination set by the user
@@ -260,7 +267,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			if (geom instanceof Point){
 				geom = (Point)feature.getDefaultGeometry();		
 				
-				agent = new Destination(geography, Color.RED);
+				agent = new Destination();
 				
 				destinations.add((Destination)agent);
 								
@@ -286,6 +293,51 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
 		G.move(agent, JTS.transform(geomCalc, transformToGeog));
+	}
+	
+	/**
+	 * This function was taken from Nick Malleson. I have edited it so that generic type contexts and geographies can 
+	 * be passed to the function. His comments below.
+	 * 
+	 * Nice generic function :-) that reads in objects from shapefiles.
+	 * <p>
+	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
+	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
+	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
+	 * the shapefile has been read and the objects have been given coordinates in their projection.
+	 * 
+	 * @param <T>
+	 *            The type of object to be read (e.g. PecsHouse). Must exted
+	 * @param cl
+	 *            The class of the building being read (e.g. PecsHouse.class).
+	 * @param shapefileLocation
+	 *            The location of the shapefile containing the objects.
+	 * @param geog
+	 *            A geography to add the objects to.
+	 * @param context
+	 *            A context to add the objects to.
+	 * @throws MalformedURLException
+	 *             If the location of the shapefile cannot be converted into a URL
+	 * @throws FileNotFoundException
+	 *             if the shapefile does not exist.
+	 * @see FixedGeography
+	 */
+	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
+		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException {
+		File shapefile = null;
+		ShapefileLoader<T> loader = null;
+		shapefile = new File(shapefileLocation);
+		if (!shapefile.exists()) {
+			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
+		}
+		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geog, context);
+		while (loader.hasNext()) {
+			loader.next();
+		}
+		for (Object obj : context.getObjects(cl)) {
+			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
+			((T)obj).setCoords(geog.getGeometry(obj).getCentroid().getCoordinate()); // Note this might not use the correct CRS
+		}
 	}
 
 }
