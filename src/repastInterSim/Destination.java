@@ -10,6 +10,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.context.Context;
@@ -19,9 +20,10 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 
-public class Destination {
+public class Destination implements FixedGeography{
 
 	private Geography<Object> geography;
+	private Coordinate coord;
 	private Color colour; // Colour of the destination
 	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
 	private MathTransform transformtoMetre;
@@ -30,6 +32,10 @@ public class Destination {
 	public Destination(Geography<Object> geography, Color col) {
 		this.geography = geography;
 		this.colour = col;
+	}
+	
+	public Destination() {
+
 	}
 	
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
@@ -64,5 +70,15 @@ public class Destination {
 	        	context.remove(P);
 	        }
 	    }
+
+	@Override
+	public Coordinate getCoords() {
+		return this.coord;
+	}
+
+	@Override
+	public void setCoords(Coordinate c) {
+		this.coord = c;
+	}
 
 }

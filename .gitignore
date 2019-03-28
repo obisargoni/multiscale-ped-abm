@@ -96,3 +96,4 @@ hs_err_pid*
 /repast-licenses/xpp3-license.txt
 /repast-licenses/xstream-license.txt
 /.classpath
+/velocity.log.1
