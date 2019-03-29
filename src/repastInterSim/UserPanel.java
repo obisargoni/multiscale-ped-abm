@@ -13,8 +13,8 @@ public class UserPanel {
 	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";
-	public static String VehicleRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaVehicle_EPSG4277.shp";
-	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaPedestrian_EPSG4277.shp";
+	public static String VehicleRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaVehicle_EPSG4277_Clipped_Single.shp";
+	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaPedestrain_EPSG4277_Clipped_Single.shp";
 	public static String DestinationsFile = "destCoordsEPSG4277.shp";
 	
 	public static String MAIN_CONTEXT = "repastInterSim";
