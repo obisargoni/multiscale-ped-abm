@@ -11,6 +11,10 @@
       <string>repastInterSim.GISStyler</string>
     </entry>
     <entry>
+      <string>repastInterSim.PedObstruction</string>
+      <string>styles.PedObstructionStyler</string>
+    </entry>
+    <entry>
       <string>repastInterSim.Road</string>
       <string>styles.RoadStyler</string>
     </entry>
@@ -22,6 +26,10 @@
     </entry>
     <entry>
       <string>repastInterSim.Ped</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>repastInterSim.PedObstruction</string>
       <null/>
     </entry>
     <entry>
@@ -39,17 +47,21 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-42160102</hashCode>
+    <hashCode>2067547673</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
       <string>repastInterSim.Destination</string>
-      <int>1</int>
+      <int>2</int>
     </entry>
     <entry>
       <string>repastInterSim.Ped</string>
-      <int>2</int>
+      <int>3</int>
+    </entry>
+    <entry>
+      <string>repastInterSim.PedObstruction</string>
+      <int>1</int>
     </entry>
     <entry>
       <string>repastInterSim.Road</string>
