@@ -17,7 +17,6 @@ import java.util.Map;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -27,9 +26,9 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.OperationNotFoundException;
-import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
@@ -201,7 +200,10 @@ public class ShapefileLoader<T> {
       SimpleFeature feature = featureIterator.next();
       obj = fillAgent(feature, obj);
       if (!context.contains(obj)) context.add(obj);
-      if (geography != null) geography.move(obj, (Geometry)feature.getDefaultGeometry());
+      if (geography != null) {
+    	  Geometry geom = getFeatureGeometry(feature);
+    	  geography.move(obj, geom);
+      }
       return obj;
     } catch (IllegalAccessException e) {
       msg.error("Error setting agent property from feature attribute", e);
@@ -294,5 +296,18 @@ public class ShapefileLoader<T> {
       write.invoke(agent, val);
     }
     return agent;
+  }
+  
+  private Geometry getFeatureGeometry(SimpleFeature f) {
+	  Geometry g = (Geometry)f.getDefaultGeometry();
+	  
+	  // Check if geometry is MultiPolygon type but contains only a single geometry,
+	  // in which case convert to Polygon
+	  if (g.getGeometryType() == "MultiPolygon" & g.getNumGeometries() ==1) {
+			Polygon p = (Polygon)g.getGeometryN(0);
+			return p;
+		}
+	  
+	  return g;	  
   }
 }
