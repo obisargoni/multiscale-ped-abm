@@ -99,6 +99,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			readShapefile(Road.class, vehicleRoadFile, geography, context);
 			readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
+			// Load pedestrian obstruction boundaries
+			String pedObstructionFile = UserPanel.GISDataDir + UserPanel.PedestrianObstructionShapefile;
+			readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
+
+			
 		} catch (MalformedURLException | FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
