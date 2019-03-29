@@ -27,6 +27,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -111,19 +112,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 		}
 		
-		
-	    // Code below taken from the 'Geography' repast example
-		// Create an area in which to create agents.  This border is loaded from a shapefile.
-		String boundaryFilename = ".//data//JunctClipEPSG4277.shp";
-		List<SimpleFeature> features = loadFeaturesFromShapefile(boundaryFilename);
-		Geometry boundary = (MultiPolygon)features.iterator().next().getDefaultGeometry();
-
     	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
-    	
-		// Generate random points in the area to create agents.
-		List<Coordinate> agentCoords = GeometryUtil.generateRandomPointsInPolygon(boundary, nP);
+		List<Coordinate> agentCoords = getRandomCoordinatesWithinRoads(context, geography, fac, nP);
+		
 		
 		// Create the agents from the collection of random coords.
 		Random randCoord = new Random();
@@ -295,13 +288,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return destinations;
 	}
 	
-	static Geometry getGeometryForCalculation(Geography G, Object agent) throws MismatchedDimensionException, TransformException {
+	public static Geometry getGeometryForCalculation(Geography G, Object agent) throws MismatchedDimensionException, TransformException {
 		Geometry geom = G.getGeometry(agent);
 		
 		return JTS.transform(geom, transformToCalc);
 	}
 	
-	static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
+	public static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
 		G.move(agent, JTS.transform(geomCalc, transformToGeog));
 	}
 	
@@ -348,6 +341,27 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
 			((T)obj).setCoords(geog.getGeometry(obj).getCentroid().getCoordinate()); // Note this might not use the correct CRS
 		}
+	}
+	
+	public static List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> c, Geography<Object> g, GeometryFactory fac, Integer nPoints){
+		
+		IndexedIterable<Object> agents = c.getObjects(Road.class);
+		Polygon[] roadPolygons = new Polygon[agents.size()];
+
+		
+		// Iterate over the agents and get their polygon geometry
+		int i = 0;
+		for (Object a : agents) {
+			Polygon p = (Polygon)g.getGeometry(a);
+			roadPolygons[i] = p;
+			i++;
+		}
+		
+		// Create single MultiPolygon that includes all road polygons and generate random coordinates that are within this multipolygon
+	    MultiPolygon combined = new MultiPolygon(roadPolygons, fac);
+		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
+		
+		return randCoords;
 	}
 
 }
