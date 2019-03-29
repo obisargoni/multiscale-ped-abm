@@ -59,7 +59,7 @@ public class Ped {
         this.destination = d;
         this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
-        this.rad = m / 320; // As per Moussaid
+        this.rad = 50 * m / 320; // As per Moussaid
         this.aP = aP;
         this.gF = gF;
         
@@ -168,31 +168,40 @@ public class Ped {
     public double[] totalContactAcceleration() throws MismatchedDimensionException, TransformException {
     	double[] cATotal = {0,0};
     	
-    	// Get the geometry of the ego agent
+    	// Get the geometry  and context of the ego agent
     	Geometry thisGeom = SpaceBuilder.getGeometryForCalculation(geography, this);
-    	
+        Context<Object> context = ContextUtils.getContext(this);
     	
     	
     	// Iterate over all other pedestrian agents and for those that touch the 
     	// ego agent calculate the interaction force
     	// Check to see if this line intersects with any agents
-        Context<Object> context = ContextUtils.getContext(this);
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
                	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
                	if (agentG.intersects((thisGeom))) {
-               		double[] cA = contactAcceleration(this, thisGeom, P, agentG);
-               		cATotal = Vector.sumV(cATotal, cA);
+               		double[] pCA = pedestrianContactAcceleration(this, thisGeom, P, agentG);
+               		cATotal = Vector.sumV(cATotal, pCA);
                	}
         	}
-        }    	    	
+        }
+        
+        for (Object obstr :context.getObjects(PedObstruction.class)) {
+        	PedObstruction Obstr = (PedObstruction)obstr;
+           	Geometry obstrGeom = SpaceBuilder.getGeometryForCalculation(geography, Obstr);
+           	if (obstrGeom.intersects((thisGeom))) {
+           		double[] oCA = obstructionContactAcceleration(this, thisGeom, Obstr, obstrGeom);
+           		cATotal = Vector.sumV(cATotal, oCA);
+           	}
+
+        } 
     	
     	return cATotal;
     	
     }
     
-    public double[] contactAcceleration(Ped egoPed, Geometry egoGeom, Ped agentPed, Geometry agentGeom) {
+    public double[] pedestrianContactAcceleration(Ped egoPed, Geometry egoGeom, Ped agentPed, Geometry agentGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
@@ -208,6 +217,27 @@ public class Ped {
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i + r_j - d_ij) / this.m;
+    	double[] A  = {magA*n[0], magA*n[1]};
+    	
+    	return A;
+    	
+    }
+    
+    public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, PedObstruction Obstr, Geometry obstrGeom) {
+    	
+    	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
+    	double r_i = egoPed.rad;
+    	
+    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
+    	Coordinate intersectionCoord = egoGeom.intersection(obstrGeom).getCentroid().getCoordinate();
+    	double d_ij = egoCoord.distance(intersectionCoord);
+    	
+    	// Get the vector that points from centorid of other agent to the ego agent,
+    	// this is the direction that the force acts in
+    	double[] n = {egoCoord.x - intersectionCoord.x, egoCoord.y - intersectionCoord.y};
+    	n = Vector.unitV(n);
+    	
+    	double magA = this.k * (r_i - d_ij) / this.m;
     	double[] A  = {magA*n[0], magA*n[1]};
     	
     	return A;
