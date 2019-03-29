@@ -10,6 +10,10 @@
       <string>repastInterSim.Ped</string>
       <string>repastInterSim.GISStyler</string>
     </entry>
+    <entry>
+      <string>repastInterSim.Road</string>
+      <string>styles.RoadStyler</string>
+    </entry>
   </styles>
   <editedStyles>
     <entry>
@@ -18,6 +22,10 @@
     </entry>
     <entry>
       <string>repastInterSim.Ped</string>
+      <null/>
+    </entry>
+    <entry>
+      <string>repastInterSim.Road</string>
       <null/>
     </entry>
   </editedStyles>
@@ -31,7 +39,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-1915566953</hashCode>
+    <hashCode>-42160102</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
@@ -44,7 +52,7 @@
       <int>2</int>
     </entry>
     <entry>
-      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
+      <string>repastInterSim.Road</string>
       <int>0</int>
     </entry>
   </layerOrder>

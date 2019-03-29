@@ -85,10 +85,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 	    
-	    // A separate class is used to handle the creation of pedestrians
-		String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
+	    // Load agents from shapefiles
 		try {
+			
+			// Load destinations
+			String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
 			readShapefile(Destination.class, destinationsFile, geography, context);
+			
+			// Load roads
+			String vehicleRoadFile = UserPanel.GISDataDir + UserPanel.VehicleRoadShapefile;
+			String pedestrianRoadFile = UserPanel.GISDataDir + UserPanel.PedestrianRoadShapefile;
+			readShapefile(Road.class, vehicleRoadFile, geography, context);
+			readShapefile(Road.class, pedestrianRoadFile, geography, context);
+			
 		} catch (MalformedURLException | FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -101,6 +110,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			((Destination)d).setGeography(geography);
 			
 		}
+		
 		
 	    // Code below taken from the 'Geography' repast example
 		// Create an area in which to create agents.  This border is loaded from a shapefile.
