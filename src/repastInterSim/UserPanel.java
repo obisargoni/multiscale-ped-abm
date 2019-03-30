@@ -9,7 +9,7 @@ public class UserPanel {
 	static double pedVavg = 0.8; // average pedestrian speed
 	static double pedMassAv = 60; // 60kg average mass
 	static double pedMasssd = 10; // 60kg average mass
-	static double interactionForceConstant = 1;
+	static double interactionForceConstant = 100;
 	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";
