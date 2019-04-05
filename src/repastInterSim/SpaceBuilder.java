@@ -64,14 +64,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		GeometryFactory fac = new GeometryFactory();
-
-		// Use GB Coordinate projection, also define a transform between degree and metre projections
 		geoParams.setCrs(geographyCRSString);
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(UserPanel.MAIN_GEOGRAPHY, context, geoParams);
 		context.add(geography);
 		
 		// Not sure what this line does and whether it is required
 		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
+		
+		// Set up coordinate transformations. These are used to move from a CRS that uses degrees to one that uses meters
 		CoordinateReferenceSystem geographyCRS = null;
 		CoordinateReferenceSystem calculationCRS = null;
 		try {
@@ -123,7 +123,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<Coordinate> agentCoords = getRandomCoordinatesWithinRoads(context, geography, fac, nP);
 		
 		
-		// Create the agents from the collection of random coords.
+		// Create the agents. Use random seed to generate their initial direction. 
 		Random randCoord = new Random();
 		int i = 0;
 		int destinationIndex = 0;
@@ -134,7 +134,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		
     		// Crude way to assign different destinations
     		if (i > nP / 2) {
-    			destinationIndex = 1; 
+    			destinationIndex = 1; // i
     		}
 			
     		try {
