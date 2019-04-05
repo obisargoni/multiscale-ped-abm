@@ -112,9 +112,7 @@ public class Ped {
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeomNew, this);
         
-     	Coordinate pLoc_ = pGeomNew.getCentroid().getCoordinate();
-        
-        seta0FromDestinationCoord();
+        setDirectionFromDestinationCoord();
         setPedAngleFromVelocity(this.v);
     }
     
@@ -369,7 +367,7 @@ public class Ped {
     	return this.col;
     }
     
-    public double seta0FromDestinationCoord() throws MismatchedDimensionException, TransformException {
+    public double setDirectionFromDestinationCoord() throws MismatchedDimensionException, TransformException {
         // Calculate bearing to destination and convert to a unit vector
         Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
         Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
