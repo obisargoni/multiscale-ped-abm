@@ -278,7 +278,7 @@ public class Ped {
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
     	
-    	// Check to see if this line intersects with any agents
+    	// Check to see if this line intersects with any pedestrian agents
         Context<Object> context = ContextUtils.getContext(this);
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
@@ -292,6 +292,19 @@ public class Ped {
                		}
                	}
         	}
+        }
+        
+    	// Check to see if this line intersects with any obstacle agents
+        for (Object agent :context.getObjects(PedObstruction.class)) {
+        	PedObstruction PO = (PedObstruction)agent;
+           	Geometry obstG = SpaceBuilder.getGeometryForCalculation(geography, PO);
+           	if (obstG.intersects(sampledRay)) {
+           		double dAgent = obstG.distance(sampledRay);
+           		
+           		if (dAgent < d) {
+           			d = dAgent;
+           		}
+           	}
         }
         
         return d;    	
