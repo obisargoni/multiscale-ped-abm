@@ -205,7 +205,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		//geography.move(newPed, circle);
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
-		double a0 = newPed.seta0FromDestinationCoord();
+		double a0 = newPed.setDirectionFromDestinationCoord();
 		newPed.setaP(a0);
         	
         return newPed;
