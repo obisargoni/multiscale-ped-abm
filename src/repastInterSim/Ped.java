@@ -187,7 +187,7 @@ public class Ped {
         
         for (Object obstr :context.getObjects(PedObstruction.class)) {
         	PedObstruction Obstr = (PedObstruction)obstr;
-           	Geometry obstrGeom = SpaceBuilder.getGeometryForCalculation(geography, Obstr);
+           	Geometry obstrGeom = Obstr.getGeom();
            	if (obstrGeom.intersects((thisGeom))) {
            		double[] oCA = obstructionContactAcceleration(this, thisGeom, Obstr, obstrGeom);
            		cATotal = Vector.sumV(cATotal, oCA);
@@ -298,9 +298,9 @@ public class Ped {
         }
         
     	// Check to see if this line intersects with any obstacle agents
-        for (Object agent :context.getObjects(PedObstruction.class)) {
-        	PedObstruction PO = (PedObstruction)agent;
-           	Geometry obstG = SpaceBuilder.getGeometryForCalculation(geography, PO);
+        for (Object obstr :context.getObjects(PedObstruction.class)) {
+        	PedObstruction Obstr = (PedObstruction)obstr;
+           	Geometry obstG = Obstr.getGeom();
            	if (obstG.intersects(sampledRay)) {
            		Geometry obstIntersection = obstG.intersection(sampledRay);
            		double dAgent = pLoc.distance(obstIntersection.getCentroid().getCoordinate());
