@@ -71,7 +71,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public double getElevation(Ped obj) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 20;
 	}
 
 	/* (non-Javadoc)
@@ -105,7 +105,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public double getScale(Ped obj) {
 		// TODO Auto-generated method stub
-		return 0;
+		return 0.2;
 	}
 
 	/* (non-Javadoc)
@@ -132,7 +132,7 @@ public class PedGISStyle implements MarkStyle<Ped> {
 	@Override
 	public Color getLabelColor(Ped obj) {
 		// TODO Auto-generated method stub
-		return ((Ped)obj).getColor();
+		return (obj).getColor();
 	}
 
 	/* (non-Javadoc)
