@@ -1,4 +1,4 @@
-package repastInterSim;
+package styles;
 
 import java.net.URL;
 
@@ -8,6 +8,7 @@ import gov.nasa.worldwind.render.BasicWWTexture;
 import gov.nasa.worldwind.render.Offset;
 import gov.nasa.worldwind.render.WWTexture;
 import repast.simphony.visualization.gis3D.style.DefaultMarkStyle;
+import repastInterSim.Ped;
 
 public class GISStyler extends DefaultMarkStyle<Ped> {
 	
