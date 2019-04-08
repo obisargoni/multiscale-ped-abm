@@ -104,7 +104,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
 
 			
-		} catch (MalformedURLException | FileNotFoundException e1) {
+		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException | TransformException e1 ) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
@@ -328,10 +328,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 *             If the location of the shapefile cannot be converted into a URL
 	 * @throws FileNotFoundException
 	 *             if the shapefile does not exist.
+	 * @throws TransformException 
+	 * @throws MismatchedDimensionException 
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
-		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException {
+		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException, MismatchedDimensionException, TransformException {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
@@ -344,7 +346,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setCoords(geog.getGeometry(obj).getCentroid().getCoordinate()); // Note this might not use the correct CRS
+			((T)obj).setGeom(getGeometryForCalculation(geog, obj)); // Note this might not use the correct CRS
 		}
 	}
 	

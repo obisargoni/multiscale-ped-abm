@@ -1,21 +1,20 @@
 package repastInterSim;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
 public class PedObstruction implements FixedGeography {
 	
-	private Coordinate coord;
-	
+	private Geometry geom;
+    
 	public PedObstruction() {
 		
 	}
 	
-	public Coordinate getCoords() {
-		return this.coord;
+	public Geometry getGeom() {
+		return this.geom;
 	}
 	
-	public void setCoords(Coordinate c) {
-		this.coord = c;
+	public void setGeom(Geometry g) {
+		this.geom = g;
 	}
-
 }

@@ -15,21 +15,23 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 
 package repastInterSim;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * Implemented by all objects which hold their own Coord objects in conjunction with those
- * held by any projections they exist in. For example, a Road object has road coordinates stored
- * by the ROAD_ENVIRONMENT, but these coordinates can also be found (for simplicity) by calling
- * road.getCoords().<br>
+ * Adapted from Nick Malleson's FixedGeography interfacce.
+ * 
+ * Implemented by all objects which hold their own Geometry objects in conjunction with those
+ * held by any projections they exist in. For example, a Road object has its geometry stored 
+ * by the 'geography' projection, but this geometry can also be found (for simplicity) by calling
+ * road.getGeom().<br>
  * Used by EnvironmentFactory.readShapeFile().<br>
  * Must not be used by objects which will move such as People.
- * @author Nick Malleson
+ * @author Obi Sargoni
  *
  */
 public interface FixedGeography {
 	
-	Coordinate getCoords();
-	void setCoords(Coordinate c);
+	Geometry getGeom();
+	void setGeom(Geometry c);
 
 }
