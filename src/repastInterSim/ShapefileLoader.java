@@ -28,6 +28,7 @@ import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.OperationNotFoundException;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
@@ -306,6 +307,10 @@ public class ShapefileLoader<T> {
 	  if (g.getGeometryType() == "MultiPolygon" & g.getNumGeometries() ==1) {
 			Polygon p = (Polygon)g.getGeometryN(0);
 			return p;
+		}
+	  if (g.getGeometryType() == "MultiLineString" & g.getNumGeometries() ==1) {
+		  LineString l = (LineString)g.getGeometryN(0);
+			return l;
 		}
 	  
 	  return g;	  
