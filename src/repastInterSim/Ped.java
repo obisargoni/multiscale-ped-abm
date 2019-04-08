@@ -227,10 +227,10 @@ public class Ped {
     	double r_i = egoPed.rad;
     	
     	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
-    	Coordinate intersectionCoord = egoGeom.intersection(obstrGeom).getCentroid().getCoordinate();
+    	Coordinate intersectionCoord = (egoGeom.intersection(obstrGeom)).getCentroid().getCoordinate();
     	double d_ij = egoCoord.distance(intersectionCoord);
     	
-    	// Get the vector that points from centorid of other agent to the ego agent,
+    	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in
     	double[] n = {egoCoord.x - intersectionCoord.x, egoCoord.y - intersectionCoord.y};
     	n = Vector.unitV(n);
@@ -265,7 +265,7 @@ public class Ped {
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
     	
-    	// Get coordinate of this agent
+    	// Get centroid coordinate of this agent
     	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
@@ -285,7 +285,8 @@ public class Ped {
         	if (P != this) {
                	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
                	if (agentG.intersects(sampledRay)) {
-               		double dAgent = agentG.distance(sampledRay);
+               		Geometry agentIntersection = agentG.intersection(sampledRay);
+               		double dAgent = pLoc.distance(agentIntersection.getCentroid().getCoordinate());
                		
                		if (dAgent < d) {
                			d = dAgent;
@@ -299,7 +300,8 @@ public class Ped {
         	PedObstruction PO = (PedObstruction)agent;
            	Geometry obstG = SpaceBuilder.getGeometryForCalculation(geography, PO);
            	if (obstG.intersects(sampledRay)) {
-           		double dAgent = obstG.distance(sampledRay);
+           		Geometry obstIntersection = obstG.intersection(sampledRay);
+           		double dAgent = pLoc.distance(obstIntersection.getCentroid().getCoordinate());
            		
            		if (dAgent < d) {
            			d = dAgent;
