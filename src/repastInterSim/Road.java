@@ -5,14 +5,14 @@
 
 package repastInterSim;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
 /*
  * Not sure what attributes and methods are needed for the road object.
  */
 public class Road implements FixedGeography {
 	
-	private Coordinate coord;
+	private Geometry geom;
 	
 	private String priority = "";
 	
@@ -37,12 +37,12 @@ public class Road implements FixedGeography {
 		return this.priority;
 	}
 	
-	public Coordinate getCoords() {
-		return this.coord;
+	public Geometry getGeom() {
+		return this.geom;
 	}
 	
-	public void setCoords(Coordinate c) {
-		this.coord = c;
+	public void setGeom(Geometry g) {
+		this.geom = g;
 	}
 
 }

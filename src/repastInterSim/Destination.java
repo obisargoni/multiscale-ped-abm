@@ -24,7 +24,7 @@ public class Destination implements FixedGeography{
 	
 	private Context<Object> context;
 	private Geography<Object> geography;
-	private Coordinate coord;
+	private Geometry geom;
 	private Color colour; // Colour of the destination
 	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
 	private MathTransform transformtoMetre;
@@ -66,13 +66,13 @@ public class Destination implements FixedGeography{
 	    }
 
 	@Override
-	public Coordinate getCoords() {
-		return this.coord;
+	public Geometry getGeom() {
+		return this.geom;
 	}
 
 	@Override
-	public void setCoords(Coordinate c) {
-		this.coord = c;
+	public void setGeom(Geometry g) {
+		this.geom = g;
 	}
 	
 	public void setGeography(Geography<Object> G) {
