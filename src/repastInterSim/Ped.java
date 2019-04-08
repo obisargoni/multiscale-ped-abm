@@ -59,7 +59,7 @@ public class Ped {
         this.destination = d;
         this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
-        this.rad = 50 * m / 320; // As per Moussaid
+        this.rad = m / 320; // As per Moussaid
         this.aP = aP;
         this.gF = gF;
         
@@ -227,11 +227,13 @@ public class Ped {
     	double r_i = egoPed.rad;
     	
     	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
-    	Coordinate intersectionCoord = (egoGeom.intersection(obstrGeom)).getCentroid().getCoordinate();
+    	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
+    	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
     	double d_ij = egoCoord.distance(intersectionCoord);
     	
     	// Get the vector that points from centroid of other agent to the ego agent,
-    	// this is the direction that the force acts in
+    	// this is the direction that the force acts in.
+    	// This should also be perpendicular to the obstacle 
     	double[] n = {egoCoord.x - intersectionCoord.x, egoCoord.y - intersectionCoord.y};
     	n = Vector.unitV(n);
     	
