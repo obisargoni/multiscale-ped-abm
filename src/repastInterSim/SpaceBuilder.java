@@ -120,7 +120,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
-		List<Coordinate> agentCoords = getRandomCoordinatesWithinRoads(context, geography, fac, nP);
+    	
+    	String startingZonesFile = UserPanel.GISDataDir + UserPanel.StartingZonesFile;
+		List<Coordinate> agentCoords = getRandomCoordinatesWithinStartingZones(startingZonesFile,  fac,  nP);
 		
 		
 		// Create the agents. Use random seed to generate their initial direction. 
@@ -354,7 +356,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 	}
 	
-	public static List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> c, Geography<Object> g, GeometryFactory fac, Integer nPoints){
+	public List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> c, Geography<Object> g, GeometryFactory fac, Integer nPoints){
 		
 		IndexedIterable<Object> agents = c.getObjects(Road.class);
 		Polygon[] roadPolygons = new Polygon[agents.size()];
@@ -370,6 +372,27 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Create single MultiPolygon that includes all road polygons and generate random coordinates that are within this multipolygon
 	    MultiPolygon combined = new MultiPolygon(roadPolygons, fac);
+		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
+		
+		return randCoords;
+	}
+	
+	public List<Coordinate> getRandomCoordinatesWithinStartingZones(String startingZonesFile, GeometryFactory fac, Integer nPoints){
+		
+		// Load the starting zones
+		List<SimpleFeature> startingZones = loadFeaturesFromShapefile(startingZonesFile);
+		Polygon[] startingPolygons = new Polygon[startingZones.size()];
+		
+		// Iterate over the agents and get their polygon geometry
+		int i = 0;
+		for (SimpleFeature sf: startingZones) {
+			MultiPolygon mp = (MultiPolygon)sf.getDefaultGeometry();
+			startingPolygons[i] = (Polygon)mp.getGeometryN(0);
+			i++;
+		}
+		
+		// Create single MultiPolygon that includes all road polygons and generate random coordinates that are within this multipolygon
+	    MultiPolygon combined = new MultiPolygon(startingPolygons, fac);
 		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
 		
 		return randCoords;
