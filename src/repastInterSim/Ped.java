@@ -40,10 +40,11 @@ public class Ped {
     private double a0; // Angle to the destination
     private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
-    private double angres; // Angular resolution used when ampling the field of vision
+    private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres
     private GeometryFactory gF;
+    private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
     
     private Color col; // Colour of the pedestrian
     
@@ -90,10 +91,6 @@ public class Ped {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void walk() throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException {
     	
-    	// Get the geometry of the pedestrian agent and its destination in the CRS used for spatial calculations
-    	Geometry pGeom = SpaceBuilder.getGeometryForCalculation(this.geography, this);
-     	Coordinate pLoc = pGeom.getCentroid().getCoordinate();
-    	
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
@@ -111,6 +108,10 @@ public class Ped {
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeomNew, this);
+        
+        // Avoids any rounding errors between how the geometry is stored in the geography 
+        // projection and how the coordinate is stored as a private variable
+        setLoc();
         
         setDirectionFromDestinationCoord();
         setPedAngleFromVelocity(this.v);
@@ -266,9 +267,6 @@ public class Ped {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
-    	
-    	// Get centroid coordinate of this agent
-    	Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
     	
     	// Get unit vector in the direction of the sampled angle
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
@@ -431,6 +429,27 @@ public class Ped {
     
     public double getSpeed() {
     	return Vector.mag(this.v);
+    }
+    
+    /*
+     * Get the coordinate of the agents centroid in the references frame used 
+     * by the agent class for GIS calculations. Note that this attribute is updated
+     * as part of the algorithm for producing pedestrian movement.
+     * 
+     * @returns Coordinate. The coordinate of the centroid of the pedestrian agent.
+     */
+    public Coordinate getLoc() {
+    	return this.pLoc;
+    }
+    
+    /*
+     * Set the location attribute of the agent to be the coordinate of its 
+     * centroid, in the coordinate reference frame used by the agent for GIS calculations. 
+     */
+    public void setLoc() throws MismatchedDimensionException, TransformException {
+    	// Get centroid coordinate of this agent
+    	Coordinate pL = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+    	this.pLoc = pL;
     }
     
 }

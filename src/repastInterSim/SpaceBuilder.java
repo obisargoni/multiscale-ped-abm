@@ -207,6 +207,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
 		double a0 = newPed.setDirectionFromDestinationCoord();
 		newPed.setaP(a0);
+		
+		// Set the private location attribute of the pedestrian agent to be its current location
+		// This simplifies the process of calculating the pedestrians motion at subsequent timesteps
+		newPed.setLoc();
         	
         return newPed;
     }
