@@ -287,11 +287,14 @@ public class Ped {
         	if (P != this) {
                	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
                	if (agentG.intersects(sampledRay)) {
-               		Geometry agentIntersection = agentG.intersection(sampledRay);
-               		double dAgent = pLoc.distance(agentIntersection.getCentroid().getCoordinate());
-               		
-               		if (dAgent < d) {
-               			d = dAgent;
+               		// The intersection geometry could be multiple points.
+               		// Iterate over them find the distance to the nearest pedestrian
+               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
+               		for(Coordinate c: agentIntersectionCoords) {
+                   		double dAgent = pLoc.distance(c);
+                   		if (dAgent < d) {
+                   			d = dAgent;
+                   		}
                		}
                	}
         	}
@@ -302,11 +305,14 @@ public class Ped {
         	PedObstruction Obstr = (PedObstruction)obstr;
            	Geometry obstG = Obstr.getGeom();
            	if (obstG.intersects(sampledRay)) {
-           		Geometry obstIntersection = obstG.intersection(sampledRay);
-           		double dAgent = pLoc.distance(obstIntersection.getCentroid().getCoordinate());
-           		
-           		if (dAgent < d) {
-           			d = dAgent;
+           		// The intersection geometry could be multiple points.
+           		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
+           		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
+           		for(Coordinate c: obstIntersectionCoords) {
+           			double dAgent = pLoc.distance(c);
+               		if (dAgent < d) {
+               			d = dAgent;
+               		}
            		}
            	}
         }
