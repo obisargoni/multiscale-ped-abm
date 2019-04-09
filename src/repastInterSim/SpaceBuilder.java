@@ -118,14 +118,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
+    	//nP = 1;
 		List<Coordinate> agentCoords = getRandomCoordinatesWithinRoads(context, geography, fac, nP);
-		
-		
+		//String pedOriginFile = UserPanel.GISDataDir + UserPanel.OriginsFile;
+    	//List<SimpleFeature> origins =  loadFeaturesFromShapefile(pedOriginFile);
+    	
 		// Create the agents. Use random seed to generate their initial direction. 
 		Random randCoord = new Random();
-		int i = 0;
 		int destinationIndex = 0;
-		for (Coordinate coord : agentCoords) {
+		for (int i = 0; i<nP; i++) {
+			
+	    	//Geometry originPoint = (Point)origins.get(i).getDefaultGeometry();
+	    	//Coordinate coord = originPoint.getCoordinate();
+			Coordinate coord = agentCoords.get(i);
 			
 			// Generate a random initial direction for the pedestrian
     		double randBearing = randCoord.nextFloat() * 2 * Math.PI;

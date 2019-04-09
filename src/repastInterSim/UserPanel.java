@@ -16,6 +16,7 @@ public class UserPanel {
 	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//SinglePavementSection_area.shp";
 	public static String PedestrianObstructionShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//SinglePavementSection_perimeter.shp";
 	public static String DestinationsFile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//SinglePavementSection_destinations.shp";
+	public static String OriginsFile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//SinglePavementSection_origin.shp";
 	
 	public static String MAIN_CONTEXT = "repastInterSim";
 	public static String MAIN_GEOGRAPHY = "Geography";
