@@ -94,9 +94,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			readShapefile(Destination.class, destinationsFile, geography, context);
 			
 			// Load roads
-			String vehicleRoadFile = UserPanel.GISDataDir + UserPanel.VehicleRoadShapefile;
 			String pedestrianRoadFile = UserPanel.GISDataDir + UserPanel.PedestrianRoadShapefile;
-			readShapefile(Road.class, vehicleRoadFile, geography, context);
 			readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
 			// Load pedestrian obstruction boundaries
