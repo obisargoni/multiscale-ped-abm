@@ -47,7 +47,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>767609222</hashCode>
+    <hashCode>-1255988271</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
@@ -95,11 +95,6 @@
   <viewType>FLAT</viewType>
   <trackAgents>false</trackAgents>
   <globeLayers/>
-  <staticCoverages>
-    <entry>
-      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultCoverageStyle</string>
-    </entry>
-  </staticCoverages>
+  <staticCoverages/>
   <coverageLayers/>
 </repast.simphony.gis.visualization.engine.GISDisplayDescriptor>
