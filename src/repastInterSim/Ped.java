@@ -55,13 +55,12 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, GeometryFactory gF, double aP, Destination d, Color col) {
+    public Ped(Geography<Object> geography, GeometryFactory gF, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
         this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
         this.rad = m / 320; // As per Moussaid
-        this.aP = aP;
         this.gF = gF;
         
         this.col = col;

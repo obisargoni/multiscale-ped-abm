@@ -138,7 +138,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		}
 			
     		try {
-				Ped newPed = addPed(context, geography, fac, randBearing, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
+				Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
 			} catch (MismatchedDimensionException | TransformException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -188,10 +188,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, double pedAngle, Coordinate coord, Destination d, Color c) throws MismatchedDimensionException, TransformException {
+    public Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c) throws MismatchedDimensionException, TransformException {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, gF, pedAngle, d, c);
+        Ped newPed = new Ped(geography, gF, d, c);
         context.add(newPed);
         
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 
