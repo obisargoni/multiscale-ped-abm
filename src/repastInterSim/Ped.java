@@ -364,7 +364,7 @@ public class Ped {
     	Map<String, Double> desiredDirection = desiredDirection();
     	
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
-    	double desiredSpeed = Math.min(this.v0, desiredDirection.get("collision_distance") / this.tau);
+    	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
     	
     	// Get the desired direction for the pedestrian and use to set velocity
     	double alpha = desiredDirection.get("angle");
