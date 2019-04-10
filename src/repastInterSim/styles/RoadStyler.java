@@ -1,11 +1,11 @@
-package styles;
+package repastInterSim.styles;
 
 import java.awt.Color;
 
 import gov.nasa.worldwind.render.SurfacePolygon;
 import gov.nasa.worldwind.render.SurfaceShape;
 import repast.simphony.visualization.gis3D.style.SurfaceShapeStyle;
-import repastInterSim.Road;
+import repastInterSim.environment.Road;
 
 public class RoadStyler implements SurfaceShapeStyle<Road> {
 

@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.environment;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;

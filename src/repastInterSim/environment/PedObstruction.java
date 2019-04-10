@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.environment;
 
 import com.vividsolutions.jts.geom.Geometry;
 

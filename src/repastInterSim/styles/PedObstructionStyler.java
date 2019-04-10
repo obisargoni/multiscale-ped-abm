@@ -1,11 +1,11 @@
-package styles;
+package repastInterSim.styles;
 
 import java.awt.Color;
 
 import gov.nasa.worldwind.render.SurfacePolyline;
 import gov.nasa.worldwind.render.SurfaceShape;
 import repast.simphony.visualization.gis3D.style.SurfaceShapeStyle;
-import repastInterSim.PedObstruction;
+import repastInterSim.environment.PedObstruction;
 
 public class PedObstructionStyler implements SurfaceShapeStyle<PedObstruction> {
 	

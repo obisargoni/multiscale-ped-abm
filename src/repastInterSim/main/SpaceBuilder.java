@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.main;
 
 import java.awt.Color;
 import java.io.File;
@@ -38,13 +38,19 @@ import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-//import repast.simphony.space.gis.ShapefileLoader;
 import repast.simphony.util.collections.IndexedIterable;
+
+import repastInterSim.agent.Ped;
+import repastInterSim.environment.Destination;
+import repastInterSim.environment.FixedGeography;
+import repastInterSim.environment.PedObstruction;
+import repastInterSim.environment.Road;
+import repastInterSim.environment.ShapefileLoader;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
-	static double spaceScale = 1;
-	static double[] north = {0,1}; // Defines north, against which bearings are taken
+	public static double spaceScale = 1;
+	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
 	static String geographyCRSString = "EPSG:4277";
