@@ -1,39 +1,39 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>Ped 3D GIS Display</name>
+  <name>3D Intersection Display</name>
   <type>GIS 3D</type>
   <styles>
     <entry>
-      <string>repastInterSim.Destination</string>
+      <string>repastInterSim.agent.Ped</string>
+      <string>repastInterSim.styles.PedGISStyle</string>
+    </entry>
+    <entry>
+      <string>repastInterSim.environment.PedObstruction</string>
+      <string>repastInterSim.styles.PedObstructionStyler</string>
+    </entry>
+    <entry>
+      <string>repastInterSim.environment.Destination</string>
       <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
     </entry>
     <entry>
-      <string>repastInterSim.Ped</string>
-      <string>styles.PedGISStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.PedObstruction</string>
-      <string>styles.PedObstructionStyler</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.Road</string>
-      <string>styles.RoadStyler</string>
+      <string>repastInterSim.environment.Road</string>
+      <string>repastInterSim.styles.RoadStyler</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
-      <string>repastInterSim.Destination</string>
+      <string>repastInterSim.agent.Ped</string>
       <null/>
     </entry>
     <entry>
-      <string>repastInterSim.Ped</string>
+      <string>repastInterSim.environment.PedObstruction</string>
       <null/>
     </entry>
     <entry>
-      <string>repastInterSim.PedObstruction</string>
+      <string>repastInterSim.environment.Destination</string>
       <null/>
     </entry>
     <entry>
-      <string>repastInterSim.Road</string>
+      <string>repastInterSim.environment.Road</string>
       <null/>
     </entry>
   </editedStyles>
@@ -47,24 +47,24 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>767609222</hashCode>
+    <hashCode>2006813480</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>repastInterSim.Destination</string>
-      <int>2</int>
-    </entry>
-    <entry>
-      <string>repastInterSim.Ped</string>
+      <string>repastInterSim.agent.Ped</string>
       <int>3</int>
     </entry>
     <entry>
-      <string>repastInterSim.PedObstruction</string>
+      <string>repastInterSim.environment.PedObstruction</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>repastInterSim.Road</string>
+      <string>repastInterSim.environment.Destination</string>
+      <int>2</int>
+    </entry>
+    <entry>
+      <string>repastInterSim.environment.Road</string>
       <int>0</int>
     </entry>
   </layerOrder>

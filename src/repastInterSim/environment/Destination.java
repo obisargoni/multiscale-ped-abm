@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.environment;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -19,6 +19,8 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
+import repastInterSim.agent.Ped;
+import repastInterSim.main.SpaceBuilder;
 
 public class Destination implements FixedGeography{
 	

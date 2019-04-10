@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.environment;
 
 public class PedestrianRoad extends Road {
 

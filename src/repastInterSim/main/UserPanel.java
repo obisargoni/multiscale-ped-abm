@@ -1,15 +1,15 @@
-package repastInterSim;
+package repastInterSim.main;
 
 /*
  * A placeholder until the real user panel is set up.
  */
 public class UserPanel {
-	static double tStep = 1;
-	static double pedVsd = 0.1; // standard dev of ped speeds
-	static double pedVavg = 0.8; // average pedestrian speed
-	static double pedMassAv = 60; // 60kg average mass
-	static double pedMasssd = 10; // 60kg average mass
-	static double interactionForceConstant = 100;
+	public static double tStep = 1;
+	public static double pedVsd = 0.1; // standard dev of ped speeds
+	public static double pedVavg = 0.8; // average pedestrian speed
+	public static double pedMassAv = 60; // 60kg average mass
+	public static double pedMasssd = 10; // 60kg average mass
+	public static double interactionForceConstant = 100;
 	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";

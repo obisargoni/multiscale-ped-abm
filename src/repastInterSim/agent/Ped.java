@@ -1,4 +1,4 @@
-package repastInterSim;
+package repastInterSim.agent;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -23,6 +23,12 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
+
+import repastInterSim.environment.Destination;
+import repastInterSim.environment.PedObstruction;
+import repastInterSim.environment.Vector;
+import repastInterSim.main.SpaceBuilder;
+import repastInterSim.main.UserPanel;
 
 public class Ped {
     private Geography<Object> geography; // Space the agent exists in
@@ -62,7 +68,6 @@ public class Ped {
         this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
         this.rad = m / 320; // As per Moussaid
         this.gF = gF;
-        
         this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing

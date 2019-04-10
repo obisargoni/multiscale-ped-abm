@@ -1,4 +1,4 @@
-package styles;
+package repastInterSim.styles;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,7 +18,7 @@ import gov.nasa.worldwind.render.PatternFactory;
 import gov.nasa.worldwind.render.WWTexture;
 import repast.simphony.visualization.gis3D.PlaceMark;
 import repast.simphony.visualization.gis3D.style.MarkStyle;
-import repastInterSim.Ped;
+import repastInterSim.agent.Ped;
 
 public class PedGISStyle implements MarkStyle<Ped> {
 	
