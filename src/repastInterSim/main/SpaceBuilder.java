@@ -71,13 +71,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	@Override
 	public Context<Object> build(Context<Object> context) {
 	    
-		context.setId(UserPanel.MAIN_CONTEXT);
+		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
 	   
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		GeometryFactory fac = new GeometryFactory();
 		geoParams.setCrs(geographyCRSString);
-		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(UserPanel.MAIN_GEOGRAPHY, context, geoParams);
+		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		context.add(geography);
 		
 		// Not sure what this line does and whether it is required
@@ -97,17 +97,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// Build the fixed environment
 			
 			// 1. Load destinations
-			String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
+			String destinationsFile = GlobalVars.GISDataDir + GlobalVars.DestinationsFile;
 			readShapefile(Destination.class, destinationsFile, geography, context);
 			
 			// 2. Load roads
-			String vehicleRoadFile = UserPanel.GISDataDir + UserPanel.VehicleRoadShapefile;
-			String pedestrianRoadFile = UserPanel.GISDataDir + UserPanel.PedestrianRoadShapefile;
+			String vehicleRoadFile = GlobalVars.GISDataDir + GlobalVars.VehicleRoadShapefile;
+			String pedestrianRoadFile = GlobalVars.GISDataDir + GlobalVars.PedestrianRoadShapefile;
 			readShapefile(Road.class, vehicleRoadFile, geography, context);
 			readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
 			// 3. Load pedestrian obstruction boundaries
-			String pedObstructionFile = UserPanel.GISDataDir + UserPanel.PedestrianObstructionShapefile;
+			String pedObstructionFile = GlobalVars.GISDataDir + GlobalVars.PedestrianObstructionShapefile;
 			readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
 			
 			
@@ -143,7 +143,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
     	
-    	String startingZonesFile = UserPanel.GISDataDir + UserPanel.StartingZonesFile;
+    	String startingZonesFile = GlobalVars.GISDataDir + GlobalVars.StartingZonesFile;
 		List<Coordinate> agentCoords = getRandomCoordinatesWithinStartingZones(startingZonesFile,  fac,  nP);
 		
 		
