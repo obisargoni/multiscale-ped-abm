@@ -28,7 +28,7 @@ import repastInterSim.environment.Destination;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.SpaceBuilder;
-import repastInterSim.main.UserPanel;
+import repastInterSim.main.GlobalVars;
 
 public class Ped {
     private Geography<Object> geography; // Space the agent exists in
@@ -64,8 +64,8 @@ public class Ped {
     public Ped(Geography<Object> geography, GeometryFactory gF, Destination d, Color col) {
         this.geography = geography;
         this.destination = d;
-        this.v0  = rnd.nextGaussian() * UserPanel.pedVsd + UserPanel.pedVavg;
-        this.m  = rnd.nextGaussian() * UserPanel.pedMasssd + UserPanel.pedMassAv;
+        this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
+        this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
         this.rad = m / 320; // As per Moussaid
         this.gF = gF;
         this.col = col;
@@ -74,14 +74,14 @@ public class Ped {
         double[] v = {0,0};
         this.v =  v;
 
-        this.tau  = 0.5/UserPanel.tStep;
+        this.tau  = 0.5/GlobalVars.tStep;
         this.m     = 80;
         this.dmax = 10/SpaceBuilder.spaceScale; 
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
-        this.k = UserPanel.interactionForceConstant;
+        this.k = GlobalVars.interactionForceConstant;
         
-        this.A     = 2000*UserPanel.tStep*UserPanel.tStep/SpaceBuilder.spaceScale;
+        this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/SpaceBuilder.spaceScale;
         this.B     = 0.08/SpaceBuilder.spaceScale;
         this.r     = 0.275/SpaceBuilder.spaceScale;
 
