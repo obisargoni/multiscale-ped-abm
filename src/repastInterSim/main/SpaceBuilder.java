@@ -8,7 +8,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -32,19 +31,24 @@ import com.vividsolutions.jts.geom.Polygon;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
+import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
-
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.FixedGeography;
+import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.ShapefileLoader;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
@@ -57,6 +61,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	static String calculationCRSString = "EPSG:27700";
 	static MathTransform transformToGeog;
 	static MathTransform transformToCalc;
+	
+	public static Network<Object> roadNetwork;
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
@@ -77,50 +83,60 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Not sure what this line does and whether it is required
 		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
 		
-		// Set up coordinate transformations. These are used to move from a CRS that uses degrees to one that uses meters
-		CoordinateReferenceSystem geographyCRS = null;
-		CoordinateReferenceSystem calculationCRS = null;
+	    // Load agents from shapefiles
 		try {
+			// Set up coordinate transformations. 
+			// These are used to move from a CRS that uses degrees to one that uses meters
+			CoordinateReferenceSystem geographyCRS = null;
+			CoordinateReferenceSystem calculationCRS = null;
 			geographyCRS = CRS.decode(geographyCRSString);
 			calculationCRS = CRS.decode(calculationCRSString);
 			transformToGeog = CRS.findMathTransform(calculationCRS, geographyCRS);
 			transformToCalc = CRS.findMathTransform(geographyCRS, calculationCRS);
-
-		} catch (FactoryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-	    
-	    // Load agents from shapefiles
-		try {
 			
-			// Load destinations
+			// Build the fixed environment
+			
+			// 1. Load destinations
 			String destinationsFile = UserPanel.GISDataDir + UserPanel.DestinationsFile;
 			readShapefile(Destination.class, destinationsFile, geography, context);
 			
-			// Load roads
+			// 2. Load roads
 			String vehicleRoadFile = UserPanel.GISDataDir + UserPanel.VehicleRoadShapefile;
 			String pedestrianRoadFile = UserPanel.GISDataDir + UserPanel.PedestrianRoadShapefile;
 			readShapefile(Road.class, vehicleRoadFile, geography, context);
 			readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
-			// Load pedestrian obstruction boundaries
+			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = UserPanel.GISDataDir + UserPanel.PedestrianObstructionShapefile;
 			readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
+			
+			
+			// Build the road network
+			
+			// 1. Load the road links
+			String roadLinkFile = UserPanel.GISDataDir + UserPanel.RoadLinkShapefile;
+			readShapefile(RoadLink.class, roadLinkFile, geography, context);
+			
+			
+			// 2. roadNetwork
+			NetworkBuilder<Object> builder = new NetworkBuilder<Object>(UserPanel.MAIN_NETWORK,context, false);
+			builder.setEdgeCreator(new NetworkEdgeCreator<Object>());
+			roadNetwork = builder.buildNetwork();
+			GISFunctions.buildGISRoadNetwork(context, geography, roadNetwork);
+
 
 			
-		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException | TransformException e1 ) {
+		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException | TransformException | FactoryException e1 ) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
 		// Set the internal context and geography attributes of the destination agents
 		// This saves setting them on the fly at each tick
 		IndexedIterable<Object> destinations = context.getObjects(Destination.class);
 		for (Object d : destinations) {
 			((Destination)d).setContext(context);
 			((Destination)d).setGeography(geography);
-			
 		}
 		
     	// Get the number of pedestrian agent to add to the space from the parameters
@@ -131,14 +147,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<Coordinate> agentCoords = getRandomCoordinatesWithinStartingZones(startingZonesFile,  fac,  nP);
 		
 		
-		// Create the agents. Use random seed to generate their initial direction. 
-		Random randCoord = new Random();
+		// Create the pedestrian agents
 		int i = 0;
 		int destinationIndex = 0;
 		for (Coordinate coord : agentCoords) {
-			
-			// Generate a random initial direction for the pedestrian
-    		double randBearing = randCoord.nextFloat() * 2 * Math.PI;
     		
     		// Crude way to assign different destinations
     		if (i > nP / 2) {
