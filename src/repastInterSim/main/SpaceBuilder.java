@@ -50,6 +50,9 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.ShapefileLoader;
+import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.contexts.JunctionContext;
+import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
@@ -62,7 +65,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	static MathTransform transformToGeog;
 	static MathTransform transformToCalc;
 	
-	public static Network<Object> roadNetwork;
+	public static Context<RoadLink> roadLinkContext;
+	public static Geography<RoadLink> roadLinkGeography;
+	
+	public static Context<Junction> junctionContext;
+	public static Network<Junction> roadNetwork;
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
@@ -79,6 +86,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		geoParams.setCrs(geographyCRSString);
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		context.add(geography);
+		
+		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
+		roadLinkGeoParams.setCrs(geographyCRSString);
+		roadLinkContext = new RoadLinkContext();
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
+		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+
+		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
+		junctionGeoParams.setCrs(geographyCRSString);
+		junctionContext = new JunctionContext();
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
+		context.addSubContext(junctionContext);
+
+
+
 		
 		// Not sure what this line does and whether it is required
 		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
@@ -114,15 +136,16 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// Build the road network
 			
 			// 1. Load the road links
-			String roadLinkFile = UserPanel.GISDataDir + UserPanel.RoadLinkShapefile;
-			readShapefile(RoadLink.class, roadLinkFile, geography, context);
+			String roadLinkFile = GlobalVars.GISDataDir + GlobalVars.RoadLinkShapefile;
+			readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			
 			
 			// 2. roadNetwork
-			NetworkBuilder<Object> builder = new NetworkBuilder<Object>(UserPanel.MAIN_NETWORK,context, false);
-			builder.setEdgeCreator(new NetworkEdgeCreator<Object>());
+			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, false);
+			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			roadNetwork = builder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(context, geography, roadNetwork);
+			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,
+					junctionGeography, roadNetwork);
 
 
 			
@@ -370,7 +393,53 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getGeometryForCalculation(geog, obj)); // Note this might not use the correct CRS
+			((T)obj).setGeom(getGeometryForCalculation(geog, obj));
+		}
+	}
+	
+	/**
+	 * This function was taken from Nick Malleson.
+	 * 
+	 * Nice generic function :-) that reads in objects from shapefiles.
+	 * <p>
+	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
+	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
+	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
+	 * the shapefile has been read and the objects have been given coordinates in their projection.
+	 * 
+	 * @param <T>
+	 *            The type of object to be read (e.g. PecsHouse). Must exted
+	 * @param cl
+	 *            The class of the building being read (e.g. PecsHouse.class).
+	 * @param shapefileLocation
+	 *            The location of the shapefile containing the objects.
+	 * @param geog
+	 *            A geography to add the objects to.
+	 * @param context
+	 *            A context to add the objects to.
+	 * @throws MalformedURLException
+	 *             If the location of the shapefile cannot be converted into a URL
+	 * @throws FileNotFoundException
+	 *             if the shapefile does not exist.
+	 * @throws TransformException 
+	 * @throws MismatchedDimensionException 
+	 * @see FixedGeography
+	 */
+	public static <T extends FixedGeography> void readShapefileWithType(Class<T> cl, String shapefileLocation,
+		Geography<T> geog, Context<T> context) throws MalformedURLException, FileNotFoundException, MismatchedDimensionException, TransformException {
+		File shapefile = null;
+		ShapefileLoader<T> loader = null;
+		shapefile = new File(shapefileLocation);
+		if (!shapefile.exists()) {
+			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
+		}
+		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geog, context);
+		while (loader.hasNext()) {
+			loader.next();
+		}
+		for (Object obj : context.getObjects(cl)) {
+			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
+			((T)obj).setGeom(getGeometryForCalculation(geog, obj));
 		}
 	}
 	

@@ -33,8 +33,8 @@ public class GISFunctions {
 	 * @throws TransformException 
 	 * @throws MismatchedDimensionException 
 	 */
-	public static void buildGISRoadNetwork(Context<Object> Context,
-			Geography<Object> Geography, Network<Object> roadNetwork) throws MismatchedDimensionException, TransformException {
+	public static void buildGISRoadNetwork(Geography<RoadLink> roadLinkGeography, Context<Junction> junctionContext,
+			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) throws MismatchedDimensionException, TransformException {
 
 		// Create a GeometryFactory so we can create points/lines from the junctions and roads
 		// (this is so they can be displayed on the same display to check if the network has been created successfully)
@@ -45,9 +45,10 @@ public class GISFunctions {
 		Map<Coordinate, Junction> coordMap = new HashMap<Coordinate, Junction>();
 		
 		// Iterate through all roads
-		for (Object rl : Context.getObjects(RoadLink.class)) {
+		// Iterate through all roads
+		Iterable<RoadLink> roadIt = roadLinkGeography.getAllObjects();
+		for (RoadLink roadLink : roadIt) {
 			
-			RoadLink roadLink = (RoadLink)rl;
 			// Create a LineString from the road so we can extract coordinates
 			Geometry roadGeom = roadLink.getGeom();
 			Coordinate c1 = roadGeom.getCoordinates()[0]; // First coord
@@ -63,9 +64,9 @@ public class GISFunctions {
 				junc1 = new Junction();
 				Point p1 = geomFac.createPoint(c1);
 				junc1.setGeom(p1);
-				Context.add(junc1);
+				junctionContext.add(junc1);
 				coordMap.put(c1, junc1);
-				SpaceBuilder.moveAgentToCalculationGeometry(Geography, p1, junc1);
+				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p1, junc1);
 			}
 			if (coordMap.containsKey(c2)) {
 				junc2 = coordMap.get(c2);
@@ -73,9 +74,9 @@ public class GISFunctions {
 				junc2 = new Junction();
 				Point p2 = geomFac.createPoint(c2);
 				junc2.setGeom(p2);
-				Context.add(junc2);
+				junctionContext.add(junc2);
 				coordMap.put(c2, junc2);
-				SpaceBuilder.moveAgentToCalculationGeometry(Geography, p2, junc2);
+				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p2, junc2);
 			}
 			// Tell the road object who it's junctions are
 			roadLink.addJunction(junc1);
@@ -85,7 +86,7 @@ public class GISFunctions {
 			junc2.addRoadLink(roadLink);
 
 			// Create an edge between the two junctions, assigning a weight equal to it's length
-			NetworkEdge<Object> edge = new NetworkEdge<Object>(junc1, junc2, false, roadGeom.getLength(), null);
+			NetworkEdge<Junction> edge = new NetworkEdge<Junction>(junc1, junc2, false, roadGeom.getLength(), null);
 
 			// Tell the roadLink and the Edge about each other
 			roadLink.setEdge(edge);
