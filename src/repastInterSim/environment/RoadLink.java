@@ -9,7 +9,7 @@ public class RoadLink implements FixedGeography {
 	
 	private Geometry geom;
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
-	private NetworkEdge<Object> edge;
+	private NetworkEdge<Junction> edge;
 
 	
 	public RoadLink() {
@@ -31,11 +31,11 @@ public class RoadLink implements FixedGeography {
 		this.junctions.add(j);
 	}
 	
-	public void setEdge(NetworkEdge<Object> e) {
-		this.edge = e;
+	public void setEdge(NetworkEdge<Junction> edge2) {
+		this.edge = edge2;
 	}
 	
-	public NetworkEdge<Object> getEdge(){
+	public NetworkEdge<Junction> getEdge(){
 		return this.edge;
 	}
 	

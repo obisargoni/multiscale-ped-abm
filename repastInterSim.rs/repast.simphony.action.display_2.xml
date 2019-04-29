@@ -1,55 +1,15 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>3D Intersection w network</name>
+  <name>3D Network Display</name>
   <type>GIS 3D</type>
   <styles>
     <entry>
-      <string>repastInterSim.agent.Ped</string>
-      <string>repastInterSim.styles.PedGISStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
-      <string>repastInterSim.styles.PedObstructionStyler</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Destination</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
-    </entry>
-    <entry>
       <string>repastInterSim.environment.Junction</string>
       <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.RoadLink</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Road</string>
-      <string>repastInterSim.styles.RoadStyler</string>
     </entry>
   </styles>
   <editedStyles>
     <entry>
-      <string>repastInterSim.agent.Ped</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Destination</string>
-      <null/>
-    </entry>
-    <entry>
       <string>repastInterSim.environment.Junction</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.RoadLink</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Road</string>
       <null/>
     </entry>
   </editedStyles>
@@ -73,65 +33,45 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1077543846</hashCode>
+    <hashCode>753355065</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
-    <entry>
-      <string>repastInterSim.agent.Ped</string>
-      <int>6</int>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
-      <int>2</int>
-    </entry>
     <entry>
       <string>RoadNetwork</string>
       <int>0</int>
     </entry>
     <entry>
-      <string>repastInterSim.environment.Destination</string>
-      <int>5</int>
-    </entry>
-    <entry>
       <string>repastInterSim.environment.Junction</string>
-      <int>4</int>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.RoadLink</string>
-      <int>3</int>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Road</string>
       <int>1</int>
     </entry>
   </layerOrder>
   <projections>
     <repast.simphony.scenario.data.ProjectionData>
-      <id>Geography</id>
-      <attributes/>
-      <type>geography</type>
-    </repast.simphony.scenario.data.ProjectionData>
-    <repast.simphony.scenario.data.ProjectionData>
       <id>RoadNetwork</id>
       <attributes/>
       <type>network</type>
     </repast.simphony.scenario.data.ProjectionData>
+    <repast.simphony.scenario.data.ProjectionData>
+      <id>JunctionGeography</id>
+      <attributes/>
+      <type>geography</type>
+    </repast.simphony.scenario.data.ProjectionData>
   </projections>
   <projectionDescriptors>
     <entry>
-      <string>Geography</string>
-      <repast.simphony.visualization.gis.GisProjectionDescriptor>
-        <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData"/>
-        <props/>
-      </repast.simphony.visualization.gis.GisProjectionDescriptor>
-    </entry>
-    <entry>
       <string>RoadNetwork</string>
       <repast.simphony.visualization.engine.DefaultProjectionDescriptor>
-        <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData[2]"/>
+        <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData"/>
         <props/>
       </repast.simphony.visualization.engine.DefaultProjectionDescriptor>
+    </entry>
+    <entry>
+      <string>JunctionGeography</string>
+      <repast.simphony.visualization.gis.GisProjectionDescriptor>
+        <proj reference="../../../../projections/repast.simphony.scenario.data.ProjectionData[2]"/>
+        <props/>
+      </repast.simphony.visualization.gis.GisProjectionDescriptor>
     </entry>
   </projectionDescriptors>
   <props/>
