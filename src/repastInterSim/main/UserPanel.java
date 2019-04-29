@@ -15,11 +15,13 @@ public class UserPanel {
 	public static String GISDataDir = ".//data//";
 	public static String VehicleRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaVehicle_EPSG4277_Clipped_Single.shp";
 	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaPedestrain_EPSG4277_Clipped_Single.shp";
+	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped 4277.shp";
 	public static String PedestrianObstructionShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicLineObstructing_EPSG4277_Clipped_RoadPathIntersection_Single.shp";
 	public static String StartingZonesFile = "StartZones.shp";
 	public static String DestinationsFile = "destCoordsEPSG4277.shp";
 	
 	public static String MAIN_CONTEXT = "repastInterSim";
 	public static String MAIN_GEOGRAPHY = "Geography";
+	public static String MAIN_NETWORK = "RoadNetwork";
 	
 }
