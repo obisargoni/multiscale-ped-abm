@@ -12,8 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class Road implements FixedGeography {
 	
-	private Geometry geom;
-	
+	private Geometry geom;	
 	private String priority = "";
 	
 	
