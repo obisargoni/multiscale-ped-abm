@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -483,6 +484,16 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
 		
 		return randCoords;
+	}
+	
+	public static int sizeOfIterable(Iterable<?> i) {
+		int size = 0;
+		Iterator<?> it = i.iterator();
+		while (it.hasNext()) {
+			size++;
+			it.next();
+		}
+		return size;
 	}
 
 }
