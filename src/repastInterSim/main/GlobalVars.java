@@ -114,6 +114,14 @@ public abstract class GlobalVars {
 		public static final String AGENT_CONTEXT = "AgentContext";
 		public static final String AGENT_GEOGRAPHY = "AgentGeography";
 	
-	}	
+	}
+	
+	// Parameters used by transport networks
+	public static final class TRANSPORT_PARAMS {
+		
+		// Used to synchronise routing code blocks
+		public static Object currentBurglarLock = new Object();
+
+	}
 
 }
