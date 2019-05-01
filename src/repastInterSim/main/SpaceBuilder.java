@@ -61,10 +61,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
-	static String geographyCRSString = "EPSG:4326";
-	static String calculationCRSString = "EPSG:27700";
-	static MathTransform transformToGeog;
-	static MathTransform transformToCalc;
+	static String geographyCRSString = "EPSG:27700";
 	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
@@ -84,23 +81,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		GeometryFactory fac = new GeometryFactory();
-		geoParams.setCrs(geographyCRSString);
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
-		geography.setCRS(calculationCRSString);
+		geography.setCRS(geographyCRSString);
 		context.add(geography);
 		
 		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
-		roadLinkGeoParams.setCrs(geographyCRSString);
 		roadLinkContext = new RoadLinkContext();
 		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
-		roadLinkGeography.setCRS(calculationCRSString);
+		roadLinkGeography.setCRS(geographyCRSString);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
 		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
-		junctionGeoParams.setCrs(geographyCRSString);
 		junctionContext = new JunctionContext();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
-		junctionGeography.setCRS(calculationCRSString);
+		junctionGeography.setCRS(geographyCRSString);
 		context.addSubContext(junctionContext);
 
 
@@ -111,14 +105,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	    // Load agents from shapefiles
 		try {
-			// Set up coordinate transformations. 
-			// These are used to move from a CRS that uses degrees to one that uses meters
-			CoordinateReferenceSystem geographyCRS = null;
-			CoordinateReferenceSystem calculationCRS = null;
-			geographyCRS = CRS.decode(geographyCRSString);
-			calculationCRS = CRS.decode(geographyCRSString);
-			transformToGeog = CRS.findMathTransform(calculationCRS, geographyCRS);
-			transformToCalc = CRS.findMathTransform(geographyCRS, calculationCRS);
 			
 			// Build the fixed environment
 			
@@ -248,7 +234,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Transform the coordinate so that the circle can be created using a radius in metres
 		Geometry circle = pt.buffer(newPed.getRad());
-		moveAgentToCalculationGeometry(geography, circle, newPed);
+		moveAgentToGeometry(geography, circle, newPed);
 		//geography.move(newPed, circle);
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
@@ -344,9 +330,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return destinations;
 	}
 	
-	public static Geometry getGeometryForCalculation(Geography G, Object agent) throws MismatchedDimensionException, TransformException {
+	public static Geometry getAgentGeometry(Geography G, Object agent) {
 		Geometry geom = G.getGeometry(agent);
-		
 		return geom;
 	}
 	
@@ -397,7 +382,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getGeometryForCalculation(geog, obj));
+			((T)obj).setGeom(getAgentGeometry(geog, obj));
 		}
 	}
 	
@@ -443,7 +428,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getGeometryForCalculation(geog, obj));
+			((T)obj).setGeom(getAgentGeometry(geog, obj));
 		}
 	}
 	

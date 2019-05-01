@@ -66,7 +66,7 @@ public class GISFunctions {
 				junc1.setGeom(p1);
 				junctionContext.add(junc1);
 				coordMap.put(c1, junc1);
-				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p1, junc1);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, p1, junc1);
 			}
 			if (coordMap.containsKey(c2)) {
 				junc2 = coordMap.get(c2);
@@ -76,7 +76,7 @@ public class GISFunctions {
 				junc2.setGeom(p2);
 				junctionContext.add(junc2);
 				coordMap.put(c2, junc2);
-				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p2, junc2);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, p2, junc2);
 			}
 			// Tell the road object who it's junctions are
 			roadLink.addJunction(junc1);

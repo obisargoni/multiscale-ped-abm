@@ -111,7 +111,7 @@ public class Ped {
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeomNew, this);
+        SpaceBuilder.moveAgentToGeometry(this.geography, pGeomNew, this);
         
         // Avoids any rounding errors between how the geometry is stored in the geography 
         // projection and how the coordinate is stored as a private variable
@@ -172,7 +172,7 @@ public class Ped {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = SpaceBuilder.getGeometryForCalculation(geography, this);
+    	Geometry thisGeom = SpaceBuilder.getAgentGeometry(geography, this);
         Context<Object> context = ContextUtils.getContext(this);
     	
     	
@@ -182,7 +182,7 @@ public class Ped {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
                	if (agentG.intersects((thisGeom))) {
                		double[] pCA = pedestrianContactAcceleration(this, thisGeom, P, agentG);
                		cATotal = Vector.sumV(cATotal, pCA);
@@ -287,7 +287,7 @@ public class Ped {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -394,8 +394,8 @@ public class Ped {
     
     public double setDirectionFromDestinationCoord() throws MismatchedDimensionException, TransformException {
         // Calculate bearing to destination and convert to a unit vector
-        Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
-        Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
+        Coordinate pLoc = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
 
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
@@ -452,7 +452,7 @@ public class Ped {
      */
     public void setLoc() throws MismatchedDimensionException, TransformException {
     	// Get centroid coordinate of this agent
-    	Coordinate pL = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+    	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.pLoc = pL;
     }
     
