@@ -61,7 +61,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
-	static String geographyCRSString = "EPSG:4277";
+	static String geographyCRSString = "EPSG:4326";
 	static String calculationCRSString = "EPSG:27700";
 	static MathTransform transformToGeog;
 	static MathTransform transformToCalc;
@@ -86,18 +86,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		GeometryFactory fac = new GeometryFactory();
 		geoParams.setCrs(geographyCRSString);
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		geography.setCRS(calculationCRSString);
 		context.add(geography);
 		
 		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
 		roadLinkGeoParams.setCrs(geographyCRSString);
 		roadLinkContext = new RoadLinkContext();
 		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
+		roadLinkGeography.setCRS(calculationCRSString);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
 		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
 		junctionGeoParams.setCrs(geographyCRSString);
 		junctionContext = new JunctionContext();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
+		junctionGeography.setCRS(calculationCRSString);
 		context.addSubContext(junctionContext);
 
 
@@ -113,7 +116,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			CoordinateReferenceSystem geographyCRS = null;
 			CoordinateReferenceSystem calculationCRS = null;
 			geographyCRS = CRS.decode(geographyCRSString);
-			calculationCRS = CRS.decode(calculationCRSString);
+			calculationCRS = CRS.decode(geographyCRSString);
 			transformToGeog = CRS.findMathTransform(calculationCRS, geographyCRS);
 			transformToCalc = CRS.findMathTransform(geographyCRS, calculationCRS);
 			
@@ -241,10 +244,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         // Create a new point geometry. Move the pedestrian to this point. In doing so this 
         // pedestrian agent becomes associated with this geometry.
 		Point pt = gF.createPoint(coord);
+		//Point ptCalc = (Point)JTS.transform(pt, transformToCalc);
 		
 		// Transform the coordinate so that the circle can be created using a radius in metres
-		Point ptCalc = (Point)JTS.transform(pt, transformToCalc);
-		Geometry circle = ptCalc.buffer(newPed.getRad());
+		Geometry circle = pt.buffer(newPed.getRad());
 		moveAgentToCalculationGeometry(geography, circle, newPed);
 		//geography.move(newPed, circle);
 		
@@ -344,11 +347,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geometry getGeometryForCalculation(Geography G, Object agent) throws MismatchedDimensionException, TransformException {
 		Geometry geom = G.getGeometry(agent);
 		
-		return JTS.transform(geom, transformToCalc);
+		return geom;
 	}
 	
 	public static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
-		G.move(agent, JTS.transform(geomCalc, transformToGeog));
+		G.move(agent, geomCalc);
 	}
 	
 	/**
