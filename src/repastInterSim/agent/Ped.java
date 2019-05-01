@@ -131,7 +131,7 @@ public class Ped {
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel() throws MismatchedDimensionException, TransformException {
+    public double[] accel()  {
         
         double[] totA, fovA, contA;
         
@@ -149,7 +149,7 @@ public class Ped {
     
     
     // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration() throws MismatchedDimensionException, TransformException {
+    public double[] motiveAcceleration()  {
     	
     	double[] desiredVelocity = desiredVelocity();
     	
@@ -168,7 +168,7 @@ public class Ped {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration() throws MismatchedDimensionException, TransformException {
+    public double[] totalContactAcceleration()  {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
@@ -267,7 +267,7 @@ public class Ped {
     }
     
     // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
-    public double distanceToObject(double alpha) throws MismatchedDimensionException, TransformException {
+    public double distanceToObject(double alpha)  {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
@@ -323,7 +323,7 @@ public class Ped {
     }
     
     // Function to calculate d(a) using cos rule
-    public double displacementDistance(double alpha) throws MismatchedDimensionException, TransformException {
+    public double displacementDistance(double alpha)  {
     	
     	// Get the distance to nearest object for this angle
     	double fAlpha =  distanceToObject(alpha);
@@ -334,7 +334,7 @@ public class Ped {
     }
     
     // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection() throws MismatchedDimensionException, TransformException {
+    public Map<String, Double> desiredDirection()  {
     	
     	// Sample field of vision
     	List<Double> sampledAngles = sampleFoV();
@@ -362,7 +362,7 @@ public class Ped {
     	return output;    	
     }
     
-    public double[] desiredVelocity() throws MismatchedDimensionException, TransformException {
+    public double[] desiredVelocity()  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
     	Map<String, Double> desiredDirection = desiredDirection();
@@ -392,7 +392,7 @@ public class Ped {
     	return this.col;
     }
     
-    public double setDirectionFromDestinationCoord() throws MismatchedDimensionException, TransformException {
+    public double setDirectionFromDestinationCoord()  {
         // Calculate bearing to destination and convert to a unit vector
         Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
         Coordinate pLoc = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
@@ -450,7 +450,7 @@ public class Ped {
      * Set the location attribute of the agent to be the coordinate of its 
      * centroid, in the coordinate reference frame used by the agent for GIS calculations. 
      */
-    public void setLoc() throws MismatchedDimensionException, TransformException {
+    public void setLoc()  {
     	// Get centroid coordinate of this agent
     	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.pLoc = pL;

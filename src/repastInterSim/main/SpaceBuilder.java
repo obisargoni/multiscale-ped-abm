@@ -134,12 +134,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, false);
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			roadNetwork = builder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,
-					junctionGeography, roadNetwork);
+			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 
 
 			
-		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException | TransformException | FactoryException e1 ) {
+		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
@@ -151,6 +150,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			((Destination)d).setContext(context);
 			((Destination)d).setGeography(geography);
 		}
+		
+
 		
     	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
@@ -170,16 +171,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     			destinationIndex = 1; // i
     		}
 			
-    		try {
-				Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
-			} catch (MismatchedDimensionException | TransformException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+    		Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
     		i+=1;
 		}
 		
 		return context;
+		
 	}
 	
 	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c, MathTransform ttM, MathTransform ttD) {
@@ -221,7 +218,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c) throws MismatchedDimensionException, TransformException {
+    public Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
         Ped newPed = new Ped(geography, gF, d, c);
@@ -335,7 +332,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return geom;
 	}
 	
-	public static void moveAgentToCalculationGeometry(Geography G, Geometry geomCalc, Object agent) throws MismatchedDimensionException, TransformException {
+	public static void moveAgentToGeometry(Geography G, Geometry geomCalc, Object agent) {
 		G.move(agent, geomCalc);
 	}
 	
@@ -369,7 +366,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
-		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException, MismatchedDimensionException, TransformException {
+		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException  {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
@@ -415,7 +412,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefileWithType(Class<T> cl, String shapefileLocation,
-		Geography<T> geog, Context<T> context) throws MalformedURLException, FileNotFoundException, MismatchedDimensionException, TransformException {
+		Geography<T> geog, Context<T> context) throws MalformedURLException, FileNotFoundException {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
