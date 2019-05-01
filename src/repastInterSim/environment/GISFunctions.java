@@ -34,7 +34,7 @@ public class GISFunctions {
 	 * @throws MismatchedDimensionException 
 	 */
 	public static void buildGISRoadNetwork(Geography<RoadLink> roadLinkGeography, Context<Junction> junctionContext,
-			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) throws MismatchedDimensionException, TransformException {
+			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) {
 
 		// Create a GeometryFactory so we can create points/lines from the junctions and roads
 		// (this is so they can be displayed on the same display to check if the network has been created successfully)
