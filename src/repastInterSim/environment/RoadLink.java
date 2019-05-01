@@ -24,7 +24,7 @@ public class RoadLink implements FixedGeography {
 	public static RoadLink nullRoad;
 	static {
 		RoadLink.nullRoad = new RoadLink();
-		Coordinate[] c = {new Coordinate()};
+		Coordinate[] c = {new Coordinate(), new Coordinate()};
 		CoordinateArraySequence cs = new CoordinateArraySequence(c);
 		RoadLink.nullRoad.setGeom(new LineString(cs, new GeometryFactory()));
 	}
