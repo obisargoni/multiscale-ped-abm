@@ -60,9 +60,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static double spaceScale = 1;
 	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
-	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
-	static String geographyCRSString = "EPSG:27700";
-	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
 	
@@ -82,19 +79,18 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		GeometryFactory fac = new GeometryFactory();
 		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
-		geography.setCRS(geographyCRSString);
+		geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(geography);
 		
 		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
 		roadLinkContext = new RoadLinkContext();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
-		roadLinkGeography.setCRS(geographyCRSString);
-		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
+		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 
 		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
 		junctionContext = new JunctionContext();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
-		junctionGeography.setCRS(geographyCRSString);
+		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		context.addSubContext(junctionContext);
 		
 		
@@ -123,6 +119,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// 1. Load the road links
 			String roadLinkFile = GlobalVars.GISDataDir + GlobalVars.RoadLinkShapefile;
 			readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+
 			
 			// 2. roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, false);
