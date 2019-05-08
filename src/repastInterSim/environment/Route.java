@@ -169,7 +169,7 @@ public class Route implements Cacheable {
 	 * 
 	 * @throws Exception
 	 */
-	protected void setRoute() throws Exception {
+	public void setRoute() throws Exception {
 		long time = System.nanoTime();
 
 		this.routeX = new Vector<Coordinate>();
@@ -252,7 +252,7 @@ public class Route implements Cacheable {
 			/*
 			 * Add the coordinates and speeds etc which describe how to move along the chosen path
 			 */
-			this.getRouteBetweenJunctions(shortestPath, currentJunction);
+			this.getRouteBetweenJunctions(shortestPath, currentJunction, false);
 
 			/*
 			 * Add the coordinates describing how to get from the final junction to the destination.
@@ -266,6 +266,125 @@ public class Route implements Cacheable {
 			if (!destinationOnRoad) {
 				addToRoute(finalDestination, RoadLink.nullRoad, 1, "setRoute final");
 			}
+
+			// Check that a route has actually been created
+			checkListSizes();
+
+			// If the algorithm was better no coordinates would have been duplicated
+			// removePairs();
+
+			// Check lists are still the same size.
+			checkListSizes();
+
+		} catch (RoutingException e) {
+			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.ped.toString()
+					+ " going from " + currentCoord.toString() + " to " + this.destination.toString());
+			throw e;
+		}
+		// Cache the route and route speeds
+		// List<Coordinate> routeClone = Cloning.copy(theRoute);
+		// LinkedHashMap<Coordinate, Double> routeSpeedsClone = Cloning.copy(this.routeSpeeds);
+		// cachedRoute.setRoute(routeClone);
+		// cachedRoute.setRouteSpeeds(routeSpeedsClone);
+
+		// cachedRoute.setRoute(this.routeX, this.roadsX, this.routeSpeedsX, this.routeDescriptionX);
+		// synchronized (Route.routeCache) {
+		// // Same cached route is both value and key
+		// Route.routeCache.put(cachedRoute, cachedRoute);
+		// }
+		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
+
+		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.ped.toString() + "with "
+				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
+
+		// Finished, just check that the route arrays are all in sync
+		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
+				&& this.roadsX.size() == this.routeDescriptionX.size();
+	}
+	
+	/**
+	 * Find a route from the origin to the destination. A route is a list of Coordinates which describe the route to a
+	 * destination restricted to a road network. This algorithm differs from the setRoute() algorithm by only adding
+	 * coordinates of junctions along the route to the route coordinates. This allows pedestrian agent freedom to navigate
+	 * between junctions following a separate model of movement. The algorithm consists of three major parts:
+	 * <ol>
+	 * <li>Get from the current location (probably mid-point on a road) to the nearest junction</li>
+	 * <li>Travel to the junction which is closest to our destination (using Dijkstra's shortest path)</li>
+	 * <li>Move from the road to the destination</li>
+	 * </ol>
+	 * 
+	 * @throws Exception
+	 */
+	public void setPedestrianRoute() throws Exception {
+		long time = System.nanoTime();
+
+		this.routeX = new Vector<Coordinate>();
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+		
+		// Don't create a route if at destination
+		if (atDestination()) {
+			return;
+		}
+
+		Coordinate currentCoord = ped.getLoc();
+		Coordinate destCoord = this.destination;
+
+
+
+		// No route cached, have to create a new one (and cache it at the end).
+		try {
+			/*
+			 * See if the current position and the destination are on road segments. If the destination is not on a road
+			 * segment we have to move to the closest road segment, then onto the destination.
+			 */
+			boolean destinationOnRoad = true;
+			Coordinate finalDestination = null;
+			
+			// Add the starting coordinate to the route
+			addToRoute(currentCoord, RoadLink.nullRoad, 1, "setRoute() initial");
+
+			/*
+			 * Find the nearest junctions to our current position (road endpoints)
+			 */
+
+			// Start by Finding the road that this coordinate is on
+			/*
+			 * TODO EFFICIENCY: often the agent will be creating a new route from a building so will always find the
+			 * same road, could use a cache. Even better, could implement a cache in FindNearestObject() method!
+			 */
+			RoadLink currentRoad = Route.findNearestObject(currentCoord, SpaceBuilder.roadLinkGeography, null,
+					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find which Junction is closest to us on the road.
+			List<Junction> currentJunctions = currentRoad.getJunctions();
+
+			/* Find the nearest Junctions to our destination (road endpoints) */
+
+			// Find the road that this coordinate is on
+			RoadLink destRoad = Route.findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null,
+					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find which Junction connected to the edge is closest to the coordinate.
+			List<Junction> destJunctions = destRoad.getJunctions();
+			/*
+			 * Now have four possible routes (2 origin junctions, 2 destination junctions) need to pick which junctions
+			 * form shortest route
+			 */
+			Junction[] routeEndpoints = new Junction[2];
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(currentJunctions, destJunctions, routeEndpoints);
+			// NetworkEdge<Junction> temp = (NetworkEdge<Junction>)
+			// shortestPath.get(0);
+			Junction currentJunction = routeEndpoints[0];
+			Junction destJunction = routeEndpoints[1];
+
+			/*
+			 * Add the coordinates and speeds etc which describe how to move along the chosen path
+			 * 
+			 * Replace this with a simple loop to get the junctions?
+			 */
+			this.getRouteBetweenJunctions(shortestPath, currentJunction, true);
+
+			addToRoute(destCoord, RoadLink.nullRoad, 1, "setRoute final");
 
 			// Check that a route has actually been created
 			checkListSizes();
@@ -692,7 +811,7 @@ public class Route implements Cacheable {
 	 *         driving/walking/bus). LinkedHashMap is used to guarantee the insertion order of the coords is maintained.
 	 * @throws RoutingException
 	 */
-	private void getRouteBetweenJunctions(List<RepastEdge<Junction>> shortestPath, Junction startingJunction)
+	private void getRouteBetweenJunctions(List<RepastEdge<Junction>> shortestPath, Junction startingJunction, boolean junctionCoordsOnly)
 			throws RoutingException {
 		double time = System.nanoTime();
 		if (shortestPath.size() < 1) {
@@ -736,8 +855,8 @@ public class Route implements Cacheable {
 				if (speed < 1)
 					speed = 1;
 
-				if (r == null) { // No road associated with this edge (it is a
-									// transport link) so just add source
+				if (r == null) { // No road associated with this edge (it is a transport link) so just add source
+															 
 					if (sourceFirst) {
 						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - no road");
 						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - no road");
@@ -747,7 +866,18 @@ public class Route implements Cacheable {
 						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - no road");
 						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - no road");
 					}
-				} else {
+				} else if (junctionCoordsOnly == true) { // Or we only want to add the coordinates of junctions to the route
+					if (sourceFirst) {
+						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - junctions only");
+						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - junctions only");
+						// (Note speed = -1 used because we don't know the weight to the next
+						// coordinate - this can be removed later)
+					} else {
+						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - junctions only");
+						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - junctions only");
+					}
+				}
+				else {
 					// This edge is a road, add all the coords which make up its geometry
 					Coordinate[] roadCoords = r.getGeom().getCoordinates();
 					if (roadCoords.length < 2)
@@ -1001,6 +1131,22 @@ public class Route implements Cacheable {
 			buildingsOnRoadCache = null;
 		}
 		*/
+	}
+	
+	public List<Coordinate> getRouteX(){
+		return this.routeX;
+	}
+	
+	public List<RoadLink> getRoadsX(){
+		return this.roadsX;
+	}
+	
+	public List<String> getRouteDescriptionX(){
+		return this.routeDescriptionX;
+	}
+	
+	public List<Double> getRouteSpeedsX(){
+		return this.routeSpeedsX;
 	}
 
 	/**
