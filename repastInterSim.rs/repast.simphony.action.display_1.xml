@@ -1,42 +1,13 @@
 <repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
-  <name>3D Intersection Display</name>
-  <type>GIS 3D</type>
+  <name>2D GIS Intersection Display</name>
+  <type>GIS</type>
   <styles>
     <entry>
       <string>repastInterSim.agent.Ped</string>
-      <string>repastInterSim.styles.PedGISStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
-      <string>repastInterSim.styles.PedObstructionStyler</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Destination</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultMarkStyle</string>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Road</string>
-      <string>repastInterSim.styles.RoadStyler</string>
+      <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:Title&gt;repastInterSim.agent.Ped.FeatureType&lt;/sld:Title&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Title&gt;repastInterSim.agent.Ped.FeatureType&lt;/sld:Title&gt;&lt;sld:FeatureTypeName&gt;repastInterSim.agent.Ped.FeatureType&lt;/sld:FeatureTypeName&gt;&lt;sld:Rule&gt;&lt;sld:Title&gt; &lt;/sld:Title&gt;&lt;sld:PointSymbolizer&gt;&lt;sld:Graphic&gt;&lt;sld:Mark&gt;&lt;sld:WellKnownName&gt;circle&lt;/sld:WellKnownName&gt;&lt;sld:Fill&gt;&lt;sld:CssParameter name=&quot;fill&quot;&gt;#0000FF&lt;/sld:CssParameter&gt;&lt;/sld:Fill&gt;&lt;sld:Stroke/&gt;&lt;/sld:Mark&gt;&lt;sld:Size&gt;10.0&lt;/sld:Size&gt;&lt;/sld:Graphic&gt;&lt;/sld:PointSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
     </entry>
   </styles>
-  <editedStyles>
-    <entry>
-      <string>repastInterSim.agent.Ped</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Destination</string>
-      <null/>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.Road</string>
-      <null/>
-    </entry>
-  </editedStyles>
+  <editedStyles/>
   <netStyles/>
   <editedNetStyles/>
   <frequency>ON_NEW</frequency>
@@ -47,25 +18,33 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>2006813480</hashCode>
+    <hashCode>-1950415062</hashCode>
   </schedParams>
   <layoutInterval>0</layoutInterval>
   <layerOrder>
     <entry>
-      <string>repastInterSim.agent.Ped</string>
-      <int>3</int>
-    </entry>
-    <entry>
-      <string>repastInterSim.environment.PedObstruction</string>
+      <string>.\data\destCoords.shp</string>
       <int>1</int>
     </entry>
     <entry>
-      <string>repastInterSim.environment.Destination</string>
+      <string>.\data\topographicAreaPedestrain_EPSG27700_Clipped_Single.shp</string>
       <int>2</int>
     </entry>
     <entry>
-      <string>repastInterSim.environment.Road</string>
+      <string>repastInterSim.agent.Ped</string>
       <int>0</int>
+    </entry>
+    <entry>
+      <string>.\data\mastermap-itn RoadLink Clipped.shp</string>
+      <int>3</int>
+    </entry>
+    <entry>
+      <string>.\data\topographicAreaVehicle_EPSG27700_Clipped_Single.shp</string>
+      <int>4</int>
+    </entry>
+    <entry>
+      <string>.\data\topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp</string>
+      <int>5</int>
     </entry>
   </layerOrder>
   <projections>
@@ -84,22 +63,42 @@
       </repast.simphony.visualization.gis.GisProjectionDescriptor>
     </entry>
   </projectionDescriptors>
-  <props/>
-  <backgroundColor>
-    <red>255</red>
-    <green>255</green>
-    <blue>255</blue>
-    <alpha>255</alpha>
-  </backgroundColor>
+  <props>
+    <entry>
+      <string>class repast.simphony.visualization.gis.DisplayGIS.SHP_FILE_STYLE_PROP</string>
+      <map>
+        <entry>
+          <string>.\data\destCoords.shp</string>
+          <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:Title&gt;destCoords&lt;/sld:Title&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Title&gt;destCoords&lt;/sld:Title&gt;&lt;sld:FeatureTypeName&gt;destCoords&lt;/sld:FeatureTypeName&gt;&lt;sld:Rule&gt;&lt;sld:Title&gt; &lt;/sld:Title&gt;&lt;sld:PointSymbolizer&gt;&lt;sld:Graphic&gt;&lt;sld:Mark&gt;&lt;sld:Fill&gt;&lt;sld:CssParameter name=&quot;fill&quot;&gt;#FF3333&lt;/sld:CssParameter&gt;&lt;/sld:Fill&gt;&lt;sld:Stroke/&gt;&lt;/sld:Mark&gt;&lt;sld:Size&gt;10.0&lt;/sld:Size&gt;&lt;/sld:Graphic&gt;&lt;/sld:PointSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
+        </entry>
+        <entry>
+          <string>.\data\topographicAreaPedestrain_EPSG27700_Clipped_Single.shp</string>
+          <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:Title&gt;topographicAreaPedestrain_EPSG27700_Clipped_Single&lt;/sld:Title&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Title&gt;topographicAreaPedestrain_EPSG27700_Clipped_Single&lt;/sld:Title&gt;&lt;sld:FeatureTypeName&gt;topographicAreaPedestrain_EPSG27700_Clipped_Single&lt;/sld:FeatureTypeName&gt;&lt;sld:Rule&gt;&lt;sld:Title&gt; &lt;/sld:Title&gt;&lt;sld:PolygonSymbolizer&gt;&lt;sld:Fill&gt;&lt;sld:CssParameter name=&quot;fill&quot;&gt;#CC99FF&lt;/sld:CssParameter&gt;&lt;/sld:Fill&gt;&lt;sld:Stroke/&gt;&lt;/sld:PolygonSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
+        </entry>
+        <entry>
+          <string>.\data\mastermap-itn RoadLink Clipped.shp</string>
+          <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Rule&gt;&lt;sld:LineSymbolizer&gt;&lt;sld:Stroke&gt;&lt;sld:CssParameter name=&quot;stroke&quot;&gt;#FF0000&lt;/sld:CssParameter&gt;&lt;/sld:Stroke&gt;&lt;/sld:LineSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
+        </entry>
+        <entry>
+          <string>.\data\topographicAreaVehicle_EPSG27700_Clipped_Single.shp</string>
+          <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:Title&gt;topographicAreaVehicle_EPSG27700_Clipped_Single&lt;/sld:Title&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Title&gt;topographicAreaVehicle_EPSG27700_Clipped_Single&lt;/sld:Title&gt;&lt;sld:FeatureTypeName&gt;topographicAreaVehicle_EPSG27700_Clipped_Single&lt;/sld:FeatureTypeName&gt;&lt;sld:Rule&gt;&lt;sld:Title&gt; &lt;/sld:Title&gt;&lt;sld:PolygonSymbolizer&gt;&lt;sld:Fill&gt;&lt;sld:CssParameter name=&quot;fill&quot;&gt;#FF99FF&lt;/sld:CssParameter&gt;&lt;/sld:Fill&gt;&lt;sld:Stroke/&gt;&lt;/sld:PolygonSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
+        </entry>
+        <entry>
+          <string>.\data\topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp</string>
+          <string>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;sld:UserStyle xmlns=&quot;http://www.opengis.net/sld&quot; xmlns:sld=&quot;http://www.opengis.net/sld&quot; xmlns:gml=&quot;http://www.opengis.net/gml&quot; xmlns:ogc=&quot;http://www.opengis.net/ogc&quot;&gt;&lt;sld:Name&gt;Default Styler&lt;/sld:Name&gt;&lt;sld:FeatureTypeStyle&gt;&lt;sld:Name&gt;name&lt;/sld:Name&gt;&lt;sld:Rule&gt;&lt;sld:LineSymbolizer&gt;&lt;sld:Stroke&gt;&lt;sld:CssParameter name=&quot;stroke&quot;&gt;#FF0000&lt;/sld:CssParameter&gt;&lt;/sld:Stroke&gt;&lt;/sld:LineSymbolizer&gt;&lt;/sld:Rule&gt;&lt;/sld:FeatureTypeStyle&gt;&lt;/sld:UserStyle&gt;</string>
+        </entry>
+      </map>
+    </entry>
+  </props>
   <renderQuality>MEDIUM</renderQuality>
   <viewType>FLAT</viewType>
   <trackAgents>false</trackAgents>
   <globeLayers/>
-  <staticCoverages>
+  <staticCoverages/>
+  <coverageLayers>
     <entry>
-      <string>./data/Masterma_1250_clippedEPSG4277.tif</string>
-      <string>repast.simphony.visualization.gis3D.style.DefaultCoverageStyle</string>
+      <string>intersection</string>
+      <null/>
     </entry>
-  </staticCoverages>
-  <coverageLayers/>
+  </coverageLayers>
 </repast.simphony.gis.visualization.engine.GISDisplayDescriptor>

@@ -111,10 +111,10 @@ public class Ped {
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        SpaceBuilder.moveAgentToCalculationGeometry(this.geography, pGeomNew, this);
+        SpaceBuilder.moveAgentToGeometry(this.geography, pGeomNew, this);
         
-        // Avoids any rounding errors between how the geometry is stored in the geography 
-        // projection and how the coordinate is stored as a private variable
+        // The coordinate of this pedestrian's centroid is stored as a private attribute since this coordinate is used frequently
+        // Must update the coordinate after moving the pedestrian
         setLoc();
         
         setDirectionFromDestinationCoord();
@@ -131,7 +131,7 @@ public class Ped {
      * 
      * @return a double representing the pedestrian's new acceleration
      */
-    public double[] accel() throws MismatchedDimensionException, TransformException {
+    public double[] accel()  {
         
         double[] totA, fovA, contA;
         
@@ -149,7 +149,7 @@ public class Ped {
     
     
     // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration() throws MismatchedDimensionException, TransformException {
+    public double[] motiveAcceleration()  {
     	
     	double[] desiredVelocity = desiredVelocity();
     	
@@ -168,11 +168,11 @@ public class Ped {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration() throws MismatchedDimensionException, TransformException {
+    public double[] totalContactAcceleration()  {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = SpaceBuilder.getGeometryForCalculation(geography, this);
+    	Geometry thisGeom = SpaceBuilder.getAgentGeometry(geography, this);
         Context<Object> context = ContextUtils.getContext(this);
     	
     	
@@ -182,9 +182,9 @@ public class Ped {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
                	if (agentG.intersects((thisGeom))) {
-               		double[] pCA = pedestrianContactAcceleration(this, thisGeom, P, agentG);
+               		double[] pCA = pedestrianContactAcceleration(this, P, agentG);
                		cATotal = Vector.sumV(cATotal, pCA);
                	}
         	}
@@ -204,19 +204,18 @@ public class Ped {
     	
     }
     
-    public double[] pedestrianContactAcceleration(Ped egoPed, Geometry egoGeom, Ped agentPed, Geometry agentGeom) {
+    public double[] pedestrianContactAcceleration(Ped egoPed, Ped agentPed, Geometry agentGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
     	double r_j = agentPed.rad;
     	
-    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
-    	double d_ij = egoCoord.distance(agentCoord);
+    	double d_ij = pLoc.distance(agentCoord);
     	
     	// Get the vector that points from centorid of other agent to the ego agent,
     	// this is the direction that the force acts in
-    	double[] n = {egoCoord.x - agentCoord.x, egoCoord.y - agentCoord.y};
+    	double[] n = {pLoc.x - agentCoord.x, pLoc.y - agentCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i + r_j - d_ij) / this.m;
@@ -231,15 +230,14 @@ public class Ped {
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
     	
-    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
     	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
     	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
-    	double d_ij = egoCoord.distance(intersectionCoord);
+    	double d_ij = pLoc.distance(intersectionCoord);
     	
     	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in.
     	// This should also be perpendicular to the obstacle 
-    	double[] n = {egoCoord.x - intersectionCoord.x, egoCoord.y - intersectionCoord.y};
+    	double[] n = {pLoc.x - intersectionCoord.x, pLoc.y - intersectionCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i - d_ij) / this.m;
@@ -267,7 +265,7 @@ public class Ped {
     }
     
     // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
-    public double distanceToObject(double alpha) throws MismatchedDimensionException, TransformException {
+    public double distanceToObject(double alpha)  {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
@@ -287,7 +285,7 @@ public class Ped {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getGeometryForCalculation(geography, P);
+               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -323,7 +321,7 @@ public class Ped {
     }
     
     // Function to calculate d(a) using cos rule
-    public double displacementDistance(double alpha) throws MismatchedDimensionException, TransformException {
+    public double displacementDistance(double alpha)  {
     	
     	// Get the distance to nearest object for this angle
     	double fAlpha =  distanceToObject(alpha);
@@ -334,7 +332,7 @@ public class Ped {
     }
     
     // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection() throws MismatchedDimensionException, TransformException {
+    public Map<String, Double> desiredDirection()  {
     	
     	// Sample field of vision
     	List<Double> sampledAngles = sampleFoV();
@@ -362,7 +360,7 @@ public class Ped {
     	return output;    	
     }
     
-    public double[] desiredVelocity() throws MismatchedDimensionException, TransformException {
+    public double[] desiredVelocity()  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
     	Map<String, Double> desiredDirection = desiredDirection();
@@ -392,10 +390,10 @@ public class Ped {
     	return this.col;
     }
     
-    public double setDirectionFromDestinationCoord() throws MismatchedDimensionException, TransformException {
+    public double setDirectionFromDestinationCoord()  {
         // Calculate bearing to destination and convert to a unit vector
-        Coordinate dLoc = SpaceBuilder.getGeometryForCalculation(geography, destination).getCoordinate();
-        Coordinate pLoc = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
+        Coordinate pLoc = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
 
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
@@ -450,9 +448,9 @@ public class Ped {
      * Set the location attribute of the agent to be the coordinate of its 
      * centroid, in the coordinate reference frame used by the agent for GIS calculations. 
      */
-    public void setLoc() throws MismatchedDimensionException, TransformException {
+    public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate pL = SpaceBuilder.getGeometryForCalculation(geography, this).getCentroid().getCoordinate();
+    	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.pLoc = pL;
     }
     
