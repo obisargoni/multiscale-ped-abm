@@ -182,7 +182,7 @@ public class Route implements Cacheable {
 			return;
 		}
 
-		Coordinate currentCoord = SpaceBuilder.getAgentGeometry(this.geography, ped).getCoordinate();
+		Coordinate currentCoord = ped.getLoc();
 		Coordinate destCoord = this.destination;
 
 
