@@ -57,7 +57,7 @@ public class Destination implements FixedGeography{
 	        	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
 	        	if (dGeom.isWithinDistance(coordP, this.arrivalDist)) {
 	        		PedsToRemove.add(P);
-	        		break; // End the iteration since iterating over context having modified it can throw an exception
+	        		break; // End the iteration, only one pedestrian can be removed at a time
 	        	}
 	        }
 	        // Now iterate over all of the peds to remove and remove them from the context
