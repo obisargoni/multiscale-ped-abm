@@ -66,21 +66,19 @@ public abstract class GlobalVars {
 		 * Different search distances used in functions that need to find objects that are
 		 * close to them. A bigger buffer means that more objects will be analysed (less
 		 * efficient) but if the buffer is too small then no objects might be found. 
-		 * The units represent a lat/long distance so I'm not entirely sure what they are,
-		 * but the <code>Route.distanceToMeters()</code> method can be used to roughly 
-		 * convert between these units and meters.
+		 * The units represent distance in meters to match the CRS given in the GlobalVars.geographyCRSString.
 		 * @see Geometry
 		 * @see Route
 		 */
 		public enum BUFFER_DISTANCE {
 			/** The smallest distance, rarely used. Approximately 0.001m*/
-			SMALL(0.00000001, "0.001"),
+			SMALL(0.001, "0.001"),
 			/** Most commonly used distance, OK for looking for nearby houses or roads.
 			 * Approximatey 110m */
-			MEDIUM(0.001,"110"),
+			MEDIUM(110,"110"),
 			/** Largest buffer, approximately 550m. I use this when doing things that
 			 * don't need to be done often, like populating caches.*/
-			LARGE(0.005,"550");
+			LARGE(550,"550");
 			/**
 			 * @param dist The distance to be passed to the search function (in lat/long?)
 			 * @param distInMeters An approximate equivalent distance in meters.
