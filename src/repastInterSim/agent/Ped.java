@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
 
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
@@ -26,6 +27,7 @@ import repast.simphony.util.ContextUtils;
 
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.PedObstruction;
+import repastInterSim.environment.Route;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.main.GlobalVars;
@@ -33,6 +35,8 @@ import repastInterSim.main.GlobalVars;
 public class Ped {
     private Geography<Object> geography; // Space the agent exists in
     public Destination destination; // The destination agent that this pedestrian agents is heading towards.
+    
+    private Route route;
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
     
@@ -84,6 +88,10 @@ public class Ped {
         this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/SpaceBuilder.spaceScale;
         this.B     = 0.08/SpaceBuilder.spaceScale;
         this.r     = 0.275/SpaceBuilder.spaceScale;
+        
+		// Get the destination coordinate
+		Coordinate dCoord = SpaceBuilder.getAgentGeometry(geography, this.destination).getCoordinate(); 
+		this.route = new Route(geography, this, dCoord);
 
     }
     
@@ -93,7 +101,19 @@ public class Ped {
      * given its location, north and destination.
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
-    public void walk() throws MismatchedDimensionException, NoSuchAuthorityCodeException, FactoryException, TransformException {
+    public void step() throws Exception {
+    	
+    	// Check that a route has been generated
+    	if (this.route.getRouteX() == null) {
+    		this.route.setPedestrianRoute();;
+		}
+    	
+    	walk();
+    }
+    
+    public void walk() {
+    	
+    	// Generate a new route if needed
     	
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
