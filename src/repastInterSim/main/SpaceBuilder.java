@@ -124,7 +124,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String roadLinkFile = GlobalVars.GISDataDir + GlobalVars.RoadLinkShapefile;
 			readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			
-			
 			// 2. roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, false);
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
@@ -211,7 +210,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c)  {
+    public <T> Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
         Ped newPed = new Ped(geography, gF, d, c);
@@ -320,12 +319,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return destinations;
 	}
 	
-	public static Geometry getAgentGeometry(Geography G, Object agent) {
+	public static <T> Geometry getAgentGeometry(Geography<T> G, Object agent) {
 		Geometry geom = G.getGeometry(agent);
 		return geom;
 	}
 	
-	public static void moveAgentToGeometry(Geography G, Geometry geomCalc, Object agent) {
+	public static <T> void moveAgentToGeometry(Geography<T> G, Geometry geomCalc, T agent) {
 		G.move(agent, geomCalc);
 	}
 	
