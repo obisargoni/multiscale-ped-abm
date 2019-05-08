@@ -96,12 +96,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
 		junctionGeography.setCRS(geographyCRSString);
 		context.addSubContext(junctionContext);
-
-
-
 		
-		// Not sure what this line does and whether it is required
-		Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, Boolean.TRUE);
 		
 	    // Load agents from shapefiles
 		try {
@@ -135,8 +130,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			roadNetwork = builder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
-
-
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
