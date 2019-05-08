@@ -182,7 +182,7 @@ public class Route implements Cacheable {
 			return;
 		}
 
-		Coordinate currentCoord = SpaceBuilder.getGeometryForCalculation(this.geography, ped).getCoordinate();
+		Coordinate currentCoord = SpaceBuilder.getAgentGeometry(this.geography, ped).getCoordinate();
 		Coordinate destCoord = this.destination;
 
 
@@ -792,7 +792,7 @@ public class Route implements Cacheable {
 	 * @throws MismatchedDimensionException 
 	 */
 	public boolean atDestination() throws MismatchedDimensionException, TransformException {
-		return SpaceBuilder.getGeometryForCalculation(geography, ped).getCoordinate().equals(this.destination);
+		return SpaceBuilder.getAgentGeometry(geography, ped).getCoordinate().equals(this.destination);
 	}
 
 

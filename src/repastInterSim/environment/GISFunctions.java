@@ -34,7 +34,7 @@ public class GISFunctions {
 	 * @throws MismatchedDimensionException 
 	 */
 	public static void buildGISRoadNetwork(Geography<RoadLink> roadLinkGeography, Context<Junction> junctionContext,
-			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) throws MismatchedDimensionException, TransformException {
+			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) {
 
 		// Create a GeometryFactory so we can create points/lines from the junctions and roads
 		// (this is so they can be displayed on the same display to check if the network has been created successfully)
@@ -66,7 +66,7 @@ public class GISFunctions {
 				junc1.setGeom(p1);
 				junctionContext.add(junc1);
 				coordMap.put(c1, junc1);
-				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p1, junc1);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, p1, junc1);
 			}
 			if (coordMap.containsKey(c2)) {
 				junc2 = coordMap.get(c2);
@@ -76,7 +76,7 @@ public class GISFunctions {
 				junc2.setGeom(p2);
 				junctionContext.add(junc2);
 				coordMap.put(c2, junc2);
-				SpaceBuilder.moveAgentToCalculationGeometry(junctionGeography, p2, junc2);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, p2, junc2);
 			}
 			// Tell the road object who it's junctions are
 			roadLink.addJunction(junc1);

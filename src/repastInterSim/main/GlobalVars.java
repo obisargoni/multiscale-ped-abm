@@ -50,12 +50,12 @@ public abstract class GlobalVars {
 	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";
-	public static String VehicleRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaVehicle_EPSG4277_Clipped_Single.shp";
-	public static String PedestrianRoadShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicAreaPedestrain_EPSG4277_Clipped_Single.shp";
-	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped 4277.shp";
-	public static String PedestrianObstructionShapefile = "mastermap-topo_2903032_0 TopographicArea Roads Paths//topographicLineObstructing_EPSG4277_Clipped_RoadPathIntersection_Single.shp";
-	public static String StartingZonesFile = "StartZones.shp";
-	public static String DestinationsFile = "destCoordsEPSG4277.shp";
+	public static String VehicleRoadShapefile = "topographicAreaVehicle_EPSG27700_Clipped_Single.shp";
+	public static String PedestrianRoadShapefile = "topographicAreaPedestrain_EPSG27700_Clipped_Single.shp";
+	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped.shp";
+	public static String PedestrianObstructionShapefile = "topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp";
+	public static String StartingZonesFile = "StartZones_EPSG27700.shp";
+	public static String DestinationsFile = "destCoords.shp";
 	
 	public static final class GEOGRAPHY_PARAMS {
 		

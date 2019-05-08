@@ -51,8 +51,8 @@ public class Destination implements FixedGeography{
 	        	Ped P = (Ped) p;
 	        	
 	        	// Get the geometries in the CRS used for spatial calculations
-	        	Geometry dGeom = SpaceBuilder.getGeometryForCalculation(this.geography, P.destination);
-	        	Geometry coordP = SpaceBuilder.getGeometryForCalculation(this.geography, P);
+	        	Geometry dGeom = SpaceBuilder.getAgentGeometry(this.geography, P.destination);
+	        	Geometry coordP = SpaceBuilder.getAgentGeometry(this.geography, P);
 	        	
 	        	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
 	        	if (dGeom.isWithinDistance(coordP, this.arrivalDist)) {
