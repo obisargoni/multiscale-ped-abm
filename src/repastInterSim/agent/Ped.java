@@ -113,8 +113,8 @@ public class Ped {
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToGeometry(this.geography, pGeomNew, this);
         
-        // Avoids any rounding errors between how the geometry is stored in the geography 
-        // projection and how the coordinate is stored as a private variable
+        // The coordinate of this pedestrian's centroid is stored as a private attribute since this coordinate is used frequently
+        // Must update the coordinate after moving the pedestrian
         setLoc();
         
         setDirectionFromDestinationCoord();
@@ -184,7 +184,7 @@ public class Ped {
         	if (P != this) {
                	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
                	if (agentG.intersects((thisGeom))) {
-               		double[] pCA = pedestrianContactAcceleration(this, thisGeom, P, agentG);
+               		double[] pCA = pedestrianContactAcceleration(this, P, agentG);
                		cATotal = Vector.sumV(cATotal, pCA);
                	}
         	}
@@ -204,19 +204,18 @@ public class Ped {
     	
     }
     
-    public double[] pedestrianContactAcceleration(Ped egoPed, Geometry egoGeom, Ped agentPed, Geometry agentGeom) {
+    public double[] pedestrianContactAcceleration(Ped egoPed, Ped agentPed, Geometry agentGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
     	double r_j = agentPed.rad;
     	
-    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
-    	double d_ij = egoCoord.distance(agentCoord);
+    	double d_ij = pLoc.distance(agentCoord);
     	
     	// Get the vector that points from centorid of other agent to the ego agent,
     	// this is the direction that the force acts in
-    	double[] n = {egoCoord.x - agentCoord.x, egoCoord.y - agentCoord.y};
+    	double[] n = {pLoc.x - agentCoord.x, pLoc.y - agentCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i + r_j - d_ij) / this.m;
@@ -231,15 +230,14 @@ public class Ped {
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
     	
-    	Coordinate egoCoord = egoGeom.getCentroid().getCoordinate();
     	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
     	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
-    	double d_ij = egoCoord.distance(intersectionCoord);
+    	double d_ij = pLoc.distance(intersectionCoord);
     	
     	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in.
     	// This should also be perpendicular to the obstacle 
-    	double[] n = {egoCoord.x - intersectionCoord.x, egoCoord.y - intersectionCoord.y};
+    	double[] n = {pLoc.x - intersectionCoord.x, pLoc.y - intersectionCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i - d_ij) / this.m;
