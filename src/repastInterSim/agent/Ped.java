@@ -108,10 +108,11 @@ public class Ped {
     		this.route.setPedestrianRoute();;
 		}
     	
-    	walk();
+        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
+    	walk(dLoc);
     }
     
-    public void walk() {
+    public void walk(Coordinate dLoc) {
     	
     	// Generate a new route if needed
     	
@@ -137,7 +138,6 @@ public class Ped {
         // Must update the coordinate after moving the pedestrian
         setLoc();
         
-        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
         setDirectionFromDestinationCoord(dLoc);
         setPedAngleFromVelocity(this.v);
     }
