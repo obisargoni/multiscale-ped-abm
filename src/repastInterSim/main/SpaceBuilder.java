@@ -222,15 +222,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Transform the coordinate so that the circle can be created using a radius in metres
 		Geometry circle = pt.buffer(newPed.getRad());
 		moveAgentToGeometry(geography, circle, newPed);
-		//geography.move(newPed, circle);
-		
-		// Set the angle to the destination and point the pedestrian in the direction of that direction.
-		double a0 = newPed.setDirectionFromDestinationCoord();
-		newPed.setaP(a0);
 		
 		// Set the private location attribute of the pedestrian agent to be its current location
 		// This simplifies the process of calculating the pedestrians motion at subsequent timesteps
 		newPed.setLoc();
+		
+		// Set the angle to the destination and point the pedestrian in the direction of that direction.
+		Coordinate dLoc = getAgentGeometry(geography, d).getCoordinate();
+		double a0 = newPed.setDirectionFromDestinationCoord(dLoc);
+		newPed.setaP(a0);
         	
         return newPed;
     }
