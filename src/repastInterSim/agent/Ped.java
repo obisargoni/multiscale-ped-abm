@@ -137,7 +137,8 @@ public class Ped {
         // Must update the coordinate after moving the pedestrian
         setLoc();
         
-        setDirectionFromDestinationCoord();
+        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
+        setDirectionFromDestinationCoord(dLoc);
         setPedAngleFromVelocity(this.v);
     }
     
@@ -410,10 +411,12 @@ public class Ped {
     	return this.col;
     }
     
-    public double setDirectionFromDestinationCoord()  {
-        // Calculate bearing to destination and convert to a unit vector
-        Coordinate dLoc = SpaceBuilder.getAgentGeometry(geography, destination).getCoordinate();
-        Coordinate pLoc = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    /*
+     * Calculate bearing to destination and convert to a unit vector
+     */
+    public double setDirectionFromDestinationCoord(Coordinate dLoc)  {
+    	// This attribute will have been updated to the current pedestrian location
+        Coordinate pLoc = this.pLoc;
 
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
