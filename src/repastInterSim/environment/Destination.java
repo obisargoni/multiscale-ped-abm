@@ -1,16 +1,12 @@
 package repastInterSim.environment;
 
-import java.awt.Color;
 import java.util.ArrayList;
 
-import org.geotools.geometry.jts.JTS;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.context.Context;
@@ -18,7 +14,7 @@ import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
-import repast.simphony.util.ContextUtils;
+
 import repastInterSim.agent.Ped;
 import repastInterSim.main.SpaceBuilder;
 
@@ -27,10 +23,7 @@ public class Destination implements FixedGeography{
 	private Context<Object> context;
 	private Geography<Object> geography;
 	private Geometry geom;
-	private Color colour; // Colour of the destination
 	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
-	private MathTransform transformtoMetre;
-	private MathTransform transformtoDegree;
 		
 	public Destination() {
 
