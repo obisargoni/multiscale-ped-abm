@@ -82,11 +82,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(geography);
 		
+		
+		// Road link geography is used to create the road network projection
 		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
 		roadLinkContext = new RoadLinkContext();
 		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 
+		// Junction geography also used to create the road network
 		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
 		junctionContext = new JunctionContext();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
@@ -134,7 +137,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Set the internal context and geography attributes of the destination agents
-		// This saves setting them on the fly at each tick
 		IndexedIterable<Object> destinations = context.getObjects(Destination.class);
 		for (Object d : destinations) {
 			((Destination)d).setContext(context);
@@ -169,7 +171,22 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry, double destExtent, Color c, MathTransform ttM, MathTransform ttD) {
+	/*
+	 * Create a destination agent and add the agent to the context. Generate a random coordinate that lies within a 
+	 * boundary in the geography and moves the agent to that coordinate.
+	 * 
+	 * @param context
+	 * 			The context to add the destination agent to
+	 * @param geography
+	 * 			The geography to move the destination agent to
+	 * @param gF
+	 * 			The geometry factory used to generate the geometry to move the destination agent to
+	 * @param bndry
+	 * 			The geometry to select a random coordinate from within
+	 * @returns d
+	 * 			The destination agent that was added to the context and geography
+	 */
+	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry) {
 		
 		Destination d = new Destination();
 		context.add(d);
@@ -177,15 +194,30 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initialize random coordinates for the destination
 		Coordinate destCoord = GeometryUtil.generateRandomPointsInPolygon(bndry, 1).get(0);
 		
-		// Get the coordinate and buffer it by the extent of the destination to create a 
-		// circle that defines the destination
-		Geometry destGeom = gF.createPoint(destCoord);//.buffer(destExtent);
+		Geometry destGeom = gF.createPoint(destCoord);
 		geography.move(d, destGeom);
 				
 		return d;
 	}
 	
-	public Destination addUserDestination(Context<Object> context, Geography<Object> geography,GeometryFactory gF, String paramX, String paramY, int destExtent, Color c, MathTransform ttM, MathTransform ttD) {
+	/*
+	 * Create a destination agent and add the agent to the context. Creates a coordinate from input x and y values
+	 * and moves the agent to that coordinate.
+	 * 
+	 * @param context
+	 * 			The context to add the destination agent to
+	 * @param geography
+	 * 			The geography to move the destination agent to
+	 * @param gF
+	 * 			The geometry factory used to generate the geometry to move the destination agent to
+	 * @param paramX
+	 * 			The x coordinate for the destination
+	 * @param paramY
+	 * 			The y coordinate for the destination
+	 * @returns d
+	 * 			The destination agent that was added to the context and geography
+	 */
+	public Destination addUserDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, String paramX, String paramY) {
 		
 		Destination d = new Destination();
 		context.add(d);
@@ -198,9 +230,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initialize random coordinates for the destination
 		Coordinate destCoord = new Coordinate(xCoord, yCoord);
 		
-		// Get the coordinate and buffer it by the extent of the destination to create a 
-		// circle that defines the destination
-		Geometry destGeom = gF.createPoint(destCoord).buffer(destExtent);
+		Geometry destGeom = gF.createPoint(destCoord);
 		
 		geography.move(d, destGeom);
 		
