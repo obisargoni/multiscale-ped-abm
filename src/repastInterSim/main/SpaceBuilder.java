@@ -281,6 +281,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
 	 * Taken from the Geography RS example. Returns a list of SimpleFeature
 	 * objects from the shapefile path passed to the function.
+	 * 
+	 * @param filename
+	 * 			The path to the shapefile to load features from
 	 */
 	private List<SimpleFeature> loadFeaturesFromShapefile(String filename){
 		URL url = null;
@@ -360,13 +363,32 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return destinations;
 	}
 	
+	
+	/*
+	 * Return the geometry associated to an agent.
+	 * 
+	 * @param G
+	 * 			The geography the agent belongs to
+	 * @param agent
+	 * 			The agent to get the associated geography of
+	 */
 	public static <T> Geometry getAgentGeometry(Geography<T> G, Object agent) {
 		Geometry geom = G.getGeometry(agent);
 		return geom;
 	}
 	
-	public static <T> void moveAgentToGeometry(Geography<T> G, Geometry geomCalc, T agent) {
-		G.move(agent, geomCalc);
+	/*
+	 * Move an agent to the input geometry in the input geography.
+	 * 
+	 * @param G
+	 * 			The geography to add the agent to
+	 * @param geom
+	 * 			The geometry to move the agent to
+	 * @param agent
+	 * 			The agent to move to the geometry
+	 */
+	public static <T> void moveAgentToGeometry(Geography<T> G, Geometry geom, T agent) {
+		G.move(agent, geom);
 	}
 	
 	/**
