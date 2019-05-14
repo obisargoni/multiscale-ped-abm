@@ -150,7 +150,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	int nP = (int)params.getInteger("nPeds");
     	
     	String startingZonesFile = GlobalVars.GISDataDir + GlobalVars.StartingZonesFile;
-		List<Coordinate> agentCoords = getRandomCoordinatesWithinStartingZones(startingZonesFile,  fac,  nP);
+		List<Coordinate> agentCoords = getRandomCoordinatesWithinShapeFileGeometries(startingZonesFile,  fac,  nP);
 		
 		
 		// Create the pedestrian agents
@@ -484,6 +484,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 	}
 	
+	
+	/*
+	 * Get a list of coordinates that are randomly distributed within the geometries associated with Road agents.
+	 * 
+	 * @param c
+	 * 			The context the Road agents belong to
+	 * @param g
+	 * 			The geography containing the road geometries
+	 * @param fac
+	 * 			The geometry factory to use when generating coordinates
+	 * @param nPoints
+	 * 			The number of coordinates to generate and return
+	 * @returns
+	 * 			A list of coordinates 
+	 */
 	public List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> c, Geography<Object> g, GeometryFactory fac, Integer nPoints){
 		
 		IndexedIterable<Object> agents = c.getObjects(Road.class);
@@ -505,10 +520,22 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return randCoords;
 	}
 	
-	public List<Coordinate> getRandomCoordinatesWithinStartingZones(String startingZonesFile, GeometryFactory fac, Integer nPoints){
+	/*
+	 * Get a list of coordinates that are randomly distributed within the geometries in a shapefile.
+	 * 
+	 * @param shapeFilePath
+	 * 			The path of the shape file containing the geometries to generate random coordinates within
+	 * @param fac
+	 * 			The geometry factory to use when generating coordinates
+	 * @param nPoints
+	 * 			The number of coordinates to generate and return
+	 * @returns
+	 * 			A list of coordinates 
+	 */
+	public List<Coordinate> getRandomCoordinatesWithinShapeFileGeometries(String shapeFilePath, GeometryFactory fac, Integer nPoints){
 		
 		// Load the starting zones
-		List<SimpleFeature> startingZones = loadFeaturesFromShapefile(startingZonesFile);
+		List<SimpleFeature> startingZones = loadFeaturesFromShapefile(shapeFilePath);
 		Polygon[] startingPolygons = new Polygon[startingZones.size()];
 		
 		// Iterate over the agents and get their polygon geometry
@@ -526,6 +553,16 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return randCoords;
 	}
 	
+	
+	/*
+	 * Calculate the size of an iterable
+	 * 
+	 * @param i
+	 * 			The iterable to calculate the size of
+	 * 
+	 * @returns 
+	 * 			The size of the iterable
+	 */
 	public static int sizeOfIterable(Iterable<?> i) {
 		int size = 0;
 		Iterator<?> it = i.iterator();
