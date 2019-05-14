@@ -65,14 +65,13 @@ public class Ped {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, GeometryFactory gF, Destination d, Color col) {
+    public Ped(Geography<Object> geography, GeometryFactory gF, Destination d) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
         this.rad = m / 320; // As per Moussaid
         this.gF = gF;
-        this.col = col;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
         double[] v = {0,0};
