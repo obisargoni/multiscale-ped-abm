@@ -19,10 +19,8 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.environment;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -470,113 +468,6 @@ public class Route implements Cacheable {
 			this.routeDescriptionX.add(description);
 		}
 	}
-
-	/**
-	 * Travel towards our destination, as far as we can go this turn.
-	 * <p>
-	 * Also adds houses to the agent's cognitive environment. This is done by saving each coordinate the person passes,
-	 * creating a polygon with a radius given by the "cognitive_map_search_radius" and adding all houses which touch the
-	 * polygon.
-	 * <p>
-	 * Note: the agent might move their position many times depending on how far they are allowed to move each turn,
-	 * this requires many calls to geometry.move(). This function could be improved (quite easily) by working out where
-	 * the agent's final destination will be, then calling move() just once.
-	 * 
-	 * @param housesPassed
-	 *            If not null then the buildings which the agent passed during their travels this iteration will be
-	 *            calculated and stored in this array. This can be useful if a agent needs to know which houses it has
-	 *            just passed and, therefore, which are possible victims. This isn't done by default because it's quite
-	 *            an expensive operation (lots of geographic tests which must be carried out in each iteration). If the
-	 *            array is null then the houses passed are not calculated.
-	 * @return null or the buildings passed during this iteration if housesPassed boolean is true
-	 * @throws Exception
-	 */
-	/*
-	public void travel() throws Exception {
-		// Check that the route has been created
-		if (this.routeX == null) {
-			this.setRoute();
-		}
-		try {
-			if (this.atDestination()) {
-				return;
-			}
-			double time = System.nanoTime();
-
-			// Store the roads the agent walks along (used to populate the awareness space)
-			// List<Road> roadsPassed = new ArrayList<Road>();
-			double distTravelled = 0; // The distance travelled so far
-			Coordinate currentCoord = null; // Current location
-			Coordinate target = null; // Target coordinate we're heading for (in route list)
-			boolean travelledMaxDist = false; // True when travelled maximum distance this iteration
-			double speed; // The speed to travel to next coord
-			GeometryFactory geomFac = new GeometryFactory();
-			currentCoord = SpaceBuilder.getGeometryForCalculation(this.geography, ped).getCoordinate();
-
-			while (!travelledMaxDist && !this.atDestination()) {
-				target = this.routeX.get(this.currentPosition);
-				speed = this.routeSpeedsX.get(this.currentPosition);
-				/*
-				 * TODO Remember which roads have been passed, used to work out what should be added to cognitive map.
-				 * Only add roads once the agent has moved all the way down them
-				 
-				// roadsPassed.add(this.roads.get(this.previousRouteCoord()));
-				// Work out the distance and angle to the next coordinate
-				double[] distAndAngle = new double[2];
-				Route.distance(currentCoord, target, distAndAngle);
-				// divide by speed because distance might effectively be shorter
-
-				double distToTarget = distAndAngle[0] / speed;
-				// If we can get all the way to the next coords on the route then just go there
-				if (distTravelled + distToTarget < GlobalVars.GEOGRAPHY_PARAMS.TRAVEL_PER_TURN) {
-
-					distTravelled += distToTarget;
-					currentCoord = target;
-
-					// See if agent has reached the end of the route.
-					if (this.currentPosition == (this.routeX.size() - 1)) {
-						SpaceBuilder.moveAgentToCalculationGeometry(geography, geomFac.createPoint(currentCoord), this.ped);
-						// ContextManager.agentGeography.move(this.agent, geomFac.createPoint(currentCoord));
-						break; // Break out of while loop, have reached end of route.
-					}
-					// Haven't reached end of route, increment the counter
-					this.currentPosition++;
-				} // if can get all way to next coord
-
-				// Check if dist to next coordinate is exactly same as maximum
-				// distance allowed to travel (unlikely but possible)
-				else if (distTravelled + distToTarget == GlobalVars.GEOGRAPHY_PARAMS.TRAVEL_PER_TURN) {
-					travelledMaxDist = true;
-					SpaceBuilder.moveAgentToCalculationGeometry(geography, geomFac.createPoint(target), this.ped);
-					// ContextManager.agentGeography.move(agent, geomFac.createPoint(target));
-					this.currentPosition++;
-					LOGGER.log(Level.WARNING, "Travel(): UNUSUAL CONDITION HAS OCCURED!");
-				} else {
-					// Otherwise move as far as we can towards the target along the road we're on.
-					// Move along the vector the maximum distance we're allowed this turn (take into account relative
-					// speed)
-					double distToTravel = (GlobalVars.GEOGRAPHY_PARAMS.TRAVEL_PER_TURN - distTravelled) * speed;
-					// Move the agent, first move them to the current coord (the first part of the while loop doesn't do
-					// this for efficiency)
-					SpaceBuilder.moveAgentToCalculationGeometry(geography, geomFac.createPoint(currentCoord), this.ped);
-
-					// Now move by vector towards target (calculated angle earlier).
-					ContextManager.moveAgentByVector(this.agent, distToTravel, distAndAngle[1]);
-					// ContextManager.agentGeography.moveByVector(this.agent, distToTravel, distAndAngle[1]);
-
-					travelledMaxDist = true;
-				} // else
-			} // while
-
-
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Route.trave(): Caught error travelling for " + this.ped.toString());
-			throw e;
-		} // catch exception
-	}
-	*/
-	
-
 	
 	/**
 	 * Find the nearest coordinate which is part of a Road. Returns the coordinate which is actually the closest to the
