@@ -163,7 +163,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     			destinationIndex = 1; // i
     		}
 			
-    		Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex), Color.BLUE);
+    		Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex));
     		i+=1;
 		}
 		
@@ -238,23 +238,36 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
-    public <T> Ped addPed(Context context, Geography geography, GeometryFactory gF, Coordinate coord, Destination d, Color c)  {
+	/*
+	 * Adds pedestrian agents to the context and geography. Creates a new pedestrian agent and adds the pedestrian to the context.
+	 * Creates a circle geometry in the geography and moves the pedestrian agent to this geometry. Assigns the pedestrian agent
+	 * its destination and initial direction.
+	 * 
+	 * @param context
+	 * 			The context to add the pedestrian agent to
+	 * @param geography
+	 * 			The geography to move the pedestrian agent to
+	 * @param 
+	 *			The geometry factory used to generate the geometry to move the pedestrian agent to
+	 * @param coord
+	 * 			The coordinate to move the centroid of the pedestrian to in the geography
+	 */
+    public <T> Ped addPed(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Coordinate coord, Destination d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, gF, d, c);
+        Ped newPed = new Ped(geography, gF, d);
         context.add(newPed);
         
-        // Create a new point geometry. Move the pedestrian to this point. In doing so this 
-        // pedestrian agent becomes associated with this geometry.
+        // Create a new point geometry.
 		Point pt = gF.createPoint(coord);
-		//Point ptCalc = (Point)JTS.transform(pt, transformToCalc);
 		
 		// Transform the coordinate so that the circle can be created using a radius in metres
 		Geometry circle = pt.buffer(newPed.getRad());
+		
+		// Move the pedestrian to this geometry
 		moveAgentToGeometry(geography, circle, newPed);
 		
-		// Set the private location attribute of the pedestrian agent to be its current location
-		// This simplifies the process of calculating the pedestrians motion at subsequent timesteps
+		// Set the location attribute of the pedestrian agent to be its current location. Simplifies future calculations
 		newPed.setLoc();
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
