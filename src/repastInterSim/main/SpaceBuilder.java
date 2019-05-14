@@ -1,33 +1,16 @@
 package repastInterSim.main;
 
-import java.awt.Color;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.Hints;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -43,14 +26,12 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.Destination;
-import repastInterSim.environment.FixedGeography;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.ShapefileLoader;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
@@ -104,24 +85,24 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 1. Load destinations
 			String destinationsFile = GlobalVars.GISDataDir + GlobalVars.DestinationsFile;
-			readShapefile(Destination.class, destinationsFile, geography, context);
+			GISFunctions.readShapefile(Destination.class, destinationsFile, geography, context);
 			
 			// 2. Load roads
 			String vehicleRoadFile = GlobalVars.GISDataDir + GlobalVars.VehicleRoadShapefile;
 			String pedestrianRoadFile = GlobalVars.GISDataDir + GlobalVars.PedestrianRoadShapefile;
-			readShapefile(Road.class, vehicleRoadFile, geography, context);
-			readShapefile(Road.class, pedestrianRoadFile, geography, context);
+			GISFunctions.readShapefile(Road.class, vehicleRoadFile, geography, context);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GlobalVars.GISDataDir + GlobalVars.PedestrianObstructionShapefile;
-			readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
+			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
 			
 			
 			// Build the road network
 			
 			// 1. Load the road links
 			String roadLinkFile = GlobalVars.GISDataDir + GlobalVars.RoadLinkShapefile;
-			readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+			GISFunctions.readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
 			
@@ -143,14 +124,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			((Destination)d).setGeography(geography);
 		}
 		
-
-		
     	// Get the number of pedestrian agent to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
     	
     	String startingZonesFile = GlobalVars.GISDataDir + GlobalVars.StartingZonesFile;
-		List<Coordinate> agentCoords = getRandomCoordinatesWithinShapeFileGeometries(startingZonesFile,  fac,  nP);
+		List<Coordinate> agentCoords = GISFunctions.getRandomCoordinatesWithinShapeFileGeometries(startingZonesFile,  fac,  nP);
 		
 		
 		// Create the pedestrian agents
@@ -276,93 +255,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setaP(a0);
         	
         return newPed;
-    }
-	
-	/*
-	 * Taken from the Geography RS example. Returns a list of SimpleFeature
-	 * objects from the shapefile path passed to the function.
-	 * 
-	 * @param filename
-	 * 			The path to the shapefile to load features from
-	 */
-	private List<SimpleFeature> loadFeaturesFromShapefile(String filename){
-		URL url = null;
-		try {
-			url = new File(filename).toURL();
-		} catch (MalformedURLException e1) {
-			e1.printStackTrace();
-		}
-
-		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
-		
-		// Try to load the shapefile
-		SimpleFeatureIterator fiter = null;
-		ShapefileDataStore store = null;
-		store = new ShapefileDataStore(url);
-
-		try {
-			fiter = store.getFeatureSource().getFeatures().features();
-
-			while(fiter.hasNext()){
-				features.add(fiter.next());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		finally{
-			fiter.close();
-			store.dispose();
-		}
-		
-		return features;
-	}
-	
-	/**
-	 * Loads features from the specified shapefile.  The appropriate type of agents
-	 * will be created depending on the geometry type in the shapefile (point, 
-	 * line, polygon).
-	 * 
-	 * @param filename the name of the shapefile from which to load agents
-	 * @param context the context
-	 * @param geography the geography
-	 */
-	private List<Destination> loadFeatures (String filename, Context context, Geography geography){
-
-		List<SimpleFeature> features = loadFeaturesFromShapefile(filename);
-		List<Destination> destinations = new ArrayList<Destination>();
-		
-		// For each feature in the file
-		for (SimpleFeature feature : features){
-			Geometry geom = (Geometry)feature.getDefaultGeometry();
-			Object agent = null;
-
-			if (!geom.isValid()){
-				System.out.println("Invalid geometry: " + feature.getID());
-			}
-			
-
-			// For Points, create Destination agents
-			if (geom instanceof Point){
-				geom = (Point)feature.getDefaultGeometry();		
-				
-				agent = new Destination();
-				
-				destinations.add((Destination)agent);
-								
-			}
-
-			if (agent != null){
-				context.add(agent);
-				geography.move(agent, geom);
-			}
-			else{
-				System.out.println("Error creating agent for  " + geom);
-			}
-		}
-		
-		return destinations;
-	}
-	
+    }	
 	
 	/*
 	 * Return the geometry associated to an agent.
@@ -389,170 +282,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	public static <T> void moveAgentToGeometry(Geography<T> geography, Geometry geom, T agent) {
 		geography.move(agent, geom);
-	}
-	
-	/**
-	 * This function was taken from Nick Malleson. I have edited it so that generic type contexts and geographies can 
-	 * be passed to the function. His comments below.
-	 * 
-	 * Nice generic function :-) that reads in objects from shapefiles.
-	 * <p>
-	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
-	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
-	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
-	 * the shapefile has been read and the objects have been given coordinates in their projection.
-	 * 
-	 * @param <T>
-	 *            The type of object to be read (e.g. PecsHouse). Must exted
-	 * @param cl
-	 *            The class of the building being read (e.g. PecsHouse.class).
-	 * @param shapefileLocation
-	 *            The location of the shapefile containing the objects.
-	 * @param geography
-	 *            A geography to add the objects to.
-	 * @param context
-	 *            A context to add the objects to.
-	 * @throws MalformedURLException
-	 *             If the location of the shapefile cannot be converted into a URL
-	 * @throws FileNotFoundException
-	 *             if the shapefile does not exist.
-	 * @throws TransformException 
-	 * @throws MismatchedDimensionException 
-	 * @see FixedGeography
-	 */
-	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
-		Geography<Object> geography, Context<Object> context) throws MalformedURLException, FileNotFoundException  {
-		File shapefile = null;
-		ShapefileLoader<T> loader = null;
-		shapefile = new File(shapefileLocation);
-		if (!shapefile.exists()) {
-			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
-		}
-		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geography, context);
-		while (loader.hasNext()) {
-			loader.next();
-		}
-		for (Object obj : context.getObjects(cl)) {
-			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getAgentGeometry(geography, obj));
-		}
-	}
-	
-	/**
-	 * This function was taken from Nick Malleson.
-	 * 
-	 * Nice generic function :-) that reads in objects from shapefiles.
-	 * <p>
-	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
-	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
-	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
-	 * the shapefile has been read and the objects have been given coordinates in their projection.
-	 * 
-	 * @param <T>
-	 *            The type of object to be read (e.g. PecsHouse). Must exted
-	 * @param cl
-	 *            The class of the building being read (e.g. PecsHouse.class).
-	 * @param shapefileLocation
-	 *            The location of the shapefile containing the objects.
-	 * @param geography
-	 *            A geography to add the objects to.
-	 * @param context
-	 *            A context to add the objects to.
-	 * @throws MalformedURLException
-	 *             If the location of the shapefile cannot be converted into a URL
-	 * @throws FileNotFoundException
-	 *             if the shapefile does not exist.
-	 * @throws TransformException 
-	 * @throws MismatchedDimensionException 
-	 * @see FixedGeography
-	 */
-	public static <T extends FixedGeography> void readShapefileWithType(Class<T> cl, String shapefileLocation,
-		Geography<T> geography, Context<T> context) throws MalformedURLException, FileNotFoundException {
-		File shapefile = null;
-		ShapefileLoader<T> loader = null;
-		shapefile = new File(shapefileLocation);
-		if (!shapefile.exists()) {
-			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
-		}
-		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geography, context);
-		while (loader.hasNext()) {
-			loader.next();
-		}
-		for (Object obj : context.getObjects(cl)) {
-			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getAgentGeometry(geography, obj));
-		}
-	}
-	
-	
-	/*
-	 * Get a list of coordinates that are randomly distributed within the geometries associated with Road agents.
-	 * 
-	 * @param context
-	 * 			The context the Road agents belong to
-	 * @param geography
-	 * 			The geography containing the road geometries
-	 * @param fac
-	 * 			The geometry factory to use when generating coordinates
-	 * @param nPoints
-	 * 			The number of coordinates to generate and return
-	 * @returns
-	 * 			A list of coordinates 
-	 */
-	public List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> context, Geography<Object> geography, GeometryFactory fac, Integer nPoints){
-		
-		IndexedIterable<Object> agents = context.getObjects(Road.class);
-		Polygon[] roadPolygons = new Polygon[agents.size()];
-
-		
-		// Iterate over the agents and get their polygon geometry
-		int i = 0;
-		for (Object a : agents) {
-			Polygon p = (Polygon)geography.getGeometry(a);
-			roadPolygons[i] = p;
-			i++;
-		}
-		
-		// Create single MultiPolygon that includes all road polygons and generate random coordinates that are within this multipolygon
-	    MultiPolygon combined = new MultiPolygon(roadPolygons, fac);
-		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
-		
-		return randCoords;
-	}
-	
-	/*
-	 * Get a list of coordinates that are randomly distributed within the geometries in a shapefile.
-	 * 
-	 * @param shapeFilePath
-	 * 			The path of the shape file containing the geometries to generate random coordinates within
-	 * @param fac
-	 * 			The geometry factory to use when generating coordinates
-	 * @param nPoints
-	 * 			The number of coordinates to generate and return
-	 * @returns
-	 * 			A list of coordinates 
-	 */
-	public List<Coordinate> getRandomCoordinatesWithinShapeFileGeometries(String shapeFilePath, GeometryFactory fac, Integer nPoints){
-		
-		// Load the starting zones
-		List<SimpleFeature> startingZones = loadFeaturesFromShapefile(shapeFilePath);
-		Polygon[] startingPolygons = new Polygon[startingZones.size()];
-		
-		// Iterate over the agents and get their polygon geometry
-		int i = 0;
-		for (SimpleFeature sf: startingZones) {
-			MultiPolygon mp = (MultiPolygon)sf.getDefaultGeometry();
-			startingPolygons[i] = (Polygon)mp.getGeometryN(0);
-			i++;
-		}
-		
-		// Create single MultiPolygon that includes all road polygons and generate random coordinates that are within this multipolygon
-	    MultiPolygon combined = new MultiPolygon(startingPolygons, fac);
-		List<Coordinate> randCoords = GeometryUtil.generateRandomPointsInPolygon(combined, nPoints);
-		
-		return randCoords;
-	}
-	
+	}	
 	
 	/*
 	 * Calculate the size of an iterable
