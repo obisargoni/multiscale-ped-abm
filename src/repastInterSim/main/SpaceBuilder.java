@@ -367,28 +367,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
 	 * Return the geometry associated to an agent.
 	 * 
-	 * @param G
+	 * @param geography
 	 * 			The geography the agent belongs to
 	 * @param agent
 	 * 			The agent to get the associated geography of
 	 */
-	public static <T> Geometry getAgentGeometry(Geography<T> G, Object agent) {
-		Geometry geom = G.getGeometry(agent);
+	public static <T> Geometry getAgentGeometry(Geography<T> geography, Object agent) {
+		Geometry geom = geography.getGeometry(agent);
 		return geom;
 	}
 	
 	/*
 	 * Move an agent to the input geometry in the input geography.
 	 * 
-	 * @param G
+	 * @param geography
 	 * 			The geography to add the agent to
 	 * @param geom
 	 * 			The geometry to move the agent to
 	 * @param agent
 	 * 			The agent to move to the geometry
 	 */
-	public static <T> void moveAgentToGeometry(Geography<T> G, Geometry geom, T agent) {
-		G.move(agent, geom);
+	public static <T> void moveAgentToGeometry(Geography<T> geography, Geometry geom, T agent) {
+		geography.move(agent, geom);
 	}
 	
 	/**
@@ -408,7 +408,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 *            The class of the building being read (e.g. PecsHouse.class).
 	 * @param shapefileLocation
 	 *            The location of the shapefile containing the objects.
-	 * @param geog
+	 * @param geography
 	 *            A geography to add the objects to.
 	 * @param context
 	 *            A context to add the objects to.
@@ -421,20 +421,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
-		Geography<Object> geog, Context<Object> context) throws MalformedURLException, FileNotFoundException  {
+		Geography<Object> geography, Context<Object> context) throws MalformedURLException, FileNotFoundException  {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
 		if (!shapefile.exists()) {
 			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
 		}
-		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geog, context);
+		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geography, context);
 		while (loader.hasNext()) {
 			loader.next();
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getAgentGeometry(geog, obj));
+			((T)obj).setGeom(getAgentGeometry(geography, obj));
 		}
 	}
 	
@@ -454,7 +454,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 *            The class of the building being read (e.g. PecsHouse.class).
 	 * @param shapefileLocation
 	 *            The location of the shapefile containing the objects.
-	 * @param geog
+	 * @param geography
 	 *            A geography to add the objects to.
 	 * @param context
 	 *            A context to add the objects to.
@@ -467,20 +467,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefileWithType(Class<T> cl, String shapefileLocation,
-		Geography<T> geog, Context<T> context) throws MalformedURLException, FileNotFoundException {
+		Geography<T> geography, Context<T> context) throws MalformedURLException, FileNotFoundException {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
 		if (!shapefile.exists()) {
 			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
 		}
-		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geog, context);
+		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geography, context);
 		while (loader.hasNext()) {
 			loader.next();
 		}
 		for (Object obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(getAgentGeometry(geog, obj));
+			((T)obj).setGeom(getAgentGeometry(geography, obj));
 		}
 	}
 	
@@ -488,9 +488,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
 	 * Get a list of coordinates that are randomly distributed within the geometries associated with Road agents.
 	 * 
-	 * @param c
+	 * @param context
 	 * 			The context the Road agents belong to
-	 * @param g
+	 * @param geography
 	 * 			The geography containing the road geometries
 	 * @param fac
 	 * 			The geometry factory to use when generating coordinates
@@ -499,16 +499,16 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @returns
 	 * 			A list of coordinates 
 	 */
-	public List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> c, Geography<Object> g, GeometryFactory fac, Integer nPoints){
+	public List<Coordinate> getRandomCoordinatesWithinRoads(Context<Object> context, Geography<Object> geography, GeometryFactory fac, Integer nPoints){
 		
-		IndexedIterable<Object> agents = c.getObjects(Road.class);
+		IndexedIterable<Object> agents = context.getObjects(Road.class);
 		Polygon[] roadPolygons = new Polygon[agents.size()];
 
 		
 		// Iterate over the agents and get their polygon geometry
 		int i = 0;
 		for (Object a : agents) {
-			Polygon p = (Polygon)g.getGeometry(a);
+			Polygon p = (Polygon)geography.getGeometry(a);
 			roadPolygons[i] = p;
 			i++;
 		}
