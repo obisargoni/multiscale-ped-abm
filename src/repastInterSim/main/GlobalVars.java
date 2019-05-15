@@ -44,6 +44,10 @@ public abstract class GlobalVars {
 	public static final String BuildingsRoadsCoordsCache = "BuildingsRoadsCoordsCache";
 	public static final String BuildingsRoadsCache = "BuildingsRoadsCache";
 	
+	public static double spaceScale = 1;
+	public static double stepToTimeRatio = 1;
+	public static double[] north = {0,1}; // Defines north, against which bearings are taken
+	
 	public static double tStep = 1;
 	public static double pedVsd = 0.1; // standard dev of ped speeds
 	public static double pedVavg = 0.8; // average pedestrian speed

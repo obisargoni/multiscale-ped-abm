@@ -38,9 +38,6 @@ import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
-	public static double spaceScale = 1;
-	public static double[] north = {0,1}; // Defines north, against which bearings are taken
-	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
 	

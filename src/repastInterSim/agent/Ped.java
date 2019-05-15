@@ -73,14 +73,14 @@ public class Ped {
 
         this.tau  = 0.5/GlobalVars.tStep;
         this.m     = 80;
-        this.dmax = 10/SpaceBuilder.spaceScale; 
+        this.dmax = 10/GlobalVars.spaceScale; 
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
         
-        this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/SpaceBuilder.spaceScale;
-        this.B     = 0.08/SpaceBuilder.spaceScale;
-        this.r     = 0.275/SpaceBuilder.spaceScale;
+        this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/GlobalVars.spaceScale;
+        this.B     = 0.08/GlobalVars.spaceScale;
+        this.r     = 0.275/GlobalVars.spaceScale;
         
 		// Get the destination coordinate
 		Coordinate dCoord = SpaceBuilder.getAgentGeometry(geography, this.destination).getCoordinate(); 
@@ -114,8 +114,6 @@ public class Ped {
     }
     
     public void walk(Coordinate dLoc) {
-    	
-    	// Generate a new route if needed
     	
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
