@@ -413,9 +413,7 @@ public class Ped implements mobileAgent {
      * Calculate bearing to destination and convert to a unit vector
      */
     public double setDirectionFromDestinationCoord(Coordinate dLoc)  {
-    	// This attribute will have been updated to the current pedestrian location
-        Coordinate pLoc = this.pLoc;
-
+    	
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
