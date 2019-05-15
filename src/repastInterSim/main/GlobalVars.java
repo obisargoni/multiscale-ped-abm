@@ -55,6 +55,10 @@ public abstract class GlobalVars {
 	public static double pedMasssd = 10; // 60kg average mass
 	public static double interactionForceConstant = 100;
 	
+	public static double defaultVehicleAcceleration = 0.1;
+	public static double initialVehicleSpeed = 0.5;
+	public static Integer maxVehicleSpeed = 3;
+	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";
 	public static String VehicleRoadShapefile = "topographicAreaVehicle_EPSG27700_Clipped_Single.shp";
