@@ -18,15 +18,14 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
-
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Route;
 import repastInterSim.environment.Vector;
-import repastInterSim.main.SpaceBuilder;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
-public class Ped {
+public class Ped implements mobileAgent {
     private Geography<Object> geography; // Space the agent exists in
     public Destination destination; // The destination agent that this pedestrian agents is heading towards.
     
