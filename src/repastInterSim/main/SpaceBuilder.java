@@ -25,6 +25,7 @@ import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
@@ -142,6 +143,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex));
     		i+=1;
 		}
+		
+		
+		// Add a single vehicle to the simulation
+		Coordinate destCoord = getAgentGeometry(geography, (Destination)destinations.get(0)).getCentroid().getCoordinate();
+		Vehicle V = new Vehicle(geography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, destCoord);
+		context.add(V);
+		Point pt = fac.createPoint(agentCoords.get(0));
+		Geometry vehicleCircle = pt.buffer(2);
+		moveAgentToGeometry(geography, vehicleCircle, V);
 		
 		return context;
 		
