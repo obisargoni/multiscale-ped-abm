@@ -49,7 +49,7 @@ import cern.colt.Arrays;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
-import repastInterSim.agent.Ped;
+import repastInterSim.agent.mobileAgent;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -77,7 +77,7 @@ public class Route implements Cacheable {
 	}
 	private Geography<Object> geography;
 	
-	private Ped ped;
+	private mobileAgent mA;
 	private Coordinate destination;
 
 	/*
@@ -147,10 +147,10 @@ public class Route implements Cacheable {
 	 * @param type
 	 *            The (optional) type of route, used by burglars who want to search.
 	 */
-	public Route(Geography<Object> geography, Ped p, Coordinate destination) {
+	public Route(Geography<Object> geography, mobileAgent mA, Coordinate destination) {
 		this.geography = geography;
-		this.ped = p;
-		this.destination = ped.destination.getGeom().getCoordinate();
+		this.mA = mA;
+		this.destination = destination;
 	}
 
 	/**
@@ -180,7 +180,7 @@ public class Route implements Cacheable {
 			return;
 		}
 
-		Coordinate currentCoord = ped.getLoc();
+		Coordinate currentCoord = mA.getLoc();
 		Coordinate destCoord = this.destination;
 
 
@@ -275,7 +275,7 @@ public class Route implements Cacheable {
 			checkListSizes();
 
 		} catch (RoutingException e) {
-			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.ped.toString()
+			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.mA.toString()
 					+ " going from " + currentCoord.toString() + " to " + this.destination.toString());
 			throw e;
 		}
@@ -292,7 +292,7 @@ public class Route implements Cacheable {
 		// }
 		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
 
-		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.ped.toString() + "with "
+		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.mA.toString() + "with "
 				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
 
 		// Finished, just check that the route arrays are all in sync
@@ -326,7 +326,7 @@ public class Route implements Cacheable {
 			return;
 		}
 
-		Coordinate currentCoord = ped.getLoc();
+		Coordinate currentCoord = mA.getLoc();
 		Coordinate destCoord = this.destination;
 
 
@@ -394,7 +394,7 @@ public class Route implements Cacheable {
 			checkListSizes();
 
 		} catch (RoutingException e) {
-			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.ped.toString()
+			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.mA.toString()
 					+ " going from " + currentCoord.toString() + " to " + this.destination.toString());
 			throw e;
 		}
@@ -411,7 +411,7 @@ public class Route implements Cacheable {
 		// }
 		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
 
-		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.ped.toString() + "with "
+		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.mA.toString() + "with "
 				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
 
 		// Finished, just check that the route arrays are all in sync
@@ -617,7 +617,7 @@ public class Route implements Cacheable {
 			for (Coordinate c : roadCoords)
 				roadCoordsString += c.toString() + " - ";
 			throw new RoutingException("Neigher the origin or destination nor the current"
-					+ "coordinate are part of the road '" + currentRoad.toString() + "' (person '" + this.ped.toString()
+					+ "coordinate are part of the road '" + currentRoad.toString() + "' (person '" + this.mA.toString()
 					+ "').\n" + "Road coords: " + roadCoordsString + "\n" + "\tOrigin: " + currentCoord.toString()
 					+ "\n" + "\tDestination: " + destinationCoord.toString()+ " )\n " + "Heading " + (toJunction ? "to" : "away from")
 					+ " a junction, so " + (toJunction ? "destination" : "origin")
@@ -671,7 +671,7 @@ public class Route implements Cacheable {
 			// A load of debugging info
 			String error = "Route: getCoordsAlongRoad: could not find destination coordinates "
 					+ "along the road.\n\tHeading *" + (toJunction ? "towards" : "away from")
-					+ "* a junction.\n\t Person: " + this.ped.toString() + ")\n\tRoad causing problems: " + currentRoad.toString()
+					+ "* a junction.\n\t Person: " + this.mA.toString() + ")\n\tRoad causing problems: " + currentRoad.toString()
 					+ "\n\tRoad vertex coordinates: " + Arrays.toString(roadCoords);
 			throw new RoutingException(error);
 
@@ -813,16 +813,16 @@ public class Route implements Cacheable {
 	 * @throws MismatchedDimensionException 
 	 */
 	public boolean atDestination() throws MismatchedDimensionException, TransformException {
-		return SpaceBuilder.getAgentGeometry(geography, ped).getCoordinate().equals(this.destination);
+		return SpaceBuilder.getAgentGeometry(geography, mA).getCoordinate().equals(this.destination);
 	}
 
 
 	private void printRoute() {
 		StringBuilder out = new StringBuilder();
-		out.append("Printing route (" + this.ped.toString() + "). Current position in list is "
+		out.append("Printing route (" + this.mA.toString() + "). Current position in list is "
 				+ this.currentPosition + " ('" + this.routeDescriptionX.get(this.currentPosition) + "')");
 		for (int i = 0; i < this.routeX.size(); i++) {
-			out.append("\t(" + this.ped.toString() + ") " + this.routeX.get(i).toString() + "\t"
+			out.append("\t(" + this.mA.toString() + ") " + this.routeX.get(i).toString() + "\t"
 					+ this.routeSpeedsX.get(i).toString() + "\t" + this.roadsX.get(i) + "\t"
 					+ this.routeDescriptionX.get(i));
 		}
@@ -1050,7 +1050,7 @@ public class Route implements Cacheable {
 	protected <T> void passedObject(T object, Class<T> clazz) {
 		List<T> list = new ArrayList<T>(1);
 		list.add(object);
-		this.ped.addToMemory(list, clazz);
+		this.mA.addToMemory(list, clazz);
 	}
 	*/
 
