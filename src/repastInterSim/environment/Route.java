@@ -1039,6 +1039,14 @@ public class Route implements Cacheable {
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
 	}
+	
+	public Coordinate getRouteXCoordinate(Integer i) {
+		return this.routeX.get(i);
+	}
+	
+	public void removeRouteXCoordinate(Coordinate c) {
+		routeX.remove(c);
+	}
 
 	/**
 	 * Will add the given buildings to the awareness space of the Burglar who is being controlled by this Route.

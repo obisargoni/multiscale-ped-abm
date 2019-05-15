@@ -100,15 +100,13 @@ public class Ped implements mobileAgent {
     		this.route.setPedestrianRoute();;
 		}
     	
-    	List<Coordinate> routeX = this.route.getRouteX();
-    	
     	// Walk towards the next coordinate along the route
-        Coordinate routeCoord = routeX.get(0);
+        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
     	walk(routeCoord);
     	
     	// Check if destination reached within 1m of route coordinate, if true remove that coordinate from the route
     	if (this.pLoc.distance(routeCoord) < 1) {
-    		routeX.remove(0);
+    		this.route.removeRouteXCoordinate(routeCoord);
     	}
     }
     
