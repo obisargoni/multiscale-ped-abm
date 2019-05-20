@@ -9,6 +9,8 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.opengis.geometry.MismatchedDimensionException;
 
@@ -55,6 +57,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<Junction> junctionContext;
 	public static Network<Junction> roadNetwork;
+	
+	/*
+	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
+	 * (at the bottom of this file).
+	 */
+	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
