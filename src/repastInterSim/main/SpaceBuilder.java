@@ -152,6 +152,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Point pt = fac.createPoint(agentCoords.get(0));
 		Geometry vehicleCircle = pt.buffer(2);
 		moveAgentToGeometry(geography, vehicleCircle, V);
+		V.setLoc();
 		
 		return context;
 		
