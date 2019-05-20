@@ -34,10 +34,15 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.contexts.DestinationContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
+	
+	
+	public static Context<Destination> destinationContext;
+	public static Geography<Destination> destinationGeography;
 	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
@@ -75,6 +80,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		context.addSubContext(junctionContext);
 		
+		// Destinations geography used for creating cache of destinations and their nearest road coordinates
+		GeographyParameters<Destination> destinationGeoParams = new GeographyParameters<Destination>();
+		destinationContext = new DestinationContext();
+		destinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.DESTINATION_GEOGRAPHY, destinationContext, destinationGeoParams);
+		destinationGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(destinationContext);
 		
 	    // Load agents from shapefiles
 		try {
@@ -83,7 +94,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 1. Load destinations
 			String destinationsFile = GlobalVars.GISDataDir + GlobalVars.DestinationsFile;
-			GISFunctions.readShapefile(Destination.class, destinationsFile, geography, context);
+			GISFunctions.readShapefileWithType(Destination.class, destinationsFile, destinationGeography, destinationContext);
 			
 			// 2. Load roads
 			String vehicleRoadFile = GlobalVars.GISDataDir + GlobalVars.VehicleRoadShapefile;
@@ -140,13 +151,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     			destinationIndex = 1; // i
     		}
 			
-    		Ped newPed = addPed(context, geography, fac, coord, (Destination)destinations.get(destinationIndex));
+    		Ped newPed = addPed(context, geography, destinationGeography, fac, coord, (Destination)destinations.get(destinationIndex));
     		i+=1;
 		}
 		
 		
 		// Add a single vehicle to the simulation
-		Coordinate destCoord = getAgentGeometry(geography, (Destination)destinations.get(0)).getCentroid().getCoordinate();
+		Coordinate destCoord = getAgentGeometry(destinationGeography, (Destination)destinations.get(0)).getCentroid().getCoordinate();
 		Vehicle V = new Vehicle(geography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, destCoord);
 		context.add(V);
 		Point pt = fac.createPoint(agentCoords.get(0));
@@ -239,10 +250,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public <T> Ped addPed(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Coordinate coord, Destination d)  {
+    public <T> Ped addPed(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate coord, Destination d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-        Ped newPed = new Ped(geography, gF, d);
+
+    	Ped newPed = new Ped(geography, destinationGeography, gF, d);
         context.add(newPed);
         
         // Create a new point geometry.
@@ -258,7 +270,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
-		Coordinate dLoc = getAgentGeometry(geography, d).getCoordinate();
+		Coordinate dLoc = getAgentGeometry(destinationGeography, d).getCoordinate();
 		double a0 = newPed.setDirectionFromDestinationCoord(dLoc);
 		newPed.setaP(a0);
         	

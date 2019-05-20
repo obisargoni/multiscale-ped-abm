@@ -118,6 +118,9 @@ public abstract class GlobalVars {
 		public static final String JUNCTION_CONTEXT = "JunctionContext";
 		public static final String JUNCTION_GEOGRAPHY = "JunctionGeography";
 		
+		public static final String DESTINATION_CONTEXT = "DestinationContext";
+		public static final String DESTINATION_GEOGRAPHY = "DestinationGeography";
+		
 		public static final String ROAD_NETWORK = "RoadNetwork";
 		
 		public static final String AGENT_CONTEXT = "AgentContext";

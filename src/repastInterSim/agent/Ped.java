@@ -58,7 +58,7 @@ public class Ped implements mobileAgent {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, GeometryFactory gF, Destination d) {
+    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Destination d) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
@@ -82,7 +82,7 @@ public class Ped implements mobileAgent {
         this.r     = 0.275/GlobalVars.spaceScale;
         
 		// Get the destination coordinate
-		Coordinate dCoord = SpaceBuilder.getAgentGeometry(geography, this.destination).getCoordinate(); 
+		Coordinate dCoord = SpaceBuilder.getAgentGeometry(destinationGeography, this.destination).getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);
 
     }
