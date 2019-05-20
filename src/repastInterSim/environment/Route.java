@@ -208,7 +208,7 @@ public class Route implements Cacheable {
 				 */
 				destinationOnRoad = false;
 				finalDestination = destCoord; // Added to route at end of alg.
-				//destCoord = getNearestRoadCoord(destCoord);
+				destCoord = getNearestRoadCoord(destCoord);
 			}
 
 			/*
