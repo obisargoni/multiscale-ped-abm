@@ -228,7 +228,7 @@ public class Route implements Cacheable {
 
 			// Find the road that this coordinate is on
 			RoadLink destRoad = Route.findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null,
-					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL);
+					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction connected to the edge is closest to the coordinate.
 			List<Junction> destJunctions = destRoad.getJunctions();
 			/*
