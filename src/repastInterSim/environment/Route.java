@@ -19,8 +19,10 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.environment;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,7 +55,6 @@ import repastInterSim.agent.mobileAgent;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
-
 /**
  * Create routes around a GIS road network. The <code>setRoute</code> function actually finds the route and can be
  * overridden by subclasses to create different types of Route. See the method documentation for details of how routes
@@ -207,7 +208,7 @@ public class Route implements Cacheable {
 				 */
 				destinationOnRoad = false;
 				finalDestination = destCoord; // Added to route at end of alg.
-				destCoord = getNearestRoadCoord(destCoord);
+				//destCoord = getNearestRoadCoord(destCoord);
 			}
 
 			/*
@@ -488,7 +489,6 @@ public class Route implements Cacheable {
 		// double time = System.nanoTime();
 		
 		// Don't bother with the cache for now
-		/*
 		synchronized (buildingsOnRoadCacheLock) {
 			if (nearestRoadCoordCache == null) {
 				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
@@ -496,16 +496,15 @@ public class Route implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				String gisDir = ContextManager.getProperty(GlobalVars.GISDataDirectory);
-				File buildingsFile = new File(gisDir + ContextManager.getProperty(GlobalVars.BuildingShapefile));
-				File roadsFile = new File(gisDir + ContextManager.getProperty(GlobalVars.RoadShapefile));
-				File serialisedLoc = new File(gisDir + ContextManager.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
+				String gisDir = SpaceBuilder.getProperty(GlobalVars.GISDataDirectory);
+				File buildingsFile = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.BuildingShapefile));
+				File roadsFile = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.RoadShapefile));
+				File serialisedLoc = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
 
-				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(ContextManager.buildingProjection,
-						buildingsFile, ContextManager.roadProjection, roadsFile, serialisedLoc, new GeometryFactory());
+				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.destinationGeography,
+						buildingsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
-		*/
 		return nearestRoadCoordCache.get(inCoord);
 	}
 
@@ -1092,11 +1091,12 @@ class NearestRoadCoordCache implements Serializable {
 
 	private GeometryFactory geomFac;
 
-	private NearestRoadCoordCache(File serialisedLoc, GeometryFactory geomFac)
+	private NearestRoadCoordCache(Geography<Destination> buildingEnvironment, File buildingsFile,
+			Geography<RoadLink> roadLinkEnvironment, File roadsFile, File serialisedLoc, GeometryFactory geomFac)
 			throws Exception {
 
-		//this.buildingsFile = buildingsFile;
-		//this.roadsFile = roadsFile;
+		this.buildingsFile = buildingsFile;
+		this.roadsFile = roadsFile;
 		this.serialisedLoc = serialisedLoc;
 		this.theCache = new Hashtable<Coordinate, Coordinate>();
 		this.geomFac = geomFac;
@@ -1107,7 +1107,7 @@ class NearestRoadCoordCache implements Serializable {
 				+ this.serialisedLoc.getAbsolutePath());
 		
 		// Don't populate the cache for now
-		//populateCache(buildingEnvironment, roadEnvironment);
+		populateCache(buildingEnvironment, roadLinkEnvironment);
 		this.createdTime = new Date().getTime();
 		serialise();
 	}
@@ -1115,22 +1115,23 @@ class NearestRoadCoordCache implements Serializable {
 	public void clear() {
 		this.theCache.clear();
 	}
+
 	
-	/*
-	private void populateCache(Geography<Building> buildingEnvironment, Geography<Road> roadEnvironment)
+	private void populateCache(Geography<Destination> buildingEnvironment, Geography<RoadLink> roadLinkEnvironment)
 			throws Exception {
 		double time = System.nanoTime();
 		theCache = new Hashtable<Coordinate, Coordinate>();
 		// Iterate over every building and find the nearest road point
-		for (Building b : buildingEnvironment.getAllObjects()) {
+		for (Destination b : buildingEnvironment.getAllObjects()) {
 			List<Coordinate> nearestCoords = new ArrayList<Coordinate>();
-			Route.findNearestObject(b.getCoords(), roadEnvironment, nearestCoords,
+			Geometry bGeom = b.getGeom();
+			Route.findNearestObject(bGeom.getCoordinate(), roadLinkEnvironment, nearestCoords,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Two coordinates returned by closestPoints(), need to find the one
 			// which isn't the building coord
 			Coordinate nearestPoint = null;
 			for (Coordinate c : nearestCoords) {
-				if (!c.equals(b.getCoords())) {
+				if (!c.equals(bGeom.getCoordinate())) {
 					nearestPoint = c;
 					break;
 				}
@@ -1139,11 +1140,10 @@ class NearestRoadCoordCache implements Serializable {
 				throw new Exception("Route.getNearestRoadCoord() error: couldn't find a road coordinate which "
 						+ "is close to building " + b.toString());
 			}
-			theCache.put(b.getCoords(), nearestPoint);
+			theCache.put(bGeom.getCoordinate(), nearestPoint);
 		}// for Buildings
 		LOGGER.log(Level.FINER, "Finished caching nearest roads (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
 	} // if nearestRoadCoordCache = null;
-	*/
 
 	/**
 	 * 
@@ -1208,7 +1208,7 @@ class NearestRoadCoordCache implements Serializable {
 		debugIntro.append("Route.NearestRoadCoordCache.get() error: couldn't find a coordinate to return.\n");
 		Iterable<RoadLink> roads = SpaceBuilder.roadLinkGeography.getObjectsWithin(searchEnvelope);
 		debugIntro.append("Looking for nearest road coordinate around ").append(c.toString()).append(".\n");
-		debugIntro.append("RoadEnvironment.getObjectsWithin() returned ").append(
+		debugIntro.append("roadLinkEnvironment.getObjectsWithin() returned ").append(
 				SpaceBuilder.sizeOfIterable(roads) + " roads, printing debugging info:\n");
 		debugIntro.append(debug);
 		throw new Exception(debugIntro.toString());
@@ -1251,9 +1251,8 @@ class NearestRoadCoordCache implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	/*
-	public synchronized static NearestRoadCoordCache getInstance(Geography<Building> buildingEnv, File buildingsFile,
-			Geography<Road> roadEnv, File roadsFile, File serialisedLoc, GeometryFactory geomFac) throws Exception {
+	public synchronized static NearestRoadCoordCache getInstance(Geography<Destination> buildingEnv, File buildingsFile,
+			Geography<RoadLink> roadEnv, File roadsFile, File serialisedLoc, GeometryFactory geomFac) throws Exception {
 		double time = System.nanoTime();
 		// See if there is a cache object on disk.
 		if (serialisedLoc.exists()) {
@@ -1294,7 +1293,6 @@ class NearestRoadCoordCache implements Serializable {
 		// No serialised object, or got an error when opening it, just create a new one
 		return new NearestRoadCoordCache(buildingEnv, buildingsFile, roadEnv, roadsFile, serialisedLoc, geomFac);
 	}
-	*/
 
 }
 
