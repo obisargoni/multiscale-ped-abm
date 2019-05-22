@@ -362,5 +362,29 @@ public class GISFunctions {
 			((T)obj).setGeom(SpaceBuilder.getAgentGeometry(geography, obj));
 		}
 	}
+	
+	
+	/*
+	 * Function to calculate the angle in radians between a vector that points north and the
+	 * vector from one coordinate to another.
+	 * 
+	 * @param Coordinate c1
+	 * @param Coordinate c2
+	 * 
+	 * @return double angle in radians between north and the vector from c1 to c2
+	 */
+	public static double bearingBetweenCoordinates(Coordinate c1, Coordinate c2) {
+		
+		// Get the vector between the coordinates and convert to a unit vector
+		double [] u = new double[2];
+		u[0] = c2.x - c1.x;
+		u[1] = c2.y - c1.y;
+		
+		u = Vector.unitV(u);
+		
+		double a = Vector.angleBetweenNorthAndUnitVector(u);
+		
+		return a;
+	}
 
 }
