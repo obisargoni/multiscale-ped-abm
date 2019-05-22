@@ -4,11 +4,13 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Route;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -274,22 +276,32 @@ public class Vehicle implements mobileAgent {
 	        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
 	        
 	        // Calculate the distance to this coordinate
-			double[] distAndAngle = new double[2];
-			Route.distance(vLoc, routeCoord, distAndAngle);
+			double distToCoord = vLoc.distance(routeCoord);
 			
-			double distToCoord = distAndAngle[0];
+			// Calculate the angle
+			double angleToCoord = GISFunctions.bearingBetweenCoordinates(vLoc, routeCoord);
 			
 			if (distToCoord > disp) {
-				SpaceBuilder.moveAgentByVector(geography, this, disp, distAndAngle[1]);
+				// Move agent in the direction of the route coordinate the amount it is able to travel
+				Coordinate newCoord = new Coordinate(vLoc.x + disp*Math.sin(angleToCoord), vLoc.y + disp*Math.cos(angleToCoord));
+				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
+				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
+				SpaceBuilder.moveAgentToGeometry(geography, g, this);
+				distanceAlongRoute += disp;
 			}
 			
 			else {
 				// Move to the coordinate and repeat with next coordinate along
-				SpaceBuilder.moveAgentByVector(geography, this, distToCoord, distAndAngle[1]);
+				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
+				Geometry g = p.buffer(1);
+				SpaceBuilder.moveAgentToGeometry(geography, g, this);
 				distanceAlongRoute += distToCoord;
 				this.route.removeRouteXCoordinate(routeCoord);
 			}
 		}
+		
+		setLoc();
+		
 	}
 
 
