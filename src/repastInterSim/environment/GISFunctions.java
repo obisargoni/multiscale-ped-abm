@@ -17,6 +17,7 @@ import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -385,6 +386,22 @@ public class GISFunctions {
 		double a = Vector.angleBetweenNorthAndUnitVector(u);
 		
 		return a;
+	}
+	
+	/*
+	 * Creates a point geometry from a coordinate.
+	 * 
+	 * @param coord
+	 * 			The coordinate to move the agent to
+	 */
+	public static Point pointGeometryFromCoordinate(Coordinate coord) {
+	    // Now create new geometry at the location of the new centroid
+	    Coordinate[] cArray = {coord};
+	    GeometryFactory fac = new GeometryFactory();
+	    CoordinateSequence cs = fac.getCoordinateSequenceFactory().create(cArray);
+	    Point pt = new Point(cs, fac);
+	    
+	    return pt;
 	}
 
 }
