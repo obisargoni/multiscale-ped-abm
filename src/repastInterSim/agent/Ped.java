@@ -19,6 +19,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.Destination;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Route;
 import repastInterSim.environment.Vector;
@@ -121,9 +122,7 @@ public class Ped implements mobileAgent {
         pLoc.y += this.v[1]*this.tau;
         
         // Now create new geometry at the location of the new centroid
-        Coordinate[] pLocArray = {pLoc};
-        CoordinateSequence cs = gF.getCoordinateSequenceFactory().create(pLocArray);
-        Point pt = new Point(cs, this.gF);
+        Point pt = GISFunctions.pointGeometryFromCoordinate(pLoc);
 		Geometry pGeomNew = pt.buffer(this.rad);
         
         // Move the agent to the new location. This requires transforming the geometry 

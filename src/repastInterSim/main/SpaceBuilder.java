@@ -280,7 +280,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         context.add(newPed);
         
         // Create a new point geometry.
-		Point pt = gF.createPoint(coord);
+		Point pt = GISFunctions.pointGeometryFromCoordinate(coord);
 		
 		// Transform the coordinate so that the circle can be created using a radius in metres
 		Geometry circle = pt.buffer(newPed.getRad());
