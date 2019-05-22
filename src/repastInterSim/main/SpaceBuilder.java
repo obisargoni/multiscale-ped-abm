@@ -148,10 +148,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Set the internal context and geography attributes of the destination agents
-		IndexedIterable<Object> destinations = context.getObjects(Destination.class);
-		for (Object d : destinations) {
-			((Destination)d).setContext(context);
-			((Destination)d).setGeography(geography);
+		IndexedIterable<Destination> destinations = destinationContext.getObjects(Destination.class);
+		for (Destination d : destinations) {
+			d.setObjectContext(context);
+			d.setObjectGeography(geography);
+			d.setDestinationGeography(destinationGeography);
 		}
 		
     	// Get the number of pedestrian agent to add to the space from the parameters
