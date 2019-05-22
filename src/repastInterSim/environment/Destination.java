@@ -22,6 +22,7 @@ public class Destination implements FixedGeography{
 	
 	private Context<Object> context;
 	private Geography<Object> geography;
+	private Geography<Destination> destinationGeography;
 	private Geometry geom;
 	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
 		
@@ -44,7 +45,7 @@ public class Destination implements FixedGeography{
 	        	Ped P = (Ped) p;
 	        	
 	        	// Get the geometries in the CRS used for spatial calculations
-	        	Geometry dGeom = SpaceBuilder.getAgentGeometry(this.geography, P.destination);
+	        	Geometry dGeom = SpaceBuilder.getAgentGeometry(this.destinationGeography, P.destination);
 	        	Geometry coordP = SpaceBuilder.getAgentGeometry(this.geography, P);
 	        	
 	        	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
@@ -70,11 +71,15 @@ public class Destination implements FixedGeography{
 		this.geom = g;
 	}
 	
-	public void setGeography(Geography<Object> G) {
+	public void setObjectGeography(Geography<Object> G) {
 		this.geography = G;
 	}
 	
-	public void setContext(Context<Object> C) {
+	public void setDestinationGeography(Geography<Destination> G) {
+		this.destinationGeography = G;
+	}
+	
+	public void setObjectContext(Context<Object> C) {
 		this.context = C;
 	}
 
