@@ -10,6 +10,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
+import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Route;
 import repastInterSim.main.GlobalVars;
@@ -25,20 +26,21 @@ public class Vehicle implements mobileAgent {
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
 	
-	public Coordinate destCoord;
+	public Destination destination;
 	
 	private Route route;
 
 
-	public Vehicle(Geography<Object> geography, int mS, double a, double s, Coordinate dC) {
+	public Vehicle(Geography<Object> geography, Geography<Destination> destinationGeography, int mS, double a, double s, Destination d) {
 		this.geography = geography;
 		this.maxSpeed = mS;
 		this.acc = a;
 		this.speed = s;
 		this.dmax = 20/GlobalVars.spaceScale; // Assuming vehicle drivers adjust their driving according to what's happening 20m in front.
-		this.destCoord = dC;
 		
-		this.route = new Route(geography, this, destCoord);
+		this.destination = d;
+		Coordinate dCoord = SpaceBuilder.getAgentGeometry(destinationGeography, this.destination).getCoordinate(); 
+		this.route = new Route(geography, this, dCoord);
 	}
 
 	/*
