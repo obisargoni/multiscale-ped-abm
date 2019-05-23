@@ -292,7 +292,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Set the angle to the destination and point the pedestrian in the direction of that direction.
-		Coordinate dLoc = getAgentGeometry(destinationGeography, d).getCoordinate();
+		Coordinate dLoc = d.getGeom().getCentroid().getCoordinate();
 		double a0 = newPed.setDirectionFromDestinationCoord(dLoc);
 		newPed.setaP(a0);
         	
