@@ -399,5 +399,16 @@ public class Vehicle implements mobileAgent {
     	Coordinate vL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.vLoc = vL;
     }
+    
+    /*
+     * Get the destination of this vehicle
+     * 
+     *  @returns
+     *  	The Destination object of this vehicle
+     */
+	@Override
+    public Destination getDestination() {
+    	return this.destination;
+    }
 
 }
