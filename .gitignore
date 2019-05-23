@@ -98,3 +98,4 @@ hs_err_pid*
 /.classpath
 /velocity.log.1
 /data/buildings_roads_coords_cache.serialised
+/debug.log.1
