@@ -179,8 +179,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		
 		// Add a single vehicle to the simulation
-		Coordinate destCoord = getAgentGeometry(destinationGeography, (Destination)destinations.get(0)).getCentroid().getCoordinate();
-		Vehicle V = new Vehicle(geography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, destCoord);
+		Destination d = destinations.get(0);
+		Vehicle V = new Vehicle(geography, destinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
 		context.add(V);
 		Point pt = fac.createPoint(agentCoords.get(0));
 		Geometry vehicleCircle = pt.buffer(2);
