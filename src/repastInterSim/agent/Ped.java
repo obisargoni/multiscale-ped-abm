@@ -82,8 +82,8 @@ public class Ped implements mobileAgent {
         this.B     = 0.08/GlobalVars.spaceScale;
         this.r     = 0.275/GlobalVars.spaceScale;
         
-		// Get the destination coordinate
-		Coordinate dCoord = SpaceBuilder.getAgentGeometry(destinationGeography, this.destination).getCoordinate(); 
+		// Get the destination coordinate and use to set the route of pedestrian
+		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);
 
     }
