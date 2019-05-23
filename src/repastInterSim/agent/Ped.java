@@ -456,6 +456,7 @@ public class Ped implements mobileAgent {
      * 
      * @returns Coordinate. The coordinate of the centroid of the pedestrian agent.
      */
+    @Override
     public Coordinate getLoc() {
     	return this.pLoc;
     }
@@ -464,6 +465,7 @@ public class Ped implements mobileAgent {
      * Set the location attribute of the agent to be the coordinate of its 
      * centroid, in the coordinate reference frame used by the agent for GIS calculations. 
      */
+    @Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
     	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
