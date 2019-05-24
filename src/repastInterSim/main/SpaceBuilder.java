@@ -25,6 +25,9 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ISchedule;
+import repast.simphony.engine.schedule.ScheduleParameters;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
@@ -50,7 +53,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Properties properties;
 	
 	private static Context<Object> context;
-	public static Geography<Object> geography; 
+	private static Geography<Object> geography; 
 	
 	public static Context<Destination> destinationContext;
 	public static Geography<Destination> destinationGeography;
@@ -184,14 +187,36 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		i+=1;
 		}
 		
-		
-		// Add a single vehicle to the simulation
-		Destination d = destinations.get(0);
-		Coordinate origin = agentCoords.get(0);
-		addVehicle(origin, d);
+		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+	    ScheduleParameters scheduleParams = ScheduleParameters.createRepeating(1,100);
+	    schedule.schedule(scheduleParams, this, "addVehicleAgents");
 		
 		return context;
 		
+	}
+	
+	/*
+	 * Scheduled method that adds vehicle agents to the simulation. Each method call vehicle agents
+	 * are initialised with origins and destinations taken from an OD matrix. The OD matrix values 
+	 * are used to control the frequency of vehicles initialised with each OD pair, therefore controlling
+	 * the flow of vehicles 
+	 * 
+	 */
+	public void addVehicleAgents() {
+		
+		// Get OD matrix data (perhaps loaded in at start and stored as private attribute)
+		
+		// Generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
+		
+		// Create a vehicle with this OD pairing and add to simulation
+		int origin_index = 0;
+		int destination_index = 6;
+		
+		Coordinate o = destinationContext.getObjects(Destination.class).get(origin_index).getGeom().getCentroid().getCoordinate();
+		Destination d = destinationContext.getObjects(Destination.class).get(destination_index);
+		
+		addVehicle(o, d);
 	}
 	
 	/*
