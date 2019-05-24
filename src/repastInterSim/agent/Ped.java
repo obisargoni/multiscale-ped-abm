@@ -85,12 +85,6 @@ public class Ped implements mobileAgent {
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);
-		try {
-			this.route.setPedestrianRoute();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
     }
     
@@ -114,6 +108,9 @@ public class Ped implements mobileAgent {
     
     public void walk(Coordinate dLoc) {
     	
+    	// Update pedestrians knowledge of which direction the current destination is
+        setBearingToDestinationCoord(dLoc);
+    	
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
@@ -134,8 +131,8 @@ public class Ped implements mobileAgent {
         // Must update the coordinate after moving the pedestrian
         setLoc();
         
-        setDirectionFromDestinationCoord(dLoc);
-        setPedAngleFromVelocity(this.v);
+        // Set the direction the pedestrian faces to be the direction of its velocity vector
+        setPedestrianBearingFromVelocity(this.v);
     }
     
 
@@ -410,7 +407,7 @@ public class Ped implements mobileAgent {
     /*
      * Calculate bearing to destination and convert to a unit vector
      */
-    public double setDirectionFromDestinationCoord(Coordinate dLoc)  {
+    public double setBearingToDestinationCoord(Coordinate dLoc)  {
     	
         double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
@@ -423,7 +420,7 @@ public class Ped implements mobileAgent {
     /*
      * Set the direction of the pedestrian to be the same as the direction of the velocity vector
      */
-    public double setPedAngleFromVelocity(double[] v) {
+    public double setPedestrianBearingFromVelocity(double[] v) {
     	
     	// If velocity is 0 then don't update the pedestrian direction
     	if (Vector.mag(v)==0) {
@@ -438,7 +435,7 @@ public class Ped implements mobileAgent {
     	
     }
     
-    public void setaP(double aP) {
+    public void setPedestrianBearing(double aP) {
     	this.aP = aP;
     }
     

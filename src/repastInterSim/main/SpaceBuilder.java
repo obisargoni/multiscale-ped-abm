@@ -291,11 +291,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Set the location attribute of the pedestrian agent to be its current location. Simplifies future calculations
 		newPed.setLoc();
 		
-		// Set the angle to the destination and point the pedestrian in the direction of that direction.
-		Coordinate dLoc = d.getGeom().getCentroid().getCoordinate();
-		double a0 = newPed.setDirectionFromDestinationCoord(dLoc);
-		newPed.setaP(a0);
-        	
+		// Once pedestrian location has been set, can set the coordinates to travel along
+		try {
+			newPed.getRoute().setPedestrianRoute();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Now set the initial bearing of the pedestrian to be the direction of the first coordinate on the route
+        Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
+		double ang = newPed.setBearingToDestinationCoord(routeCoord);
+		newPed.setPedestrianBearing(ang);
+        
         return newPed;
     }	
 	
