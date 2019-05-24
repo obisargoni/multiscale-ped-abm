@@ -127,8 +127,7 @@ public class Ped implements mobileAgent {
         // back to the geometry used by the geography, which is what this function does.
         SpaceBuilder.moveAgentToGeometry(this.geography, pGeomNew, this);
         
-        // The coordinate of this pedestrian's centroid is stored as a private attribute since this coordinate is used frequently
-        // Must update the coordinate after moving the pedestrian
+        // Update the coordinate after moving the pedestrian
         setLoc();
         
         // Set the direction the pedestrian faces to be the direction of its velocity vector
