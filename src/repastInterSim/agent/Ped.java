@@ -482,4 +482,16 @@ public class Ped implements mobileAgent {
     public Destination getDestination() {
     	return this.destination;
     }
+    
+    
+    /*
+     * Getter for the route
+     * 
+     * @returns Route of the pedestrian
+     * 
+     */
+    @Override
+    public Route getRoute() {
+    	return this.route;
+    }
 }

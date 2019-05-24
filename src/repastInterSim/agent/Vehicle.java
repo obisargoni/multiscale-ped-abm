@@ -410,5 +410,16 @@ public class Vehicle implements mobileAgent {
     public Destination getDestination() {
     	return this.destination;
     }
+	
+    /*
+     * Getter for the route
+     * 
+     * @returns Route of the vehicle
+     * 
+     */
+	@Override
+	public Route getRoute() {
+    	return this.route;
+    }
 
 }
