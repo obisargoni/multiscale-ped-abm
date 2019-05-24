@@ -49,6 +49,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Properties properties;
 	
+	private static Context<Object> context;
+	public static Geography<Object> geography; 
+	
 	public static Context<Destination> destinationContext;
 	public static Geography<Destination> destinationGeography;
 	
@@ -57,6 +60,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<Junction> junctionContext;
 	public static Network<Junction> roadNetwork;
+	
+	public static GeometryFactory fac;
 	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
@@ -69,9 +74,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 
 	 */
 	@Override
-	public Context<Object> build(Context<Object> context) {
+	public Context<Object> build(Context<Object> c) {
 	    
+		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
+		
+		fac = new GeometryFactory();
 		
 		// Read in the model properties
 		try {
@@ -82,8 +90,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	   
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		GeometryFactory fac = new GeometryFactory();
-		Geography<Object> geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(geography);
 		
@@ -173,7 +180,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     			destinationIndex = 1; // i
     		}
 			
-    		Ped newPed = addPed(context, geography, destinationGeography, fac, coord, (Destination)destinations.get(destinationIndex));
+    		Ped newPed = addPed(coord, (Destination)destinations.get(destinationIndex));
     		i+=1;
 		}
 		
@@ -181,7 +188,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Add a single vehicle to the simulation
 		Destination d = destinations.get(0);
 		Coordinate origin = agentCoords.get(0);
-		addVehicle(context, geography, destinationGeography, fac, origin, d);
+		addVehicle(origin, d);
 		
 		return context;
 		
@@ -202,7 +209,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @returns d
 	 * 			The destination agent that was added to the context and geography
 	 */
-	public Destination addRandomDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, Geometry bndry) {
+	public Destination addRandomDestination(Geometry bndry) {
 		
 		Destination d = new Destination();
 		context.add(d);
@@ -210,7 +217,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initialize random coordinates for the destination
 		Coordinate destCoord = GeometryUtil.generateRandomPointsInPolygon(bndry, 1).get(0);
 		
-		Geometry destGeom = gF.createPoint(destCoord);
+		Geometry destGeom = fac.createPoint(destCoord);
 		geography.move(d, destGeom);
 				
 		return d;
@@ -233,7 +240,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @returns d
 	 * 			The destination agent that was added to the context and geography
 	 */
-	public Destination addUserDestination(Context<Object> context, Geography<Object> geography, GeometryFactory gF, String paramX, String paramY) {
+	public Destination addUserDestination( String paramX, String paramY) {
 		
 		Destination d = new Destination();
 		context.add(d);
@@ -246,7 +253,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Initialize random coordinates for the destination
 		Coordinate destCoord = new Coordinate(xCoord, yCoord);
 		
-		Geometry destGeom = gF.createPoint(destCoord);
+		Geometry destGeom = fac.createPoint(destCoord);
 		
 		geography.move(d, destGeom);
 		
@@ -268,11 +275,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public Ped addPed(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate coord, Destination d)  {
+    public Ped addPed(Coordinate coord, Destination d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
-    	Ped newPed = new Ped(geography, destinationGeography, gF, d);
+    	Ped newPed = new Ped(geography, destinationGeography, fac, d);
         context.add(newPed);
         
         // Create a new point geometry.
@@ -306,10 +313,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     /*
      * Initialise a vehicle agent and add to to the context and projection
      */
-    private Vehicle addVehicle(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate o, Destination d) {
+    private Vehicle addVehicle(Coordinate o, Destination d) {
 		Vehicle V = new Vehicle(geography, destinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
 		context.add(V);
-		Point pt = gF.createPoint(o);
+		Point pt = fac.createPoint(o);
 		Geometry vehicleCircle = pt.buffer(2);
 		moveAgentToGeometry(geography, vehicleCircle, V);
 		V.setLoc();
