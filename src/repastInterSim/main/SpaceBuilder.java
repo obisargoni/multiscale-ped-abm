@@ -304,7 +304,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     }
     
     /*
-     * Initialise a vehicle agent and add to to the simulation
+     * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate o, Destination d) {
 		Vehicle V = new Vehicle(geography, destinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
