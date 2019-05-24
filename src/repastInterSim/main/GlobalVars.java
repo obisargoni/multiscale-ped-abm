@@ -67,6 +67,7 @@ public abstract class GlobalVars {
 	public static String PedestrianObstructionShapefile = "topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp";
 	public static String StartingZonesFile = "StartZones_EPSG27700.shp";
 	public static String DestinationsFile = "OD_vehicle_nodes.shp";
+	public static String odMatrixFile = "randomOD.csv";
 	
 	public static final class GEOGRAPHY_PARAMS {
 		
