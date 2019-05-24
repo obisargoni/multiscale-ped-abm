@@ -180,12 +180,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Add a single vehicle to the simulation
 		Destination d = destinations.get(0);
-		Vehicle V = new Vehicle(geography, destinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
-		context.add(V);
-		Point pt = fac.createPoint(agentCoords.get(0));
-		Geometry vehicleCircle = pt.buffer(2);
-		moveAgentToGeometry(geography, vehicleCircle, V);
-		V.setLoc();
+		Coordinate origin = agentCoords.get(0);
+		addVehicle(context, geography, destinationGeography, fac, origin, d);
 		
 		return context;
 		
@@ -272,7 +268,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public <T> Ped addPed(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate coord, Destination d)  {
+    public Ped addPed(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate coord, Destination d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
@@ -305,7 +301,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setPedestrianBearing(ang);
         
         return newPed;
-    }	
+    }
+    
+    /*
+     * Initialise a vehicle agent and add to to the simulation
+     */
+    private Vehicle addVehicle(Context<Object> context, Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Coordinate o, Destination d) {
+		Vehicle V = new Vehicle(geography, destinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
+		context.add(V);
+		Point pt = gF.createPoint(o);
+		Geometry vehicleCircle = pt.buffer(2);
+		moveAgentToGeometry(geography, vehicleCircle, V);
+		V.setLoc();
+		
+		return V;
+    }
 	
 	/*
 	 * Return the geometry associated to an agent.
