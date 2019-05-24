@@ -82,10 +82,16 @@ public class Ped implements mobileAgent {
         this.B     = 0.08/GlobalVars.spaceScale;
         this.r     = 0.275/GlobalVars.spaceScale;
         
-		// Get the destination coordinate and use to set the route of pedestrian
+		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);
-
+		try {
+			this.route.setPedestrianRoute();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
     }
     
     
@@ -95,11 +101,6 @@ public class Ped implements mobileAgent {
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {
-    	
-    	// Check that a route has been generated
-    	if (this.route.getRouteX() == null) {
-    		this.route.setPedestrianRoute();;
-		}
     	
     	// Walk towards the next coordinate along the route
         Coordinate routeCoord = this.route.getRouteXCoordinate(0);
