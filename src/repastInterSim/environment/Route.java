@@ -342,7 +342,7 @@ public class Route implements Cacheable {
 			Coordinate finalDestination = null;
 			
 			// Add the starting coordinate to the route
-			addToRoute(currentCoord, RoadLink.nullRoad, 1, "setRoute() initial");
+			//addToRoute(currentCoord, RoadLink.nullRoad, 1, "setRoute() initial");
 
 			/*
 			 * Find the nearest junctions to our current position (road endpoints)
