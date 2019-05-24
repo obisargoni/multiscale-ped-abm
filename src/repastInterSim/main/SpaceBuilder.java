@@ -3,17 +3,21 @@ package repastInterSim.main;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.opengis.geometry.MismatchedDimensionException;
 
+import com.opencsv.CSVReader;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -27,7 +31,6 @@ import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
-import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
@@ -65,6 +68,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Network<Junction> roadNetwork;
 	
 	public static GeometryFactory fac;
+	
+	public static Map<String, String> values;
 	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
@@ -187,10 +192,23 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		i+=1;
 		}
 		
+		// Read in OD matrix data from CSV
+		List<String[]> myEntries = null;
+		try {
+		     CSVReader reader = new CSVReader(new FileReader(GlobalVars.GISDataDir + GlobalVars.odMatrixFile));
+		     myEntries = reader.readAll();
+		     reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+		
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-	    ScheduleParameters scheduleParams = ScheduleParameters.createRepeating(1,100);
-	    schedule.schedule(scheduleParams, this, "addVehicleAgents");
+	    ScheduleParameters scheduleParams = ScheduleParameters.createRepeating(1,500);
+	    schedule.schedule(scheduleParams, this, "addVehicleAgents", myEntries);
 		
 		return context;
 		
@@ -203,20 +221,30 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * the flow of vehicles 
 	 * 
 	 */
-	public void addVehicleAgents() {
+	public void addVehicleAgents(List<String[]> odData) {
 		
-		// Get OD matrix data (perhaps loaded in at start and stored as private attribute)
+		// Get number of possible origins/destinations
+		int nOD = destinationGeography.size();
 		
 		// Generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
+		Random rn = new Random();
+		float threshold = rn.nextFloat();
 		
-		// Create a vehicle with this OD pairing and add to simulation
-		int origin_index = 0;
-		int destination_index = 6;
-		
-		Coordinate o = destinationContext.getObjects(Destination.class).get(origin_index).getGeom().getCentroid().getCoordinate();
-		Destination d = destinationContext.getObjects(Destination.class).get(destination_index);
-		
-		addVehicle(o, d);
+		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
+		for (int iO = 0; iO<nOD; iO++) {
+			for(int iD=0; iD<nOD; iD++) {
+				
+				// Get the OD matrix entry
+				Float flow = Float.parseFloat(odData.get(iO)[iD]);
+				
+				// Create vehicle instance probabilistically according to flow rates
+				if (flow > threshold) {
+					Coordinate o = destinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
+					Destination d = destinationContext.getObjects(Destination.class).get(iD);
+					addVehicle(o, d);
+				}
+			}
+		}
 	}
 	
 	/*
