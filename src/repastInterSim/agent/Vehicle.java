@@ -65,7 +65,6 @@ public class Vehicle implements mobileAgent {
 	}
 	
 	
-    // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
     public Vehicle getVehicleInFront(double alpha)  {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
@@ -277,12 +276,17 @@ public class Vehicle implements mobileAgent {
 			// Get next coordinate along the route
 	        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
 	        
+	        // Is this the final destination?
+	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
+	        boolean isFinal = (routeCoord.equals2D(destC));
+	        
 	        // Calculate the distance to this coordinate
 			double distToCoord = vLoc.distance(routeCoord);
 			
 			// Calculate the angle
 			double angleToCoord = GISFunctions.bearingBetweenCoordinates(vLoc, routeCoord);
 			
+			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (distToCoord > disp) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
 				Coordinate newCoord = new Coordinate(vLoc.x + disp*Math.sin(angleToCoord), vLoc.y + disp*Math.cos(angleToCoord));
@@ -291,15 +295,26 @@ public class Vehicle implements mobileAgent {
 				SpaceBuilder.moveAgentToGeometry(geography, g, this);
 				distanceAlongRoute += disp;
 			}
-			
+			// The vehicle is able to travel up to or beyond its next route coordinate
 			else {
 				// Move to the coordinate and repeat with next coordinate along
 				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
 				Geometry g = p.buffer(1);
 				SpaceBuilder.moveAgentToGeometry(geography, g, this);
-				distanceAlongRoute += distToCoord;
+				
+				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
+				// since the vehicle has now reached the destination and can't go any further
+				if (isFinal) {
+					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
+					distanceAlongRoute = disp;
+				}
+				else {
+					distanceAlongRoute += distToCoord;	
+				}
+				
 				this.route.removeRouteXCoordinate(routeCoord);
 			}
+			
 		}
 		
 		setLoc();
