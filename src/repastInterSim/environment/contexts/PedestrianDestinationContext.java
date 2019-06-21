@@ -22,10 +22,10 @@ import repast.simphony.context.DefaultContext;
 import repastInterSim.environment.Destination;
 import repastInterSim.main.GlobalVars;
 
-public class DestinationContext extends DefaultContext<Destination> {
+public class PedestrianDestinationContext extends DefaultContext<Destination> {
 	
-	public DestinationContext() {
-		super(GlobalVars.CONTEXT_NAMES.DESTINATION_CONTEXT);
+	public PedestrianDestinationContext() {
+		super(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_CONTEXT);
 	}
 
 }

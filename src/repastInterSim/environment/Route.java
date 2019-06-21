@@ -501,7 +501,7 @@ public class Route implements Cacheable {
 				File roadsFile = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.RoadShapefile));
 				File serialisedLoc = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
 
-				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.destinationGeography,
+				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.vehicleDestinationGeography,
 						buildingsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized

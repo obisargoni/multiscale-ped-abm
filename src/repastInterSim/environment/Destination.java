@@ -65,7 +65,7 @@ public class Destination implements FixedGeography{
 		this.geom = g;
 	}
 	
-	public void setObjectGeography(Geography<Object> G) {
+	public void setRootGeography(Geography<Object> G) {
 		this.geography = G;
 	}
 	
@@ -73,7 +73,7 @@ public class Destination implements FixedGeography{
 		this.destinationGeography = G;
 	}
 	
-	public void setObjectContext(Context<Object> C) {
+	public void setRootContext(Context<Object> C) {
 		this.context = C;
 	}
 
