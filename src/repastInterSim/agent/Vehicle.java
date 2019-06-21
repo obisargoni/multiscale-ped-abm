@@ -39,7 +39,7 @@ public class Vehicle implements mobileAgent {
 		this.dmax = 20/GlobalVars.spaceScale; // Assuming vehicle drivers adjust their driving according to what's happening 20m in front.
 		
 		this.destination = d;
-		Coordinate dCoord = SpaceBuilder.getAgentGeometry(destinationGeography, this.destination).getCoordinate(); 
+		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);
 	}
 
