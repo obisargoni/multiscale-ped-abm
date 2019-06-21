@@ -66,7 +66,8 @@ public abstract class GlobalVars {
 	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped.shp";
 	public static String PedestrianObstructionShapefile = "topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp";
 	public static String StartingZonesFile = "StartZones_EPSG27700.shp";
-	public static String DestinationsFile = "OD_vehicle_nodes.shp";
+	public static String VehicleDestinationsFile = "OD_vehicle_nodes.shp";
+	public static String PedestrianDestinationsFile = "OD_pedestrian_nodes.shp";
 	public static String odMatrixFile = "randomOD.csv";
 	
 	public static final class GEOGRAPHY_PARAMS {
@@ -119,8 +120,10 @@ public abstract class GlobalVars {
 		public static final String JUNCTION_CONTEXT = "JunctionContext";
 		public static final String JUNCTION_GEOGRAPHY = "JunctionGeography";
 		
-		public static final String DESTINATION_CONTEXT = "DestinationContext";
-		public static final String DESTINATION_GEOGRAPHY = "DestinationGeography";
+		public static final String VEHICLE_DESTINATION_CONTEXT = "DestinationContext";
+		public static final String VEHICLE_DESTINATION_GEOGRAPHY = "DestinationGeography";
+		public static final String PEDESTRIAN_DESTINATION_CONTEXT = "DestinationContext";
+		public static final String PEDESTRIAN_DESTINATION_GEOGRAPHY = "DestinationGeography";
 		
 		public static final String ROAD_NETWORK = "RoadNetwork";
 		
