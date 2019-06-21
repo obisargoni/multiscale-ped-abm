@@ -39,11 +39,11 @@ public class Destination implements FixedGeography{
         	mobileAgent mA  = (mobileAgent) o;
         	
         	// Get the geometries in the CRS used for spatial calculations
-        	Geometry dGeom = SpaceBuilder.getAgentGeometry(this.destinationGeography, mA.getDestination());
-        	Geometry coordP = SpaceBuilder.getAgentGeometry(this.geography, mA);
+        	Geometry dGeom =  mA.getDestination().getGeom();
+        	Geometry mAGeom = SpaceBuilder.getAgentGeometry(this.geography, mA);
         	
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
-        	if (dGeom.isWithinDistance(coordP, this.arrivalDist)) {
+        	if (dGeom.isWithinDistance(mAGeom, this.arrivalDist)) {
         		AgentsToRemove.add(mA);
         		break; // End the iteration, only one pedestrian can be removed at a time
         	}
