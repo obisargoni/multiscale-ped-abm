@@ -170,7 +170,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			d.setDestinationGeography(destinationGeography);
 		}
 		
-    	// Get the number of pedestrian agent to add to the space from the parameters
+    	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");
     	
