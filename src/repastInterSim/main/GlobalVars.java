@@ -69,6 +69,7 @@ public abstract class GlobalVars {
 	public static String VehicleDestinationsFile = "OD_vehicle_nodes.shp";
 	public static String PedestrianDestinationsFile = "OD_pedestrian_nodes.shp";
 	public static String odMatrixFile = "randomOD.csv";
+	public static String odMatrixFile2 = "randomOD2.csv";
 	
 	public static final class GEOGRAPHY_PARAMS {
 		

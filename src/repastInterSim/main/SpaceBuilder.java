@@ -203,6 +203,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		
 		// Create the pedestrian agents
+		/*
 		int i = 0;
 		int destinationIndex = 0;
 		for (Coordinate coord : agentCoords) {
@@ -215,15 +216,23 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     		Ped newPed = addPed(coord, (Destination)pedestrianDestinations.get(destinationIndex));
     		i+=1;
 		}
+		*/
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.odMatrixFile);
+		
+		// Read in OD matrix data for pedestrians from CSV
+		List<String[]> pedestrianFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.odMatrixFile2);
 
 		
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-	    ScheduleParameters scheduleParams = ScheduleParameters.createRepeating(1,500);
-	    schedule.schedule(scheduleParams, this, "addVehicleAgents", vehicleFlows);
+	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1,50);
+	    schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
+	    
+		// Schedule the creation of pedestrian agents
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,50);
+	    schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 		
 		return context;
 		
