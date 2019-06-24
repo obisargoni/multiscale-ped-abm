@@ -56,6 +56,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Properties properties;
 	
+	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
+	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
+	
 	private static Context<Object> context;
 	private static Geography<Object> geography; 
 	
@@ -238,25 +241,64 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Get number of possible origins/destinations
 		int nOD = vehicleDestinationGeography.size();
 		
-		// Generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
+		// Use to generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
 		Random rn = new Random();
-		float threshold = rn.nextFloat();
 		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
-			for(int iD=0; iD<nOD; iD++) {
-				
-				// Get the OD matrix entry
-				Float flow = Float.parseFloat(odData.get(iO)[iD]);
-				
-				// Create vehicle instance probabilistically according to flow rates
-				if (flow > threshold) {
-					Coordinate o = vehicleDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
-					Destination d = vehicleDestinationContext.getObjects(Destination.class).get(iD);
-					addVehicle(o, d);
-				}
+			int iD = vDI % nOD;
+			
+			// Get the OD matrix entry
+			Float flow = Float.parseFloat(odData.get(iO)[iD]);
+			float threshold = rn.nextFloat();
+
+			
+			// Create vehicle instance probabilistically according to flow rates
+			if (flow > threshold) {
+				Coordinate o = vehicleDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
+				Destination d = vehicleDestinationContext.getObjects(Destination.class).get(iD);
+				addVehicle(o, d);
 			}
 		}
+		
+		// Increment the vehicle destination index so that a different destination is considered next time.
+		vDI++;
+	}
+	
+    /*
+     * Scheduled method that adds pedestrian agents to the simulation. Origin and destination of the pedestrian
+     * is set probabilistically based on OD matrix flow values.
+     * 
+     * @param odData The OD flow data used to create pedestrian agents with origins and destinations that match the flow data
+     */
+	public void addPedestrianAgents(List<String[]> odData) {
+		
+		// Get number of possible origins/destinations
+		int nOD = pedestrianDestinationGeography.size();
+		
+		// Use to generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
+		Random rn = new Random();
+		
+		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
+		for (int iO = 0; iO<nOD; iO++) {
+			
+			int iD = pDI % nOD;
+			
+			// Get the OD matrix entry
+			Float flow = Float.parseFloat(odData.get(iO)[iD]);
+			float threshold = rn.nextFloat();
+
+			
+			// Create vehicle instance probabilistically according to flow rates
+			if (flow > threshold) {
+				Coordinate o = pedestrianDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
+				Destination d = pedestrianDestinationContext.getObjects(Destination.class).get(iD);
+				addPed(o, d);
+			}
+		}
+		
+		// Increment the vehicle destination index so that a different destination is considered next time.
+		pDI++; 
 	}
 	
 	/*
