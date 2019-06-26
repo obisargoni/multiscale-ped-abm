@@ -202,22 +202,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<Coordinate> agentCoords = GISFunctions.getRandomCoordinatesWithinShapeFileGeometries(startingZonesFile,  fac,  nP);
 		
 		
-		// Create the pedestrian agents
-		/*
-		int i = 0;
-		int destinationIndex = 0;
-		for (Coordinate coord : agentCoords) {
-    		
-    		// Crude way to assign different destinations
-    		if (i > nP / 2) {
-    			destinationIndex = 1; // i
-    		}
-			
-    		Ped newPed = addPed(coord, (Destination)pedestrianDestinations.get(destinationIndex));
-    		i+=1;
-		}
-		*/
-		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.odMatrixFile);
 		
@@ -231,7 +215,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
-	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,50);
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,100);
 	    schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 		
 		return context;
@@ -296,7 +280,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO)[iD]);
 			float threshold = rn.nextFloat();
-
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
