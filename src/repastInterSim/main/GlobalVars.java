@@ -63,7 +63,7 @@ public abstract class GlobalVars {
 	public static String GISDataDir = ".//data//";
 	public static String VehicleRoadShapefile = "topographicAreaVehicle_EPSG27700_Clipped_Single.shp";
 	public static String PedestrianRoadShapefile = "topographicAreaPedestrain_EPSG27700_Clipped_Single.shp";
-	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped.shp";
+	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped with orientation.shp";
 	public static String PedestrianObstructionShapefile = "topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp";
 	public static String StartingZonesFile = "StartZones_EPSG27700.shp";
 	public static String VehicleDestinationsFile = "OD_vehicle_nodes.shp";
