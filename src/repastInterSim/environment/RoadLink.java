@@ -15,6 +15,7 @@ public class RoadLink implements FixedGeography {
 	private Geometry geom;
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
 	private NetworkEdge<Junction> edge;
+	private String direction = null;
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -62,6 +63,23 @@ public class RoadLink implements FixedGeography {
 	}
 	
 	
+	public String getDirection() {
+		return this.direction;
+	}
 	
+	public void setDirection(String dir) {
+		
+		String d = (String)dir;
+		
+		// Only allow "-" or "+" as orientations
+		if (d.equals("-")) {
+			this.direction = "-";
+		}
+		
+		else if (d.equals("+")) {
+			this.direction = "-";
+		}
+		
+	}
 
 }
