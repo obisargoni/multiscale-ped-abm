@@ -101,7 +101,15 @@ public class GISFunctions {
 			junc2.addRoadLink(roadLink);
 
 			// Create an edge between the two junctions, assigning a weight equal to it's length
-			NetworkEdge<Junction> edge = new NetworkEdge<Junction>(junc1, junc2, false, roadGeom.getLength(), null);
+			String direction = roadLink.getDirection();
+			NetworkEdge<Junction> edge = null;
+			if (direction.equals("-")) {
+				edge = new NetworkEdge<Junction>(junc1, junc2, true, roadGeom.getLength(), null);
+			}
+			else if (direction.equals("+")) {
+				edge = new NetworkEdge<Junction>(junc2, junc1, true, roadGeom.getLength(), null);
+			}
+				
 
 			// Tell the roadLink and the Edge about each other
 			roadLink.setEdge(edge);
