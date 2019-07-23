@@ -55,6 +55,7 @@ import repastInterSim.environment.contexts.RoadLinkContext;
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
 	private static Properties properties;
+	private static Boolean isDirected = true; // Indicates whether the road network is directed ot not. 
 	
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
@@ -169,7 +170,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 			
 			// 2. roadNetwork
-			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, false);
+			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			roadNetwork = builder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
