@@ -197,17 +197,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
-    	int nP = (int)params.getInteger("nPeds");
-    	
-    	String startingZonesFile = GlobalVars.GISDataDir + GlobalVars.StartingZonesFile;
-		List<Coordinate> agentCoords = GISFunctions.getRandomCoordinatesWithinShapeFileGeometries(startingZonesFile,  fac,  nP);
-		
+    	int nP = (int)params.getInteger("nPeds");		
 		
 		// Read in OD matrix data for vehicles from CSV
-		List<String[]> vehicleFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.odMatrixFile);
+		List<String[]> vehicleFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.vehicleODFlowsFile);
 		
 		// Read in OD matrix data for pedestrians from CSV
-		List<String[]> pedestrianFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.odMatrixFile2);
+		List<String[]> pedestrianFlows = readCSV(GlobalVars.GISDataDir + GlobalVars.pedestrianODFlowsFile);
 
 		
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work

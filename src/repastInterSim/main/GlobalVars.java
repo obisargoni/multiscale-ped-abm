@@ -61,15 +61,15 @@ public abstract class GlobalVars {
 	
 	// Locations of the GIS data
 	public static String GISDataDir = ".//data//";
-	public static String VehicleRoadShapefile = "topographicAreaVehicle_EPSG27700_Clipped_Single.shp";
-	public static String PedestrianRoadShapefile = "topographicAreaPedestrain_EPSG27700_Clipped_Single.shp";
-	public static String RoadLinkShapefile = "mastermap-itn RoadLink Clipped with orientation.shp";
-	public static String PedestrianObstructionShapefile = "topographicLineObstructing_EPSG27700_Clipped_RoadPathIntersection_Single.shp";
-	public static String StartingZonesFile = "StartZones_EPSG27700.shp";
-	public static String VehicleDestinationsFile = "OD_vehicle_nodes.shp";
+	public static String VehicleRoadShapefile = "topographicAreaVehicle.shp";
+	public static String PedestrianRoadShapefile = "topographicAreaPedestrian.shp";
+	public static String RoadLinkShapefile = "mastermap-itn RoadLink Intersect Within with orientation.shp";
+	public static String PedestrianObstructionShapefile = "topographicLineObstructing_VehiclePedestrianIntersect.shp";
+	//public static String StartingZonesFile = "StartZones_EPSG27700.shp";
+	public static String VehicleDestinationsFile = "OD_vehicle_nodes_intersect_within.shp";
 	public static String PedestrianDestinationsFile = "OD_pedestrian_nodes.shp";
-	public static String odMatrixFile = "randomOD.csv";
-	public static String odMatrixFile2 = "randomOD2.csv";
+	public static String vehicleODFlowsFile = "random_driected_OD_flows.csv";
+	public static String pedestrianODFlowsFile = "randomOD2.csv";
 	
 	public static final class GEOGRAPHY_PARAMS {
 		
