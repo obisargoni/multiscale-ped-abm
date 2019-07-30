@@ -77,7 +77,7 @@ public class RoadLink implements FixedGeography {
 		}
 		
 		else if (d.equals("+")) {
-			this.direction = "-";
+			this.direction = "+";
 		}
 		
 	}
