@@ -66,50 +66,50 @@ public class GISFunctions {
 			
 			// Create a LineString from the road so we can extract coordinates
 			Geometry roadGeom = roadLink.getGeom();
-			Coordinate c1 = roadGeom.getCoordinates()[0]; // First coord
-			Coordinate c2 = roadGeom.getCoordinates()[roadGeom.getNumPoints() - 1]; // Last coord
+			Coordinate cFirst = roadGeom.getCoordinates()[0]; // First coord
+			Coordinate cLast = roadGeom.getCoordinates()[roadGeom.getNumPoints() - 1]; // Last coord
 
 			// Create Junctions from these coordinates and add them to the Geography (if they haven't been
 			// created already)
-			Junction junc1, junc2;
-			if (coordMap.containsKey(c1)) {
-				// A Junction with those coordinates (c1) has been created, get it so we can add an edge to it
-				junc1 = coordMap.get(c1);
+			Junction juncFirst, juncLast;
+			if (coordMap.containsKey(cFirst)) {
+				// A Junction with those coordinates (cFirst) has been created, get it so we can add an edge to it
+				juncFirst = coordMap.get(cFirst);
 			} else { // Junction does not exit
-				junc1 = new Junction();
-				Point p1 = geomFac.createPoint(c1);
-				junc1.setGeom(p1);
-				junctionContext.add(junc1);
-				coordMap.put(c1, junc1);
-				SpaceBuilder.moveAgentToGeometry(junctionGeography, p1, junc1);
+				juncFirst = new Junction(roadLink.getMNodeFID()); // The minus node fid corresponds to the junction at the first coord of the road link
+				Point pF = geomFac.createPoint(cFirst);
+				juncFirst.setGeom(pF);
+				junctionContext.add(juncFirst);
+				coordMap.put(cFirst, juncFirst);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, pF, juncFirst);
 			}
-			if (coordMap.containsKey(c2)) {
-				junc2 = coordMap.get(c2);
+			if (coordMap.containsKey(cLast)) {
+				juncLast = coordMap.get(cLast);
 			} else { // Junction does not exit
-				junc2 = new Junction();
-				Point p2 = geomFac.createPoint(c2);
-				junc2.setGeom(p2);
-				junctionContext.add(junc2);
-				coordMap.put(c2, junc2);
-				SpaceBuilder.moveAgentToGeometry(junctionGeography, p2, junc2);
+				juncLast = new Junction(roadLink.getPNodeFID()); // The plus node fid corresponds to the junction at the last coord of the road link
+				Point pL = geomFac.createPoint(cLast);
+				juncLast.setGeom(pL);
+				junctionContext.add(juncLast);
+				coordMap.put(cLast, juncLast);
+				SpaceBuilder.moveAgentToGeometry(junctionGeography, pL, juncLast);
 			}
 			// Tell the road object who it's junctions are
-			roadLink.addJunction(junc1);
-			roadLink.addJunction(junc2);
+			roadLink.addJunction(juncFirst);
+			roadLink.addJunction(juncLast);
 			// Tell the junctions about this roadLink
-			junc1.addRoadLink(roadLink);
-			junc2.addRoadLink(roadLink);
+			juncFirst.addRoadLink(roadLink);
+			juncLast.addRoadLink(roadLink);
 
 			// Create an edge between the two junctions, assigning a weight equal to it's length
 			String direction = roadLink.getDirection();
 			NetworkEdge<Junction> edge = null;
-			if (direction.equals("-")) {
-				edge = new NetworkEdge<Junction>(junc1, junc2, true, roadGeom.getLength(), null);
+			if (direction.equals("+")) {
+				edge = new NetworkEdge<Junction>(juncFirst, juncLast, true, roadGeom.getLength(), null);
 			}
-			else if (direction.equals("+")) {
-				edge = new NetworkEdge<Junction>(junc2, junc1, true, roadGeom.getLength(), null);
+			else if (direction.equals("-")) {
+				edge = new NetworkEdge<Junction>(juncLast, juncFirst, true, roadGeom.getLength(), null);
 			}
-				
+			
 
 			// Tell the roadLink and the Edge about each other
 			roadLink.setEdge(edge);
