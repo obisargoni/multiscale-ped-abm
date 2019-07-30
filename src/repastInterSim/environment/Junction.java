@@ -30,16 +30,25 @@ public class Junction implements FixedGeography{
 	private int id ;
 	private Geometry geom;
 	private List<RoadLink> roadLinks; // The Roads connected to this Junction, used in GIS road network
+	private String fid = null;
 	
 	public Junction() {
 		this.id = UniqueID++;
 		this.roadLinks = new ArrayList<RoadLink>();
 	}
 	
+	public Junction(String fid) {
+		this.id = UniqueID++;
+		this.roadLinks = new ArrayList<RoadLink>();
+		this.fid = fid;
+	}
+	
 	
 	/**
 	 * Get the junction's unique ID (these are assigned in incremental order as
 	 * junctions are created.
+	 * 
+	 * Is this made redundant by the inclusion of the junctions fid from the gis data?
 	 */
 	public int getId() {
 		return id;

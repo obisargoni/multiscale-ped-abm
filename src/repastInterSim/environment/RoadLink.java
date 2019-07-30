@@ -15,7 +15,10 @@ public class RoadLink implements FixedGeography {
 	private Geometry geom;
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
 	private NetworkEdge<Junction> edge;
+	private String fid = null;
 	private String direction = null;
+	private String MNodeFID = null;
+	private String PNodeFID = null;
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -80,6 +83,30 @@ public class RoadLink implements FixedGeography {
 			this.direction = "+";
 		}
 		
+	}
+	
+	public String getMNodeFID() {
+		return this.MNodeFID;
+	}
+	
+	public void setMNodeFID(String mnfid) {
+		this.MNodeFID = mnfid;
+	}
+	
+	public String getPNodeFID() {
+		return this.PNodeFID;
+	}
+	
+	public void setPNodeFID(String pnfid) {
+		this.PNodeFID = pnfid;
+	}
+	
+	public String getFID() {
+		return this.fid;
+	}
+	
+	public void setFID(String fid) {
+		this.fid = fid;
 	}
 
 }
