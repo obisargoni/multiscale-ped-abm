@@ -1,5 +1,7 @@
 package repastInterSim.agent;
 
+import java.text.DecimalFormat;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -412,6 +414,9 @@ public class Vehicle implements mobileAgent {
     public void setLoc()  {
     	// Get centroid coordinate of this agent
     	Coordinate vL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    	DecimalFormat newFormat = new DecimalFormat("#.#######");
+    	vL.x = Double.valueOf(newFormat.format(vL.x));
+    	vL.y = Double.valueOf(newFormat.format(vL.y));
     	this.vLoc = vL;
     }
     
