@@ -181,9 +181,8 @@ public class Route implements Cacheable {
 			return;
 		}
 
-		Coordinate currentCoord = mA.getLoc();
+		Coordinate currentCoord = mA.getLoc();		
 		Coordinate destCoord = this.destination;
-
 
 
 		// No route cached, have to create a new one (and cache it at the end).
@@ -211,33 +210,89 @@ public class Route implements Cacheable {
 				destCoord = getNearestRoadCoord(destCoord);
 			}
 
-			/*
-			 * Find the nearest junctions to our current position (road endpoints)
-			 */
 
-			// Start by Finding the road that this coordinate is on
+			
+			// Find the road link the agent is currently on
+			List<RoadLink> currItersectingRoads = Route.findIntersectingObjects(currentCoord, SpaceBuilder.roadLinkGeography);
+
+			// For each of the road links the agent intersects, find which junctions can be accessed. ie is the target junction.
+			// These are the junctions to input into the shortest path function
+			Map<Junction, RoadLink> currentAccessMap = new HashMap<Junction, RoadLink>();
+			for (RoadLink rl: currItersectingRoads) {
+				NetworkEdge<Junction> e = rl.getEdge();
+				currentAccessMap.put(e.getTarget(), rl);
+			}
+			
+			// Find the road link the agent is currently on
+			List<RoadLink> destIntersectingRoads = Route.findIntersectingObjects(destCoord, SpaceBuilder.roadLinkGeography);
+
+			// For each of the road links the agent intersects, find which junctions the destCoord can be accessed from. ie is the source junction.
+			// These are the junctions to input into the shortest path function
+			Map<Junction, RoadLink> destAccessMap = new HashMap<Junction, RoadLink>();
+			for (RoadLink rl: destIntersectingRoads) {
+				NetworkEdge<Junction> e = rl.getEdge();
+				destAccessMap.put(e.getSource(), rl);
+			}
+			
 			/*
-			 * TODO EFFICIENCY: often the agent will be creating a new route from a building so will always find the
-			 * same road, could use a cache. Even better, could implement a cache in FindNearestObject() method!
-			 */
+			
+			Old method that found nearest road rather than intersecting road links. 
+			Might still be useful if vehicle agents are ever not on roads to begin with.
+			
+			GeometryFactory geomFac = new GeometryFactory();
+			Point currentPoint = geomFac.createPoint(currentCoord);
+			Point destPoint = geomFac.createPoint(destCoord);
+			 
 			RoadLink currentRoad = Route.findNearestObject(currentCoord, SpaceBuilder.roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			// Find which Junction is closest to us on the road.
+			
+			// Find which junctions this road is connected to
 			List<Junction> currentJunctions = currentRoad.getJunctions();
-
-			/* Find the nearest Junctions to our destination (road endpoints) */
+			
+			for (int i = 0; i < currentJunctions.size(); i++) {
+				Junction j = currentJunctions.get(i);
+				List<RoadLink> jRoads = j.getRoads();
+				
+				for (int k = 0; k < jRoads.size(); k++) {
+					RoadLink jR = jRoads.get(k);
+					NetworkEdge<Junction> e = jR.getEdge();
+					if ((jR.getGeom().intersects(currentPoint)) & (e.getTarget().equals(j))) {
+						currentAccessMap.put(j, jR);
+					}
+				}
+			}
+			
 
 			// Find the road that this coordinate is on
 			RoadLink destRoad = Route.findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			// Find which Junction connected to the edge is closest to the coordinate.
+			
+			// Find which Junctions are connected to this road
 			List<Junction> destJunctions = destRoad.getJunctions();
+			
+			// Find which junctions can be accessed by RoadLinks the agent is currently intersection
+			// This time junction needs to be the source of the link so agent can travel from last junction in path to its final destination
+			Map<Junction, RoadLink> destAccessMap = new HashMap<Junction, RoadLink>();
+			for (int i = 0; i < destJunctions.size(); i++) {
+				Junction j = destJunctions.get(i);
+				List<RoadLink> jRoads = j.getRoads();
+				
+				for (int k = 0; k < jRoads.size(); k++) {
+					RoadLink jR = jRoads.get(k);
+					if ((jR.getGeom().intersects(destPoint)) & (jR.getEdge().getSource().equals(j))) {
+						destAccessMap.put(j, jR);
+					}
+				}
+			}
+			*/
+			
+			
 			/*
-			 * Now have four possible routes (2 origin junctions, 2 destination junctions) need to pick which junctions
+			 * Now have possible routes (2 origin junctions, 2 destination junctions max, less if directed roads don't allow junctions to be  accessed) need to pick which junctions
 			 * form shortest route
 			 */
 			Junction[] routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(currentJunctions, destJunctions, routeEndpoints);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(currentAccessMap.keySet(), destAccessMap.keySet(), routeEndpoints);
 			// NetworkEdge<Junction> temp = (NetworkEdge<Junction>)
 			// shortestPath.get(0);
 			Junction currentJunction = routeEndpoints[0];
@@ -245,8 +300,8 @@ public class Route implements Cacheable {
 
 			/* Add the coordinates describing how to get to the nearest junction */
 			List<Coordinate> tempCoordList = new Vector<Coordinate>();
-			this.getCoordsAlongRoad(currentCoord, currentJunction.getGeom().getCoordinate(), currentRoad, true, tempCoordList);
-			addToRoute(tempCoordList, currentRoad, 1, "getCoordsAlongRoad (toJunction)");
+			this.getCoordsAlongRoad(currentCoord, currentJunction.getGeom().getCoordinate(), currentAccessMap.get(currentJunction), true, tempCoordList);
+			addToRoute(tempCoordList, currentAccessMap.get(currentJunction), 1, "getCoordsAlongRoad (toJunction)");
 
 			/*
 			 * Add the coordinates and speeds etc which describe how to move along the chosen path
@@ -258,9 +313,8 @@ public class Route implements Cacheable {
 			 */
 
 			tempCoordList.clear();
-			this.getCoordsAlongRoad(destJunction.getGeom().getCoordinate(),
-					destCoord, destRoad, false, tempCoordList);
-			addToRoute(tempCoordList, destRoad, 1, "getCoordsAlongRoad (fromJunction)");
+			this.getCoordsAlongRoad(destJunction.getGeom().getCoordinate(),destCoord, destAccessMap.get(destJunction), false, tempCoordList);
+			addToRoute(tempCoordList, destAccessMap.get(destJunction), 1, "getCoordsAlongRoad (fromJunction)");
 
 			if (!destinationOnRoad) {
 				addToRoute(finalDestination, RoadLink.nullRoad, 1, "setRoute final");
@@ -522,7 +576,7 @@ public class Route implements Cacheable {
 	 * @return the shortest route between the origin and destination junctions
 	 * @throws Exception
 	 */
-	private List<RepastEdge<Junction>> getShortestRoute(List<Junction> currentJunctions, List<Junction> destJunctions,
+	private List<RepastEdge<Junction>> getShortestRoute(Iterable<Junction> currentJunctions, Iterable<Junction> destJunctions,
 			Junction[] routeEndpoints) throws Exception {
 		double time = System.nanoTime();
 		synchronized (GlobalVars.TRANSPORT_PARAMS.currentBurglarLock) {
