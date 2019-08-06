@@ -631,6 +631,7 @@ public class Route implements Cacheable {
 			// If heading away form junction current coord must be at beginning of road segment
 			ArrayUtils.reverse(roadCoords);
 		}
+		
 		GeometryFactory geomFac = new GeometryFactory();
 		Point destinationPointGeom = geomFac.createPoint(destinationCoord);
 		Point currentPointGeom = geomFac.createPoint(currentCoord);
@@ -721,21 +722,16 @@ public class Route implements Cacheable {
 			boolean sourceFirst;
 			for (int i = 0; i < shortestPath.size(); i++) {
 				e = (NetworkEdge<Junction>) shortestPath.get(i);
-				if (i == 0) {
-					// No coords in route yet, compare the source to the starting junction
-					sourceFirst = (e.getSource().equals(startingJunction)) ? true : false;
-				} else {
-					// Otherwise compare the source to the last coord added to the list
-					sourceFirst = (e.getSource().getGeom().getCoordinate().equals(this.routeX.get(this.routeX.size() - 1))) ? true
-							: false;
-				}
+				r = e.getRoadLink();
+				
+				// No coords in route yet, compare the source to the starting junction
+				sourceFirst = (e.getSource().getGeom().getCoordinate().equals(r.getGeom().getCoordinates()[0])) ? true : false;
+
 				/*
 				 * Now add the coordinates describing how to move along the road. If there is no road associated with
 				 * the edge (i.e. it is a transport route) then just add the source/dest coords. Note that the shared
 				 * coordinates between two edges will be added twice, these must be removed later
-				 */
-				r = e.getRoadLink();
-				/*
+								
 				 * Get the speed that the agent will be able to travel along this edge (depends on the transport
 				 * available to the agent and the edge). Some speeds will be < 1 if the agent shouldn't be using this
 				 * edge but doesn't have any other way of getting to the destination. in these cases set speed to 1
@@ -745,18 +741,7 @@ public class Route implements Cacheable {
 				if (speed < 1)
 					speed = 1;
 
-				if (r == null) { // No road associated with this edge (it is a transport link) so just add source
-															 
-					if (sourceFirst) {
-						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - no road");
-						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - no road");
-						// (Note speed = -1 used because we don't know the weight to the next
-						// coordinate - this can be removed later)
-					} else {
-						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - no road");
-						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - no road");
-					}
-				} else if (junctionCoordsOnly == true) { // Or we only want to add the coordinates of junctions to the route
+				if (junctionCoordsOnly == true) { // Or we only want to add the coordinates of junctions to the route
 					if (sourceFirst) {
 						this.addToRoute(e.getSource().getGeom().getCoordinate(), r, speed, "getRouteBetweenJunctions - junctions only");
 						this.addToRoute(e.getTarget().getGeom().getCoordinate(), r, -1, "getRouteBetweenJunctions - junctions only");
@@ -774,10 +759,12 @@ public class Route implements Cacheable {
 						throw new RoutingException("Route.getRouteBetweenJunctions: for some reason road " + "'"
 								+ r.toString() + "' doesn't have at least two coords as part of its geometry ("
 								+ roadCoords.length + ")");
+					
 					// Make sure the coordinates of the road are added in the correct order
 					if (!sourceFirst) {
 						ArrayUtils.reverse(roadCoords);
 					}
+
 					// Add all the road geometry's coords
 					for (int j = 0; j < roadCoords.length; j++) {
 						this.addToRoute(roadCoords[j], r, speed, "getRouteBetweenJuctions - on road");
