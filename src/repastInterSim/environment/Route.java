@@ -849,6 +849,33 @@ public class Route implements Cacheable {
 			return nearestObject;
 		}
 	}
+	
+	/**
+	 * Find the object in the given geography that intersect the coordinate.
+	 * 
+	 * @param <T>
+	 * @param x
+	 *            The coordinate to search from
+	 * @param geography
+	 *            The given geography to look through
+	 * @return List of intersecting objects
+	 * @throws RoutingException
+	 *             If an object cannot be found.
+	 */
+	public static synchronized <T> List<T> findIntersectingObjects(Coordinate x, Geography<T> geography)
+			throws RoutingException {
+		if (x == null) {
+			throw new RoutingException("The input coordinate is null, cannot find the nearest object");
+		}
+
+		List<T> intersectingObjects = SpatialIndexManager.findIntersectingObjects(geography, x);
+
+		if (intersectingObjects.size() == 0) {
+			throw new RoutingException("Couldn't find an object close to these coordinates:\n\t" + x.toString());
+		} else {
+			return intersectingObjects;
+		}
+	}
 
 	/**
 	 * Returns the angle of the vector from p0 to p1 relative to the x axis

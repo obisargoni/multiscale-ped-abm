@@ -37,6 +37,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 import gov.nasa.worldwind.cache.Cacheable;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
 /**
  * Class that can be used to hold spatial indexes for Geography Projections. This
@@ -120,6 +121,61 @@ public abstract class SpatialIndexManager implements Cacheable {
 		T nearestObject = index.lookupFeature(nearestGeom);
 		return nearestObject;
 	}
+	
+	/**
+	 * Find the intersecting objects in the given geography to the coordinate.
+	 * 
+	 * @param <T> The type of object that will be returned.
+	 * @param x
+	 *            The coordinate to search around
+	 * @param geography
+	 *            The given geography to look through
+	 * @return The List of intersecting objects
+	 * @throws NoSuchElementException
+	 *             If there is no spatial index for the given geography.
+	 */
+	@SuppressWarnings("unchecked")
+	public static synchronized <T> List<T> findIntersectingObjects(Geography<T> geog, Coordinate x) 
+		throws NoSuchElementException {
+		
+		
+		Index<T> index = (Index<T>) indices.get(geog);
+		if (index==null) {
+			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
+		}
+		
+		Point p = new GeometryFactory().createPoint(x);
+		
+		// Query the spatial index for the nearest objects.
+		List<Geometry> close = index.si.query(p.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
+		assert close != null && close.size() > 0 : "For some reason the spatial index query hasn't found any obejects " +
+				"close to the given coordinate "+x.toString();
+		
+		// Now go through and find the intersecting geometries
+		List<Geometry> intersectingGeoms = new ArrayList<Geometry>();
+		for (Geometry g:close) {
+			if (g.intersects(p)) {
+				intersectingGeoms.add(g);
+			} // if thisDist < minDist
+		} // for nearRoads
+		
+		assert intersectingGeoms != null : "Internal error: could not find the closest geometry from the list of " +
+				close.size()+" close objects.";
+		
+		// This not a very neat method for getting the objects associated with these geometries.
+		// Required due to the way the data is structured, having duplicated geometries associated to different objects.
+		List<T> intersectingObjects = new ArrayList<T>();
+		for (Geometry g: intersectingGeoms) {
+			for (T object: geog.getObjectsWithin(g.getEnvelopeInternal())) {
+				if (SpaceBuilder.getAgentGeometry(geog, object).equals(g)) {
+					intersectingObjects.add(object);
+				}
+			}
+			//intersectingObjects.add(index.lookupFeature(g));
+		}
+		return intersectingObjects;
+	}
+
 	
 	/**
 	 * Search for objects located at the given coordinate. This uses the <code>query()</code> function of the
