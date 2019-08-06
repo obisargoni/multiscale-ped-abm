@@ -98,4 +98,8 @@ public class Junction implements FixedGeography{
 		
 	}
 	
+	public String getFID() {
+		return this.fid;
+	}
+	
 }
