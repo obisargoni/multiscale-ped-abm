@@ -139,32 +139,33 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(pedestrianDestinationContext);
 		
 	    // Load agents from shapefiles
+		String GISDataDir = getProperty("GISDataDir");
 		try {
 			
 			// Build the fixed environment
 			
 			// 1. Load vehicle and pedestrian destinations
-			String vehicleDestinationsFile = getProperty("GISDataDir") + getProperty("VehicleDestinationsFile");
+			String vehicleDestinationsFile = GISDataDir + getProperty("VehicleDestinationsFile");
 			GISFunctions.readShapefileWithType(Destination.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
 			
-			String pedestrianDestinationsFile = getProperty("GISDataDir") + getProperty("PedestrianDestinationsFile");
+			String pedestrianDestinationsFile = GISDataDir + getProperty("PedestrianDestinationsFile");
 			GISFunctions.readShapefileWithType(Destination.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
 			
 			// 2. Load roads
-			String vehicleRoadFile = getProperty("GISDataDir") + getProperty("VehicleRoadShapefile");
-			String pedestrianRoadFile = getProperty("GISDataDir") + getProperty("PedestrianRoadShapefile");
+			String vehicleRoadFile = GISDataDir + getProperty("VehicleRoadShapefile");
+			String pedestrianRoadFile = GISDataDir + getProperty("PedestrianRoadShapefile");
 			GISFunctions.readShapefile(Road.class, vehicleRoadFile, geography, context);
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, geography, context);
 			
 			// 3. Load pedestrian obstruction boundaries
-			String pedObstructionFile = getProperty("GISDataDir") + getProperty("PedestrianObstructionShapefile");
+			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
 			
 			
 			// Build the road network
 			
 			// 1. Load the road links
-			String roadLinkFile = getProperty("GISDataDir") + getProperty("RoadLinkShapefile");
+			String roadLinkFile = GISDataDir + getProperty("RoadLinkShapefile");
 			GISFunctions.readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
@@ -200,10 +201,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	int nP = (int)params.getInteger("nPeds");		
 		
 		// Read in OD matrix data for vehicles from CSV
-		List<String[]> vehicleFlows = readCSV(getProperty("GISDataDir") + getProperty("vehicleODFlowsFile"));
+		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
 		
 		// Read in OD matrix data for pedestrians from CSV
-		List<String[]> pedestrianFlows = readCSV(getProperty("GISDataDir") + getProperty("pedestrianODFlowsFile"));
+		List<String[]> pedestrianFlows = readCSV(GISDataDir + getProperty("pedestrianODFlowsFile"));
 
 		
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
