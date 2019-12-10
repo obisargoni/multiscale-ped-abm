@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -557,7 +558,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<String[]> csvData = null;
 		try {
 		     CSVReader reader = new CSVReader(new FileReader(filePath));
-		     csvData = reader.readAll();
+		     try {
+				csvData = reader.readAll();
+			} catch (CsvException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		     reader.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
