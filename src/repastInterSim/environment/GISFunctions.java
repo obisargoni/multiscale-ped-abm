@@ -14,10 +14,12 @@ import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -349,9 +351,58 @@ public class GISFunctions {
 		
 		return env;
 	}
+	
+	/**
+	 * Iterates over the geometries in a Geography Projection and expands an envelope such that 
+	 * the envelope matches the extent of the geometries in the Geography.
+	 * 
+	 * Restricted to use with FixedGeography type Geographies since these contain object that do not 
+	 * change geometry.
+	 * 
+	 * @param <T> 
+	 * 			The class of objects contained in the geography
+	 * @param geography 
+	 * 			The repast simphony geography projection containing the geometries to return an envelope over
+	 * @param Envelope
+	 * 			Envelope to expand to include the geometries in the geography
+	 * @return Envelope matching the extent of the geometries in the geography
+	 */
+	public static <T extends FixedGeography> Envelope getGeographyEnvelope(Geography<T> geography, Envelope env) {
+		
+		for (T obj : geography.getAllObjects()) {
+			Geometry g = obj.getGeom();
+			env.expandToInclude(g.getEnvelopeInternal());
 		}
+		
+		return env;
 	}
 	
+	/**
+	 * Iterate over multiple geographies to produce an envelope that matches the extent of the geometries in all geographies.
+	 * 
+	 * Geographies must have matching Coordinate Reference Systems.
+	 * 
+	 * @param <T>
+	 * 			The class of objects contained in the geography
+	 * @param geographies
+	 * 			IndexedIterable of repast simphony geography projections
+	 * @return Envelope
+	 * 			Envelope matching the extent of the geometries in the geography
+	 */
+	public static <T extends FixedGeography> Envelope getMultipleGeographiesEnvelope(ArrayList<Geography> geographies) {
+		Envelope env = new Envelope();
+		
+		CoordinateReferenceSystem firstCRS = geographies.iterator().next().getCRS();
+		
+		for(Geography<T> g : geographies) {
+			// Throw exception if geography coordinate reference systems don't all match
+			assert firstCRS.equals(g.getCRS());
+			
+			env = getGeographyEnvelope(g, env);
+		}
+		return env;
+		
+	}
 	
 	/*
 	 * Function to calculate the angle in radians between a vector that points north and the
