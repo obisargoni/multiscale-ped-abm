@@ -100,8 +100,11 @@ public abstract class GlobalVars {
 		public static final String MAIN_CONTEXT = "repastInterSim";
 		public static final String MAIN_GEOGRAPHY = "Geography";
 		
-		public static final String BUILDING_CONTEXT = "BuildingContext";
-		public static final String BUILDING_GEOGRAPHY = "BuildingGeography";
+		public static final String ROAD_CONTEXT = "roadContext";
+		public static final String ROAD_GEOGRAPHY = "roadGeography";
+		
+		public static final String PED_OBSTRUCTION_CONTEXT = "pedObstructContext";
+		public static final String PED_OBSTRUCTION_GEOGRAPHY = "pedObstructGeography";
 		
 		public static final String ROAD_LINK_CONTEXT = "RoadLinkContext";
 		public static final String ROAD_LINK_GEOGRAPHY = "RoadLinkGeography";
