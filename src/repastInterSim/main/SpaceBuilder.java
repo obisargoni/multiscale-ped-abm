@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -15,11 +16,17 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridEnvelope2D;
+import org.geotools.geometry.Envelope2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.referencing.operation.TransformException;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -36,6 +43,8 @@ import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.gis.RepastCoverageFactory;
+import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.Ped;
@@ -84,6 +93,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Junction> junctionContext;
 	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
+	
+	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
 	public static GeometryFactory fac;
 	
@@ -225,6 +236,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			d.setDestinationGeography(pedestrianDestinationGeography);
 		}
 		
+		
+		// Now that shapefiles have been read and loaded as agents get the envelope that covers 
+		// all fixed geography agents and use to create grid coverage 
+		Envelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
+		
+		// Use CRS of first geography. getMultipleGeographiesEnvelope() checks that all geographies have same CRS.
+		ReferencedEnvelope refEnv = new ReferencedEnvelope(fixedGeographyEnvelope, fixedGeographies.get(0).getCRS());
+		int width = (int) Math.floor(refEnv.getWidth());
+		int height = (int) Math.floor(refEnv.getHeight());
+		
+		// Creates GIS grid with 1mx1m cells and adds to the geography projection
+		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, refEnv, null, -1, 0, 10, -1);
+		geography.addCoverage("pedGrid", pedGrid);
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");		
