@@ -176,27 +176,26 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 1. Load vehicle and pedestrian destinations
 			String vehicleDestinationsFile = GISDataDir + getProperty("VehicleDestinationsFile");
-			GISFunctions.readShapefileWithType(Destination.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
+			GISFunctions.readShapefile(Destination.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
 			
 			String pedestrianDestinationsFile = GISDataDir + getProperty("PedestrianDestinationsFile");
-			GISFunctions.readShapefileWithType(Destination.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
+			GISFunctions.readShapefile(Destination.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
 			
 			// 2. Load roads
 			String vehicleRoadFile = GISDataDir + getProperty("VehicleRoadShapefile");
 			String pedestrianRoadFile = GISDataDir + getProperty("PedestrianRoadShapefile");
-			GISFunctions.readShapefile(Road.class, vehicleRoadFile, geography, context);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, geography, context);
+			GISFunctions.readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
 			
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
-			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, geography, context);
-			
+			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
 			
 			// Build the road network
 			
 			// 1. Load the road links
 			String roadLinkFile = GISDataDir + getProperty("RoadLinkShapefile");
-			GISFunctions.readShapefileWithType(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+			GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
 			
