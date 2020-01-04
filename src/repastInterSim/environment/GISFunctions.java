@@ -309,7 +309,7 @@ public class GISFunctions {
 	 * @see FixedGeography
 	 */
 	public static <T extends FixedGeography> void readShapefile(Class<T> cl, String shapefileLocation,
-		Geography<Object> geography, Context<Object> context) throws MalformedURLException, FileNotFoundException  {
+		Geography<T> geography, Context<T> context) throws MalformedURLException, FileNotFoundException  {
 		File shapefile = null;
 		ShapefileLoader<T> loader = null;
 		shapefile = new File(shapefileLocation);
@@ -320,55 +320,35 @@ public class GISFunctions {
 		while (loader.hasNext()) {
 			loader.next();
 		}
-		for (Object obj : context.getObjects(cl)) {
+		for (T obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(SpaceBuilder.getAgentGeometry(geography, obj));
+			(obj).setGeom(SpaceBuilder.getAgentGeometry(geography, obj));
 		}
 	}
 	
 	/**
-	 * This function was taken from Nick Malleson.
+	 * Iterates over the geometries in a Geography Projection and expands an envelope such that 
+	 * the envelope matches the extent of the geometries in the Geography.
 	 * 
-	 * Nice generic function :-) that reads in objects from shapefiles.
-	 * <p>
-	 * The objects (agents) created must extend FixedGeography to guarantee that they will have a setCoords() method.
-	 * This is necessary because, for simplicity, geographical objects which don't move store their coordinates
-	 * alongside the projection which stores them as well. So the coordinates must be set manually by this function once
-	 * the shapefile has been read and the objects have been given coordinates in their projection.
+	 * Restricted to use with FixedGeography type Geographies since these contain object that do not 
+	 * change geometry.
 	 * 
-	 * @param <T>
-	 *            The type of object to be read (e.g. PecsHouse). Must exted
-	 * @param cl
-	 *            The class of the building being read (e.g. PecsHouse.class).
-	 * @param shapefileLocation
-	 *            The location of the shapefile containing the objects.
-	 * @param geography
-	 *            A geography to add the objects to.
-	 * @param context
-	 *            A context to add the objects to.
-	 * @throws MalformedURLException
-	 *             If the location of the shapefile cannot be converted into a URL
-	 * @throws FileNotFoundException
-	 *             if the shapefile does not exist.
-	 * @throws TransformException 
-	 * @throws MismatchedDimensionException 
-	 * @see FixedGeography
+	 * @param <T> 
+	 * 			The class of objects contained in the geography
+	 * @param geography 
+	 * 			The repast simphony geography projection containing the geometries to return an envelope over
+	 * @return Envelope matching the extent of the geometries in the geography.
 	 */
-	public static <T extends FixedGeography> void readShapefileWithType(Class<T> cl, String shapefileLocation,
-		Geography<T> geography, Context<T> context) throws MalformedURLException, FileNotFoundException {
-		File shapefile = null;
-		ShapefileLoader<T> loader = null;
-		shapefile = new File(shapefileLocation);
-		if (!shapefile.exists()) {
-			throw new FileNotFoundException("Could not find the given shapefile: " + shapefile.getAbsolutePath());
+	public static <T extends FixedGeography> Envelope getGeographyEnvelope(Geography<T> geography) {
+		Envelope env = new Envelope();
+		
+		for (T obj : geography.getAllObjects()) {
+			Geometry g = obj.getGeom();
+			env.expandToInclude(g.getEnvelopeInternal());
 		}
-		loader = new ShapefileLoader<T>(cl, shapefile.toURI().toURL(), geography, context);
-		while (loader.hasNext()) {
-			loader.next();
-		}
-		for (Object obj : context.getObjects(cl)) {
-			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			((T)obj).setGeom(SpaceBuilder.getAgentGeometry(geography, obj));
+		
+		return env;
+	}
 		}
 	}
 	

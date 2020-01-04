@@ -49,7 +49,9 @@ import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
+import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.JunctionContext;
+import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
@@ -64,6 +66,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Context<Object> context;
 	private static Geography<Object> geography; 
 	
+	public static Context<Road> roadContext;
+	public static Geography<Road> roadGeography;
+	
+	public static Context<PedObstruction> pedObstructContext;
+	public static Geography<PedObstruction> pedObstructGeography;
+	
 	public static Context<Destination> vehicleDestinationContext;
 	public static Geography<Destination> vehicleDestinationGeography;
 	
@@ -74,6 +82,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<RoadLink> roadLinkGeography;
 	
 	public static Context<Junction> junctionContext;
+	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
 	
 	public static GeometryFactory fac;
@@ -111,19 +120,37 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(geography);
 		
+		// Road Geography stores polygons representing road and pavement surfaces
+		GeographyParameters<Road> roadGeoParams = new GeographyParameters<Road>();
+		roadContext = new RoadContext();
+		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY, roadContext, roadGeoParams);
+		roadGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(roadContext);
+		fixedGeographies.add(roadGeography);
 		
+		
+		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
+		GeographyParameters<PedObstruction> pedObstrucGeoParams = new GeographyParameters<PedObstruction>();
+		pedObstructContext = new PedObstructionContext();
+		pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY, pedObstructContext, pedObstrucGeoParams);
+		pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(pedObstructContext);
+		fixedGeographies.add(pedObstructGeography);
+
 		// Road link geography is used to create the road network projection
 		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
 		roadLinkContext = new RoadLinkContext();
 		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		fixedGeographies.add(roadLinkGeography);
 
 		// Junction geography also used to create the road network
 		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
 		junctionContext = new JunctionContext();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
+		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		context.addSubContext(junctionContext);
+		fixedGeographies.add(junctionGeography);
 		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates
 		GeographyParameters<Destination> destinationGeoParams = new GeographyParameters<Destination>();
@@ -131,13 +158,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		vehicleDestinationContext = new VehicleDestinationContext();
 		vehicleDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY, vehicleDestinationContext, destinationGeoParams);
 		vehicleDestinationGeography.setCRS(GlobalVars.geographyCRSString);
-		
+		context.addSubContext(vehicleDestinationContext);
+		fixedGeographies.add(vehicleDestinationGeography);
+
 		pedestrianDestinationContext = new PedestrianDestinationContext();
 		pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY, pedestrianDestinationContext, destinationGeoParams);
 		pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		context.addSubContext(vehicleDestinationContext);
 		context.addSubContext(pedestrianDestinationContext);
+		fixedGeographies.add(pedestrianDestinationGeography);
+		
 		
 	    // Load agents from shapefiles
 		String GISDataDir = getProperty("GISDataDir");
