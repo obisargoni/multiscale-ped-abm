@@ -270,7 +270,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				for(Road r: Roads) {
 					if(r.getGeom().getEnvelopeInternal().intersects(wE)) {
 						String priority = r.getPriority();
-						pedGrid.setValue(gridPos, 1);
+						if (priority.contentEquals("pedestrian")) {
+							pedGrid.setValue(gridPos, 1);
+						}
+						else if (priority.contentEquals("vehicle")) {
+							pedGrid.setValue(gridPos, 10);
+						}
 					}
 				}
 			}
