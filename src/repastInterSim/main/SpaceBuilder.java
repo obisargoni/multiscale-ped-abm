@@ -132,49 +132,36 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.add(geography);
 		
 		// Road Geography stores polygons representing road and pavement surfaces
-		GeographyParameters<Road> roadGeoParams = new GeographyParameters<Road>();
 		roadContext = new RoadContext();
-		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY, roadContext, roadGeoParams);
-		roadGeography.setCRS(GlobalVars.geographyCRSString);
+		roadGeography = createTypedGeography(Road.class, roadContext, GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
 		context.addSubContext(roadContext);
 		fixedGeographies.add(roadGeography);
 		
-		
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
-		GeographyParameters<PedObstruction> pedObstrucGeoParams = new GeographyParameters<PedObstruction>();
 		pedObstructContext = new PedObstructionContext();
-		pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY, pedObstructContext, pedObstrucGeoParams);
-		pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		pedObstructGeography = createTypedGeography(PedObstruction.class, pedObstructContext, GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
 		context.addSubContext(pedObstructContext);
 		fixedGeographies.add(pedObstructGeography);
 
 		// Road link geography is used to create the road network projection
-		GeographyParameters<RoadLink> roadLinkGeoParams = new GeographyParameters<RoadLink>();
 		roadLinkContext = new RoadLinkContext();
-		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY, roadLinkContext, roadLinkGeoParams);
-		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		roadLinkGeography = createTypedGeography(RoadLink.class, roadLinkContext, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 		fixedGeographies.add(roadLinkGeography);
 
 		// Junction geography also used to create the road network
-		GeographyParameters<Junction> junctionGeoParams = new GeographyParameters<Junction>();
 		junctionContext = new JunctionContext();
-		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, junctionGeoParams);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);
+		junctionGeography = createTypedGeography(Junction.class, junctionContext, GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY);
 		context.addSubContext(junctionContext);
 		fixedGeographies.add(junctionGeography);
 		
-		// Destinations geography used for creating cache of destinations and their nearest road coordinates
-		GeographyParameters<Destination> destinationGeoParams = new GeographyParameters<Destination>();
-		
+		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
 		vehicleDestinationContext = new VehicleDestinationContext();
-		vehicleDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY, vehicleDestinationContext, destinationGeoParams);
-		vehicleDestinationGeography.setCRS(GlobalVars.geographyCRSString);
+		vehicleDestinationGeography = createTypedGeography(Destination.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		context.addSubContext(vehicleDestinationContext);
 		fixedGeographies.add(vehicleDestinationGeography);
 
 		pedestrianDestinationContext = new PedestrianDestinationContext();
-		pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY, pedestrianDestinationContext, destinationGeoParams);
-		pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
+		pedestrianDestinationGeography = createTypedGeography(Destination.class, pedestrianDestinationContext, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
