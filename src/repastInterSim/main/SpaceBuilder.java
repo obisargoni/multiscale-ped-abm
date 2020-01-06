@@ -656,5 +656,26 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		return csvData;
 	}
-
+	
+	/**
+	 * Initialise a geography projection. Set the geography name and coordinate reference system.
+	 * 
+	 * @param <T> 
+	 * 			The type of object to be contained in the context and geography
+	 * @param cl
+	 * 			The class of object to be contained in the context and geography
+	 * @param context
+	 * 			Context to use when creating geography projection. Must be type Context<T>
+	 * @param geographyName
+	 * 			The name to use for the geography
+	 * @return
+	 * 			Geography project of type T
+	 */
+	private <T> Geography<T> createTypedGeography(Class<T> cl, Context<T> context, String geographyName) {
+		GeographyParameters<T> GeoParams = new GeographyParameters<T>();
+		Geography<T> g = GeographyFactoryFinder.createGeographyFactory(null).createGeography(geographyName, context, GeoParams);
+		g.setCRS(GlobalVars.geographyCRSString);
+		
+		return g;
+	}
 }
