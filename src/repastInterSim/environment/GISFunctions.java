@@ -431,6 +431,63 @@ public class GISFunctions {
 		return geList;
 	}
 	
+	/**
+	 * Sets the values of grid coverage cells according to an attribute of objects contained within a geography. Grid cells that
+	 * intersect with a geography object have their value set according to the objects attribute, the name of which is given as an input to 
+	 * the method.
+	 * 
+	 * @param <T> The type of the agent in the geography
+	 * @param grid The grid coverage whose cell values are to be set
+	 * @param cl The class of agent in the geography 
+	 * @param geography The geography projection containing the agents used to set grid cell values
+	 * @param attributeName The name of the agent attribute to use to set grid cell values
+	 * @param agentAttributeValueMap A map between attribute value and grid cell value
+	 */
+	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
+		
+	    // Get class attributeMethodMap read attribute methods
+	    Map<String, Method> readAttributeMethodMap = ShapefileLoader.getAttributeMethodMap(cl, "r");
+	    
+	    Method readAttributeMethod = readAttributeMethodMap.get(attributeName);
+
+		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(grid);
+		Iterable<T> Obs = geography.getAllObjects();
+		
+		for(GridEnvelope2D gridEnv: geList) {
+			
+			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
+					
+			Envelope2D worldEnv = null;
+			try {
+				worldEnv = grid.getGridGeometry().gridToWorld(gridEnv);
+			} catch (TransformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Envelope wE = new Envelope(worldEnv.getMinX(), worldEnv.getMaxX(), worldEnv.getMinY(), worldEnv.getMaxY());
+			
+			for(T Ob: Obs) {
+				if(Ob.getGeom().getEnvelopeInternal().intersects(wE)) {
+					Object attributeValue = null;
+					try {
+						attributeValue = readAttributeMethod.invoke(Ob);
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					String strAttrVal = attributeValue.toString();
+					Integer gridValue = agentAttributeValueMap.get(strAttrVal);
+					grid.setValue(gridPos, gridValue);
+				}
+			}
+		}
 	}
 	
 	/*
