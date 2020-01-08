@@ -410,7 +410,27 @@ public class GISFunctions {
 		return rEnv;
 		
 	}
+	
+	
+	public static List<GridEnvelope2D> gridCoverageCellEnvelopeList(WritableGridCoverage2D grid) {
 		
+		List<GridEnvelope2D> geList = new ArrayList<GridEnvelope2D>();
+		
+		// Cast to int. 
+		int width = grid.getRenderedImage().getWidth();
+		int height = grid.getRenderedImage().getHeight();
+		
+		// Loop over coverage grid cells
+		for(int i=0;i<width;i++) {
+			for (int j=0;j<height;j++) {
+				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
+				geList.add(gridEnv);
+			}
+		}
+		
+		return geList;
+	}
+	
 	}
 	
 	/*
