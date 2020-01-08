@@ -226,12 +226,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Now that shapefiles have been read and loaded as agents get the envelope that covers 
 		// all fixed geography agents and use to create grid coverage 
-		Envelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
-		
-		// Use CRS of first geography. getMultipleGeographiesEnvelope() checks that all geographies have same CRS.
-		ReferencedEnvelope refEnv = new ReferencedEnvelope(fixedGeographyEnvelope, fixedGeographies.get(0).getCRS());
-		int width = (int) Math.floor(refEnv.getWidth());
-		int height = (int) Math.floor(refEnv.getHeight());
+		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
 		
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
 		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, refEnv, null, -1, 0, 10, -1);

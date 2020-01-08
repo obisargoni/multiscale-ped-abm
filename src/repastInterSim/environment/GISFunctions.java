@@ -3,6 +3,8 @@ package repastInterSim.environment;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,8 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.geometry.Envelope2D;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -29,6 +35,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import repast.simphony.context.Context;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.main.SpaceBuilder;
@@ -341,15 +348,15 @@ public class GISFunctions {
 	 * 			The repast simphony geography projection containing the geometries to return an envelope over
 	 * @return Envelope matching the extent of the geometries in the geography.
 	 */
-	public static <T extends FixedGeography> Envelope getGeographyEnvelope(Geography<T> geography) {
-		Envelope env = new Envelope();
-		
+	public static <T extends FixedGeography> ReferencedEnvelope getGeographyEnvelope(Geography<T> geography) {
+		ReferencedEnvelope rEnv = new ReferencedEnvelope();
+
 		for (T obj : geography.getAllObjects()) {
 			Geometry g = obj.getGeom();
-			env.expandToInclude(g.getEnvelopeInternal());
+			rEnv.expandToInclude(g.getEnvelopeInternal());
 		}
 		
-		return env;
+		return rEnv;
 	}
 	
 	/**
@@ -367,14 +374,14 @@ public class GISFunctions {
 	 * 			Envelope to expand to include the geometries in the geography
 	 * @return Envelope matching the extent of the geometries in the geography
 	 */
-	public static <T extends FixedGeography> Envelope getGeographyEnvelope(Geography<T> geography, Envelope env) {
+	public static <T extends FixedGeography> ReferencedEnvelope expandEnvelopeToGeography(Geography<T> geography, ReferencedEnvelope rEnv) {
 		
 		for (T obj : geography.getAllObjects()) {
 			Geometry g = obj.getGeom();
-			env.expandToInclude(g.getEnvelopeInternal());
+			rEnv.expandToInclude(g.getEnvelopeInternal());
 		}
 		
-		return env;
+		return rEnv;
 	}
 	
 	/**
@@ -389,8 +396,8 @@ public class GISFunctions {
 	 * @return Envelope
 	 * 			Envelope matching the extent of the geometries in the geography
 	 */
-	public static <T extends FixedGeography> Envelope getMultipleGeographiesEnvelope(ArrayList<Geography> geographies) {
-		Envelope env = new Envelope();
+	public static <T extends FixedGeography> ReferencedEnvelope getMultipleGeographiesEnvelope(ArrayList<Geography> geographies) {
+		ReferencedEnvelope rEnv = new ReferencedEnvelope();
 		
 		CoordinateReferenceSystem firstCRS = geographies.iterator().next().getCRS();
 		
@@ -398,9 +405,11 @@ public class GISFunctions {
 			// Throw exception if geography coordinate reference systems don't all match
 			assert firstCRS.equals(g.getCRS());
 			
-			env = getGeographyEnvelope(g, env);
+			rEnv = expandEnvelopeToGeography(g, rEnv);
 		}
-		return env;
+		return rEnv;
+		
+	}
 		
 	}
 	
