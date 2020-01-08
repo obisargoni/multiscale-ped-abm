@@ -229,39 +229,18 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
 		
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
-		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, refEnv, null, -1, 0, 10, -1);
+		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth())*2;
+		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
+		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, fixedGeographyEnvelope, null, -1, 0, 10, -1);
 		geography.addCoverage("pedGrid", pedGrid);
 		
+		// Initialise map from attribute value to numeric grid cell value
+		Map<String,Integer> priorityGridValueMap = new HashMap<String, Integer> ();
+		priorityGridValueMap.put("pedestrian", 1);
+		priorityGridValueMap.put("vehicle", 10);
 		// Loop over coverage grid cells to check values and number of cells
-		Envelope2D worldEnv = null;
-		for(int i=0;i<width;i++) {
-			for (int j=0;j<height;j++) {
-				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);
-				// (x,y,width, height) where x,y is the upper-left corner, down is +ve y
-				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
-				
-				try {
-					worldEnv = pedGrid.getGridGeometry().gridToWorld(gridEnv);
-				} catch (TransformException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				Envelope wE = new Envelope(worldEnv.getMinX(), worldEnv.getMaxX(), worldEnv.getMinY(), worldEnv.getMaxY());
-
-				Iterable<Road> Roads = roadGeography.getAllObjects();
-				for(Road r: Roads) {
-					if(r.getGeom().getEnvelopeInternal().intersects(wE)) {
-						String priority = r.getPriority();
-						if (priority.contentEquals("pedestrian")) {
-							pedGrid.setValue(gridPos, 1);
-						}
-						else if (priority.contentEquals("vehicle")) {
-							pedGrid.setValue(gridPos, 10);
-						}
-					}
-				}
-			}
-		}		
+		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, Road.class, roadGeography, "priority", priorityGridValueMap);
+    	
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");		
