@@ -87,14 +87,8 @@ public class ShapefileLoader<T> {
     ShapefileDataStore store = null;
     SimpleFeatureIterator iter = null;
     try {
-      BeanInfo info = Introspector.getBeanInfo(clazz, Object.class);
-      Map<String, Method> methodMap = new HashMap<String, Method>();
-      PropertyDescriptor[] pds = info.getPropertyDescriptors();
-      for (PropertyDescriptor pd : pds) {
-        if (pd.getWriteMethod() != null) {
-          methodMap.put(pd.getName().toLowerCase(), pd.getWriteMethod());
-        }
-      }
+    	
+      Map<String, Method> methodMap = getAttributeMethodMap(clazz, "w");
 
       store = new ShapefileDataStore(shapefile);
       SimpleFeatureType schema = store.getSchema(store.getTypeNames()[0]);
@@ -123,8 +117,6 @@ public class ShapefileLoader<T> {
 			}
     	featureIterator = features.iterator();
       
-    } catch (IntrospectionException ex) {
-      msg.error("Error while introspecting class", ex);
     } catch (IOException e) {
       msg.error(String.format("Error opening shapefile '%S'", shapefile), e);
     } catch (FactoryException e) {
@@ -135,6 +127,42 @@ public class ShapefileLoader<T> {
 			store.dispose();
 		}
   }
+  
+  /**
+   * 
+   * @param <T> Type to get attribute method map for
+   * @param cl Class to get attribute method map for
+   * @param mode Used to select either read or write attribute methods
+   * @return Map of attribute name to read or write method
+   */
+  public static <T> Map<String, Method> getAttributeMethodMap(Class<T> cl, String mode){
+		// Get info on the class methods of the object in the geography	    
+	    BeanInfo info = null;
+		try {
+			info = Introspector.getBeanInfo(cl, Object.class);
+		} catch (IntrospectionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    Map<String, Method> methodMap = new HashMap<String, Method>();
+	    PropertyDescriptor[] pds = info.getPropertyDescriptors();
+	    
+	    for (PropertyDescriptor pd : pds) {
+	    	if (mode.contentEquals("w")) {
+		    	if (pd.getWriteMethod() != null) {
+		    		methodMap.put(pd.getName().toLowerCase(), pd.getWriteMethod());
+		    	}
+	    	}
+	    	
+	    	else if (mode.contentEquals("r")) {
+		    	if (pd.getReadMethod() != null) {
+		    		methodMap.put(pd.getName().toLowerCase(), pd.getReadMethod());
+		    	}
+	    	}
+	    }
+	    
+	    return methodMap;
+	}
 
   private boolean isCompatible(Class methodParam, Class attributeType) {
     if (methodParam.equals(attributeType)) return true;
