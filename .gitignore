@@ -53,4 +53,6 @@ hs_err_pid*
 /.classpath
 /velocity.log.1
 /data/buildings_roads_coords_cache.serialised
+/data/single_road_data/*
+/data/multi_road_data/*
 /debug.log.1
