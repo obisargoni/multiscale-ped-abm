@@ -17,17 +17,13 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.geotools.coverage.grid.GridCoordinates2D;
-import org.geotools.coverage.grid.GridEnvelope2D;
-import org.geotools.geometry.Envelope2D;
+import org.geotools.coverage.Category;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.operation.TransformException;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -232,6 +228,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
 		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth())*2;
 		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
+		
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
 		 Category[] categories	= new Category[] {	
 	        new Category("No data", Color.BLACK, 0),
@@ -241,14 +238,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
 		geography.addCoverage("pedGrid", pedGrid);
+		WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
+		geography.addCoverage("pedGrid", vehGrid);
 		
 		// Initialise map from attribute value to numeric grid cell value
-		Map<String,Integer> priorityGridValueMap = new HashMap<String, Integer> ();
-		priorityGridValueMap.put("pedestrian", 1);
-		priorityGridValueMap.put("vehicle", 10);
+		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
+		pedGridValueMap.put("pedestrian", 1);
+		pedGridValueMap.put("vehicle", 10);
+		Map<String,Integer> vehGridValueMap = new HashMap<String, Integer> ();
+		vehGridValueMap.put("vehicle", 1);
+		vehGridValueMap.put("pedestrian", 10);
+
 		// Loop over coverage grid cells to check values and number of cells
-		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, Road.class, roadGeography, "priority", priorityGridValueMap);
-    	
+		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, Road.class, roadGeography, "priority", pedGridValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(vehGrid, Road.class, roadGeography, "priority", vehGridValueMap);    	
+		
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");		
