@@ -25,7 +25,6 @@ import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.MultiPolygon;
@@ -452,7 +451,7 @@ public class GISFunctions {
 
 		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(grid);
 		Iterable<T> Obs = geography.getAllObjects();
-		
+			
 		for(GridEnvelope2D gridEnv: geList) {
 			
 			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
@@ -464,10 +463,19 @@ public class GISFunctions {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			Envelope wE = new Envelope(worldEnv.getMinX(), worldEnv.getMaxX(), worldEnv.getMinY(), worldEnv.getMaxY());
+						
+			Coordinate[] coords = {
+					new Coordinate(worldEnv.getMinX(), worldEnv.getMinY()),
+					new Coordinate(worldEnv.getMinX(), worldEnv.getMaxY()),
+					new Coordinate(worldEnv.getMaxX(), worldEnv.getMaxY()),
+					new Coordinate(worldEnv.getMaxX(), worldEnv.getMinY()),
+					new Coordinate(worldEnv.getMinX(), worldEnv.getMinY())
+			};
+			
+			Polygon wEPoly = new GeometryFactory().createPolygon(coords);
 			
 			for(T Ob: Obs) {
-				if(Ob.getGeom().getEnvelopeInternal().intersects(wE)) {
+				if(wEPoly.within(Ob.getGeom())) {
 					Object attributeValue = null;
 					try {
 						attributeValue = readAttributeMethod.invoke(Ob);
