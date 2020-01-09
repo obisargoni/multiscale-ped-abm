@@ -233,6 +233,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth())*2;
 		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
 		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, fixedGeographyEnvelope, null, -1, 0, 10, -1);
+		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
+		 Category[] categories	= new Category[] {	
+	        new Category("No data", Color.BLACK, 0),
+	        new Category("Level 1", Color.GREEN, 1),
+	        new Category("Level 3", Color.RED, 10)
+	    };
+
+		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
 		geography.addCoverage("pedGrid", pedGrid);
 		
 		// Initialise map from attribute value to numeric grid cell value
