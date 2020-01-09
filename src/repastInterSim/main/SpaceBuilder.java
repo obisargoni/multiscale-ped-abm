@@ -232,7 +232,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
 		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth())*2;
 		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
-		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableCoverageFloat("pedGrid", width, height, fixedGeographyEnvelope, null, -1, 0, 10, -1);
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
 		 Category[] categories	= new Category[] {	
 	        new Category("No data", Color.BLACK, 0),
