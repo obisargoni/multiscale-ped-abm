@@ -526,7 +526,8 @@ public class Route implements Cacheable {
 			q.remove(0);
 			
 			thisCellValue = values[thisCell.x][thisCell.y];
-			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell)) {
+			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
+				
 				dest = grid.evaluate(nextCell, dest);
 				int i = nextCell.x;
 				int j = nextCell.y;
