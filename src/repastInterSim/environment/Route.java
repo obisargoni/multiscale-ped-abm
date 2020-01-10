@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.referencing.GeodeticCalculator;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.TransformException;
@@ -473,6 +474,26 @@ public class Route implements Cacheable {
 		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
 				&& this.roadsX.size() == this.routeDescriptionX.size();
 	}
+	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell){
+		
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
+		
+		int[] range = {-1,1};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			mN.add(new GridCoordinates2D(i + dx, j));
+		}
+		
+		for (int dy: range) {
+			mN.add(new GridCoordinates2D(i, j + dy));
+		}
+		
+		return mN;
+	}
+	
+	
+	
 
 	private void checkListSizes() {
 		assert this.roadsX.size() > 0 && this.roadsX.size() == this.routeX.size()
