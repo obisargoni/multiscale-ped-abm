@@ -496,7 +496,7 @@ public class Route implements Cacheable {
 			e.printStackTrace();
 		}
 		
-		double[][] cellValues = gridCoverageFloodFill(grid, start, end);
+		double[][] cellValues = gridCoverageFloodFill(grid, end);
 		boolean atEnd = false;
 		
 		GridCoordinates2D next = start;
@@ -522,7 +522,7 @@ public class Route implements Cacheable {
 	 * @return
 	 * 			2D double array of cell values
 	 */
-	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D start, GridCoordinates2D end) {
+	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D end) {
 
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
