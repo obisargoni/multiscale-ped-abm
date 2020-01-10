@@ -237,9 +237,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    };
 
 		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
-		geography.addCoverage("pedGrid", pedGrid);
-		WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
-		geography.addCoverage("pedGrid", vehGrid);
+		geography.addCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE, pedGrid);
+		//WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
+		//geography.addCoverage(GlobalVars.CONTEXT_NAMES.VEHICLE_ROUTING_COVERAGE, vehGrid);
 		
 		// Initialise map from attribute value to numeric grid cell value
 		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
