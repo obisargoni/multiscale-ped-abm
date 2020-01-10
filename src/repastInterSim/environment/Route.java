@@ -37,6 +37,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.grid.InvalidGridGeometryException;
+import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.GeodeticCalculator;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.TransformException;
@@ -474,6 +477,72 @@ public class Route implements Cacheable {
 		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
 				&& this.roadsX.size() == this.routeDescriptionX.size();
 	}
+	
+	public double[][] gridCoverageFloodFill(String gridCoverageName) {
+		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
+
+		DirectPosition2D dpStart = new DirectPosition2D(this.mA.getLoc().x, this.mA.getLoc().y);
+		DirectPosition2D dpEnd = new DirectPosition2D(this.destination.x, this.destination.y);
+		GridCoordinates2D start = null;
+		GridCoordinates2D end = null;
+		try {
+			start = grid.getGridGeometry().worldToGrid(dpStart);
+			end = grid.getGridGeometry().worldToGrid(dpEnd);
+		} catch (InvalidGridGeometryException | TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		double [][] values = new double[width][height]; // Initialised with zeros
+		int [][] n = new int[width][height]; // Use to log number of times a cell is visited. All cells should get visited once.
+		List<GridCoordinates2D> q = new ArrayList<GridCoordinates2D>();
+		q.add(end);
+		
+		// Staring at the destination, flood fill cell values using distance measure between cells
+		boolean atStart = false;
+		GridCoordinates2D thisCell;
+		double thisCellValue;
+		double nextCellValue;
+		double[] dest = new double[1];
+		
+		while(!atStart) {
+			thisCell = q.get(0);
+			q.remove(0);
+			
+			// Check if we have reached the start cell, in which case end iteration
+			if(thisCell.equals(start)) {
+				atStart = true;
+				continue; // head to next iteration of while loop
+			}
+			
+			thisCellValue = values[thisCell.x][thisCell.y];
+			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell)) {
+				dest = grid.evaluate(nextCell, dest);
+				int i = nextCell.x;
+				int j = nextCell.y;
+				
+				// If cell with default value, assign value the max int value and exclude from further computation
+				if (dest[0] == 0) {
+					values[i][j] = Integer.MAX_VALUE;
+					n[i][j] += 1;
+					continue;
+				}
+				// Ensure the next cell doesn't have a value
+				if ((n[i][j] == 0)) {
+					nextCellValue = thisCellValue + dest[0];
+					values[i][j] = nextCellValue;
+					n[i][j] += 1;
+					q.add(nextCell);
+				}
+			}
+		}
+		
+		return values;
+	}
+	
 	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell){
 		
 		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
