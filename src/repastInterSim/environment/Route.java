@@ -500,18 +500,32 @@ public class Route implements Cacheable {
 
 		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
 		
+		// The first cell in the path corresponds to the agents starting position,
+		// therefore don't need to include this coordinate in the route
+		GridCoordinates2D prevCell = gridPath.get(0);
+		gridPath.remove(0);
+		int[] prevGrad = {0,0};
+		
 		for (GridCoordinates2D gridCell: gridPath) {
 			
-			// Get the corresponding gis coordinate and add this to the route
-			double[] coord = null;
-			try {
-				coord = grid.getGridGeometry().gridToWorld(gridCell).getCoordinate();
-			} catch (TransformException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			int[] grad = {gridCell.x - prevCell.x, gridCell.y - prevCell.y};
+			
+			// Only add coordinate when the direction of travel changes, saved recording redundant coordinates
+			if ((grad[0] != prevGrad[0]) | (grad[1] != prevGrad[1])) {
+				// Get the corresponding gis coordinate and add this to the route
+				double[] coord = null;
+				try {
+					coord = grid.getGridGeometry().gridToWorld(gridCell).getCoordinate();
+				} catch (TransformException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				Coordinate pathCoord = new Coordinate(coord[0], coord[1]);
+				addToRoute(pathCoord, RoadLink.nullRoad, 1, "grid coverage path");
 			}
-			Coordinate pathCoord = new Coordinate(coord[0], coord[1]);
-			addToRoute(pathCoord, RoadLink.nullRoad, 1, "grid coverage path");
+			
+			prevGrad = grad;
+			prevCell = gridCell;
 		}
 		
 		// Finally add the destination as a route coordinate
