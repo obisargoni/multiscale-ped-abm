@@ -514,6 +514,9 @@ public class Route implements Cacheable {
 			addToRoute(pathCoord, RoadLink.nullRoad, 1, "grid coverage path");
 		}
 		
+		// Finally add the destination as a route coordinate
+		addToRoute(this.destination, RoadLink.nullRoad, 1, "grid coverage path");
+
 	}
 	
 	/**
