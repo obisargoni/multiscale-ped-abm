@@ -575,6 +575,46 @@ public class Route implements Cacheable {
 		return mN;
 	}
 	
+	/**
+	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
+	 * 
+	 * Exclude coordinates that are lower than the minimum i and j parameters or greater than or equal to the
+	 * maximum i and j parameters.
+	 * 
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @param mini
+	 * 			Minimum i value
+	 * @param minj
+	 * 			Minimum j value
+	 * @param maxi
+	 * 			Maximum i value
+	 * @param maxj
+	 * 			Maximum j value
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
+	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell, int mini, int minj, int maxi, int maxj){
+		
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
+		
+		int[] range = {-1,1};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			if ((i + dx >= mini) & (i + dx < maxi) & (j >= minj) & (j < maxj)) {
+				mN.add(new GridCoordinates2D(i + dx, j));
+			}
+		}
+		
+		for (int dy: range) {
+			if ((i >= mini) & (i < maxi) & (j + dy >= minj) & (j + dy < maxj)) {
+				mN.add(new GridCoordinates2D(i, j + dy));
+			}
+		}
+		
+		return mN;
+	}
 	
 	
 
