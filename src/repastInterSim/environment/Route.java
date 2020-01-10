@@ -493,6 +493,20 @@ public class Route implements Cacheable {
 			e.printStackTrace();
 		}
 		
+	
+	/**
+	 * Runs the flood fill algorithm on the grid coverage with the name given as an input parameter. This algorithm assigns 
+	 * each cell a value based on its distance from the mobile agent's end destination. THe process stops once the cell 
+	 * containing the mobile agents current position is reached.
+	 * 
+	 * The grid coverage cell values are used in the calculation of the flood fill values, they represent the 'cost' of travelling through that cell.
+	 * @param gridCoverageName
+	 * 			The name of the grid coverage to use when calculating cell flood fill values
+	 * @return
+	 * 			2D double array of cell values
+	 */
+	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D start, GridCoordinates2D end) {
+
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
 		
@@ -543,6 +557,13 @@ public class Route implements Cacheable {
 		return values;
 	}
 	
+	/**
+	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
 	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell){
 		
 		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
