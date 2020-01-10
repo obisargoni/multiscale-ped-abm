@@ -516,21 +516,14 @@ public class Route implements Cacheable {
 		q.add(end);
 		
 		// Staring at the destination, flood fill cell values using distance measure between cells
-		boolean atStart = false;
 		GridCoordinates2D thisCell;
 		double thisCellValue;
 		double nextCellValue;
 		double[] dest = new double[1];
 		
-		while(!atStart) {
+		while(q.size() > 0) {
 			thisCell = q.get(0);
 			q.remove(0);
-			
-			// Check if we have reached the start cell, in which case end iteration
-			if(thisCell.equals(start)) {
-				atStart = true;
-				continue; // head to next iteration of while loop
-			}
 			
 			thisCellValue = values[thisCell.x][thisCell.y];
 			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell)) {
