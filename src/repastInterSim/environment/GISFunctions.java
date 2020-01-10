@@ -475,7 +475,7 @@ public class GISFunctions {
 			Polygon wEPoly = new GeometryFactory().createPolygon(coords);
 			
 			for(T Ob: Obs) {
-				if(wEPoly.within(Ob.getGeom())) {
+				if(wEPoly.intersects((Ob.getGeom()))) {
 					Object attributeValue = null;
 					try {
 						attributeValue = readAttributeMethod.invoke(Ob);
