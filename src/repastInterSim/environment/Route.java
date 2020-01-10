@@ -617,6 +617,51 @@ public class Route implements Cacheable {
 		return mN;
 	}
 	
+	public GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path) {
+		int width = cellValues.length;
+		int height = cellValues[0].length;
+		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, 0, 0, width, height);
+		
+		// Initialise greedy options
+		List<Double> minVal = new ArrayList<Double>();
+		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
+		
+		minVal.add((double) Integer.MAX_VALUE);
+
+		
+		for(GridCoordinates2D neighbour:manhattanNeighbours) {
+			// Don't consider cells already in the path
+			if (path.contains(neighbour)) {
+				continue;
+			}
+			double val = cellValues[neighbour.x][neighbour.y];
+			
+			// If cell value equal to current minimum include in greedy option
+			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			
+			// Else  clear the current min values and replace with new min
+			else if (val < minVal.get(0)) {
+				// Replace old values with new ones
+				minVal.clear();
+				greedyNeighbours.clear();
+				
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			else {
+				continue;
+			}
+		}
+		
+	    Random rand = new Random();
+	    GridCoordinates2D greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    return greedyNeighbour;
+	}
+	
+	
 	
 
 	private void checkListSizes() {
