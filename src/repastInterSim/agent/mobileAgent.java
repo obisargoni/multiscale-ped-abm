@@ -11,5 +11,6 @@ public interface mobileAgent {
 	void setLoc();
 	Coordinate getLoc();
 	Route getRoute();
+	String getRoutingCoverageName();
 
 }

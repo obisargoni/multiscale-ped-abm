@@ -49,6 +49,7 @@ public class Ped implements mobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     private GeometryFactory gF;
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
+    private String routingCoverageName;
     
     private Color col; // Colour of the pedestrian
     
@@ -81,6 +82,8 @@ public class Ped implements mobileAgent {
         this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/GlobalVars.spaceScale;
         this.B     = 0.08/GlobalVars.spaceScale;
         this.r     = 0.275/GlobalVars.spaceScale;
+        
+        this.routingCoverageName = GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE;
         
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
@@ -490,5 +493,10 @@ public class Ped implements mobileAgent {
     @Override
     public Route getRoute() {
     	return this.route;
+    }
+    
+    @Override
+    public String getRoutingCoverageName() {
+    	return this.routingCoverageName;
     }
 }
