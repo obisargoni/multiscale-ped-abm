@@ -478,7 +478,9 @@ public class Route implements Cacheable {
 				&& this.roadsX.size() == this.routeDescriptionX.size();
 	}
 	
-	public double[][] gridCoverageFloodFill(String gridCoverageName) {
+	public List<GridCoordinates2D> getGridCoveragePath(String gridCoverageName){
+		
+		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
 		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
 
 		DirectPosition2D dpStart = new DirectPosition2D(this.mA.getLoc().x, this.mA.getLoc().y);
@@ -493,6 +495,20 @@ public class Route implements Cacheable {
 			e.printStackTrace();
 		}
 		
+		double[][] cellValues = gridCoverageFloodFill(grid, start, end);
+		boolean atEnd = false;
+		
+		GridCoordinates2D next = start;
+		while(!atEnd) {
+			if (next.equals(end)) {
+				atEnd = true;
+			}
+			gridPath.add(next);
+			next = greedyManhattanNeighbour(next, cellValues, gridPath);
+		}
+		
+		return gridPath;
+	}
 	
 	/**
 	 * Runs the flood fill algorithm on the grid coverage with the name given as an input parameter. This algorithm assigns 
@@ -547,7 +563,7 @@ public class Route implements Cacheable {
 				}
 			}
 		}
-		
+
 		return values;
 	}
 	
