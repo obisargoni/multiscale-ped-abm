@@ -479,10 +479,55 @@ public class Route implements Cacheable {
 				&& this.roadsX.size() == this.routeDescriptionX.size();
 	}
 	
-	public List<GridCoordinates2D> getGridCoveragePath(String gridCoverageName){
+	/**
+	 * Set the route of a mobile agent using the agent's corresponding grid coverage
+	 * layer and the flood fill algorithm. This produces a path of coordinates that each correspond
+	 * to a grid cell in the coverage.
+	 * 
+	 * @param gridCoverageName
+	 */
+	public void setPedestrianGridRoute() {
+		
+		String gridCoverageName = mA.getRoutingCoverageName();
+		
+		// Initialise class attributes
+		this.routeX = new Vector<Coordinate>();
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+		
+		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
+
+		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
+		
+		for (GridCoordinates2D gridCell: gridPath) {
+			
+			// Get the corresponding gis coordinate and add this to the route
+			double[] coord = null;
+			try {
+				coord = grid.getGridGeometry().gridToWorld(gridCell).getCoordinate();
+			} catch (TransformException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Coordinate pathCoord = new Coordinate(coord[0], coord[1]);
+			addToRoute(pathCoord, RoadLink.nullRoad, 1, "grid coverage path");
+		}
+		
+	}
+	
+	/**
+	 * Find a path through a grid coverage layer by using the flood fill algorithm to calculate cell 'costs'
+	 * and acting greedily to identify a path.
+	 * 
+	 * @param gridCoverageName
+	 * 			The name of the coverage layer to use
+	 * @return
+	 * 			List<GridCoordinates2D> The grid coordinates path
+	 */
+	public List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid){
 		
 		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
-		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
 
 		DirectPosition2D dpStart = new DirectPosition2D(this.mA.getLoc().x, this.mA.getLoc().y);
 		DirectPosition2D dpEnd = new DirectPosition2D(this.destination.x, this.destination.y);
