@@ -28,13 +28,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.geotools.coverage.grid.GridCoordinates2D;
@@ -49,6 +52,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
@@ -482,9 +486,9 @@ public class Route implements Cacheable {
 	/**
 	 * Set the route of a mobile agent using the agent's corresponding grid coverage
 	 * layer and the flood fill algorithm. This produces a path of coordinates that each correspond
-	 * to a grid cell in the coverage.
+	 * to a grid cell in the coverage. The full path coordinates are pruned to retain
+	 * only those that indicate where to turn and points of transition between road priority.
 	 * 
-	 * @param gridCoverageName
 	 */
 	public void setPedestrianGridRoute() {
 		
@@ -499,33 +503,106 @@ public class Route implements Cacheable {
 		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
 
 		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
+		Set<Integer> routeIndices = new HashSet<Integer>();
+		double[] prevDest = new double[1];
+		double[] dest = new double[1];
 		
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
 		GridCoordinates2D prevCell = gridPath.get(0);
-		gridPath.remove(0);
-		int[] prevGrad = {0,0};
+		Coordinate prevCoord = gridCellToCoordinate(grid, prevCell);
 		
-		for (GridCoordinates2D gridCell: gridPath) {
+		// Get indices of gris cells that are at location where road priority changes (crossing points)
+		for (int i = 1; i < gridPath.size(); i++) {
+			GridCoordinates2D gridCell = gridPath.get(i);
+			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
 			
-			int[] grad = {gridCell.x - prevCell.x, gridCell.y - prevCell.y};
+			// Get grid cell value of this and previous coord. If values differ this means they are located in
+			// road space with different priority and therefore the previous grid cell should be included in the route
+			prevDest = grid.evaluate(prevCell, prevDest);
+			dest = grid.evaluate(gridCell, dest);
+			Double prevVal = prevDest[0];
+			Double val = dest[0];
 			
-			// Only add coordinate when the direction of travel changes, saved recording redundant coordinates
-			if ((grad[0] != prevGrad[0]) | (grad[1] != prevGrad[1])) {
-				// Get the corresponding gis coordinate and add this to the route
-				double[] coord = null;
-				try {
-					coord = grid.getGridGeometry().gridToWorld(gridCell).getCoordinate();
-				} catch (TransformException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				Coordinate pathCoord = new Coordinate(coord[0], coord[1]);
-				addToRoute(pathCoord, RoadLink.nullRoad, 1, "grid coverage path");
+			if (!val.equals(prevVal)) {
+				routeIndices.add(i-1);
 			}
 			
-			prevGrad = grad;
 			prevCell = gridCell;
+			prevCoord = cellCoord;
+		
+		}
+		
+		
+		// Now prune path coordinates that are redundant.
+		// These are defined as those which lay between coordinates which are not separated by a ped obstruction
+		// or change in road priority
+		Boolean pathFinished = false;
+		int startCellIndex = 0;
+
+		while(!pathFinished) {
+			GridCoordinates2D startCell = gridPath.get(startCellIndex);
+			Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+			
+			for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
+				int gridPathIndexToIncludeInRoute;
+				
+				GridCoordinates2D gridCell = gridPath.get(i);
+				Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
+				Coordinate[] lineCoords = {startCoord, gridCoord};
+				LineString pathLine = new GeometryFactory().createLineString(lineCoords);
+				
+				// Check if line passes through a ped obstruction
+				// If it does add the previous index to the pruned path list
+				List<PedObstruction> intersectingObs = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, pathLine);
+				if (intersectingObs.size() > 0){
+					// Handle the unlikely case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
+					if (i-1 == startCellIndex) {
+						gridPathIndexToIncludeInRoute = i;
+					}
+					else {
+						gridPathIndexToIncludeInRoute = i;
+					}
+					routeIndices.add(gridPathIndexToIncludeInRoute);
+					startCellIndex = gridPathIndexToIncludeInRoute;
+					break;
+				}
+				
+				
+				// Check if line passes through road areas with multiple priorities
+				List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
+				if (intersectingRoads.size()>0) {
+					String priority = intersectingRoads.get(0).getPriority();
+					intersectingRoads.remove(0);
+					for (Road intersectingR: intersectingRoads) {
+						if (!intersectingR.getPriority().contentEquals(priority)) {
+							// Handle the unlikely case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
+							if (i-1 == startCellIndex) {
+								gridPathIndexToIncludeInRoute = i;
+							}
+							else {
+								gridPathIndexToIncludeInRoute = i-1;
+							}
+							routeIndices.add(gridPathIndexToIncludeInRoute);
+							startCellIndex = gridPathIndexToIncludeInRoute;
+							break;
+						}
+					}
+				}
+				
+				// Check if path search is finished.
+				if(i == gridPath.size()-1) {
+					pathFinished = true;
+				}
+			}
+		}
+		
+		// Order final set of route indicies
+		List<Integer> routeIndicesSorted = routeIndices.stream().sorted().collect(Collectors.toList());
+		for (int i:routeIndicesSorted) {
+			GridCoordinates2D routeCell = gridPath.get(i);
+			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
+			addToRoute(routeCoord, RoadLink.nullRoad, 1, "grid coverage path");
 		}
 		
 		// Finally add the destination as a route coordinate
@@ -1420,6 +1497,7 @@ public class Route implements Cacheable {
 	*/
 
 }
+
 
 /* ************************************************************************ */
 
