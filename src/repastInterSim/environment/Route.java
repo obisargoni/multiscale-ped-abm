@@ -740,8 +740,28 @@ public class Route implements Cacheable {
 	    return greedyNeighbour;
 	}
 	
-	
-	
+	/**
+	 * Get the Coordinate that corresponds to the location of the input grid cell in the input grid. I think this gives the lcoation of the 
+	 * upper left hand coordinate of the grid cell.
+	 * 
+	 * @param grid
+	 * 			The grid in which the grid cell sits
+	 * @param cell
+	 * 			The grid cell to get the coordinate of
+	 * @return
+	 */
+	public Coordinate gridCellToCoordinate(GridCoverage2D grid, GridCoordinates2D cell) {
+		double[] cellCoord = null;
+		try {
+			cellCoord = grid.getGridGeometry().gridToWorld(cell).getCoordinate();
+		} catch (TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Coordinate c = new Coordinate(cellCoord[0], cellCoord[1]);
+		
+		return c;
+	}
 
 	private void checkListSizes() {
 		assert this.roadsX.size() > 0 && this.roadsX.size() == this.routeX.size()
