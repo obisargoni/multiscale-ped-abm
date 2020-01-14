@@ -181,10 +181,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pedestrianRoadFile = GISDataDir + getProperty("PedestrianRoadShapefile");
 			GISFunctions.readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
+			SpatialIndexManager.createIndex(roadGeography, Road.class);
+
 			
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
+			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+
 			
 			// Build the road network
 			
