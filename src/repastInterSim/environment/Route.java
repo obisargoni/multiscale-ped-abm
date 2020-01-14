@@ -741,14 +741,15 @@ public class Route implements Cacheable {
 	}
 	
 	/**
-	 * Get the Coordinate that corresponds to the location of the input grid cell in the input grid. I think this gives the lcoation of the 
-	 * upper left hand coordinate of the grid cell.
+	 * Get the gis coordinate that corresponds to the location of the input Grid Coordinate
+	 * in the coordinate reference system used by the grid coverage
 	 * 
 	 * @param grid
 	 * 			The grid in which the grid cell sits
 	 * @param cell
-	 * 			The grid cell to get the coordinate of
+	 * 			The grid coordinate to get the gis coordinate of
 	 * @return
+	 * 			Coordinate. The gis coordinate
 	 */
 	public Coordinate gridCellToCoordinate(GridCoverage2D grid, GridCoordinates2D cell) {
 		double[] cellCoord = null;
