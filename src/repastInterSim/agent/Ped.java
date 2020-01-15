@@ -492,6 +492,11 @@ public class Ped implements mobileAgent {
     		this.enteringCrossing = false;
     	}
     }
+    
+    public void decideYield() {
+    	this.yieldAtCrossing = true;
+    }
+    
     public double getRad() {
     	return this.rad;
     }
