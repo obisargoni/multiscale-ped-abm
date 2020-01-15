@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.geometry.DirectPosition2D;
+import org.opengis.geometry.DirectPosition;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -49,6 +53,9 @@ public class Ped implements mobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     private GeometryFactory gF;
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
+    private Coordinate lookAhead; // This is the coordinate x timesteps ahead of the pedestrian, given their current bearing and desired velocity. Used to check for road crossings.
+    private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
+    private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     private String routingCoverageName;
     
     private Color col; // Colour of the pedestrian
@@ -441,6 +448,24 @@ public class Ped implements mobileAgent {
     	this.aP = aP;
     }
     
+    /**
+     * Set the estimated expected location of the pedestrian agent in a number of timesteps time
+     * 
+     * @param nTimeSteps
+     * 			Integer number of timesteps to estimate location at
+     */
+    public void setPedestrianLookAheadCoord(int nTimeSteps) {
+    	
+    	// aP is the bearing from north represents pedestrian direction.
+    	// To get expected location in n timesteps multiply the distance covered in three timesteps
+    	// by the bearing resolved in the x and y directions
+    	
+    	double dx = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.sin(this.aP);
+    	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.aP);
+    	
+    	Coordinate newLookAhead = new Coordinate(this.pLoc.x + dx, this.pLoc.y + dy);
+    	this.lookAhead = newLookAhead;
+    }
     public double getRad() {
     	return this.rad;
     }
