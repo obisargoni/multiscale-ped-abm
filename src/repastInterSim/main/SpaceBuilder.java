@@ -464,6 +464,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
+		newPed.setPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
         
         return newPed;
     }

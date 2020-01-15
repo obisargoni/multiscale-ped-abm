@@ -105,14 +105,23 @@ public class Ped implements mobileAgent {
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {
+    	// Check for crossing here, this will determine what type of walk function to run. Updates this.enteringCrossing
+    	lookAheadCrossingCheck(); 
     	
-    	// Walk towards the next coordinate along the route
         Coordinate routeCoord = this.route.getRouteXCoordinate(0);
+    	
+    	if (this.enteringCrossing) {
+    		// Check whether agent should yield or not
+    		decideYield();
+    	}
+    	// Walk towards the next coordinate along the route
     	walk(routeCoord);
     	
     	// Check if destination reached within 1m of route coordinate, if true remove that coordinate from the route
-    	if (this.pLoc.distance(routeCoord) < 1) {
-    		this.route.removeRouteXCoordinate(routeCoord);
+    	if (!this.yieldAtCrossing) {
+        	if (this.pLoc.distance(routeCoord) < 1) {
+        		this.route.removeRouteXCoordinate(routeCoord);
+        	}
     	}
     }
     
@@ -142,9 +151,11 @@ public class Ped implements mobileAgent {
         
         // Set the direction the pedestrian faces to be the direction of its velocity vector
         setPedestrianBearingFromVelocity(this.v);
+        
+        // Update ahead coord here
+        setPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
     }
-    
-
+   
     /*
      * Calculate the acceleration of the pedestrian.
      * 
@@ -224,7 +235,6 @@ public class Ped implements mobileAgent {
         } 
     	
     	return cATotal;
-    	
     }
     
     public double[] pedestrianContactAcceleration(Ped egoPed, Ped agentPed, Geometry agentGeom) {
@@ -245,7 +255,6 @@ public class Ped implements mobileAgent {
     	double[] A  = {magA*n[0], magA*n[1]};
     	
     	return A;
-    	
     }
     
     public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, PedObstruction Obstr, Geometry obstrGeom) {
