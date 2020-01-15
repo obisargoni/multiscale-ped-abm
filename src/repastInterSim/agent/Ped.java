@@ -466,6 +466,32 @@ public class Ped implements mobileAgent {
     	Coordinate newLookAhead = new Coordinate(this.pLoc.x + dx, this.pLoc.y + dy);
     	this.lookAhead = newLookAhead;
     }
+    
+    /**
+     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
+     * used for routing, at the current location and estimates near future location.
+     * 
+     * If grid cell values are expected to increase the agent is heading towards a lower priority area
+     * and is considered to be approaching a crossing point.
+     */
+    public void lookAheadCrossingCheck() {
+    	GridCoverage2D grid = this.geography.getCoverage(this.routingCoverageName);
+    	double[] currentGridVal = null;
+    	double[] lookAheadGridVal = null;
+    	
+    	DirectPosition pLocDP = new DirectPosition2D(this.pLoc.x, this.pLoc.y);
+    	DirectPosition lookAheadDP = new DirectPosition2D(this.lookAhead.x, this.lookAhead.y);
+    	currentGridVal = grid.evaluate(pLocDP, currentGridVal);
+    	lookAheadGridVal = grid.evaluate(lookAheadDP, lookAheadGridVal);
+    	
+    	// Entering a crossing area if the grid value is increasing as this indicates a lowering of priority for the agent
+    	if (currentGridVal[0] < lookAheadGridVal[0]) {
+    		this.enteringCrossing = true;
+    	}
+    	else {
+    		this.enteringCrossing = false;
+    	}
+    }
     public double getRad() {
     	return this.rad;
     }
