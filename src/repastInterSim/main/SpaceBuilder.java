@@ -454,7 +454,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
 		try {
-			newPed.getRoute().setPedestrianRoute();
+			newPed.getRoute().setPedestrianGridRoute();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
