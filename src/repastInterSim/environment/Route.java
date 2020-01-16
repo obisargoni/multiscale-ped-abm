@@ -109,6 +109,9 @@ public class Route implements Cacheable {
 
 	// Record which function has added each coord, useful for debugging
 	private List<String> routeDescriptionX;
+	
+	// Record the coordinates of route points that correspond to crossing locations
+	private List<Coordinate> routeCrossings;
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -1472,6 +1475,10 @@ public class Route implements Cacheable {
 	
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
+	}
+	
+	public List<Coordinate> getRouteCrossings(){
+		return this.routeCrossings;
 	}
 	
 	public Coordinate getRouteXCoordinate(Integer i) {
