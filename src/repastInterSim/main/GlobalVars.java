@@ -73,6 +73,9 @@ public abstract class GlobalVars {
 		public enum BUFFER_DISTANCE {
 			/** The smallest distance, rarely used. Approximately 0.001m*/
 			SMALL(0.001, "0.001"),
+			/** Intermediate distance between small and medium. Used for checking pedestrian proximity to
+			 * crossing locations. */
+			SMALLPLUS(2, "2"),
 			/** Most commonly used distance, OK for looking for nearby houses or roads.
 			 * Approximatey 110m */
 			MEDIUM(110,"110"),
