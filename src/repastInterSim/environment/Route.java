@@ -626,6 +626,32 @@ public class Route implements Cacheable {
 		addToRoute(this.destination, RoadLink.nullRoad, 1, "grid coverage path");
 	}
 	
+	public boolean checkForObstaclesBetweenRouteCoordinates(Coordinate startCoord, Coordinate endCoord) {
+		boolean isObstructingObjects = false;
+		
+		Coordinate[] lineCoords = {startCoord, endCoord};
+		LineString pathLine = new GeometryFactory().createLineString(lineCoords);
+		
+		// Check if line passes through a ped obstruction
+		// If it does add the previous index to the pruned path list
+		List<PedObstruction> intersectingObs = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, pathLine);
+		if (intersectingObs.size() > 0){
+			isObstructingObjects = true;
+		}
+		
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
+		if (intersectingRoads.size()>0) {
+			String priority = intersectingRoads.get(0).getPriority();
+			intersectingRoads.remove(0);
+			for (Road intersectingR: intersectingRoads) {
+				if (!intersectingR.getPriority().contentEquals(priority)) {
+					isObstructingObjects = true;
+				}
+			}
+		}
+		
+		return isObstructingObjects;
+	}
 	/**
 	 * Find a path through a grid coverage layer by using the flood fill algorithm to calculate cell 'costs'
 	 * and acting greedily to identify a path.
