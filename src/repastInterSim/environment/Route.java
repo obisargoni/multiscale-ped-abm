@@ -538,7 +538,6 @@ public class Route implements Cacheable {
 			else if (val.compareTo(prevVal) < 0) {
 				routeIndices.add(i);
 			}
-			
 			prevCell = gridCell;
 			prevCoord = cellCoord;
 		}
@@ -549,60 +548,33 @@ public class Route implements Cacheable {
 		// or change in road priority
 		Boolean pathFinished = false;
 		int startCellIndex = 0;
-
-		while(!pathFinished) {
-			GridCoordinates2D startCell = gridPath.get(startCellIndex);
-			Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+		GridCoordinates2D startCell = gridPath.get(startCellIndex);
+		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+		
+		// Given a fixed starting path coordinate, loop through path coordinates, create line between pairs
+		// if line intersects with an obstacle, set the route coord to be the previous path coord for which there 
+		// was no intersection
+		for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
+			int gridPathIndexToIncludeInRoute;
+			GridCoordinates2D gridCell = gridPath.get(i);
+			Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
 			
-			for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
-				int gridPathIndexToIncludeInRoute;
-				
-				GridCoordinates2D gridCell = gridPath.get(i);
-				Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
-				Coordinate[] lineCoords = {startCoord, gridCoord};
-				LineString pathLine = new GeometryFactory().createLineString(lineCoords);
-				
-				// Check if line passes through a ped obstruction
-				// If it does add the previous index to the pruned path list
-				List<PedObstruction> intersectingObs = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, pathLine);
-				if (intersectingObs.size() > 0){
-					// Handle the unlikely case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
-					if (i-1 == startCellIndex) {
-						gridPathIndexToIncludeInRoute = i;
-					}
-					else {
-						gridPathIndexToIncludeInRoute = i-1;
-					}
-					routeIndices.add(gridPathIndexToIncludeInRoute);
-					startCellIndex = gridPathIndexToIncludeInRoute;
-					break;
+			if (checkForObstaclesBetweenRouteCoordinates(startCoord, gridCoord)) {
+				// Handle the case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
+				if (i-1 == startCellIndex) {
+					gridPathIndexToIncludeInRoute = i;
 				}
-				
-				// Check if line passes through road areas with multiple priorities
-				List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
-				if (intersectingRoads.size()>0) {
-					String priority = intersectingRoads.get(0).getPriority();
-					intersectingRoads.remove(0);
-					for (Road intersectingR: intersectingRoads) {
-						if (!intersectingR.getPriority().contentEquals(priority)) {
-							// Handle the unlikely case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
-							if (i-1 == startCellIndex) {
-								gridPathIndexToIncludeInRoute = i;
-							}
-							else {
-								gridPathIndexToIncludeInRoute = i-1;
-							}
-							routeIndices.add(gridPathIndexToIncludeInRoute);
-							startCellIndex = gridPathIndexToIncludeInRoute;
-							break;
-						}
-					}
+				else {
+					gridPathIndexToIncludeInRoute = i-1;
 				}
+				routeIndices.add(gridPathIndexToIncludeInRoute);
+				startCellIndex = gridPathIndexToIncludeInRoute;
 				
-				// Check if path search is finished.
-				if(i == gridPath.size()-1) {
-					pathFinished = true;
-				}
+				// Update start cell
+				startCell = gridPath.get(startCellIndex);
+				startCoord = gridCellToCoordinate(grid, startCell);
+				
+				// Loop continues two steps ahead from starting cell but this doesn't change route outcome
 			}
 		}
 		
