@@ -502,11 +502,13 @@ public class Route implements Cacheable {
 		this.roadsX = new Vector<RoadLink>();
 		this.routeDescriptionX = new Vector<String>();
 		this.routeSpeedsX = new Vector<Double>();
+		this.routeCrossings = new Vector<Coordinate>();
 		
 		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
 
 		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
 		Set<Integer> routeIndices = new HashSet<Integer>();
+		Set<Integer> crossingIndices = new HashSet<Integer>();
 		double[] prevCellValue = new double[1];
 		double[] cellValue = new double[1];
 		
@@ -527,13 +529,18 @@ public class Route implements Cacheable {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
-			if (!val.equals(prevVal)) {
-				routeIndices.add(i-1);
+			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
+			if (val.compareTo(prevVal) > 0) {
+				routeIndices.add(i);
+				crossingIndices.add(i);
+			}
+			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
+			else if (val.compareTo(prevVal) < 0) {
+				routeIndices.add(i);
 			}
 			
 			prevCell = gridCell;
 			prevCoord = cellCoord;
-		
 		}
 		
 		
@@ -571,7 +578,6 @@ public class Route implements Cacheable {
 					break;
 				}
 				
-				
 				// Check if line passes through road areas with multiple priorities
 				List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
 				if (intersectingRoads.size()>0) {
@@ -608,8 +614,17 @@ public class Route implements Cacheable {
 			addToRoute(routeCoord, RoadLink.nullRoad, 1, "grid coverage path");
 		}
 		
+		// Similarly order crossing point indices and get these coordinates
+		List<Integer> crossingIndicesSorted = crossingIndices.stream().sorted().collect(Collectors.toList());
+		for (int i:crossingIndicesSorted) {
+			GridCoordinates2D crossingCell = gridPath.get(i);
+			Coordinate crossingCoord = gridCellToCoordinate(grid, crossingCell);
+			this.routeCrossings.add(crossingCoord);
+		}
+		
 		// Finally add the destination as a route coordinate
 		addToRoute(this.destination, RoadLink.nullRoad, 1, "grid coverage path");
+		
 
 	}
 	
