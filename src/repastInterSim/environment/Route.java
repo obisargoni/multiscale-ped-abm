@@ -687,7 +687,6 @@ public class Route implements Cacheable {
 		double [][] values = new double[width][height]; // Initialised with zeros
 		int [][] n = new int[width][height]; // Use to log number of times a cell is visited. All cells should get visited once.
 		List<GridCoordinates2D> q = new ArrayList<GridCoordinates2D>();
-		q.add(end);
 		
 		// Staring at the destination, flood fill cell values using distance measure between cells
 		GridCoordinates2D thisCell;
@@ -695,6 +694,10 @@ public class Route implements Cacheable {
 		double nextCellValue;
 		double[] cellValue = new double[1];
 		
+		int i = end.x;
+		int j = end.y;
+		n[i][j] = 1; // Make sure the end cell value doesn't get updated
+		q.add(end);
 		while(q.size() > 0) {
 			thisCell = q.get(0);
 			q.remove(0);
@@ -703,8 +706,8 @@ public class Route implements Cacheable {
 			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
-				int i = nextCell.x;
-				int j = nextCell.y;
+				i = nextCell.x;
+				j = nextCell.y;
 				
 				// If cell with default value, assign value the max int value and exclude from further computation
 				if (cellValue[0] == 0) {
