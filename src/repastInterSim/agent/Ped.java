@@ -58,6 +58,8 @@ public class Ped implements mobileAgent {
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     private String routingCoverageName;
     
+    private int yieldTime = 0;
+    
     private Color col; // Colour of the pedestrian
     
     
@@ -105,17 +107,14 @@ public class Ped implements mobileAgent {
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {
-    	// Check for crossing here, this will determine what type of walk function to run. Updates this.enteringCrossing
-    	lookAheadCrossingCheck(); 
     	
         Coordinate routeCoord = this.route.getRouteXCoordinate(0);
-    	
-    	if (this.enteringCrossing) {
-    		// Check whether agent should yield or not
-    		decideYield();
-    	}
+
     	// Walk towards the next coordinate along the route
     	walk(routeCoord);
+    	
+    	// Agent decides whether to yield, in which case it doesn't progress to the next route coord
+   		decideYield(); 
     	
     	// Check if destination reached within 1m of route coordinate, if true remove that coordinate from the route
     	if (!this.yieldAtCrossing) {
@@ -151,9 +150,6 @@ public class Ped implements mobileAgent {
         
         // Set the direction the pedestrian faces to be the direction of its velocity vector
         setPedestrianBearingFromVelocity(this.v);
-        
-        // Update ahead coord here
-        setPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
     }
    
     /*
@@ -463,7 +459,7 @@ public class Ped implements mobileAgent {
      * @param nTimeSteps
      * 			Integer number of timesteps to estimate location at
      */
-    public void setPedestrianLookAheadCoord(int nTimeSteps) {
+    public Coordinate getPedestrianLookAheadCoord(int nTimeSteps) {
     	
     	// aP is the bearing from north represents pedestrian direction.
     	// To get expected location in n timesteps multiply the distance covered in three timesteps
@@ -473,7 +469,7 @@ public class Ped implements mobileAgent {
     	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.aP);
     	
     	Coordinate newLookAhead = new Coordinate(this.pLoc.x + dx, this.pLoc.y + dy);
-    	this.lookAhead = newLookAhead;
+    	return newLookAhead;
     }
     
     /**
@@ -483,27 +479,51 @@ public class Ped implements mobileAgent {
      * If grid cell values are expected to increase the agent is heading towards a lower priority area
      * and is considered to be approaching a crossing point.
      */
-    public void lookAheadCrossingCheck() {
-    	GridCoverage2D grid = this.geography.getCoverage(this.routingCoverageName);
-    	double[] currentGridVal = null;
-    	double[] lookAheadGridVal = null;
+    public void decideYield() {
     	
-    	DirectPosition pLocDP = new DirectPosition2D(this.pLoc.x, this.pLoc.y);
-    	DirectPosition lookAheadDP = new DirectPosition2D(this.lookAhead.x, this.lookAhead.y);
-    	currentGridVal = grid.evaluate(pLocDP, currentGridVal);
-    	lookAheadGridVal = grid.evaluate(lookAheadDP, lookAheadGridVal);
+    	checkIfEnteringCrossing();
     	
-    	// Entering a crossing area if the grid value is increasing as this indicates a lowering of priority for the agent
-    	if (currentGridVal[0] < lookAheadGridVal[0]) {
-    		this.enteringCrossing = true;
+    	if (this.enteringCrossing) {
+    		
+    		// Decide whether to yield or not. For now yield for fixed amount of time by default
+    		if (this.yieldTime < 10) {
+            	this.yieldAtCrossing = true;
+            	this.yieldTime++;
+        	}
+        	
+    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
+	    	else {
+	    		this.yieldAtCrossing = false;
+	    		this.yieldTime = 0;
+				this.enteringCrossing = false;
+				this.getRoute().getRouteCrossings().remove(0);
+	    	}
+    	}
+    }
+    
+    public void checkIfEnteringCrossing() {
+    	
+    	if (this.getRoute().getRouteCrossings().size()>0) {
+        	Coordinate nextCrossingCoord = this.getRoute().getRouteCrossings().get(0);
+        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
+        	
+        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
+        	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
+        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
+        	
+        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
+        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
+        	// Also the buffer distance also needs considering
+        	if (lookAheadLine.intersects(nextCrossing)) {
+        		this.enteringCrossing = true;
+        	}
+        	else {
+        		this.enteringCrossing = false;
+        	}
     	}
     	else {
     		this.enteringCrossing = false;
     	}
-    }
-    
-    public void decideYield() {
-    	this.yieldAtCrossing = true;
     }
     
     public double getRad() {
