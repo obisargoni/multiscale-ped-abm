@@ -571,7 +571,7 @@ public class Route implements Cacheable {
 						gridPathIndexToIncludeInRoute = i;
 					}
 					else {
-						gridPathIndexToIncludeInRoute = i;
+						gridPathIndexToIncludeInRoute = i-1;
 					}
 					routeIndices.add(gridPathIndexToIncludeInRoute);
 					startCellIndex = gridPathIndexToIncludeInRoute;
