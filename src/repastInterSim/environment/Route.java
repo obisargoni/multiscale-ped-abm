@@ -504,8 +504,8 @@ public class Route implements Cacheable {
 
 		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
 		Set<Integer> routeIndices = new HashSet<Integer>();
-		double[] prevDest = new double[1];
-		double[] dest = new double[1];
+		double[] prevCellValue = new double[1];
+		double[] cellValue = new double[1];
 		
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
@@ -519,10 +519,10 @@ public class Route implements Cacheable {
 			
 			// Get grid cell value of this and previous coord. If values differ this means they are located in
 			// road space with different priority and therefore the previous grid cell should be included in the route
-			prevDest = grid.evaluate(prevCell, prevDest);
-			dest = grid.evaluate(gridCell, dest);
-			Double prevVal = prevDest[0];
-			Double val = dest[0];
+			prevCellValue = grid.evaluate(prevCell, prevCellValue);
+			cellValue = grid.evaluate(gridCell, cellValue);
+			Double prevVal = prevCellValue[0];
+			Double val = cellValue[0];
 			
 			if (!val.equals(prevVal)) {
 				routeIndices.add(i-1);
@@ -675,7 +675,7 @@ public class Route implements Cacheable {
 		GridCoordinates2D thisCell;
 		double thisCellValue;
 		double nextCellValue;
-		double[] dest = new double[1];
+		double[] cellValue = new double[1];
 		
 		while(q.size() > 0) {
 			thisCell = q.get(0);
@@ -684,19 +684,19 @@ public class Route implements Cacheable {
 			thisCellValue = values[thisCell.x][thisCell.y];
 			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
 				
-				dest = grid.evaluate(nextCell, dest);
+				cellValue = grid.evaluate(nextCell, cellValue);
 				int i = nextCell.x;
 				int j = nextCell.y;
 				
 				// If cell with default value, assign value the max int value and exclude from further computation
-				if (dest[0] == 0) {
+				if (cellValue[0] == 0) {
 					values[i][j] = Integer.MAX_VALUE;
 					n[i][j] += 1;
 					continue;
 				}
 				// Ensure the next cell doesn't have a value
 				if ((n[i][j] == 0)) {
-					nextCellValue = thisCellValue + dest[0];
+					nextCellValue = thisCellValue + cellValue[0];
 					values[i][j] = nextCellValue;
 					n[i][j] += 1;
 					q.add(nextCell);
