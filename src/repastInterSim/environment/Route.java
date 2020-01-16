@@ -715,8 +715,8 @@ public class Route implements Cacheable {
 					n[i][j] += 1;
 					continue;
 				}
-				// Ensure the next cell doesn't have a value
-				if ((n[i][j] == 0)) {
+				// Ensure the next cell doesn't already have a value
+				if (n[i][j] == 0) {
 					nextCellValue = thisCellValue + cellValue[0];
 					values[i][j] = nextCellValue;
 					n[i][j] += 1;
