@@ -245,6 +245,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
 		pedGridValueMap.put("pedestrian", 1);
 		pedGridValueMap.put("vehicle", 10);
+		pedGridValueMap.put("pedestrian_obstruction", Integer.MAX_VALUE);
 		Map<String,Integer> vehGridValueMap = new HashMap<String, Integer> ();
 		vehGridValueMap.put("vehicle", 1);
 		vehGridValueMap.put("pedestrian", 10);
@@ -252,6 +253,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Loop over coverage grid cells to check values and number of cells
 		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
 		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
 		GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
 		
     	// Get the number of pedestrian agents to add to the space from the parameters
