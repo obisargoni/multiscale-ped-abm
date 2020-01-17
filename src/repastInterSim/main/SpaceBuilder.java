@@ -251,7 +251,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
 		pedGridValueMap.put("pedestrian", 1);
 		pedGridValueMap.put("vehicle", 10);
-		pedGridValueMap.put("pedestrian_obstruction", Integer.MAX_VALUE);
+		pedGridValueMap.put("pedestrian_obstruction", 0);
 		Map<String,Integer> vehGridValueMap = new HashMap<String, Integer> ();
 		vehGridValueMap.put("vehicle", 1);
 		vehGridValueMap.put("pedestrian", 10);
