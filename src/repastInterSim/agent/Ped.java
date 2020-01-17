@@ -82,7 +82,6 @@ public class Ped implements mobileAgent {
         this.v =  v;
 
         this.tau  = 0.5/GlobalVars.tStep;
-        this.m     = 80;
         this.dmax = 10/GlobalVars.spaceScale; 
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
