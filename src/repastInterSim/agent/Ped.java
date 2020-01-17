@@ -53,7 +53,6 @@ public class Ped implements mobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     private GeometryFactory gF;
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
-    private Coordinate lookAhead; // This is the coordinate x timesteps ahead of the pedestrian, given their current bearing and desired velocity. Used to check for road crossings.
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     private String routingCoverageName;
