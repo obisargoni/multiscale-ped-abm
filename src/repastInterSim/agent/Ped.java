@@ -44,7 +44,7 @@ public class Ped implements mobileAgent {
     private double theta; // Field of vision extends from -theta to + theta from the normal to the agent (ie agent's direction)
     private double m; // Agent's mass
     private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
-    private double v0; // Desired walking spped of pedestrian agent
+    private double v0; // Desired walking speed of pedestrian agent
     private double a0; // Angle to the destination
     private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
