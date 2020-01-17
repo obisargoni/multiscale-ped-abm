@@ -1,5 +1,6 @@
 package repastInterSim.main;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.geotools.coverage.Category;
+import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
