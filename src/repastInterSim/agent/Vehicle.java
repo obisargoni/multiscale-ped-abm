@@ -23,7 +23,6 @@ public class Vehicle implements mobileAgent {
 	private int maxSpeed, followDist; // The distance from a vehicle ahead at which the agent adjusts speed to follow
 	private double speed;
 	private double acc;
-	private double bearing;
 	private double dmax;	    
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
