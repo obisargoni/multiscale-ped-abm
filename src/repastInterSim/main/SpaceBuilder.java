@@ -260,7 +260,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
 		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
 		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
+		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
 		
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
