@@ -38,7 +38,7 @@ public class Ped implements mobileAgent {
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
     
-    private double A, B, r, k; // Constants related to the interaction between agents and the desired velocity of this agent
+    private double k; // Constant related to the interaction between agents and the desired velocity of this agent
     
     // Variables related to the pedestrians vision and movements
     private double theta; // Field of vision extends from -theta to + theta from the normal to the agent (ie agent's direction)
@@ -86,10 +86,6 @@ public class Ped implements mobileAgent {
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
-        
-        this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/GlobalVars.spaceScale;
-        this.B     = 0.08/GlobalVars.spaceScale;
-        this.r     = 0.275/GlobalVars.spaceScale;
         
         this.routingCoverageName = GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE;
         
