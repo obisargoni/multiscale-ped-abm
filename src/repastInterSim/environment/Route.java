@@ -28,14 +28,22 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.grid.InvalidGridGeometryException;
+import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.GeodeticCalculator;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.TransformException;
@@ -44,6 +52,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
@@ -100,6 +109,9 @@ public class Route implements Cacheable {
 
 	// Record which function has added each coord, useful for debugging
 	private List<String> routeDescriptionX;
+	
+	// Record the coordinates of route points that correspond to crossing locations
+	private List<Coordinate> routeCrossings;
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -472,6 +484,378 @@ public class Route implements Cacheable {
 		// Finished, just check that the route arrays are all in sync
 		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
 				&& this.roadsX.size() == this.routeDescriptionX.size();
+	}
+	
+	/**
+	 * Set the route of a mobile agent using the agent's corresponding grid coverage
+	 * layer and the flood fill algorithm. This produces a path of coordinates that each correspond
+	 * to a grid cell in the coverage. The full path coordinates are pruned to retain
+	 * only those that indicate where to turn and points of transition between road priority.
+	 * 
+	 */
+	public void setPedestrianGridRoute() {
+		
+		String gridCoverageName = mA.getRoutingCoverageName();
+		
+		// Initialise class attributes
+		this.routeX = new Vector<Coordinate>();
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+		this.routeCrossings = new Vector<Coordinate>();
+		
+		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
+
+		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
+		Set<Integer> routeIndices = new HashSet<Integer>();
+		Set<Integer> crossingIndices = new HashSet<Integer>();
+		double[] prevCellValue = new double[1];
+		double[] cellValue = new double[1];
+		
+		// The first cell in the path corresponds to the agents starting position,
+		// therefore don't need to include this coordinate in the route
+		GridCoordinates2D prevCell = gridPath.get(0);
+		Coordinate prevCoord = gridCellToCoordinate(grid, prevCell);
+		
+		// Get indices of gris cells that are at location where road priority changes (crossing points)
+		for (int i = 1; i < gridPath.size(); i++) {
+			GridCoordinates2D gridCell = gridPath.get(i);
+			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
+			
+			// Get grid cell value of this and previous coord. If values differ this means they are located in
+			// road space with different priority and therefore the previous grid cell should be included in the route
+			prevCellValue = grid.evaluate(prevCell, prevCellValue);
+			cellValue = grid.evaluate(gridCell, cellValue);
+			Double prevVal = prevCellValue[0];
+			Double val = cellValue[0];
+			
+			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
+			if (val.compareTo(prevVal) > 0) {
+				routeIndices.add(i);
+				crossingIndices.add(i);
+			}
+			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
+			else if (val.compareTo(prevVal) < 0) {
+				routeIndices.add(i);
+			}
+			prevCell = gridCell;
+			prevCoord = cellCoord;
+		}
+		
+		
+		// Now prune path coordinates that are redundant.
+		// These are defined as those which lay between coordinates which are not separated by a ped obstruction
+		// or change in road priority
+		Boolean pathFinished = false;
+		int startCellIndex = 0;
+		GridCoordinates2D startCell = gridPath.get(startCellIndex);
+		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+		
+		// Given a fixed starting path coordinate, loop through path coordinates, create line between pairs
+		// if line intersects with an obstacle, set the route coord to be the previous path coord for which there 
+		// was no intersection
+		for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
+			int gridPathIndexToIncludeInRoute;
+			GridCoordinates2D gridCell = gridPath.get(i);
+			Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
+			
+			if (checkForObstaclesBetweenRouteCoordinates(startCoord, gridCoord)) {
+				// Handle the case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
+				if (i-1 == startCellIndex) {
+					gridPathIndexToIncludeInRoute = i;
+				}
+				else {
+					gridPathIndexToIncludeInRoute = i-1;
+				}
+				routeIndices.add(gridPathIndexToIncludeInRoute);
+				startCellIndex = gridPathIndexToIncludeInRoute;
+				
+				// Update start cell
+				startCell = gridPath.get(startCellIndex);
+				startCoord = gridCellToCoordinate(grid, startCell);
+				
+				// Loop continues two steps ahead from starting cell but this doesn't change route outcome
+			}
+		}
+		
+		// Order final set of route indicies
+		List<Integer> routeIndicesSorted = routeIndices.stream().sorted().collect(Collectors.toList());
+		for (int i:routeIndicesSorted) {
+			GridCoordinates2D routeCell = gridPath.get(i);
+			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
+			addToRoute(routeCoord, RoadLink.nullRoad, 1, "grid coverage path");
+		}
+		
+		// Similarly order crossing point indices and get these coordinates
+		List<Integer> crossingIndicesSorted = crossingIndices.stream().sorted().collect(Collectors.toList());
+		for (int i:crossingIndicesSorted) {
+			GridCoordinates2D crossingCell = gridPath.get(i);
+			Coordinate crossingCoord = gridCellToCoordinate(grid, crossingCell);
+			this.routeCrossings.add(crossingCoord);
+		}
+		
+		// Finally add the destination as a route coordinate
+		addToRoute(this.destination, RoadLink.nullRoad, 1, "grid coverage path");
+	}
+	
+	public boolean checkForObstaclesBetweenRouteCoordinates(Coordinate startCoord, Coordinate endCoord) {
+		boolean isObstructingObjects = false;
+		
+		Coordinate[] lineCoords = {startCoord, endCoord};
+		LineString pathLine = new GeometryFactory().createLineString(lineCoords);
+		
+		// Check if line passes through a ped obstruction
+		// If it does add the previous index to the pruned path list
+		List<PedObstruction> intersectingObs = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, pathLine);
+		if (intersectingObs.size() > 0){
+			isObstructingObjects = true;
+		}
+		
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
+		if (intersectingRoads.size()>0) {
+			String priority = intersectingRoads.get(0).getPriority();
+			intersectingRoads.remove(0);
+			for (Road intersectingR: intersectingRoads) {
+				if (!intersectingR.getPriority().contentEquals(priority)) {
+					isObstructingObjects = true;
+				}
+			}
+		}
+		
+		return isObstructingObjects;
+	}
+	/**
+	 * Find a path through a grid coverage layer by using the flood fill algorithm to calculate cell 'costs'
+	 * and acting greedily to identify a path.
+	 * 
+	 * @param gridCoverageName
+	 * 			The name of the coverage layer to use
+	 * @return
+	 * 			List<GridCoordinates2D> The grid coordinates path
+	 */
+	public List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid){
+		
+		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
+
+		DirectPosition2D dpStart = new DirectPosition2D(this.mA.getLoc().x, this.mA.getLoc().y);
+		DirectPosition2D dpEnd = new DirectPosition2D(this.destination.x, this.destination.y);
+		GridCoordinates2D start = null;
+		GridCoordinates2D end = null;
+		try {
+			start = grid.getGridGeometry().worldToGrid(dpStart);
+			end = grid.getGridGeometry().worldToGrid(dpEnd);
+		} catch (InvalidGridGeometryException | TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		double[][] cellValues = gridCoverageFloodFill(grid, end);
+		boolean atEnd = false;
+		
+		GridCoordinates2D next = start;
+		while(!atEnd) {
+			if (next.equals(end)) {
+				atEnd = true;
+			}
+			gridPath.add(next);
+			next = greedyManhattanNeighbour(next, cellValues, gridPath);
+		}
+		
+		return gridPath;
+	}
+	
+	/**
+	 * Runs the flood fill algorithm on the grid coverage with the name given as an input parameter. This algorithm assigns 
+	 * each cell a value based on its distance from the mobile agent's end destination. THe process stops once the cell 
+	 * containing the mobile agents current position is reached.
+	 * 
+	 * The grid coverage cell values are used in the calculation of the flood fill values, they represent the 'cost' of travelling through that cell.
+	 * @param gridCoverageName
+	 * 			The name of the grid coverage to use when calculating cell flood fill values
+	 * @return
+	 * 			2D double array of cell values
+	 */
+	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D end) {
+
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		double [][] values = new double[width][height]; // Initialised with zeros
+		int [][] n = new int[width][height]; // Use to log number of times a cell is visited. All cells should get visited once.
+		List<GridCoordinates2D> q = new ArrayList<GridCoordinates2D>();
+		
+		// Staring at the destination, flood fill cell values using distance measure between cells
+		GridCoordinates2D thisCell;
+		double thisCellValue;
+		double nextCellValue;
+		double[] cellValue = new double[1];
+		
+		int i = end.x;
+		int j = end.y;
+		n[i][j] = 1; // Make sure the end cell value doesn't get updated
+		q.add(end);
+		while(q.size() > 0) {
+			thisCell = q.get(0);
+			q.remove(0);
+			
+			thisCellValue = values[thisCell.x][thisCell.y];
+			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
+				
+				cellValue = grid.evaluate(nextCell, cellValue);
+				i = nextCell.x;
+				j = nextCell.y;
+				
+				// If cell with default value, assign value the max int value and exclude from further computation
+				if (cellValue[0] == 0) {
+					values[i][j] = Integer.MAX_VALUE;
+					n[i][j] += 1;
+					continue;
+				}
+				// Ensure the next cell doesn't already have a value
+				if (n[i][j] == 0) {
+					nextCellValue = thisCellValue + cellValue[0];
+					values[i][j] = nextCellValue;
+					n[i][j] += 1;
+					q.add(nextCell);
+				}
+			}
+		}
+
+		return values;
+	}
+	
+	/**
+	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
+	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell){
+		
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
+		
+		int[] range = {-1,1};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			mN.add(new GridCoordinates2D(i + dx, j));
+		}
+		
+		for (int dy: range) {
+			mN.add(new GridCoordinates2D(i, j + dy));
+		}
+		
+		return mN;
+	}
+	
+	/**
+	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
+	 * 
+	 * Exclude coordinates that are lower than the minimum i and j parameters or greater than or equal to the
+	 * maximum i and j parameters.
+	 * 
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @param mini
+	 * 			Minimum i value
+	 * @param minj
+	 * 			Minimum j value
+	 * @param maxi
+	 * 			Maximum i value
+	 * @param maxj
+	 * 			Maximum j value
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
+	private List<GridCoordinates2D> manhattanNeighbourghs(GridCoordinates2D cell, int mini, int minj, int maxi, int maxj){
+		
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
+		
+		int[] range = {-1,1};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			if ((i + dx >= mini) & (i + dx < maxi) & (j >= minj) & (j < maxj)) {
+				mN.add(new GridCoordinates2D(i + dx, j));
+			}
+		}
+		
+		for (int dy: range) {
+			if ((i >= mini) & (i < maxi) & (j + dy >= minj) & (j + dy < maxj)) {
+				mN.add(new GridCoordinates2D(i, j + dy));
+			}
+		}
+		
+		return mN;
+	}
+	
+	public GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path) {
+		int width = cellValues.length;
+		int height = cellValues[0].length;
+		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, 0, 0, width, height);
+		
+		// Initialise greedy options
+		List<Double> minVal = new ArrayList<Double>();
+		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
+		
+		minVal.add((double) Integer.MAX_VALUE);
+
+		
+		for(GridCoordinates2D neighbour:manhattanNeighbours) {
+			// Don't consider cells already in the path
+			if (path.contains(neighbour)) {
+				continue;
+			}
+			double val = cellValues[neighbour.x][neighbour.y];
+			
+			// If cell value equal to current minimum include in greedy option
+			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			
+			// Else  clear the current min values and replace with new min
+			else if (val < minVal.get(0)) {
+				// Replace old values with new ones
+				minVal.clear();
+				greedyNeighbours.clear();
+				
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			else {
+				continue;
+			}
+		}
+		
+	    Random rand = new Random();
+	    GridCoordinates2D greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    return greedyNeighbour;
+	}
+	
+	/**
+	 * Get the gis coordinate that corresponds to the location of the input Grid Coordinate
+	 * in the coordinate reference system used by the grid coverage
+	 * 
+	 * @param grid
+	 * 			The grid in which the grid cell sits
+	 * @param cell
+	 * 			The grid coordinate to get the gis coordinate of
+	 * @return
+	 * 			Coordinate. The gis coordinate
+	 */
+	public Coordinate gridCellToCoordinate(GridCoverage2D grid, GridCoordinates2D cell) {
+		double[] cellCoord = null;
+		try {
+			cellCoord = grid.getGridGeometry().gridToWorld(cell).getCoordinate();
+		} catch (TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Coordinate c = new Coordinate(cellCoord[0], cellCoord[1]);
+		
+		return c;
 	}
 
 	private void checkListSizes() {
@@ -1107,6 +1491,10 @@ public class Route implements Cacheable {
 		return this.routeSpeedsX;
 	}
 	
+	public List<Coordinate> getRouteCrossings(){
+		return this.routeCrossings;
+	}
+	
 	public Coordinate getRouteXCoordinate(Integer i) {
 		return this.routeX.get(i);
 	}
@@ -1130,6 +1518,7 @@ public class Route implements Cacheable {
 	*/
 
 }
+
 
 /* ************************************************************************ */
 

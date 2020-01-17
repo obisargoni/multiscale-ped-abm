@@ -23,10 +23,10 @@ public class Vehicle implements mobileAgent {
 	private int maxSpeed, followDist; // The distance from a vehicle ahead at which the agent adjusts speed to follow
 	private double speed;
 	private double acc;
-	private double bearing;
 	private double dmax;	    
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
+	private String routingCoverageName;
 	
 	public Destination destination;
 	
@@ -39,6 +39,8 @@ public class Vehicle implements mobileAgent {
 		this.acc = a;
 		this.speed = s;
 		this.dmax = 20/GlobalVars.spaceScale; // Assuming vehicle drivers adjust their driving according to what's happening 20m in front.
+		
+		this.routingCoverageName = GlobalVars.CONTEXT_NAMES.VEHICLE_ROUTING_COVERAGE;
 		
 		this.destination = d;
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
@@ -440,6 +442,11 @@ public class Vehicle implements mobileAgent {
 	@Override
 	public Route getRoute() {
     	return this.route;
+    }
+	
+    @Override
+    public String getRoutingCoverageName() {
+    	return this.routingCoverageName;
     }
 
 }

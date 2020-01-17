@@ -54,6 +54,7 @@ public abstract class GlobalVars {
 	public static double pedMassAv = 60; // 60kg average mass
 	public static double pedMasssd = 10; // 60kg average mass
 	public static double interactionForceConstant = 100;
+	public static int lookAheadTimeSteps = 3; // The number of timesteps to use when calculating an agents lookahead coordinate, used to identifying upcoming crossings.
 	
 	public static double defaultVehicleAcceleration = 0.1;
 	public static double initialVehicleSpeed = 0.5;
@@ -72,6 +73,9 @@ public abstract class GlobalVars {
 		public enum BUFFER_DISTANCE {
 			/** The smallest distance, rarely used. Approximately 0.001m*/
 			SMALL(0.001, "0.001"),
+			/** Intermediate distance between small and medium. Used for checking pedestrian proximity to
+			 * crossing locations. */
+			SMALLPLUS(2, "2"),
 			/** Most commonly used distance, OK for looking for nearby houses or roads.
 			 * Approximatey 110m */
 			MEDIUM(110,"110"),
@@ -89,8 +93,6 @@ public abstract class GlobalVars {
 			public double dist;
 			public String distInMeters;
 		}
-
-		public static final double TRAVEL_PER_TURN = 1; // TODO Make a proper value for this
 	}
 	
 	/** Names of contexts and projections. These names must match those in the
@@ -121,6 +123,9 @@ public abstract class GlobalVars {
 		
 		public static final String AGENT_CONTEXT = "AgentContext";
 		public static final String AGENT_GEOGRAPHY = "AgentGeography";
+		
+		public static final String PEDESTRIAN_ROUTING_COVERAGE = "pedGrid";
+		public static final String VEHICLE_ROUTING_COVERAGE = "vehGrid";
 	
 	}
 	

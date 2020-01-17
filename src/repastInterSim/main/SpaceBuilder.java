@@ -183,10 +183,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pedestrianRoadFile = GISDataDir + getProperty("PedestrianRoadShapefile");
 			GISFunctions.readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
+			SpatialIndexManager.createIndex(roadGeography, Road.class);
+
 			
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
+			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+
 			
 			// Build the road network
 			
@@ -232,16 +236,16 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
 		
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
-		 Category[] categories	= new Category[] {	
+		 Category[] pedCategories	= new Category[] {	
 	        new Category("No data", Color.BLACK, 0),
-	        new Category("Level 1", Color.GREEN, 1),
-	        new Category("Level 3", Color.RED, 10)
+	        new Category("Pedestrian area", Color.GREEN, 1),
+	        new Category("Vehicle area", Color.RED, 10)
 	    };
 
-		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
-		geography.addCoverage("pedGrid", pedGrid);
-		WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
-		geography.addCoverage("pedGrid", vehGrid);
+		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, pedCategories, null, 0);
+		geography.addCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE, pedGrid);
+		//WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
+		//geography.addCoverage(GlobalVars.CONTEXT_NAMES.VEHICLE_ROUTING_COVERAGE, vehGrid);
 		
 		// Initialise map from attribute value to numeric grid cell value
 		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
@@ -474,7 +478,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
 		try {
-			newPed.getRoute().setPedestrianRoute();
+			newPed.getRoute().setPedestrianGridRoute();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -484,7 +488,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
-        
+		
         return newPed;
     }
     

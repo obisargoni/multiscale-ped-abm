@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.geometry.DirectPosition2D;
+import org.opengis.geometry.DirectPosition;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -34,13 +38,13 @@ public class Ped implements mobileAgent {
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
     
-    private double A, B, r, k; // Constants related to the interaction between agents and the desired velocity of this agent
+    private double k; // Constant related to the interaction between agents and the desired velocity of this agent
     
     // Variables related to the pedestrians vision and movements
     private double theta; // Field of vision extends from -theta to + theta from the normal to the agent (ie agent's direction)
     private double m; // Agent's mass
     private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
-    private double v0; // Desired walking spped of pedestrian agent
+    private double v0; // Desired walking speed of pedestrian agent
     private double a0; // Angle to the destination
     private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
@@ -49,6 +53,11 @@ public class Ped implements mobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     private GeometryFactory gF;
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
+    private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
+    private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
+    private String routingCoverageName;
+    
+    private int yieldTime = 0;
     
     private Color col; // Colour of the pedestrian
     
@@ -72,15 +81,12 @@ public class Ped implements mobileAgent {
         this.v =  v;
 
         this.tau  = 0.5/GlobalVars.tStep;
-        this.m     = 80;
         this.dmax = 10/GlobalVars.spaceScale; 
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
         
-        this.A     = 2000*GlobalVars.tStep*GlobalVars.tStep/GlobalVars.spaceScale;
-        this.B     = 0.08/GlobalVars.spaceScale;
-        this.r     = 0.275/GlobalVars.spaceScale;
+        this.routingCoverageName = GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE;
         
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
@@ -96,13 +102,19 @@ public class Ped implements mobileAgent {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {
     	
-    	// Walk towards the next coordinate along the route
         Coordinate routeCoord = this.route.getRouteXCoordinate(0);
+
+    	// Walk towards the next coordinate along the route
     	walk(routeCoord);
     	
+    	// Agent decides whether to yield, in which case it doesn't progress to the next route coord
+   		decideYield(); 
+    	
     	// Check if destination reached within 1m of route coordinate, if true remove that coordinate from the route
-    	if (this.pLoc.distance(routeCoord) < 1) {
-    		this.route.removeRouteXCoordinate(routeCoord);
+    	if (!this.yieldAtCrossing) {
+        	if (this.pLoc.distance(routeCoord) < 1) {
+        		this.route.removeRouteXCoordinate(routeCoord);
+        	}
     	}
     }
     
@@ -133,8 +145,7 @@ public class Ped implements mobileAgent {
         // Set the direction the pedestrian faces to be the direction of its velocity vector
         setPedestrianBearingFromVelocity(this.v);
     }
-    
-
+   
     /*
      * Calculate the acceleration of the pedestrian.
      * 
@@ -214,7 +225,6 @@ public class Ped implements mobileAgent {
         } 
     	
     	return cATotal;
-    	
     }
     
     public double[] pedestrianContactAcceleration(Ped egoPed, Ped agentPed, Geometry agentGeom) {
@@ -235,7 +245,6 @@ public class Ped implements mobileAgent {
     	double[] A  = {magA*n[0], magA*n[1]};
     	
     	return A;
-    	
     }
     
     public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, PedObstruction Obstr, Geometry obstrGeom) {
@@ -438,6 +447,79 @@ public class Ped implements mobileAgent {
     	this.aP = aP;
     }
     
+    /**
+     * Set the estimated expected location of the pedestrian agent in a number of timesteps time
+     * 
+     * @param nTimeSteps
+     * 			Integer number of timesteps to estimate location at
+     */
+    public Coordinate getPedestrianLookAheadCoord(int nTimeSteps) {
+    	
+    	// aP is the bearing from north represents pedestrian direction.
+    	// To get expected location in n timesteps multiply the distance covered in three timesteps
+    	// by the bearing resolved in the x and y directions
+    	
+    	double dx = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.sin(this.aP);
+    	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.aP);
+    	
+    	Coordinate newLookAhead = new Coordinate(this.pLoc.x + dx, this.pLoc.y + dy);
+    	return newLookAhead;
+    }
+    
+    /**
+     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
+     * used for routing, at the current location and estimates near future location.
+     * 
+     * If grid cell values are expected to increase the agent is heading towards a lower priority area
+     * and is considered to be approaching a crossing point.
+     */
+    public void decideYield() {
+    	
+    	checkIfEnteringCrossing();
+    	
+    	if (this.enteringCrossing) {
+    		
+    		// Decide whether to yield or not. For now yield for fixed amount of time by default
+    		if (this.yieldTime < 10) {
+            	this.yieldAtCrossing = true;
+            	this.yieldTime++;
+        	}
+        	
+    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
+	    	else {
+	    		this.yieldAtCrossing = false;
+	    		this.yieldTime = 0;
+				this.enteringCrossing = false;
+				this.getRoute().getRouteCrossings().remove(0);
+	    	}
+    	}
+    }
+    
+    public void checkIfEnteringCrossing() {
+    	
+    	if (this.getRoute().getRouteCrossings().size()>0) {
+        	Coordinate nextCrossingCoord = this.getRoute().getRouteCrossings().get(0);
+        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
+        	
+        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
+        	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
+        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
+        	
+        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
+        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
+        	// Also the buffer distance also needs considering
+        	if (lookAheadLine.intersects(nextCrossing)) {
+        		this.enteringCrossing = true;
+        	}
+        	else {
+        		this.enteringCrossing = false;
+        	}
+    	}
+    	else {
+    		this.enteringCrossing = false;
+    	}
+    }
+    
     public double getRad() {
     	return this.rad;
     }
@@ -490,5 +572,10 @@ public class Ped implements mobileAgent {
     @Override
     public Route getRoute() {
     	return this.route;
+    }
+    
+    @Override
+    public String getRoutingCoverageName() {
+    	return this.routingCoverageName;
     }
 }
