@@ -410,26 +410,6 @@ public class GISFunctions {
 		
 	}
 	
-	
-	public static List<GridEnvelope2D> gridCoverageCellEnvelopeList(WritableGridCoverage2D grid) {
-		
-		List<GridEnvelope2D> geList = new ArrayList<GridEnvelope2D>();
-		
-		// Cast to int. 
-		int width = grid.getRenderedImage().getWidth();
-		int height = grid.getRenderedImage().getHeight();
-		
-		// Loop over coverage grid cells
-		for(int i=0;i<width;i++) {
-			for (int j=0;j<height;j++) {
-				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
-				geList.add(gridEnv);
-			}
-		}
-		
-		return geList;
-	}
-	
 	/**
 	 * Sets the values of grid coverage cells according to an attribute of objects contained within a geography. Grid cells that
 	 * intersect with a geography object have their value set according to the objects attribute, the name of which is given as an input to 
@@ -442,17 +422,16 @@ public class GISFunctions {
 	 * @param attributeName The name of the agent attribute to use to set grid cell values
 	 * @param agentAttributeValueMap A map between attribute value and grid cell value
 	 */
-	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
+	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, List<GridEnvelope2D> gridEnvelopeList, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
 		
 	    // Get class attributeMethodMap read attribute methods
 	    Map<String, Method> readAttributeMethodMap = ShapefileLoader.getAttributeMethodMap(cl, "r");
 	    
 	    Method readAttributeMethod = readAttributeMethodMap.get(attributeName);
 
-		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(grid);
 		Iterable<T> Obs = geography.getAllObjects();
 			
-		for(GridEnvelope2D gridEnv: geList) {
+		for(GridEnvelope2D gridEnv: gridEnvelopeList) {
 			
 			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
 					

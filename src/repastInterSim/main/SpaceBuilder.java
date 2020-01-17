@@ -250,8 +250,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		vehGridValueMap.put("pedestrian", 10);
 
 		// Loop over coverage grid cells to check values and number of cells
-		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, Road.class, roadGeography, "priority", pedGridValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(vehGrid, Road.class, roadGeography, "priority", vehGridValueMap);    	
+		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
+		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
 		
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
@@ -277,6 +278,25 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 	}
 	
+	public static List<GridEnvelope2D> gridCoverageCellEnvelopeList(WritableGridCoverage2D grid) {
+		
+		List<GridEnvelope2D> geList = new ArrayList<GridEnvelope2D>();
+		
+		// Cast to int. 
+		int width = grid.getRenderedImage().getWidth();
+		int height = grid.getRenderedImage().getHeight();
+		
+		// Loop over coverage grid cells
+		for(int i=0;i<width;i++) {
+			for (int j=0;j<height;j++) {
+				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
+				geList.add(gridEnv);
+			}
+		}
+		
+		return geList;
+	}
+
 	/*
 	 * Scheduled method that adds vehicle agents to the simulation. Each method call vehicle agents
 	 * are initialised with origins and destinations taken from an OD matrix. The OD matrix values 
