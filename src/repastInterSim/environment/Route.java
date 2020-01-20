@@ -549,7 +549,6 @@ public class Route implements Cacheable {
 		// Now prune path coordinates that are redundant.
 		// These are defined as those which lay between coordinates which are not separated by a ped obstruction
 		// or change in road priority
-		Boolean pathFinished = false;
 		int startCellIndex = 0;
 		GridCoordinates2D startCell = gridPath.get(startCellIndex);
 		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
