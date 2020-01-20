@@ -1,10 +1,12 @@
 package repastInterSim.main;
 
 import java.awt.Color;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -18,7 +20,11 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
+
 import org.geotools.coverage.Category;
+import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -104,6 +110,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * (at the bottom of this file).
 	 */
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
+	
+	/*
+	 * Double arrays used for exporting grid coverage data related to routing.
+	 * Exported for checking an demonstration
+	 */
+	private static double[][] gridCellValues;
+	public static double[][] floodFillValues;
+	public static double[][] pathValues;
+	public static double[][] crossingPointValues;
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
@@ -262,6 +277,25 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		//GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
 		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
 		
+		RenderedImage pedGridImage = pedGrid.getRenderedImage();
+	    File output = new File("pedGrid.png");
+	    try {
+			ImageIO.write(pedGridImage, "png", output);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+	    /*
+		RenderedImage vehGridImage = vehGrid.getRenderedImage();
+	    File output2 = new File("vehGrid.png");
+	    try {
+			ImageIO.write(vehGridImage, "png", output2);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
@@ -486,10 +520,57 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
 		
+		// Export pedestrian route data
+		exportGridRouteData(newPed);
+		
         return newPed;
     }
     
-    /*
+    private void exportGridRouteData(Ped newPed) {
+    	
+    	String gridValueFile = ".\\data\\output_grid_coverage_values.csv";
+    	String floodFillValueFile = ".\\data\\output_flood_fill_values.csv";
+
+		// TODO Auto-generated method stub
+		GridCoverage2D grid = newPed.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
+		double[][] floodFillValues = newPed.getRoute().getFloodFillGridValues(); 
+				
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		double[] gridValue = null;
+		double floodFillValue;
+	    try {
+			FileWriter gridValueWriter = new FileWriter(gridValueFile);
+			FileWriter floodFillValueWriter = new FileWriter(floodFillValueFile);
+			
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					GridCoordinates2D gridPos = new GridCoordinates2D(i,j);
+					floodFillValue = floodFillValues[i][j];
+					
+					gridValue = grid.evaluate(gridPos, gridValue);
+					
+					gridValueWriter.append(String.valueOf(gridValue[0]));
+					floodFillValueWriter.append(String.valueOf(floodFillValue));
+					
+					gridValueWriter.append(",");
+					floodFillValueWriter.append(",");
+					}
+				gridValueWriter.append("\n");
+				floodFillValueWriter.append("\n");
+				}
+			gridValueWriter.close();
+			floodFillValueWriter.close();
+			} 
+	    catch (IOException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	/*
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(Coordinate o, Destination d) {

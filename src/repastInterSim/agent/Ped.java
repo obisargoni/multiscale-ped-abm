@@ -578,4 +578,9 @@ public class Ped implements mobileAgent {
     public String getRoutingCoverageName() {
     	return this.routingCoverageName;
     }
+    
+    @Override
+    public Geography<Object> getGeography() {
+    	return this.geography;
+    }
 }
