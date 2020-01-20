@@ -232,8 +232,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
 		
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
-		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth())*2;
-		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight())*2;
+		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth());
+		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight());
 		
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
 		 Category[] pedCategories	= new Category[] {	
