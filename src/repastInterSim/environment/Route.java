@@ -112,6 +112,9 @@ public class Route implements Cacheable {
 	
 	// Record the coordinates of route points that correspond to crossing locations
 	private List<Coordinate> routeCrossings;
+	
+	// Record the value of grid cells following flood fill (used when routing via a grid)
+	private double[][] floodFillValues = null;
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -680,7 +683,7 @@ public class Route implements Cacheable {
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
 		
-		double [][] values = new double[width][height]; // Initialised with zeros
+		floodFillValues = new double[width][height]; // Initialised with zeros
 		int [][] n = new int[width][height]; // Use to log number of times a cell is visited. All cells should get visited once.
 		List<GridCoordinates2D> q = new ArrayList<GridCoordinates2D>();
 		
@@ -698,7 +701,7 @@ public class Route implements Cacheable {
 			thisCell = q.get(0);
 			q.remove(0);
 			
-			thisCellValue = values[thisCell.x][thisCell.y];
+			thisCellValue = floodFillValues[thisCell.x][thisCell.y];
 			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
@@ -707,21 +710,20 @@ public class Route implements Cacheable {
 				
 				// If cell with default value, assign value the max int value and exclude from further computation
 				if (cellValue[0] == 0) {
-					values[i][j] = Integer.MAX_VALUE;
+					floodFillValues[i][j] = Integer.MAX_VALUE;
 					n[i][j] += 1;
 					continue;
 				}
 				// Ensure the next cell doesn't already have a value
 				if (n[i][j] == 0) {
 					nextCellValue = thisCellValue + cellValue[0];
-					values[i][j] = nextCellValue;
+					floodFillValues[i][j] = nextCellValue;
 					n[i][j] += 1;
 					q.add(nextCell);
 				}
 			}
 		}
-
-		return values;
+		return floodFillValues;
 	}
 	
 	/**
