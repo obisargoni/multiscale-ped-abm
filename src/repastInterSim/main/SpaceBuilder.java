@@ -19,6 +19,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.geotools.coverage.Category;
+import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
@@ -104,6 +106,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * (at the bottom of this file).
 	 */
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
+	
+	/*
+	 * Double arrays used for exporting grid coverage data related to routing.
+	 * Exported for checking an demonstration
+	 */
+	private static double[][] gridCellValues;
+	public static double[][] floodFillValues;
+	public static double[][] pathValues;
+	public static double[][] crossingPointValues;
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
@@ -492,7 +503,51 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
-    /*
+    private void exportGridRouteData(Ped newPed) {
+    	
+    	String gridValueFile = ".\\data\\output_grid_coverage_values.csv";
+    	String floodFillValueFile = ".\\data\\output_flood_fill_values.csv";
+
+		// TODO Auto-generated method stub
+		GridCoverage2D grid = newPed.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
+		double[][] floodFillValues = newPed.getRoute().getFloodFillGridValues(); 
+				
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		double[] gridValue = null;
+		double floodFillValue;
+	    try {
+			FileWriter gridValueWriter = new FileWriter(gridValueFile);
+			FileWriter floodFillValueWriter = new FileWriter(floodFillValueFile);
+			
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					GridCoordinates2D gridPos = new GridCoordinates2D(i,j);
+					floodFillValue = floodFillValues[i][j];
+					
+					gridValue = grid.evaluate(gridPos, gridValue);
+					
+					gridValueWriter.append(String.valueOf(gridValue[0]));
+					floodFillValueWriter.append(String.valueOf(floodFillValue));
+					
+					gridValueWriter.append(",");
+					floodFillValueWriter.append(",");
+					}
+				gridValueWriter.append("\n");
+				floodFillValueWriter.append("\n");
+				}
+			gridValueWriter.close();
+			floodFillValueWriter.close();
+			} 
+	    catch (IOException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	/*
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(Coordinate o, Destination d) {
