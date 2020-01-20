@@ -719,20 +719,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private List<String[]> readCSV(String filePath) {
 		// Read in OD matrix data for pedestrians from CSV
 		List<String[]> csvData = null;
+		CSVReader reader = null;
 		try {
-		     CSVReader reader = new CSVReader(new FileReader(filePath));
-		     try {
-				csvData = reader.readAll();
-			} catch (CsvException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		     reader.close();
-		} catch (IOException e) {
+			reader = new CSVReader(new FileReader(filePath));
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+		try {
+			csvData = reader.readAll();
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
 		return csvData;
 	}
 	
