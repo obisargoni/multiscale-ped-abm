@@ -30,7 +30,6 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -52,6 +51,7 @@ import repast.simphony.space.gis.RepastCoverageFactory;
 import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.Destination;
@@ -275,27 +275,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
 		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
 		//GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
-		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
-		
-		RenderedImage pedGridImage = pedGrid.getRenderedImage();
-	    File output = new File("pedGrid.png");
-	    try {
-			ImageIO.write(pedGridImage, "png", output);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    
-	    /*
-		RenderedImage vehGridImage = vehGrid.getRenderedImage();
-	    File output2 = new File("vehGrid.png");
-	    try {
-			ImageIO.write(vehGridImage, "png", output2);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
+		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
@@ -526,48 +506,33 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
-    private void exportGridRouteData(Ped newPed) {
+    private void exportGridRouteData(MobileAgent ma) {
     	
     	String gridValueFile = ".\\data\\output_grid_coverage_values.csv";
     	String floodFillValueFile = ".\\data\\output_flood_fill_values.csv";
+    	String gridImageFile = ".\\output\\output_grid_vales.png";
 
 		// TODO Auto-generated method stub
-		GridCoverage2D grid = newPed.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
-		double[][] floodFillValues = newPed.getRoute().getFloodFillGridValues(); 
+		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
+		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
+		
+		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
+		IO.gridCoverageToImage(grid, gridImageFile);
 				
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
 		
 		double[] gridValue = null;
-		double floodFillValue;
-	    try {
-			FileWriter gridValueWriter = new FileWriter(gridValueFile);
-			FileWriter floodFillValueWriter = new FileWriter(floodFillValueFile);
-			
-			for (int i = 0; i < width; i++) {
-				for (int j = 0; j < height; j++) {
-					GridCoordinates2D gridPos = new GridCoordinates2D(i,j);
-					floodFillValue = floodFillValues[i][j];
-					
-					gridValue = grid.evaluate(gridPos, gridValue);
-					
-					gridValueWriter.append(String.valueOf(gridValue[0]));
-					floodFillValueWriter.append(String.valueOf(floodFillValue));
-					
-					gridValueWriter.append(",");
-					floodFillValueWriter.append(",");
-					}
-				gridValueWriter.append("\n");
-				floodFillValueWriter.append("\n");
-				}
-			gridValueWriter.close();
-			floodFillValueWriter.close();
-			} 
-	    catch (IOException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
+		double[][] gridValues = new double[width][height];			
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
+				gridValue = grid.evaluate(gridPos, gridValue);
+				gridValues[i][j] = gridValue[0];
+			}
 		}
 		
+		IO.twodDoubleArrayToCSV(gridValues, gridValueFile);		
 	}
 
 	/*
