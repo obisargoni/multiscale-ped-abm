@@ -1504,6 +1504,10 @@ public class Route implements Cacheable {
 	public void removeRouteXCoordinate(Coordinate c) {
 		routeX.remove(c);
 	}
+	
+	public double[][] getFloodFillGridValues() {
+		return this.floodFillValues;
+	}
 
 	/**
 	 * Will add the given buildings to the awareness space of the Burglar who is being controlled by this Route.
