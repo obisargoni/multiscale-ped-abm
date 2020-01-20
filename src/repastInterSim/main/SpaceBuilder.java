@@ -262,9 +262,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		//GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
 		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);    	
 		
-    	// Get the number of pedestrian agents to add to the space from the parameters
-    	Parameters params = RunEnvironment.getInstance().getParameters();
-    	int nP = (int)params.getInteger("nPeds");		
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
