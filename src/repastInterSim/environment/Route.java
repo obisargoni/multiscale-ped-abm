@@ -60,7 +60,7 @@ import cern.colt.Arrays;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
-import repastInterSim.agent.mobileAgent;
+import repastInterSim.agent.MobileAgent;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -87,7 +87,7 @@ public class Route implements Cacheable {
 	}
 	private Geography<Object> geography;
 	
-	private mobileAgent mA;
+	private MobileAgent mA;
 	private Coordinate destination;
 
 	/*
@@ -163,7 +163,7 @@ public class Route implements Cacheable {
 	 * @param type
 	 *            The (optional) type of route, used by burglars who want to search.
 	 */
-	public Route(Geography<Object> geography, mobileAgent mA, Coordinate destination) {
+	public Route(Geography<Object> geography, MobileAgent mA, Coordinate destination) {
 		this.geography = geography;
 		this.mA = mA;
 		this.destination = destination;

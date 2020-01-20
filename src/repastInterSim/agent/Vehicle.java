@@ -18,7 +18,7 @@ import repastInterSim.environment.Route;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class Vehicle implements mobileAgent {
+public class Vehicle implements MobileAgent {
 
 	private int maxSpeed, followDist; // The distance from a vehicle ahead at which the agent adjusts speed to follow
 	private double speed;

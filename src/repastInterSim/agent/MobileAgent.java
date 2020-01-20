@@ -6,7 +6,7 @@ import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.Route;
 
-public interface mobileAgent {
+public interface MobileAgent {
 	
 	Destination getDestination();
 	void setLoc();

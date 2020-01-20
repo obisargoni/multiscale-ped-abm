@@ -10,7 +10,7 @@ import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 
-import repastInterSim.agent.mobileAgent;
+import repastInterSim.agent.MobileAgent;
 import repastInterSim.main.SpaceBuilder;
 
 public class Destination implements FixedGeography{
@@ -27,16 +27,16 @@ public class Destination implements FixedGeography{
 	
 	@ScheduledMethod(start = 1, interval = 1, priority = ScheduleParameters.LAST_PRIORITY)
 	public void removeAgent() {
-        ArrayList<mobileAgent> AgentsToRemove = new ArrayList<mobileAgent>();
+        ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
         
         // If there are no agents to remove end the simulation
-        if (context.getObjects(mobileAgent.class).size() == 0) {
+        if (context.getObjects(MobileAgent.class).size() == 0) {
         	RunEnvironment.getInstance().endRun();
         }
         
         // Iterate over peds and remove them if they have arrived at the destination
-        for (Object o :context.getObjects(mobileAgent.class)) {
-        	mobileAgent mA  = (mobileAgent) o;
+        for (Object o :context.getObjects(MobileAgent.class)) {
+        	MobileAgent mA  = (MobileAgent) o;
         	
         	// Get the geometries in the CRS used for spatial calculations
         	Geometry dGeom =  mA.getDestination().getGeom();
@@ -50,7 +50,7 @@ public class Destination implements FixedGeography{
         }
         // Now iterate over all of the peds to remove and remove them from the context
         // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
-        for (mobileAgent mA : AgentsToRemove) {
+        for (MobileAgent mA : AgentsToRemove) {
         	context.remove(mA);
         }
     }

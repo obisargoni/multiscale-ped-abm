@@ -30,7 +30,7 @@ import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class Ped implements mobileAgent {
+public class Ped implements MobileAgent {
     private Geography<Object> geography; // Space the agent exists in
     public Destination destination; // The destination agent that this pedestrian agents is heading towards.
     
