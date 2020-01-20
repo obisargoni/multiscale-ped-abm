@@ -20,11 +20,11 @@ floodOutput = "..\\output\\floodValues.png"
 gridValues = np.genfromtxt(gridValuesFile, delimiter=',')
 floodValues = np.genfromtxt(floodFillValuesFile, delimiter = ',')
 
-assert np.isnan(gridValues[:,-1]).all()
-assert np.isnan(floodValues[:,-1]).all()
+if(np.isnan(gridValues[:,-1]).all()):
+	gridValues = gridValues[:,:-1]
 
-gridValues = gridValues[:,:-1]
-floodValues = floodValues[:,:-1]
+if(np.isnan(floodValues[:,-1]).all()):
+	floodValues = floodValues[:,:-1]
 
 max_int = 2147483647
 floodValues = np.where(floodValues == max_int, np.nan, floodValues)
