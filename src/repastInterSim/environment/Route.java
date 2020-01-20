@@ -682,8 +682,8 @@ public class Route implements Cacheable {
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
 		
-		floodFillValues = new double[width][height]; // Initialised with zeros
-		int [][] n = new int[width][height]; // Use to log number of times a cell is visited. All cells should get visited once.
+		floodFillValues = new double[height][width]; // Initialised with zeros
+		int [][] n = new int[height][width]; // Use to log number of times a cell is visited. All cells should get visited once.
 		List<GridCoordinates2D> q = new ArrayList<GridCoordinates2D>();
 		
 		// Staring at the destination, flood fill cell values using distance measure between cells
@@ -694,13 +694,13 @@ public class Route implements Cacheable {
 		
 		int i = end.x;
 		int j = end.y;
-		n[i][j] = 1; // Make sure the end cell value doesn't get updated
+		n[j][i] = 1; // Make sure the end cell value doesn't get updated
 		q.add(end);
 		while(q.size() > 0) {
 			thisCell = q.get(0);
 			q.remove(0);
 			
-			thisCellValue = floodFillValues[thisCell.x][thisCell.y];
+			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
 			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
@@ -709,15 +709,15 @@ public class Route implements Cacheable {
 				
 				// If cell with default value, assign value the max int value and exclude from further computation
 				if (cellValue[0] == 0) {
-					floodFillValues[i][j] = Integer.MAX_VALUE;
-					n[i][j] += 1;
+					floodFillValues[j][i] = Integer.MAX_VALUE;
+					n[j][i] += 1;
 					continue;
 				}
 				// Ensure the next cell doesn't already have a value
-				if (n[i][j] == 0) {
+				if (n[j][i] == 0) {
 					nextCellValue = thisCellValue + cellValue[0];
-					floodFillValues[i][j] = nextCellValue;
-					n[i][j] += 1;
+					floodFillValues[j][i] = nextCellValue;
+					n[j][i] += 1;
 					q.add(nextCell);
 				}
 			}
@@ -792,8 +792,8 @@ public class Route implements Cacheable {
 	}
 	
 	public GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path) {
-		int width = cellValues.length;
-		int height = cellValues[0].length;
+		int width = cellValues[0].length;
+		int height = cellValues.length;
 		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, 0, 0, width, height);
 		
 		// Initialise greedy options
@@ -808,7 +808,7 @@ public class Route implements Cacheable {
 			if (path.contains(neighbour)) {
 				continue;
 			}
-			double val = cellValues[neighbour.x][neighbour.y];
+			double val = cellValues[neighbour.y][neighbour.x];
 			
 			// If cell value equal to current minimum include in greedy option
 			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {

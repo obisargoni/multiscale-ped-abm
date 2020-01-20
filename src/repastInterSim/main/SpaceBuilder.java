@@ -523,12 +523,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int height = grid.getRenderedImage().getTileHeight();
 		
 		double[] gridValue = null;
-		double[][] gridValues = new double[width][height];			
-		for (int i = 0; i < width; i++) {
-			for (int j = 0; j < height; j++) {
+		double[][] gridValues = new double[height][width];			
+		for (int j = 0; j < height; j++) {
+			for (int i = 0; i < width; i++) {
 				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
 				gridValue = grid.evaluate(gridPos, gridValue);
-				gridValues[i][j] = gridValue[0];
+				gridValues[j][i] = gridValue[0];
 			}
 		}
 		

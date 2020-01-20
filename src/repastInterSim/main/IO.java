@@ -23,9 +23,9 @@ public class IO {
 		double arrayElem;
 	    try {
 			FileWriter writer = new FileWriter(path);			
-			for (int i = 0; i < width; i++) {
-				for (int j = 0; j < height; j++) {
-					arrayElem = array[i][j];
+			for (int j = 0; j < height; j++) {
+				for (int i = 0; i < width; i++) {
+					arrayElem = array[j][i];
 					writer.append(String.valueOf(arrayElem));
 					
 					// If not at end or row add delimiter
