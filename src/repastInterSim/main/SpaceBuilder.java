@@ -500,6 +500,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
 		
+		// Export pedestrian route data
+		exportGridRouteData(newPed);
+		
         return newPed;
     }
     
