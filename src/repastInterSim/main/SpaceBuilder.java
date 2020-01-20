@@ -1,10 +1,12 @@
 package repastInterSim.main;
 
 import java.awt.Color;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -17,6 +19,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
 
 import org.geotools.coverage.Category;
 import org.geotools.coverage.grid.GridCoordinates2D;
@@ -276,6 +280,25 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	// Get the number of pedestrian agents to add to the space from the parameters
     	Parameters params = RunEnvironment.getInstance().getParameters();
     	int nP = (int)params.getInteger("nPeds");		
+		RenderedImage pedGridImage = pedGrid.getRenderedImage();
+	    File output = new File("pedGrid.png");
+	    try {
+			ImageIO.write(pedGridImage, "png", output);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+	    /*
+		RenderedImage vehGridImage = vehGrid.getRenderedImage();
+	    File output2 = new File("vehGrid.png");
+	    try {
+			ImageIO.write(vehGridImage, "png", output2);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
