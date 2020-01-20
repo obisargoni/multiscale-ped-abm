@@ -30,6 +30,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -698,7 +699,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		} catch (CsvException e) {
+			e.printStackTrace();
+		}
 		return csvData;
 	}
 	
