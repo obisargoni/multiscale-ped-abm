@@ -28,14 +28,14 @@ public class IO {
 					arrayElem = array[j][i];
 					writer.append(String.valueOf(arrayElem));
 					
-					// If not at end or row add delimiter
-					if (i < width-1) {
+					// If at end of row don't add delimiter
+					if (i != width-1) {
 						writer.append(",");
 					}
-					writer.append("\n");
 				}
-			writer.close();
+				writer.append("\n");
 			}
+			writer.close();
 	    }
 			
 	    catch (IOException e) {
