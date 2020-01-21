@@ -35,12 +35,12 @@ def plot_grid_image(array, colour_map, alpha = 1, mask_coordiantes = None, mask_
 
 
 # Input paths
-gridValuesFile = "..\\data\\output_grid_coverage_values.csv"
-floodFillValuesFile = "..\\data\\output_flood_fill_values.csv"
+gridValuesFile = "..\\data\\export\\output_grid_coverage_values.csv"
+floodFillValuesFile = "..\\data\\export\\output_flood_fill_values.csv"
 
-gridPathFile = "..\\data\\output_grid_coverage_path.csv"
-prunedPathFile = "..\\data\\output_pruned_grid_coverage_path.csv"
-pathCrossingsFile = "..\\data\\output_grid_coverage_path_crossings.csv"
+gridPathFile = "..\\data\\export\\output_grid_coverage_path.csv"
+prunedPathFile = "..\\data\\export\\output_pruned_grid_coverage_path.csv"
+pathCrossingsFile = "..\\data\\export\\output_grid_coverage_path_crossings.csv"
 
 
 # Output paths
