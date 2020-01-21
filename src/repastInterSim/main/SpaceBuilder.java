@@ -512,12 +512,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	String gridValueFile = ".\\data\\output_grid_coverage_values.csv";
     	String floodFillValueFile = ".\\data\\output_flood_fill_values.csv";
     	String gridImageFile = ".\\output\\output_grid_vales.png";
+    	String gridPathFile = ".\\data\\output_grid_coverage_path.csv";
+    	String prunedGridPathFile = ".\\data\\output_pruned_grid_coverage_path.csv";
+    	String gridPathCrossingsFile = ".\\data\\output_grid_coverage_path_crossings.csv";
 
 		// TODO Auto-generated method stub
 		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
 		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
+		List<GridCoordinates2D> gridPath = ma.getRoute().getGridPath();
+		List<GridCoordinates2D> prunedGridPath = ma.getRoute().getPrunedGridPath();
+		List<GridCoordinates2D> gridPathCrossings = ma.getRoute().getGridPathCrossings();
 		
 		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
+		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
+		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
+		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
 		IO.gridCoverageToImage(grid, gridImageFile);
 				
 		int width = grid.getRenderedImage().getTileWidth();
