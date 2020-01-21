@@ -110,6 +110,15 @@ public class Route implements Cacheable {
 	// Record which function has added each coord, useful for debugging
 	private List<String> routeDescriptionX;
 	
+	// The grid coordiantes of the agents' route
+	private List<GridCoordinates2D> gridPath;
+	
+	// The filtered list of grid coordinates, with unrequired coordiantes removed
+	private List<GridCoordinates2D> prunedGridPath;
+	
+	// The grid coordinates of crosisng points
+	private List<GridCoordinates2D> gridPathCrossings;
+	
 	// Record the coordinates of route points that correspond to crossing locations
 	private List<Coordinate> routeCrossings;
 	
@@ -506,10 +515,12 @@ public class Route implements Cacheable {
 		this.routeDescriptionX = new Vector<String>();
 		this.routeSpeedsX = new Vector<Double>();
 		this.routeCrossings = new Vector<Coordinate>();
+		this.gridPathCrossings = new Vector<GridCoordinates2D>();
+		this.prunedGridPath = new Vector<GridCoordinates2D>();
 		
 		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
 
-		List<GridCoordinates2D> gridPath = getGridCoveragePath(grid);
+		gridPath = getGridCoveragePath(grid);
 		Set<Integer> routeIndices = new HashSet<Integer>();
 		Set<Integer> crossingIndices = new HashSet<Integer>();
 		double[] prevCellValue = new double[1];
@@ -584,6 +595,7 @@ public class Route implements Cacheable {
 		List<Integer> routeIndicesSorted = routeIndices.stream().sorted().collect(Collectors.toList());
 		for (int i:routeIndicesSorted) {
 			GridCoordinates2D routeCell = gridPath.get(i);
+			prunedGridPath.add(routeCell);
 			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
 			addToRoute(routeCoord, RoadLink.nullRoad, 1, "grid coverage path");
 		}
@@ -593,7 +605,8 @@ public class Route implements Cacheable {
 		for (int i:crossingIndicesSorted) {
 			GridCoordinates2D crossingCell = gridPath.get(i);
 			Coordinate crossingCoord = gridCellToCoordinate(grid, crossingCell);
-			this.routeCrossings.add(crossingCoord);
+			routeCrossings.add(crossingCoord);
+			gridPathCrossings.add(crossingCell);
 		}
 		
 		// Finally add the destination as a route coordinate
@@ -1506,6 +1519,18 @@ public class Route implements Cacheable {
 	
 	public double[][] getFloodFillGridValues() {
 		return this.floodFillValues;
+	}
+	
+	public List<GridCoordinates2D> getGridPath(){
+		return this.gridPath;
+	}
+	
+	public List<GridCoordinates2D> getPrunedGridPath(){
+		return this.prunedGridPath;
+	}
+	
+	public List<GridCoordinates2D> getGridPathCrossings(){
+		return this.gridPathCrossings;
 	}
 
 	/**
