@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 
 public class IO {
@@ -32,6 +33,30 @@ public class IO {
 					if (i != width-1) {
 						writer.append(",");
 					}
+				}
+				writer.append("\n");
+			}
+			writer.close();
+	    }
+			
+	    catch (IOException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void gridCoordiantesIterableToCSV(Iterable<GridCoordinates2D> coordinates, String path) {
+		
+	    try {
+			FileWriter writer = new FileWriter(path);			
+			for (GridCoordinates2D c: coordinates) {
+				boolean delim = false;
+				for (int cValue: c.getCoordinateValues()) {
+					if(delim) {
+						writer.append(",");
+					}
+					writer.append(String.valueOf(cValue));
+					delim = true;
 				}
 				writer.append("\n");
 			}
