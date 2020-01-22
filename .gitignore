@@ -58,6 +58,7 @@ hs_err_pid*
 /data/single_road_data/*
 /data/multi_road_data/*
 ~/data/export/README.txt
+/data/export/*
 ~/data/README.txt
 /output/*
 ~/output/README.txt
