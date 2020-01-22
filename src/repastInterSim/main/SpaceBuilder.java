@@ -509,14 +509,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     
     private void exportGridRouteData(MobileAgent ma) {
     	
-    	String outputDir = ".\\data\\export\\";
-    	String gridValueFile =  outputDir + "output_grid_coverage_values.csv";
-    	String floodFillValueFile = outputDir + "output_flood_fill_values.csv";
-    	String gridImageFile = outputDir + "output_grid_vales.png";
-    	String gridPathFile = outputDir + "output_grid_coverage_path.csv";
-    	String prunedGridPathFile = outputDir + "output_pruned_grid_coverage_path.csv";
-    	String gridPathCrossingsFile = outputDir + "output_grid_coverage_path_crossings.csv";
+    	// Export dir used for data exports, output dir used for figures
+    	String exportDir = ".\\data\\export\\";
+    	String outputDir = ".\\output\\";
+    	
+    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
+    	String floodFillValueFile = exportDir + "export_flood_fill_values.csv";
+    	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
+    	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
+    	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
 
+    	
+    	String gridImageFile = outputDir + "output_grid_vales.png";
+    	
 		// TODO Auto-generated method stub
 		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
 		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
