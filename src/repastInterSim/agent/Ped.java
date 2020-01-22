@@ -7,12 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.geometry.DirectPosition2D;
-import org.opengis.geometry.DirectPosition;
-
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
