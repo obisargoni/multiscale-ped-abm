@@ -531,7 +531,7 @@ public class Route implements Cacheable {
 		GridCoordinates2D prevCell = gridPath.get(0);
 		Coordinate prevCoord = gridCellToCoordinate(grid, prevCell);
 		
-		// Get indices of gris cells that are at location where road priority changes (crossing points)
+		// Get indices of grid cells that are at location where road priority changes (crossing points)
 		for (int i = 1; i < gridPath.size(); i++) {
 			GridCoordinates2D gridCell = gridPath.get(i);
 			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
