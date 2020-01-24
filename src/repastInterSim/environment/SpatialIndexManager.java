@@ -189,7 +189,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 	 *             If there is no spatial index for the given geography.
 	 */
 	@SuppressWarnings("unchecked")
-	public static synchronized <T> List<T> findIntersectingObjects(Geography<T> geog, Geometry g) 
+	public static synchronized <T> List<T> findIntersectingObjects(Geography<T> geog, Geometry geomIn) 
 		throws NoSuchElementException {
 		
 		
@@ -198,16 +198,16 @@ public abstract class SpatialIndexManager implements Cacheable {
 			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
 		}
 				
-		// Query the spatial index for the nearest objects to the input geometry.
-		List<Geometry> close = index.si.query(g.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
+		// Query the spatial index for the nearest objects.
+		List<Geometry> close = index.si.query(geomIn.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
 		assert close != null && close.size() > 0 : "For some reason the spatial index query hasn't found any obejects " +
-				"close to the given coordinate "+g.toString();
+				"close to the given coordinate "+geomIn.toString();
 		
 		// Now go through and find the intersecting geometries
 		List<Geometry> intersectingGeoms = new ArrayList<Geometry>();
-		for (Geometry closeG:close) {
-			if (closeG.intersects(g)) {
-				intersectingGeoms.add(closeG);
+		for (Geometry g:close) {
+			if (g.intersects(geomIn)) {
+				intersectingGeoms.add(g);
 			} // if thisDist < minDist
 		} // for nearRoads
 		
@@ -217,9 +217,9 @@ public abstract class SpatialIndexManager implements Cacheable {
 		// This not a very neat method for getting the objects associated with these geometries.
 		// Required due to the way the data is structured, having duplicated geometries associated to different objects.
 		List<T> intersectingObjects = new ArrayList<T>();
-		for (Geometry intersectG: intersectingGeoms) {
-			for (T object: geog.getObjectsWithin(intersectG.getEnvelopeInternal())) {
-				if (SpaceBuilder.getAgentGeometry(geog, object).equals(intersectG)) {
+		for (Geometry g: intersectingGeoms) {
+			for (T object: geog.getObjectsWithin(g.getEnvelopeInternal())) {
+				if (SpaceBuilder.getAgentGeometry(geog, object).equals(g)) {
 					intersectingObjects.add(object);
 				}
 			}
