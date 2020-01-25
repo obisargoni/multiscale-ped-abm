@@ -275,7 +275,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Loop over coverage grid cells to check values and number of cells
 		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
 		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
+		//GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
 		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);
 		
 		// Read in OD matrix data for vehicles from CSV
