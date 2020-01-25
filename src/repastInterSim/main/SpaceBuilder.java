@@ -78,6 +78,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
 	
+	private static Integer gridResolution = 3; // Sets grid coverage cells to be 1/3m by 1/3m
+	
 	private static Context<Object> context;
 	private static Geography<Object> geography; 
 	
@@ -248,8 +250,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
 		
 		// Creates GIS grid with 1mx1m cells and adds to the geography projection
-		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth());
-		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight());
+		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth()*gridResolution);
+		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight()*gridResolution);
 		
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
 		 Category[] pedCategories	= new Category[] {	
