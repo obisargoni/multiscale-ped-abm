@@ -430,28 +430,13 @@ public class GISFunctions {
 	    Method readAttributeMethod = readAttributeMethodMap.get(attributeName);
 
 		Iterable<T> Obs = geography.getAllObjects();
+		
+		
 			
 		for(GridEnvelope2D gridEnv: gridEnvelopeList) {
 			
 			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
-					
-			Envelope2D worldEnv = null;
-			try {
-				worldEnv = grid.getGridGeometry().gridToWorld(gridEnv);
-			} catch (TransformException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-						
-			Coordinate[] coords = {
-					new Coordinate(worldEnv.getMinX(), worldEnv.getMinY()),
-					new Coordinate(worldEnv.getMinX(), worldEnv.getMaxY()),
-					new Coordinate(worldEnv.getMaxX(), worldEnv.getMaxY()),
-					new Coordinate(worldEnv.getMaxX(), worldEnv.getMinY()),
-					new Coordinate(worldEnv.getMinX(), worldEnv.getMinY())
-			};
-			
-			Polygon wEPoly = new GeometryFactory().createPolygon(coords);
+			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
 			
 			for(T Ob: Obs) {
 				if(wEPoly.intersects((Ob.getGeom()))) {
@@ -475,6 +460,41 @@ public class GISFunctions {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Takes an envelope expressed in grid coordinates and transforms it to the equivalent envelope 
+	 * expressed in the coordinate reference system the grid maps to - the 'real world' space.
+	 * @param grid
+	 * 			The grid coverage the grid envelope belongs to
+	 * @param gridEnvelope
+	 * 			The grid envelope to transform
+	 * @return
+	 *			The polygon (a square) representing the same envelop in a geographical space
+	 */
+	public static Polygon getWorldPolygonFromGridEnvelope(WritableGridCoverage2D grid, GridEnvelope2D gridEnvelope) {
+		
+		Envelope2D worldEnv = null;
+		
+		// Transform grid envelope into envelope with coordinates in gis reference system
+		try {
+			worldEnv = grid.getGridGeometry().gridToWorld(gridEnvelope);
+		} catch (TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+					
+		Coordinate[] coords = {
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY()),
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMaxY()),
+				new Coordinate(worldEnv.getMaxX(), worldEnv.getMaxY()),
+				new Coordinate(worldEnv.getMaxX(), worldEnv.getMinY()),
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY())
+		};
+		
+		Polygon wEPoly = new GeometryFactory().createPolygon(coords);
+		
+		return wEPoly;
 	}
 	
 	/*
