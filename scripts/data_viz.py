@@ -17,7 +17,7 @@ def grid_mask_array(grid, mask_coordiantes):
 	return maskArray
 
 def plot_grid_image(array, colour_map, alpha = 1, mask_coordiantes = None, mask_cm = None, output_path = None):
-	fig, ax = plt.subplots()
+	fig, ax = plt.subplots(figsize = (15,15))
 	im = ax.imshow(array, cmap=colour_map, alpha = alpha, origin='lower', extent=[0, array.shape[1], 0, array.shape[0]])
 	plt.colorbar(im)
 
