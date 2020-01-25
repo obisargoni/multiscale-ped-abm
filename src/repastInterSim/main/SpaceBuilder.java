@@ -1,12 +1,10 @@
 package repastInterSim.main;
 
 import java.awt.Color;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -19,8 +17,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.imageio.ImageIO;
 
 import org.geotools.coverage.Category;
 import org.geotools.coverage.grid.GridCoordinates2D;
@@ -372,14 +368,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
 			
-			int iD = pDI % nOD;
+			int iD = 0;//pDI % nOD;
 			
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO)[iD]);
 			float threshold = rn.nextFloat();
 			
 			// Create vehicle instance probabilistically according to flow rates
-			if (flow > threshold) {
+			if ((iO==3)&(iD==0)) {
 				Coordinate o = pedestrianDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
 				Destination d = pedestrianDestinationContext.getObjects(Destination.class).get(iD);
 				addPed(o, d);
