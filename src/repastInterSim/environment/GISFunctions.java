@@ -439,24 +439,34 @@ public class GISFunctions {
 			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
 			
 			for(T Ob: Obs) {
-				if(wEPoly.intersects((Ob.getGeom()))) {
-					Object attributeValue = null;
-					try {
-						attributeValue = readAttributeMethod.invoke(Ob);
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				Object attributeValue = null;
+				String strAttrVal = null;
+				try {
+					attributeValue = readAttributeMethod.invoke(Ob);
+					strAttrVal = attributeValue.toString();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				// Choose GIS method based on attribute value
+				if (strAttrVal.contentEquals("pedestrian")) {
+					if(worldPoly.within((Ob.getGeom()))) {
+						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
+						grid.setValue(gridPos, gridValue);
 					}
-					
-					String strAttrVal = attributeValue.toString();
-					Integer gridValue = agentAttributeValueMap.get(strAttrVal);
-					grid.setValue(gridPos, gridValue);
+				}
+				else {
+					if(worldPoly.intersects((Ob.getGeom()))) {
+						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
+						grid.setValue(gridPos, gridValue);
+					}	
 				}
 			}
 		}
