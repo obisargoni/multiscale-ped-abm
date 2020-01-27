@@ -126,7 +126,9 @@ public abstract class GlobalVars {
 		
 		public static final String PEDESTRIAN_ROUTING_COVERAGE = "pedGrid";
 		public static final String VEHICLE_ROUTING_COVERAGE = "vehGrid";
-	
+		
+		public static final String GRID_ENVELOPE_CONTEXT = "GridCellContext";
+		public static final String GRID_ENVELOPE_GEOGRAPHY = "GridCellGeography";	
 	}
 	
 	// Parameters used by transport networks
