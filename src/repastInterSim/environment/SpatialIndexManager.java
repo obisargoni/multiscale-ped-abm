@@ -202,6 +202,58 @@ public abstract class SpatialIndexManager implements Cacheable {
 		}
 		return intersectingObjects;
 	}
+	
+	/**
+	 * Find the objects that in the given geography that lie within the given geometry.
+	 * 
+	 * @param <T> The type of object that will be returned.
+	 * @param g
+	 *            The geometry to search around
+	 * @param geography
+	 *            The given geography to look through
+	 * @return The List of intersecting objects
+	 * @throws NoSuchElementException
+	 *             If there is no spatial index for the given geography.
+	 */
+	@SuppressWarnings("unchecked")
+	public static synchronized <T> List<T> findNestedObjects(Geography<T> geog, Geometry geomIn) 
+		throws NoSuchElementException {
+		
+		
+		Index<T> index = (Index<T>) indices.get(geog);
+		if (index==null) {
+			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
+		}
+				
+		// Query the spatial index for the nearest objects.
+		List<Geometry> close = index.si.query(geomIn.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
+		assert close != null && close.size() > 0 : "For some reason the spatial index query hasn't found any obejects " +
+				"close to the given coordinate "+geomIn.toString();
+		
+		// Now go through and find the intersecting geometries
+		List<Geometry> nestedGeoms = new ArrayList<Geometry>();
+		for (Geometry g:close) {
+			if (g.within(geomIn)) {
+				nestedGeoms.add(g);
+			} // if thisDist < minDist
+		} // for nearRoads
+		
+		assert nestedGeoms != null : "Internal error: could not find the closest geometry from the list of " +
+				close.size()+" close objects.";
+		
+		// This not a very neat method for getting the objects associated with these geometries.
+		// Required due to the way the data is structured, having duplicated geometries associated to different objects.
+		List<T> nestedObjects = new ArrayList<T>();
+		for (Geometry g: nestedGeoms) {
+			for (T object: geog.getObjectsWithin(g.getEnvelopeInternal())) {
+				if (SpaceBuilder.getAgentGeometry(geog, object).equals(g)) {
+					nestedObjects.add(object);
+				}
+			}
+			//nestedObjects.add(index.lookupFeature(g));
+		}
+		return nestedObjects;
+	}
 
 	
 	/**
