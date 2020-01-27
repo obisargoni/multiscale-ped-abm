@@ -422,52 +422,44 @@ public class GISFunctions {
 	 * @param attributeName The name of the agent attribute to use to set grid cell values
 	 * @param agentAttributeValueMap A map between attribute value and grid cell value
 	 */
-	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, List<GridEnvelope2D> gridEnvelopeList, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
+	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, Geography<GridEnvelope2D> gEGeog, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
 		
+		List<GridEnvelope2D> cells = null;
 	    // Get class attributeMethodMap read attribute methods
 	    Map<String, Method> readAttributeMethodMap = ShapefileLoader.getAttributeMethodMap(cl, "r");
 	    
 	    Method readAttributeMethod = readAttributeMethodMap.get(attributeName);
 
-		Iterable<T> Obs = geography.getAllObjects();
-		
-		
-			
-		for(GridEnvelope2D gridEnv: gridEnvelopeList) {
-			
-			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
-			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
-			
-			for(T Ob: Obs) {
-				Object attributeValue = null;
-				String strAttrVal = null;
-				try {
-					attributeValue = readAttributeMethod.invoke(Ob);
-					strAttrVal = attributeValue.toString();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		Iterable<T> Obs = geography.getAllObjects();			
+		for(T Ob: Obs) {
+			Object attributeValue = null;
+			String strAttrVal = null;
+			try {
+				attributeValue = readAttributeMethod.invoke(Ob);
+				strAttrVal = attributeValue.toString();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
-				// Choose GIS method based on attribute value
-				if (strAttrVal.contentEquals("pedestrian")) {
-					if(worldPoly.within((Ob.getGeom()))) {
-						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
-						grid.setValue(gridPos, gridValue);
-					}
-				}
-				else {
-					if(worldPoly.intersects((Ob.getGeom()))) {
-						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
-						grid.setValue(gridPos, gridValue);
-					}	
-				}
+			// Choose GIS method based on attribute value
+			if (strAttrVal.contentEquals("pedestrian")) {
+				cells = SpatialIndexManager.findNestedObjects(gEGeog, Ob.getGeom());
+			}
+			else {
+				cells = SpatialIndexManager.findIntersectingObjects(gEGeog, Ob.getGeom());
+			}
+			
+			for (GridEnvelope2D cell: cells) {
+				Integer gridValue = agentAttributeValueMap.get(strAttrVal);
+				GridCoordinates2D gridPos = new GridCoordinates2D(cell.x, cell.y);
+				grid.setValue(gridPos, gridValue);
 			}
 		}
 	}
