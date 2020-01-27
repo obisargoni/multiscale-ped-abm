@@ -269,8 +269,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	        new Category("Vehicle area", Color.RED, 10)
 	    };
 
+		// Possible redundancy in adding the grid coverage to the geography as well as
+		// creating a geography in which the geometries of individual grid cells are present
+		// but hoping benefits of spatial indexed queries will out weigh disbenefits
 		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, pedCategories, null, 0);
 		geography.addCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE, pedGrid);
+		addGridsEnvelopes(pedGrid);
+		SpatialIndexManager.createIndex(gridEnvelopeGeography, GridEnvelope2D.class);
+		
 		//WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
 		//geography.addCoverage(GlobalVars.CONTEXT_NAMES.VEHICLE_ROUTING_COVERAGE, vehGrid);
 		
