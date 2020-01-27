@@ -327,6 +327,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		return geList;
 	}
+	
+	public static void addGridsEnvelopes(WritableGridCoverage2D grid) {
+		int width = grid.getRenderedImage().getWidth();
+		int height = grid.getRenderedImage().getHeight();
+		
+		// Loop over coverage grid cells
+		for(int i=0;i<width;i++) {
+			for (int j=0;j<height;j++) {
+				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
+				Polygon gridPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, gridEnv);
+				SpaceBuilder.gridEnvelopeContext.add(gridEnv);
+				moveAgentToGeometry(gridEnvelopeGeography, gridPoly, gridEnv);
+			}
+		}
+	}
 
 	/*
 	 * Scheduled method that adds vehicle agents to the simulation. Each method call vehicle agents
