@@ -31,6 +31,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -53,6 +54,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.GridCell;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
@@ -61,6 +63,7 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
+import repastInterSim.environment.contexts.GridEnvelopeContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
@@ -97,6 +100,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Junction> junctionContext;
 	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
+	
+	public static Context<GridEnvelope2D> gridEnvelopeContext;
+	public static Geography<GridEnvelope2D> gridEnvelopeGeography;
+	
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
@@ -178,6 +185,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
+		// Grid cell geography, for storing the geometries of the grid cells in the grid coverage layer
+		// Storing in a geography projection saves having to perform coord transforms every time the grid cell geometry is needed
+		// Junction geography also used to create the road network
+		gridEnvelopeContext = new GridEnvelopeContext();
+		gridEnvelopeGeography = createTypedGeography(GridEnvelope2D.class, gridEnvelopeContext, GlobalVars.CONTEXT_NAMES.GRID_ENVELOPE_GEOGRAPHY);
+		context.addSubContext(gridEnvelopeContext);		
 		
 	    // Load agents from shapefiles
 		String GISDataDir = getProperty("GISDataDir");
