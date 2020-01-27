@@ -2,15 +2,22 @@ package repastInterSim.environment;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridEnvelope2D;
@@ -544,6 +551,206 @@ public class GISFunctions {
 	    Point pt = new Point(cs, fac);
 	    
 	    return pt;
+	}
+}
+
+
+/* ********************************************************************************** */
+/**
+ * Caches the lookup from a grid envelope to the corresponding geometry the envelope represents in the
+ * world crs
+ * 
+ * <p>
+ * This class can be serialised so that if the GIS data doesn't change it doesn't have to be re-calculated each time.
+ * 
+ * @author Nick Malleson
+ */
+class GridEnvelopeGeometryCache implements Serializable {
+
+	private static Logger LOGGER = Logger.getLogger(GridEnvelopeGeometryCache.class.getName());
+
+	private static final long serialVersionUID = 1L;
+	private static Hashtable<GridEnvelope2D, Polygon> theCache; // The actual cache
+
+	// The location that the serialised object might be found.
+	private File serialisedLoc;
+	// The time that this cache was created, can be used to check data hasn't
+	// changed since
+	private long createdTime;
+
+	private GridEnvelopeGeometryCache(WritableGridCoverage2D grid)
+			throws Exception {
+
+
+		//this.serialisedLoc = serialisedLoc;
+		GridEnvelopeGeometryCache.theCache = new Hashtable<GridEnvelope2D, Polygon>();
+
+		LOGGER.log(Level.FINE, "GridEnvelopeGeometryCache() creating new cache from grid (and modification date):\n\t"
+				//+ this.serialisedLoc.getAbsolutePath()
+				);
+		
+		// Don't populate the cache for now, instead add to on the fly
+		//populateCache(grid);
+		this.createdTime = new Date().getTime();
+		//serialise(); don't worry about serialising for now
+	}
+
+	public void clear() {
+		this.theCache.clear();
+	}
+
+	
+	private void populateCache(WritableGridCoverage2D grid)
+			throws Exception {
+		double time = System.nanoTime();
+		theCache = new Hashtable<GridEnvelope2D, Polygon>();
+		
+		// Cast to int. 
+		int width = grid.getRenderedImage().getWidth();
+		int height = grid.getRenderedImage().getHeight();
+		
+		// Loop over coverage grid cells
+		for(int i=0;i<width;i++) {
+			for (int j=0;j<height;j++) {
+				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
+				Polygon gridPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
+				theCache.put(gridEnv, gridPoly);
+			}
+		}
+		LOGGER.log(Level.FINER, "Finished caching grid envelope polygons (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
+	} // if nearestRoadCoordCache = null;
+
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 * @throws Exception
+	 */
+	public static Polygon get(WritableGridCoverage2D grid, GridEnvelope2D gE) throws Exception {
+		if (gE == null) {
+			throw new Exception("Route.GridEnvelopeGeometryCache.get() error: the given grid envelope is null.");
+		}
+		double time = System.nanoTime();
+		Polygon gP = theCache.get(gE);
+		if (gP != null) {
+			LOGGER.log(Level.FINER, "GridEnvelopeGeometryCache.get() (using cache) - ("
+					+ (0.000001 * (System.nanoTime() - time)) + "ms)");
+			return gP;
+		}
+		// If get here then the grid envelope is not in the cache, get polygon on the fly
+		gP = getWorldPolygonFromGridEnvelope(grid, gE);
+		if (gP != null) {
+			LOGGER.log(Level.FINER, "GridEnvelopeGeometryCache.get() (not using cache) - ("
+					+ (0.000001 * (System.nanoTime() - time)) + "ms)");
+			theCache.put(gE, gP);
+			return gP;
+		}
+		/* IF HERE THEN ERROR, PRINT DEBUGGING INFO */
+		StringBuilder debugIntro = new StringBuilder(); // Add in some extra infor for debugging
+		debugIntro.append("Route.GridEnvelopeGeometryCache.get() error: couldn't find a coordinate to return.\\n");
+		debugIntro.append(gE.x + " " + gE.y);
+		throw new Exception(debugIntro.toString());
+	}
+	
+	/**
+	 * Takes an envelope expressed in grid coordinates and transforms it to the equivalent envelope 
+	 * expressed in the coordinate reference system the grid maps to - the 'real world' space.
+	 * @param grid
+	 * 			The grid coverage the grid envelope belongs to
+	 * @param gridEnvelope
+	 * 			The grid envelope to transform
+	 * @return
+	 *			The polygon (a square) representing the same envelop in a geographical space
+	 */
+	public static Polygon getWorldPolygonFromGridEnvelope(WritableGridCoverage2D grid, GridEnvelope2D gridEnvelope) {
+		
+		Envelope2D worldEnv = null;
+		
+		// Transform grid envelope into envelope with coordinates in gis reference system
+		try {
+			worldEnv = grid.getGridGeometry().gridToWorld(gridEnvelope);
+		} catch (TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+					
+		Coordinate[] coords = {
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY()),
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMaxY()),
+				new Coordinate(worldEnv.getMaxX(), worldEnv.getMaxY()),
+				new Coordinate(worldEnv.getMaxX(), worldEnv.getMinY()),
+				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY())
+		};
+		
+		Polygon wEPoly = new GeometryFactory().createPolygon(coords);
+		
+		return wEPoly;
+	}
+	
+	
+	// Not sure how to make use of serialising
+	private void serialise() throws IOException {
+		double time = System.nanoTime();
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		try {
+			if (!this.serialisedLoc.exists())
+				this.serialisedLoc.createNewFile();
+			fos = new FileOutputStream(this.serialisedLoc);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(this);
+			out.close();
+		} catch (IOException ex) {
+			if (serialisedLoc.exists()) {
+				// delete to stop problems loading incomplete file next time
+				serialisedLoc.delete();
+			}
+			throw ex;
+		}
+		LOGGER.log(Level.FINE, "... serialised GridEnvelopeGeometryCache to " + this.serialisedLoc.getAbsolutePath()
+				+ " in (" + 0.000001 * (System.nanoTime() - time) + "ms)");
+	}
+
+	/**
+	 * Used to create a new BuildingsOnRoadCache object. This function is used instead of the constructor directly so
+	 * that the class can check if there is a serialised version on disk already. If not then a new one is created and
+	 * returned.
+	 * 
+	 * @param grid
+	 * @return
+	 * @throws Exception
+	 */
+	public synchronized static GridEnvelopeGeometryCache getInstance(WritableGridCoverage2D grid) throws Exception {
+		double time = System.nanoTime();
+		// See if there is a cache object on disk. - not sure how this works atm so commenting out
+		/*
+		if (serialisedLoc.exists()) {
+			FileInputStream fis = null;
+			ObjectInputStream in = null;
+			GridEnvelopeGeometryCache ncc = null;
+			try {
+
+				fis = new FileInputStream(serialisedLoc);
+				in = new ObjectInputStream(fis);
+				ncc = (GridEnvelopeGeometryCache) in.readObject();
+				in.close();
+
+				// Check that the cache is representing the correct data and the
+				// modification dates are ok
+				return ncc;
+			} catch (IOException ex) {
+				if (serialisedLoc.exists())
+					serialisedLoc.delete(); // delete to stop problems loading incomplete file next tinme
+				throw ex;
+			} catch (ClassNotFoundException ex) {
+				if (serialisedLoc.exists())
+					serialisedLoc.delete();
+				throw ex;
+			}
+		}
+		*/
+		// No serialised object, or got an error when opening it, just create a new one
+		return new GridEnvelopeGeometryCache(grid);
 	}
 
 }
