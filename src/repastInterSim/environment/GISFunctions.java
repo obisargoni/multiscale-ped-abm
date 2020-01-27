@@ -49,6 +49,8 @@ import repastInterSim.main.SpaceBuilder;
 
 public class GISFunctions {
 	
+	private static volatile GridEnvelopeGeometryCache gridEnvelopeGeometryCache = null;
+	
 	/**
 	 * Create the road network. Runs through the roads in the <code>roadGeography</code> and, for each one, will create
 	 * <code>Junction</code> objects at their end points and an edge linking them. The <code>Junction</code> objects are
@@ -438,12 +440,16 @@ public class GISFunctions {
 
 		Iterable<T> Obs = geography.getAllObjects();
 		
-		
-			
 		for(GridEnvelope2D gridEnv: gridEnvelopeList) {
 			
 			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
-			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
+			Polygon worldPoly = null;
+			try {
+				worldPoly = getGridEnveloplePolygon(grid, gridEnv);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			
 			for(T Ob: Obs) {
 				Object attributeValue = null;
@@ -479,39 +485,6 @@ public class GISFunctions {
 		}
 	}
 	
-	/**
-	 * Takes an envelope expressed in grid coordinates and transforms it to the equivalent envelope 
-	 * expressed in the coordinate reference system the grid maps to - the 'real world' space.
-	 * @param grid
-	 * 			The grid coverage the grid envelope belongs to
-	 * @param gridEnvelope
-	 * 			The grid envelope to transform
-	 * @return
-	 *			The polygon (a square) representing the same envelop in a geographical space
-	 */
-	public static Polygon getWorldPolygonFromGridEnvelope(WritableGridCoverage2D grid, GridEnvelope2D gridEnvelope) {
-		
-		Envelope2D worldEnv = null;
-		
-		// Transform grid envelope into envelope with coordinates in gis reference system
-		try {
-			worldEnv = grid.getGridGeometry().gridToWorld(gridEnvelope);
-		} catch (TransformException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-					
-		Coordinate[] coords = {
-				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY()),
-				new Coordinate(worldEnv.getMinX(), worldEnv.getMaxY()),
-				new Coordinate(worldEnv.getMaxX(), worldEnv.getMaxY()),
-				new Coordinate(worldEnv.getMaxX(), worldEnv.getMinY()),
-				new Coordinate(worldEnv.getMinX(), worldEnv.getMinY())
-		};
-		
-		Polygon wEPoly = new GeometryFactory().createPolygon(coords);
-		
-		return wEPoly;
 	private static Polygon getGridEnveloplePolygon(WritableGridCoverage2D grid, GridEnvelope2D gridEnv) throws Exception {		
 		// Don't bother with the cache for now
 		if (gridEnvelopeGeometryCache == null) {
