@@ -486,7 +486,6 @@ public class GISFunctions {
 	}
 	
 	private static Polygon getGridEnveloplePolygon(WritableGridCoverage2D grid, GridEnvelope2D gridEnv) throws Exception {		
-		// Don't bother with the cache for now
 		if (gridEnvelopeGeometryCache == null) {
 			gridEnvelopeGeometryCache = GridEnvelopeGeometryCache.getInstance(grid);
 		} // if not cached
