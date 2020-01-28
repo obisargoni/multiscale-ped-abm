@@ -574,7 +574,7 @@ class GridEnvelopeGeometryCache implements Serializable {
 	}
 
 	public void clear() {
-		this.theCache.clear();
+		GridEnvelopeGeometryCache.theCache.clear();
 	}
 
 	
