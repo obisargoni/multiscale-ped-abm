@@ -51,6 +51,8 @@ public class Ped implements MobileAgent {
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     private String routingCoverageName;
+
+    private HashMap<Integer, Integer> gridSummandPriorityMap = new HashMap<Integer, Integer>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     
     private int yieldTime = 0;
     
@@ -83,6 +85,10 @@ public class Ped implements MobileAgent {
         
         this.routingCoverageName = GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE;
         
+        // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), 10);
+
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
 		this.route = new Route(geography, this, dCoord);

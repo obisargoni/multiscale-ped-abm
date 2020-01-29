@@ -1,6 +1,7 @@
 package repastInterSim.agent;
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -28,6 +29,9 @@ public class Vehicle implements MobileAgent {
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
 	private String routingCoverageName;
 	
+
+    private HashMap<Integer, Integer> gridSummandPriorityMap = new HashMap<Integer, Integer>(); // Used to get grid cell summand value when running flood fill algorithm for routing
+
 	public Destination destination;
 	
 	private Route route;
