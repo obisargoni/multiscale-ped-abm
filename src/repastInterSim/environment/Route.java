@@ -524,7 +524,6 @@ public class Route implements Cacheable {
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
 		GridCoordinates2D prevCell = gridPath.get(0);
-		Coordinate prevCoord = gridCellToCoordinate(grid, prevCell);
 		
 		// Get indices of grid cells that are at location where road priority changes (crossing points)
 		for (int i = 1; i < gridPath.size(); i++) {
@@ -548,7 +547,6 @@ public class Route implements Cacheable {
 				routeIndices.add(i);
 			}
 			prevCell = gridCell;
-			prevCoord = cellCoord;
 		}
 		
 		
