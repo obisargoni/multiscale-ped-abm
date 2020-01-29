@@ -64,7 +64,7 @@ public class Ped implements MobileAgent {
      * @param space the continuousspace the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Destination d) {
+    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Destination d, Double pCR) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
@@ -83,8 +83,8 @@ public class Ped implements MobileAgent {
         this.k = GlobalVars.interactionForceConstant;
         
         // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1);
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), 10);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), pCR);
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
