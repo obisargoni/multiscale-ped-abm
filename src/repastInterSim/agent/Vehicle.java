@@ -28,7 +28,7 @@ public class Vehicle implements MobileAgent {
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
 
-    private HashMap<Integer, Integer> gridSummandPriorityMap = new HashMap<Integer, Integer>(); // Used to get grid cell summand value when running flood fill algorithm for routing
+    private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
 
 	public Destination destination;
 	
@@ -450,7 +450,7 @@ public class Vehicle implements MobileAgent {
     }
     
     @Override
-    public HashMap<Integer, Integer> getGridPrioritySummandMap() {
+    public HashMap<Integer, Double> getGridPrioritySummandMap() {
     	return this.gridSummandPriorityMap;
     }
 

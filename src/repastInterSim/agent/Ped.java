@@ -51,7 +51,7 @@ public class Ped implements MobileAgent {
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
 
-    private HashMap<Integer, Integer> gridSummandPriorityMap = new HashMap<Integer, Integer>(); // Used to get grid cell summand value when running flood fill algorithm for routing
+    private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     
     private int yieldTime = 0;
     
@@ -594,7 +594,7 @@ public class Ped implements MobileAgent {
     }
     
     @Override
-    public HashMap<Integer, Integer> getGridPrioritySummandMap() {
+    public HashMap<Integer, Double> getGridPrioritySummandMap() {
     	return this.gridSummandPriorityMap;
     }
 }
