@@ -148,4 +148,11 @@ public abstract class GlobalVars {
 			return GRID_PARAMS.priorityValueMap;
 		}
 	}
+	
+	public static final class MOBILE_AGENT_PARAMS {
+		
+		public static double cautiousPriorityCostRatio = 10; // A pedestrian initialised with this perceives the cost of moving through vehicle priority space as 10x more costly than moving through ped priority space
+		public static double boldPriorityCostRation = 1; // Perceives cost of moving through vehicle space as the same as moving through pedestrian space
+		
+	}
 }
