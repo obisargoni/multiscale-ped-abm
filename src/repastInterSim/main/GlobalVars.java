@@ -19,6 +19,7 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.main;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -127,6 +128,7 @@ public abstract class GlobalVars {
 		public static final String PEDESTRIAN_ROUTING_COVERAGE = "pedGrid";
 		public static final String VEHICLE_ROUTING_COVERAGE = "vehGrid";
 	
+		public static final String BASE_COVERAGE = "baseGrid";
 	}
 	
 	// Parameters used by transport networks
@@ -136,5 +138,20 @@ public abstract class GlobalVars {
 		public static Object currentBurglarLock = new Object();
 
 	}
-
+	
+	public static final class GRID_PARAMS {
+		
+		private static HashMap<String, Integer> priorityValueMap = new HashMap<String, Integer> ();
+		
+		public static Integer defaultGridValue = 0;
+		
+		public static HashMap<String, Integer> getPriorityValueMap() {
+			if (priorityValueMap.isEmpty()) {
+				priorityValueMap.put("pedestrian", 1);
+				priorityValueMap.put("vehicle", 2);
+				priorityValueMap.put("pedestrian_obstruction", defaultGridValue);
+			}
+			return GRID_PARAMS.priorityValueMap;
+		}
+	}
 }
