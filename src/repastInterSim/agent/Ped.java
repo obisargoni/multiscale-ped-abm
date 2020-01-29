@@ -50,7 +50,6 @@ public class Ped implements MobileAgent {
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
-    private String routingCoverageName;
 
     private HashMap<Integer, Integer> gridSummandPriorityMap = new HashMap<Integer, Integer>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     
@@ -82,8 +81,6 @@ public class Ped implements MobileAgent {
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
-        
-        this.routingCoverageName = GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE;
         
         // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1);
@@ -592,12 +589,12 @@ public class Ped implements MobileAgent {
     }
     
     @Override
-    public String getRoutingCoverageName() {
-    	return this.routingCoverageName;
+    public Geography<Object> getGeography() {
+    	return this.geography;
     }
     
     @Override
-    public Geography<Object> getGeography() {
-    	return this.geography;
+    public HashMap<Integer, Integer> getGridPrioritySummandMap() {
+    	return this.gridSummandPriorityMap;
     }
 }

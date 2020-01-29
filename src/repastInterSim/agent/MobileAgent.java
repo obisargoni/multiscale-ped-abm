@@ -1,5 +1,7 @@
 package repastInterSim.agent;
 
+import java.util.HashMap;
+
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.Geography;
@@ -12,7 +14,7 @@ public interface MobileAgent {
 	void setLoc();
 	Coordinate getLoc();
 	Route getRoute();
-	String getRoutingCoverageName();
+	HashMap<Integer, Integer> getGridPrioritySummandMap();
 	Geography<Object> getGeography();
 
 }
