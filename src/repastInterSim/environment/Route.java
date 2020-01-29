@@ -151,11 +151,6 @@ public class Route implements Cacheable {
 	// /** Store a route distance once it has been created */
 	// private static volatile Map<CachedRouteDistance, Double> routeDistanceCache;
 
-	/*
-	 * Keep a record of the last road passed so that the same buildings/communities aren't added to the
-	 * cognitive map multiple times (the agent could spend a number of iterations on the same road or community).
-	 */
-	private Road previousRoad;
 
 	/**
 	 * Creates a new Route object.
