@@ -247,32 +247,23 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth()*gridResolution);
 		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight()*gridResolution);
 		
+		HashMap<String, Integer> priorityValueMap = GlobalVars.GRID_PARAMS.getPriorityValueMap();
+		
 		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
-		 Category[] pedCategories	= new Category[] {	
-	        new Category("No data", Color.BLACK, 0),
-	        new Category("Pedestrian area", Color.GREEN, 1),
-	        new Category("Vehicle area", Color.RED, 10)
+		// This is only used for exporting images, and there are alternative ways to visualise grid so not essential
+		 Category[] valueCategories	= new Category[] {	
+	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
+	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
+	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle"))
 	    };
 
-		WritableGridCoverage2D pedGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("pedGrid", width, height, fixedGeographyEnvelope, pedCategories, null, 0);
-		geography.addCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE, pedGrid);
-		//WritableGridCoverage2D vehGrid = RepastCoverageFactory.createWritableByteIndexedCoverage("vehGrid", width, height, fixedGeographyEnvelope, categories, null, 0);
-		//geography.addCoverage(GlobalVars.CONTEXT_NAMES.VEHICLE_ROUTING_COVERAGE, vehGrid);
-		
-		// Initialise map from attribute value to numeric grid cell value
-		Map<String,Integer> pedGridValueMap = new HashMap<String, Integer> ();
-		pedGridValueMap.put("pedestrian", 1);
-		pedGridValueMap.put("vehicle", 10);
-		pedGridValueMap.put("pedestrian_obstruction", 0);
-		Map<String,Integer> vehGridValueMap = new HashMap<String, Integer> ();
-		vehGridValueMap.put("vehicle", 1);
-		vehGridValueMap.put("pedestrian", 10);
+		WritableGridCoverage2D baseGrid = RepastCoverageFactory.createWritableByteIndexedCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, width, height, fixedGeographyEnvelope, valueCategories, null, GlobalVars.GRID_PARAMS.defaultGridValue);
+		geography.addCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, baseGrid);
 
 		// Loop over coverage grid cells to check values and number of cells
-		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(pedGrid);
-		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, Road.class, roadGeography, "priority", pedGridValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(pedGrid, geList, PedObstruction.class, pedObstructGeography, "priority", pedGridValueMap);
-		//GISFunctions.setGridCoverageValuesFromGeography(vehGrid, geList, Road.class, roadGeography, "priority", vehGridValueMap);
+		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(baseGrid);
+		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, Road.class, roadGeography, "priority", priorityValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
@@ -280,7 +271,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Read in OD matrix data for pedestrians from CSV
 		List<String[]> pedestrianFlows = readCSV(GISDataDir + getProperty("pedestrianODFlowsFile"));
 
-		
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1,50);
@@ -519,7 +509,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	String gridImageFile = outputDir + "output_grid_vales.png";
     	
 		// TODO Auto-generated method stub
-		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_ROUTING_COVERAGE);
+		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
 		List<GridCoordinates2D> gridPath = ma.getRoute().getGridPath();
 		List<GridCoordinates2D> prunedGridPath = ma.getRoute().getPrunedGridPath();
