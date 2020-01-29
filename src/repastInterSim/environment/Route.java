@@ -501,9 +501,7 @@ public class Route implements Cacheable {
 	 * 
 	 */
 	public void setPedestrianGridRoute() {
-		
-		String gridCoverageName = mA.getRoutingCoverageName();
-		
+				
 		// Initialise class attributes
 		this.routeX = new Vector<Coordinate>();
 		this.roadsX = new Vector<RoadLink>();
@@ -513,7 +511,7 @@ public class Route implements Cacheable {
 		this.gridPathCrossings = new Vector<GridCoordinates2D>();
 		this.prunedGridPath = new Vector<GridCoordinates2D>();
 		
-		GridCoverage2D grid = geography.getCoverage(gridCoverageName);
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 
 		gridPath = getGridCoveragePath(grid);
 		Set<Integer> routeIndices = new HashSet<Integer>();
@@ -696,7 +694,7 @@ public class Route implements Cacheable {
 		GridCoordinates2D thisCell;
 		double thisCellValue;
 		double nextCellValue;
-		double[] cellValue = new double[1];
+		int[] cellValue = new int[1];
 		
 		int i = end.x;
 		int j = end.y;
@@ -714,14 +712,16 @@ public class Route implements Cacheable {
 				j = nextCell.y;
 				
 				// If cell with default value, assign value the max int value and exclude from further computation
-				if (cellValue[0] == 0) {
+				if (cellValue[0] == GlobalVars.GRID_PARAMS.defaultGridValue) {
 					floodFillValues[j][i] = Integer.MAX_VALUE;
 					n[j][i] += 1;
 					continue;
 				}
 				// Ensure the next cell doesn't already have a value
 				if (n[j][i] == 0) {
-					nextCellValue = thisCellValue + cellValue[0];
+					// Get the cost of moving through this cell for the mobile agent by mapping from cell value using agents priority map
+					int summand = mA.getGridPrioritySummandMap().get(cellValue[0]);
+					nextCellValue = thisCellValue + summand;
 					floodFillValues[j][i] = nextCellValue;
 					n[j][i] += 1;
 					q.add(nextCell);
