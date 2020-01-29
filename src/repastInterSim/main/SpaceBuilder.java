@@ -102,8 +102,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static GeometryFactory fac;
 	
-	public static Map<String, String> values;
-	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
 	 * (at the bottom of this file).
