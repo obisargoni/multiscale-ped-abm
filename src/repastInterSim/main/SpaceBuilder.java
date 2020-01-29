@@ -108,15 +108,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
-	/*
-	 * Double arrays used for exporting grid coverage data related to routing.
-	 * Exported for checking an demonstration
-	 */
-	private static double[][] gridCellValues;
-	public static double[][] floodFillValues;
-	public static double[][] pathValues;
-	public static double[][] crossingPointValues;
-	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
 	 * 
