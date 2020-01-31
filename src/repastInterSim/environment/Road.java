@@ -7,6 +7,8 @@ package repastInterSim.environment;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import repastInterSim.main.SpaceBuilder;
+
 /*
  * Not sure what attributes and methods are needed for the road object.
  */
@@ -24,20 +26,10 @@ public class Road implements FixedGeography {
 	 * Instance method
 	 */
 	public Road() {
-		
 	}
 	
 	public Road(String pri) {
-		setPriority(pri);
-	}
-	
-	public Road(String pri, RoadLink rl) {
-		setPriority(pri);
-		setRoadLink(rl);
-	}
-	
-	public void setRoadLink(RoadLink rl) {
-		this.roadLink = rl;
+		this.priority = pri;
 	}
 	
 	public RoadLink getRoadLink() {
@@ -62,10 +54,21 @@ public class Road implements FixedGeography {
 	
 	public void setRoadLinkFI(String rlFID) {
 		this.roadLinkFI = rlFID;
+		
+		// Once road link FID is set, can set the Road Link object
+		setRoadLink();
 	}
 	
 	public String getRoadLinkFI() {
 		return this.roadLinkFI;
+	}
+	
+	public void setRoadLink() {
+		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
+			if (rl.getFID().contentEquals(this.roadLinkFI)) {
+				this.roadLink = rl;
+			}
+		}
 	}
 
 }
