@@ -12,7 +12,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
@@ -172,6 +171,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		String GISDataDir = getProperty("GISDataDir");
 		try {
 			
+			// Build the road network - needs to happen first because road link agents are assigned to road agents
+			
+			// 1. Load the road links
+			String roadLinkFile = GISDataDir + getProperty("RoadLinkShapefile");
+			GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+
+			
+			// 2. roadNetwork
+			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
+			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+			roadNetwork = builder.buildNetwork();
+			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+			
 			// Build the fixed environment
 			
 			// 1. Load vehicle and pedestrian destinations
@@ -193,21 +206,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
 			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
-
-			
-			// Build the road network
-			
-			// 1. Load the road links
-			String roadLinkFile = GISDataDir + getProperty("RoadLinkShapefile");
-			GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
-			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
-
-			
-			// 2. roadNetwork
-			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
-			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			roadNetwork = builder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
