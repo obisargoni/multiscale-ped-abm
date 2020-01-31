@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class Road implements FixedGeography {
 	
+	private String roadLinkFI; // The id of the road link this road object should be linked with
 	private Geometry geom;	
 	private String priority = ""; // Priority information comes from GIS data
 	
@@ -57,6 +58,14 @@ public class Road implements FixedGeography {
 	
 	public void setGeom(Geometry g) {
 		this.geom = g;
+	}
+	
+	public void setRoadLinkFI(String rlFID) {
+		this.roadLinkFI = rlFID;
+	}
+	
+	public String getRoadLinkFI() {
+		return this.roadLinkFI;
 	}
 
 }
