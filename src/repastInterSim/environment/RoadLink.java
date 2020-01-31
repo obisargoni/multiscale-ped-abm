@@ -19,6 +19,7 @@ public class RoadLink implements FixedGeography {
 	private String direction = null;
 	private String MNodeFID = null;
 	private String PNodeFID = null;
+	private int vehicleCount = 0;
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -107,6 +108,18 @@ public class RoadLink implements FixedGeography {
 	
 	public void setFID(String fid) {
 		this.fid = fid;
+	}
+	
+	public int getVehicleCount() {
+		return this.vehicleCount;
+	}
+	
+	public void addVehicleToCount() {
+		this.vehicleCount++;
+	}
+	
+	public void removeVehicleFromCount() {
+		this.vehicleCount--;
 	}
 
 }
