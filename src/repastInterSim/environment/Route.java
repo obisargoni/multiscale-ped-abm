@@ -1506,25 +1506,6 @@ public class Route implements Cacheable {
 		return this.routeX.get(i);
 	}
 	
-	public Coordinate getRouteXCoordinate(Integer i, boolean updateRoadLinkVehicleCount) {
-		Coordinate c = getRouteXCoordinate(i);
-		if(updateRoadLinkVehicleCount) {
-			// Check if coordinate intersects with next road in route, in which case agent is crossing onto new road link
-			RoadLink currentLink = this.roadsX.get(0);
-			RoadLink nextLink = this.roadsX.get(1);
-			if(nextLink != null) {
-				Point p = GISFunctions.pointGeometryFromCoordinate(c);
-				boolean coordOnNextLink = nextLink.getGeom().intersects(p);
-				if(coordOnNextLink) {
-					currentLink.removeVehicleFromCount();
-					nextLink.addVehicleToCount();
-				}
-			}
-		}
-		
-		return c;
-	}
-	
 	public void removeRouteXCoordinate(Coordinate c) {
 		routeX.remove(c);
 	}
