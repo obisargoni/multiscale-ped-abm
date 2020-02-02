@@ -15,6 +15,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Route;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -27,6 +28,7 @@ public class Vehicle implements MobileAgent {
 	private double dmax;	    
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
+	private RoadLink previousRoadLink; // Used for identifying when the vehicle moves from one road link to another
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
 
@@ -58,6 +60,10 @@ public class Vehicle implements MobileAgent {
     	// Check that a route has been generated
     	if (this.route.getRouteX() == null) {
     		this.route.setRoute();
+    		
+    		// Increase the vehicle count of the first road link
+    		this.route.getRoadsX().get(0).addVehicleToCount();
+    		previousRoadLink = this.route.getRoadsX().get(0);
 		}
     	
 		// Check for nearby cars
@@ -279,6 +285,13 @@ public class Vehicle implements MobileAgent {
 		while (disp > distanceAlongRoute) {
 			// Get next coordinate along the route
 	        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
+	        RoadLink roadLink = this.route.getRoadsX().get(0);
+	        
+	        if (!roadLink.getFID().contentEquals(previousRoadLink.getFID())) {
+	        	roadLink.addVehicleToCount();
+	        	previousRoadLink.removeVehicleFromCount();
+	        }
+	        
 	        
 	        // Is this the final destination?
 	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
@@ -317,6 +330,8 @@ public class Vehicle implements MobileAgent {
 				}
 				
 				this.route.removeRouteXCoordinate(routeCoord);
+				previousRoadLink = roadLink;
+				this.route.getRoadsX().remove(0);
 			}
 			
 		}
