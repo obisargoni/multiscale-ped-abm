@@ -279,7 +279,6 @@ public class Vehicle implements MobileAgent {
 		*/
 		
 		// get the next coordinate along the route
-		Integer i = 0;
 		double distanceAlongRoute = 0;
 		
 		while (disp > distanceAlongRoute) {
