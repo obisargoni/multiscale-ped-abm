@@ -438,7 +438,15 @@ public class GISFunctions {
 			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
 			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
 			
-			for(T Ob: Obs) {
+			List<T> intersectingObs = SpatialIndexManager.findIntersectingObjects(geography, worldPoly);
+			if (intersectingObs.size() == 0) {
+				continue;
+			}
+			
+			// For each of the objects that intersect the geometry get the
+			// string attribute values. Set grid cell value based on these
+			List<String> obsAttributeValues = new ArrayList<String>();
+			for(T Ob: intersectingObs) {
 				Object attributeValue = null;
 				String strAttrVal = null;
 				try {
@@ -454,21 +462,28 @@ public class GISFunctions {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
-				// Choose GIS method based on attribute value
-				if (strAttrVal.contentEquals("pedestrian")) {
-					if(worldPoly.within((Ob.getGeom()))) {
-						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
-						grid.setValue(gridPos, gridValue);
-					}
-				}
-				else {
-					if(worldPoly.intersects((Ob.getGeom()))) {
-						Integer gridValue = agentAttributeValueMap.get(strAttrVal);
-						grid.setValue(gridPos, gridValue);
-					}	
+				
+				if(!obsAttributeValues.contains(strAttrVal)) {
+					obsAttributeValues.add(strAttrVal);
 				}
 			}
+
+			// Choose GIS method based on attribute value
+			Integer gridValue = null;
+			
+			// First check for ped obstructions, set value based on this
+			if (obsAttributeValues.contains("pedestrian_obstruction")) {
+				gridValue = agentAttributeValueMap.get("pedestrian_obstruction");
+			}
+			// Next check if grid cell intersects with a vehicle priority geom
+			else if (obsAttributeValues.contains("vehicle")){
+				gridValue = agentAttributeValueMap.get("vehicle");
+			}
+			// Finally, can set grid value to be pedestrian if no other types intersect
+			else {
+				gridValue = agentAttributeValueMap.get("pedestrian");
+			}
+			grid.setValue(gridPos, gridValue);
 		}
 	}
 	
