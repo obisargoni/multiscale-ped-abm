@@ -1,0 +1,12 @@
+<repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.7.0">
+  <name>Road Link Vehicle Count</name>
+  <dataSet>Road Link Vehicle Count</dataSet>
+  <delimiter>,</delimiter>
+  <format>TABULAR</format>
+  <sourceIds class="linked-hash-set">
+    <string>tick</string>
+    <string>VehicleCount</string>
+  </sourceIds>
+  <fileName>C:\Users\Obi Sargoni\eclipse-workspace\repastInterSim\data\model_run_exports\road_link_vehicle_count.txt</fileName>
+  <addTimeStamp>true</addTimeStamp>
+</repast.simphony.data2.engine.FileSinkDescriptor>
