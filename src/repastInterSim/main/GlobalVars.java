@@ -154,5 +154,7 @@ public abstract class GlobalVars {
 		public static double cautiousPriorityCostRatio = 10; // A pedestrian initialised with this perceives the cost of moving through vehicle priority space as 10x more costly than moving through ped priority space
 		public static double boldPriorityCostRatio = 1; // Perceives cost of moving through vehicle space as the same as moving through pedestrian space
 		
+		public static double destinationArrivalDistance = 1.0; // Distance from destination at which agent is considered to ahve arrived
+		
 	}
 }

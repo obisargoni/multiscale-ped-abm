@@ -11,6 +11,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 
 import repastInterSim.agent.MobileAgent;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class Destination implements FixedGeography{
@@ -19,7 +20,7 @@ public class Destination implements FixedGeography{
 	private Geography<Object> geography;
 	private Geography<Destination> destinationGeography;
 	private Geometry geom;
-	private double arrivalDist = 1; // Distance in metres at which agents are considered to have arrived at the destination and are removed from the space
+	private double arrivalDist = GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance; // Distance from destination at which agents are removed from the simulation
 		
 	public Destination() {
 
