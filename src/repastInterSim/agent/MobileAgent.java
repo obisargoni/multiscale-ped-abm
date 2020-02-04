@@ -16,5 +16,6 @@ public interface MobileAgent {
 	Route getRoute();
 	HashMap<Integer, Double> getGridPrioritySummandMap();
 	Geography<Object> getGeography();
+	void tidyForRemoval();
 
 }

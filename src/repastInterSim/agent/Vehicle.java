@@ -386,6 +386,15 @@ public class Vehicle implements MobileAgent {
 	}
 	*/
 	
+	/**
+	 * Method to be run when removing the agent from the context. 
+	 * 
+	 * In this case make sure to reduce the count of vehicles on the current road link
+	 */
+	public void tidyForRemoval() {
+		this.previousRoadLink.removeVehicleFromCount();
+	}
+	
 	/*
 	 * Updates the vehicle's speed using the General Motors car following model
 	 * described here: {@link

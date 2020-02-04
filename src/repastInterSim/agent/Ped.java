@@ -20,6 +20,7 @@ import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Route;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
@@ -532,6 +533,15 @@ public class Ped implements MobileAgent {
     	else {
     		this.enteringCrossing = false;
     	}
+    }
+    
+    /**
+     * Method to be run when agent is removed from the context.
+     * 
+     * Currently nothing needs to be tidied for pedestrian agents.
+     */
+    public void tidyForRemoval() {
+    	;
     }
     
     public double getRad() {
