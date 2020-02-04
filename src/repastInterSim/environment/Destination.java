@@ -52,6 +52,7 @@ public class Destination implements FixedGeography{
         // Now iterate over all of the peds to remove and remove them from the context
         // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
         for (MobileAgent mA : AgentsToRemove) {
+        	mA.tidyForRemoval();
         	context.remove(mA);
         }
     }
