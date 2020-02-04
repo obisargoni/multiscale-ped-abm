@@ -1,7 +1,6 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Road Link Vehicle Count</name>
-  <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.environment.RoadLink</sourceType>
+  <name>Vehicle Count</name>
+  <type>AGGREGATE</type>
   <inclTick>true</inclTick>
   <inclBatchRun>false</inclBatchRun>
   <inclRandomSeed>false</inclRandomSeed>
@@ -12,20 +11,26 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>2018570677</hashCode>
+    <hashCode>-72201666</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
-  <methodDataSources class="linked-hash-map">
+  <methodDataSources class="linked-hash-map"/>
+  <countSources class="linked-hash-map">
     <entry>
-      <string>VehicleCount</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>VehicleCount</id>
-        <className>repastInterSim.environment.RoadLink</className>
-        <methodName>getVehicleCount</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+      <string>Vehicle Count</string>
+      <repast.simphony.data2.engine.CountSourceDefinition>
+        <typeName>repastInterSim.agent.Vehicle</typeName>
+        <id>Vehicle Count</id>
+      </repast.simphony.data2.engine.CountSourceDefinition>
     </entry>
-  </methodDataSources>
-  <countSources class="linked-hash-map"/>
+    <entry>
+      <string>Road Link Count</string>
+      <repast.simphony.data2.engine.CountSourceDefinition>
+        <typeName>repastInterSim.environment.RoadLink</typeName>
+        <id>Road Link Count</id>
+      </repast.simphony.data2.engine.CountSourceDefinition>
+    </entry>
+  </countSources>
   <customNADataSources class="linked-hash-map"/>
   <customAggDataSources class="linked-hash-map"/>
 </repast.simphony.data2.engine.DataSetDescriptor>
