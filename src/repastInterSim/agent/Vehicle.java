@@ -28,7 +28,7 @@ public class Vehicle implements MobileAgent {
 	private double dmax;	    
 	private Geography<Object> geography;
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
-	private RoadLink previousRoadLink; // Used for identifying when the vehicle moves from one road link to another
+	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
 
@@ -63,7 +63,7 @@ public class Vehicle implements MobileAgent {
     		
     		// Increase the vehicle count of the first road link
     		this.route.getRoadsX().get(0).addVehicleToCount();
-    		previousRoadLink = this.route.getRoadsX().get(0);
+    		currentRoadLink = this.route.getRoadsX().get(0);
 		}
     	
 		// Check for nearby cars
@@ -284,11 +284,11 @@ public class Vehicle implements MobileAgent {
 		while (disp > distanceAlongRoute) {
 			// Get next coordinate along the route
 	        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
-	        RoadLink roadLink = this.route.getRoadsX().get(0);
+	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
-	        if (!roadLink.getFID().contentEquals(previousRoadLink.getFID())) {
-	        	roadLink.addVehicleToCount();
-	        	previousRoadLink.removeVehicleFromCount();
+	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
+	        	nextRoadLink.addVehicleToCount();
+	        	currentRoadLink.removeVehicleFromCount();
 	        }
 	        
 	        
@@ -329,7 +329,7 @@ public class Vehicle implements MobileAgent {
 				}
 				
 				this.route.removeRouteXCoordinate(routeCoord);
-				previousRoadLink = roadLink;
+				currentRoadLink = nextRoadLink;
 				this.route.getRoadsX().remove(0);
 			}
 			
@@ -392,7 +392,7 @@ public class Vehicle implements MobileAgent {
 	 * In this case make sure to reduce the count of vehicles on the current road link
 	 */
 	public void tidyForRemoval() {
-		this.previousRoadLink.removeVehicleFromCount();
+		this.currentRoadLink.removeVehicleFromCount();
 	}
 	
 	/*
