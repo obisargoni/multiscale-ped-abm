@@ -481,6 +481,26 @@ public class Ped implements MobileAgent {
     	}
     }
     
+    private void decideUpdateRoute() {
+    	
+    	Road nextRouteCoordRoad = null;
+		try {
+			nextRouteCoordRoad = GISFunctions.getCoordinateRoad(this.routeCoord);
+		} catch (RoutingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	// perceive the space taken up by vehicles on the road links that pass by/though this road
+    	double vehicleRoadSpace = estimateVehicleRoadSpace(nextRouteCoordRoad);
+    	
+    	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
+    	
+    	// Create new Route object
+    	Route partialRoute = new Route(this.geography, this, this.routeCoord);
+    	
+    }
+    
     private double estimateVehicleRoadSpace(Road r) {
     	int vehicleNumber = r.getRoadLinksVehicleCount();
     	int nRoadLinks = r.getRoadLinks().size();
