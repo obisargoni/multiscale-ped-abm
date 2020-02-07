@@ -52,6 +52,8 @@ public class Ped implements MobileAgent {
     
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
+    
+    private String roadLinkFID = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     
@@ -423,6 +425,59 @@ public class Ped implements MobileAgent {
         return input;
     }
     
+    /**
+     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
+     * used for routing, at the current location and estimates near future location.
+     * 
+     * If grid cell values are expected to increase the agent is heading towards a lower priority area
+     * and is considered to be approaching a crossing point.
+     */
+    public void decideYield() {
+    	
+    	checkIfEnteringCrossing();
+    	
+    	if (this.enteringCrossing) {
+    		
+    		// Decide whether to yield or not. For now yield for fixed amount of time by default
+    		if (this.yieldTime < 10) {
+            	this.yieldAtCrossing = true;
+            	this.yieldTime++;
+        	}
+        	
+    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
+	    	else {
+	    		this.yieldAtCrossing = false;
+	    		this.yieldTime = 0;
+				this.enteringCrossing = false;
+				this.getRoute().getRouteCrossings().remove(0);
+	    	}
+    	}
+    }
+    
+    public void checkIfEnteringCrossing() {
+    	
+    	if (this.getRoute().getRouteCrossings().size()>0) {
+        	Coordinate nextCrossingCoord = this.getRoute().getRouteCrossings().get(0);
+        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
+        	
+        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
+        	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
+        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
+        	
+        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
+        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
+        	// Also the buffer distance also needs considering
+        	if (lookAheadLine.intersects(nextCrossing)) {
+        		this.enteringCrossing = true;
+        	}
+        	else {
+        		this.enteringCrossing = false;
+        	}
+    	}
+    	else {
+    		this.enteringCrossing = false;
+    	}
+    }
     public Color getColor() {
     	return this.col;
     }
@@ -481,58 +536,12 @@ public class Ped implements MobileAgent {
     	return newLookAhead;
     }
     
-    /**
-     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
-     * used for routing, at the current location and estimates near future location.
-     * 
-     * If grid cell values are expected to increase the agent is heading towards a lower priority area
-     * and is considered to be approaching a crossing point.
-     */
-    public void decideYield() {
-    	
-    	checkIfEnteringCrossing();
-    	
-    	if (this.enteringCrossing) {
-    		
-    		// Decide whether to yield or not. For now yield for fixed amount of time by default
-    		if (this.yieldTime < 10) {
-            	this.yieldAtCrossing = true;
-            	this.yieldTime++;
-        	}
-        	
-    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
-	    	else {
-	    		this.yieldAtCrossing = false;
-	    		this.yieldTime = 0;
-				this.enteringCrossing = false;
-				this.getRoute().getRouteCrossings().remove(0);
-	    	}
-    	}
+    public void setRoadLinkFID(String rlFID) {
+    	this.roadLinkFID = rlFID;
     }
     
-    public void checkIfEnteringCrossing() {
-    	
-    	if (this.getRoute().getRouteCrossings().size()>0) {
-        	Coordinate nextCrossingCoord = this.getRoute().getRouteCrossings().get(0);
-        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
-        	
-        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
-        	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
-        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
-        	
-        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
-        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
-        	// Also the buffer distance also needs considering
-        	if (lookAheadLine.intersects(nextCrossing)) {
-        		this.enteringCrossing = true;
-        	}
-        	else {
-        		this.enteringCrossing = false;
-        	}
-    	}
-    	else {
-    		this.enteringCrossing = false;
-    	}
+    public String getRoadLinkFID() {
+    	return this.roadLinkFID;
     }
     
     /**
