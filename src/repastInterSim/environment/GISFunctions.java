@@ -563,13 +563,15 @@ public class GISFunctions {
 	}
 	
     /**
-     *  Gets road link object of Road object the input coordinate intersects with
+     *  Gets Road the input coordinate intersects with.
+     *  
+     *  List should have one, where road is one-way, or two, where road is two way, RoadLink objects in.
      * @return
      * 		Road Link the agent is on
      * @throws RoutingException 
      */
-	public static RoadLink getCoordinateRoadLink(Coordinate c) throws RoutingException {
-		RoadLink rl = null;
+	public static Road getCoordinateRoad(Coordinate c) throws RoutingException {
+		Road r = null;
 		
 		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
     	
@@ -577,14 +579,13 @@ public class GISFunctions {
     		// Method returns default value, null, if there are no intersecting roads
     	}
     	else if (intersectingRoads.size() == 1) {
-        	Road coordRoad = intersectingRoads.get(0);
-        	rl = coordRoad.getRoadLink();
+        	r = intersectingRoads.get(0);
     	}
     	else {
     		throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
     	}
     	
-    	return rl;
+    	return r;
 	}
 
 }

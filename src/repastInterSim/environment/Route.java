@@ -520,8 +520,8 @@ public class Route implements Cacheable {
 		double[] prevCellValue = new double[1];
 		double[] cellValue = new double[1];
 		
-		RoadLink prevCellRoadLink = null;
-		RoadLink cellRoadLink = null;
+		String prevCellRoadLinkFID = null;
+		String cellRoadLinkFID = null;
 		
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
@@ -540,8 +540,8 @@ public class Route implements Cacheable {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
-			prevCellRoadLink = GISFunctions.getCoordinateRoadLink(prevCellCoord);
-			cellRoadLink = GISFunctions.getCoordinateRoadLink(cellCoord);
+			prevCellRoadLinkFID = GISFunctions.getCoordinateRoad(prevCellCoord).getRoadLinkFI();
+			cellRoadLinkFID = GISFunctions.getCoordinateRoad(cellCoord).getRoadLinkFI();
 			
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {
@@ -554,7 +554,7 @@ public class Route implements Cacheable {
 			}
 			
 			// Check for change in road link id, if road link id changes add to route
-			if (!cellRoadLink.getFID().contentEquals(prevCellRoadLink.getFID())) {
+			if (!cellRoadLinkFID.contentEquals(prevCellRoadLinkFID)) {
 				routeIndices.add(i);
 			}
 			prevCell = gridCell;
