@@ -35,8 +35,32 @@ public class Road implements FixedGeography {
 		this.priority = pri;
 	}
 	
-	public RoadLink getRoadLink() {
-		return this.roadLink;
+	public int getRoadLinksVehicleCount() {
+		int count = 0;
+		for(RoadLink rl:this.roadLinks) {
+			count += rl.getVehicleCount();
+		}
+		return count;
+	}
+	
+	/**
+	 * Estimate number of leader vehicles by increasing count by one for each road link with
+	 * a non-zero vehicle count. If a road link has a non-zero vehicle count then it has a leader vehicle
+	 * @return
+	 * 		Count of leader vehicles
+	 */
+	public int getNumberLeadVehicles() {
+		int leaderCount = 0;
+		for(RoadLink rl: this.roadLinks) {
+			if(rl.getVehicleCount() > 0) {
+				leaderCount++;
+			}
+		}
+		return leaderCount;
+	}
+	
+	public List<RoadLink> getRoadLinks() {
+		return this.roadLinks;
 	}
 	
 	public void setPriority(String pri) {
