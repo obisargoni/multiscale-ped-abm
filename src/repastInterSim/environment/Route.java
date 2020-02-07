@@ -124,6 +124,9 @@ public class Route implements Cacheable {
 	
 	// Record the value of grid cells following flood fill (used when routing via a grid)
 	private double[][] floodFillValues = null;
+	
+	// Sets whether to run flood fill on full grid or just a partial section of it
+	private boolean partialFF = false;
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -171,6 +174,31 @@ public class Route implements Cacheable {
 		this.geography = geography;
 		this.mA = mA;
 		this.destination = destination;
+	}
+	
+	/**
+	 * Creates a new Route object.
+	 * 
+	 * @param burglar
+	 *            The burglar which this Route will control.
+	 * 
+	 * @param destination
+	 *            The agent's destination.
+	 * 
+	 * @param destinationBuilding
+	 *            The (optional) building they're heading to.
+	 * 
+	 * @param partial
+	 * 				Sets whether to run the flood fill algorithm on the full grid or only a partial section of it (when routing via a grid)
+	 * 
+	 * @param type
+	 *            The (optional) type of route, used by burglars who want to search.
+	 */
+	public Route(Geography<Object> geography, MobileAgent mA, Coordinate destination, boolean partial) {
+		this.geography = geography;
+		this.mA = mA;
+		this.destination = destination;
+		this.partialFF = partial;
 	}
 
 	/**
@@ -668,7 +696,19 @@ public class Route implements Cacheable {
 			e.printStackTrace();
 		}
 		
-		double[][] cellValues = gridCoverageFloodFill(grid, end);
+		// Set the bounds of the flood fill search based on whether this is a partial route search or not
+		int mini = 0;
+		int minj = 0;
+		int maxi = grid.getRenderedImage().getTileWidth();
+		int maxj = grid.getRenderedImage().getTileHeight();
+		if (this.partialFF == true) {
+			mini = Math.min(start.x, end.x);
+			minj = Math.min(start.y, end.y);
+			maxi = Math.max(start.x, end.x);
+			maxj = Math.max(start.y, end.y);
+		}
+		
+		double[][] cellValues = gridCoverageFloodFill(grid, end, mini, minj, maxi, maxj);
 		boolean atEnd = false;
 		
 		GridCoordinates2D next = start;
@@ -677,7 +717,7 @@ public class Route implements Cacheable {
 				atEnd = true;
 			}
 			gridPath.add(next);
-			next = greedyManhattanNeighbour(next, cellValues, gridPath);
+			next = greedyManhattanNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
 		}
 		
 		return gridPath;
@@ -694,7 +734,7 @@ public class Route implements Cacheable {
 	 * @return
 	 * 			2D double array of cell values
 	 */
-	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D end) {
+	public double[][] gridCoverageFloodFill(GridCoverage2D grid, GridCoordinates2D end, int mini, int minj, int maxi, int maxj) {
 
 		int width = grid.getRenderedImage().getTileWidth();
 		int height = grid.getRenderedImage().getTileHeight();
@@ -718,7 +758,7 @@ public class Route implements Cacheable {
 			q.remove(0);
 			
 			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
-			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, 0, 0, width, height)) {
+			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, mini, minj, maxi, maxj)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
 				i = nextCell.x;
@@ -810,10 +850,10 @@ public class Route implements Cacheable {
 		return mN;
 	}
 	
-	public GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path) {
+	public GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
 		int width = cellValues[0].length;
 		int height = cellValues.length;
-		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, 0, 0, width, height);
+		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
 		
 		// Initialise greedy options
 		List<Double> minVal = new ArrayList<Double>();
