@@ -5,6 +5,9 @@
 
 package repastInterSim.environment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.vividsolutions.jts.geom.Geometry;
 
 import repastInterSim.main.SpaceBuilder;
@@ -19,7 +22,7 @@ public class Road implements FixedGeography {
 	private String priority = ""; // Priority information comes from GIS data
 	
 	// Allows road agents to be joined with a particular RoadLink agent
-	private RoadLink roadLink = null;
+	private List<RoadLink> roadLinks = new ArrayList<RoadLink>();
 	
 	
 	/*
@@ -56,17 +59,21 @@ public class Road implements FixedGeography {
 		this.roadLinkFI = rlFID;
 		
 		// Once road link FID is set, can set the Road Link object
-		setRoadLink();
+		setRoadLinks();
 	}
 	
 	public String getRoadLinkFI() {
 		return this.roadLinkFI;
 	}
 	
-	public void setRoadLink() {
+	/**
+	 * To model two way roads, two RoadLink objects are created with the same id. Therefore, when getting the RoadLink objects
+	 * that this Road object is associated, allow for multiple RoadLink objects to be associated.
+	 */
+	public void setRoadLinks() {
 		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
 			if (rl.getFID().contentEquals(this.roadLinkFI)) {
-				this.roadLink = rl;
+				this.roadLinks.add(rl);
 			}
 		}
 	}
