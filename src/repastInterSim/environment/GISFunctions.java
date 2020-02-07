@@ -37,6 +37,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.SpaceBuilder;
 
 
@@ -559,6 +560,31 @@ public class GISFunctions {
 	    Point pt = new Point(cs, fac);
 	    
 	    return pt;
+	}
+	
+    /**
+     *  Gets road link object of Road object the input coordinate intersects with
+     * @return
+     * 		Road Link the agent is on
+     * @throws RoutingException 
+     */
+	public static RoadLink getCoordinateRoadLink(Coordinate c) throws RoutingException {
+		RoadLink rl = null;
+		
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
+    	
+    	if(intersectingRoads.size() == 0) {
+    		// Method returns default value, null, if there are no intersecting roads
+    	}
+    	else if (intersectingRoads.size() == 1) {
+        	Road coordRoad = intersectingRoads.get(0);
+        	rl = coordRoad.getRoadLink();
+    	}
+    	else {
+    		throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
+    	}
+    	
+    	return rl;
 	}
 
 }
