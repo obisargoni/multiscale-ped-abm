@@ -498,9 +498,10 @@ public class Route implements Cacheable {
 	 * layer and the flood fill algorithm. This produces a path of coordinates that each correspond
 	 * to a grid cell in the coverage. The full path coordinates are pruned to retain
 	 * only those that indicate where to turn and points of transition between road priority.
+	 * @throws RoutingException 
 	 * 
 	 */
-	public void setPedestrianGridRoute() {
+	public void setPedestrianGridRoute() throws RoutingException {
 				
 		// Initialise class attributes
 		this.routeX = new Vector<Coordinate>();
@@ -519,9 +520,13 @@ public class Route implements Cacheable {
 		double[] prevCellValue = new double[1];
 		double[] cellValue = new double[1];
 		
+		RoadLink prevCellRoadLink = null;
+		RoadLink cellRoadLink = null;
+		
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
 		GridCoordinates2D prevCell = gridPath.get(0);
+		Coordinate prevCellCoord = gridCellToCoordinate(grid, prevCell);
 		
 		// Get indices of grid cells that are at location where road priority changes (crossing points)
 		for (int i = 1; i < gridPath.size(); i++) {
@@ -535,6 +540,9 @@ public class Route implements Cacheable {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
+			prevCellRoadLink = GISFunctions.getCoordinateRoadLink(prevCellCoord);
+			cellRoadLink = GISFunctions.getCoordinateRoadLink(cellCoord);
+			
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {
 				routeIndices.add(i);
@@ -542,6 +550,11 @@ public class Route implements Cacheable {
 			}
 			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
 			else if (val.compareTo(prevVal) < 0) {
+				routeIndices.add(i);
+			}
+			
+			// Check for change in road link id, if road link id changes add to route
+			if (!cellRoadLink.getFID().contentEquals(prevCellRoadLink.getFID())) {
 				routeIndices.add(i);
 			}
 			prevCell = gridCell;
