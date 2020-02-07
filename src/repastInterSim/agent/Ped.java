@@ -478,6 +478,37 @@ public class Ped implements MobileAgent {
     		this.enteringCrossing = false;
     	}
     }
+    
+    private double estimateVehicleRoadSpace(Road r) {
+    	int vehicleNumber = r.getRoadLinksVehicleCount();
+    	int nRoadLinks = r.getRoadLinks().size();
+    	double roadLinkLength = r.getRoadLinks().get(0).getGeom().getLength();
+    	
+    	double roadArea = roadLinkLength * GlobalVars.MOBILE_AGENT_PARAMS.laneWidth * nRoadLinks;
+    	double vehicleDensity = vehicleNumber/roadArea;
+    	
+    	// Proportion of road taken up by physical presence of vehicles
+    	double stationaryVehicleSpace = vehicleDensity * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleLength;
+    	
+    	// Proportion of road taken up by spacing between vehicles (assuming time separated by driver reaction time)
+    	double vehicleSeparationSpace = vehicleDensity * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleSpeed * GlobalVars.MOBILE_AGENT_PARAMS.vehicleReactionTime;
+    	
+    	// Proportion of road space taken up by space in front of lead vehicle required for pedestrian to cross
+    	double pedestrianGapSpace;
+        if (vehicleDensity == 0) {
+        	pedestrianGapSpace = 0;
+        } 
+        else {
+        	// Total width is given by number of road links * lane width (assuming each link is only one lane)
+        	double tGap = nRoadLinks*GlobalVars.MOBILE_AGENT_PARAMS.laneWidth / this.v0;
+        	
+        	// A pedestrian gap space is added for each leader vehicle (1 if only one road link has vehicles on it. 2 if two road likes have vehicles on them)
+        	pedestrianGapSpace = r.getNumberLeadVehicles() * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleSpeed * tGap /roadArea;
+        }
+        
+        return stationaryVehicleSpace + vehicleSeparationSpace + pedestrianGapSpace;
+    }
+    
     public Color getColor() {
     	return this.col;
     }

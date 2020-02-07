@@ -156,5 +156,12 @@ public abstract class GlobalVars {
 		
 		public static double destinationArrivalDistance = 1.0; // Distance from destination at which agent is considered to ahve arrived
 		
+		// Constants used to estimate space taken up by vehicles 
+		public static double vehicleWidth = 1.8;
+		public static double vehicleLength = 4.0;
+		public static double vehicleMPH = 20;
+		public static double vehicleSpeed = vehicleMPH * 1609.34 * (1.0/(60*60)); // Convert mph to ms-1
+		public static double vehicleReactionTime = 0.85; // Taken from trl report https://trl.co.uk/sites/default/files/PPR313_new.pdf
+		public static double laneWidth = 3.65;
 	}
 }
