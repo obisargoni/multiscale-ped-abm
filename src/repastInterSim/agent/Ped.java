@@ -47,7 +47,6 @@ public class Ped implements MobileAgent {
     private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres
-    private GeometryFactory gF;
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
@@ -62,16 +61,15 @@ public class Ped implements MobileAgent {
     /*
      * Instance method for the Ped class.
      * 
-     * @param space the continuousspace the Ped exists in
+     * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, GeometryFactory gF, Destination d, Double pCR) {
+    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, Destination d, Double pCR) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
         this.rad = m / 320; // As per Moussaid
-        this.gF = gF;
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
         double[] v = {0,0};

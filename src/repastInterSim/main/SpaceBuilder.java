@@ -448,7 +448,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
-    	Ped newPed = new Ped(geography, pedestrianDestinationGeography, fac, d, GlobalVars.MOBILE_AGENT_PARAMS.cautiousPriorityCostRatio);
+    	Ped newPed = new Ped(geography, pedestrianDestinationGeography, d, GlobalVars.MOBILE_AGENT_PARAMS.cautiousPriorityCostRatio);
         context.add(newPed);
         
         // Create a new point geometry.
