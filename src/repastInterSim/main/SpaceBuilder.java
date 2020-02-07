@@ -473,6 +473,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Now set the initial bearing of the pedestrian to be the direction of the first coordinate on the route
         Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
+        newPed.setRouteCoord(routeCoord);
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
 		

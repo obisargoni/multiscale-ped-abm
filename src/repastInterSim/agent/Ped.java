@@ -48,6 +48,8 @@ public class Ped implements MobileAgent {
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
+    private Coordinate routeCoord; // The next coordiante of the agent's route
+    
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
 
@@ -97,10 +99,7 @@ public class Ped implements MobileAgent {
      * given its location, north and destination.
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
-    public void step() throws Exception {
-    	
-        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
-        
+    public void step() throws Exception {        
     	// Agent decides whether to yield, in which case it doesn't progress to the next route coord
         // Order here assumes that agent does this (which requires evaluating if they are approaching a crossing) before moving
    		decideYield(); 
@@ -109,11 +108,12 @@ public class Ped implements MobileAgent {
    		if (!this.yieldAtCrossing) {
         	walk(routeCoord);
         	if (this.pLoc.distance(routeCoord) < 1) {
-        		this.route.removeRouteXCoordinate(routeCoord);
+        		this.route.getRouteX().remove(0);
+        		this.routeCoord = this.route.getRouteX().get(0);
         	}
     	}
    		
-   		// If agent does intent to yield, agent walks as usual until the crossing point is reached
+   		// If agent does intend to yield, agent walks as usual until the crossing point is reached
    		// Once crossing point is reached agent does not move whilst in yield state
    		// Separation here between intention to yield and performing of yielding action (during which intention could be allowed to change, in principle)
     	else if (this.yieldAtCrossing) {
@@ -122,7 +122,9 @@ public class Ped implements MobileAgent {
             	// Walk towards the next coordinate along the route
             	walk(routeCoord);
             	if (this.pLoc.distance(routeCoord) < 1) {
-            		this.route.removeRouteXCoordinate(routeCoord);
+            		// Get next coordinate
+            		this.route.getRouteX().remove(0);
+            		this.routeCoord = this.route.getRouteX().get(0);
             	}
         	}
         	else {
@@ -604,5 +606,9 @@ public class Ped implements MobileAgent {
     @Override
     public HashMap<Integer, Double> getGridPrioritySummandMap() {
     	return this.gridSummandPriorityMap;
+    }
+    
+    public void setRouteCoord(Coordinate rC) {
+    	this.routeCoord = rC;
     }
 }
