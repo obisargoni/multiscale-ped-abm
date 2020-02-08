@@ -14,7 +14,6 @@ public interface MobileAgent {
 	void setLoc();
 	Coordinate getLoc();
 	Route getRoute();
-	HashMap<Integer, Double> getGridPrioritySummandMap();
 	Geography<Object> getGeography();
 	void tidyForRemoval();
 

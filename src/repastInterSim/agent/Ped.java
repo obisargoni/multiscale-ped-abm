@@ -666,11 +666,6 @@ public class Ped implements MobileAgent {
     	return this.geography;
     }
     
-    @Override
-    public HashMap<Integer, Double> getGridPrioritySummandMap() {
-    	return this.gridSummandPriorityMap;
-    }
-    
     public void setRouteCoord(Coordinate rC) {
     	this.routeCoord = rC;
     }

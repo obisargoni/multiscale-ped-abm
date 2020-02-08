@@ -30,8 +30,6 @@ public class Vehicle implements MobileAgent {
 	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
 	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
 
-    private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
-
 	public Destination destination;
 	
 	private Route route;
@@ -470,11 +468,6 @@ public class Vehicle implements MobileAgent {
     @Override
     public Geography<Object> getGeography() {
     	return this.geography;
-    }
-    
-    @Override
-    public HashMap<Integer, Double> getGridPrioritySummandMap() {
-    	return this.gridSummandPriorityMap;
     }
 
 }
