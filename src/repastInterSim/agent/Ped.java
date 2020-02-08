@@ -58,6 +58,7 @@ public class Ped implements MobileAgent {
     private String roadLinkFID = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
+    private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
     
     private int yieldTime = 0;
     
@@ -70,7 +71,7 @@ public class Ped implements MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, Destination d, Double pCR) {
+    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, Destination d) {
         this.geography = geography;
         this.destination = d;
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
@@ -88,8 +89,9 @@ public class Ped implements MobileAgent {
         this.k = GlobalVars.interactionForceConstant;
         
         // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
+        this.vehiclePriorityCostRatio = GlobalVars.MOBILE_AGENT_PARAMS.cautiousPriorityCostRatio;
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), pCR);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
