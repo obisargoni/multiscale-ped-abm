@@ -88,6 +88,10 @@ public class Route implements Cacheable {
 	private Geography<Object> geography;
 	
 	private MobileAgent mA;
+	
+	// Used to get grid cell summand value when running flood fill algorithm for routing. Single agent can produce routes from different costs, reflecting agent's changing perceptions of costs.
+	private HashMap<Integer, Double> gridSummandPriorityMap; 
+
 	private Coordinate destination;
 
 	/*
@@ -172,26 +176,44 @@ public class Route implements Cacheable {
 	}
 	
 	/**
-	 * Creates a new Route object.
+	 * Create a new route object
 	 * 
-	 * @param burglar
-	 *            The burglar which this Route will control.
-	 * 
+	 * @param geography
+	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param mA
+	 * 		The mobile agent this route belongs to
+	 * @param gSPM
+	 * 		The map from integers used to indicate the road user priority of grid cells to the agents perceived cost of moving through those grid cells. 
+	 * Used for routing on a grid.
 	 * @param destination
-	 *            The agent's destination.
-	 * 
-	 * @param destinationBuilding
-	 *            The (optional) building they're heading to.
-	 * 
-	 * @param partial
-	 * 				Sets whether to run the flood fill algorithm on the full grid or only a partial section of it (when routing via a grid)
-	 * 
-	 * @param type
-	 *            The (optional) type of route, used by burglars who want to search.
+	 * 		The destination coordinate of the route
 	 */
-	public Route(Geography<Object> geography, MobileAgent mA, Coordinate destination, boolean partial) {
+	public Route(Geography<Object> geography, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
 		this.geography = geography;
 		this.mA = mA;
+		this.gridSummandPriorityMap = gSPM;
+		this.destination = destination;
+	}
+	
+	/**
+	 * Create a new route object
+	 * 
+	 * @param geography
+	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param mA
+	 * 		The mobile agent this route belongs to
+	 * @param gSPM
+	 * 		The map from integers used to indicate the road user priority of grid cells to the agents perceived cost of moving through those grid cells. 
+	 * Used for routing on a grid.
+	 * @param destination
+	 * 		The destination coordinate of the route
+	 * @param
+	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
+	 */
+	public Route(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
+		this.geography = geography;
+		this.mA = mA;
+		this.gridSummandPriorityMap = gSPM;
 		this.destination = destination;
 		this.partialFF = partial;
 	}
