@@ -16,7 +16,6 @@ import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.Route;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package repastInterSim.environment;
+package repastInterSim.agent;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -60,7 +60,15 @@ import cern.colt.Arrays;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
-import repastInterSim.agent.MobileAgent;
+import repastInterSim.environment.Cacheable;
+import repastInterSim.environment.Destination;
+import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.PedObstruction;
+import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
+import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;

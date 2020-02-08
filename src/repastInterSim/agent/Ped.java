@@ -22,7 +22,6 @@ import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.Route;
 import repastInterSim.environment.Vector;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
