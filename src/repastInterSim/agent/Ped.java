@@ -95,7 +95,7 @@ public class Ped implements MobileAgent {
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
-		this.route = new Route(geography, this, dCoord);
+		this.route = new Route(geography, this, this.gridSummandPriorityMap, dCoord);
 		
     }
     
@@ -242,7 +242,6 @@ public class Ped implements MobileAgent {
            		double[] oCA = obstructionContactAcceleration(this, thisGeom, Obstr, obstrGeom);
            		cATotal = Vector.sumV(cATotal, oCA);
            	}
-
         } 
     	
     	return cATotal;
