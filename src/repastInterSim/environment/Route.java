@@ -156,19 +156,14 @@ public class Route implements Cacheable {
 
 
 	/**
-	 * Creates a new Route object.
+	 * Create a new route object
 	 * 
-	 * @param burglar
-	 *            The burglar which this Route will control.
-	 * 
+	 * @param geography
+	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param mA
+	 * 		The mobile agent this route belongs to
 	 * @param destination
-	 *            The agent's destination.
-	 * 
-	 * @param destinationBuilding
-	 *            The (optional) building they're heading to.
-	 * 
-	 * @param type
-	 *            The (optional) type of route, used by burglars who want to search.
+	 * 		The destination coordinate of the route
 	 */
 	public Route(Geography<Object> geography, MobileAgent mA, Coordinate destination) {
 		this.geography = geography;
