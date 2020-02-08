@@ -790,7 +790,7 @@ public class Route implements Cacheable {
 				// Ensure the next cell doesn't already have a value
 				if (n[j][i] == 0) {
 					// Get the cost of moving through this cell for the mobile agent by mapping from cell value using agents priority map
-					double summand = mA.getGridPrioritySummandMap().get(cellValue[0]);
+					double summand = this.gridSummandPriorityMap.get(cellValue[0]);
 					nextCellValue = thisCellValue + summand;
 					floodFillValues[j][i] = nextCellValue;
 					n[j][i] += 1;
