@@ -484,21 +484,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
 		IO.gridCoverageToImage(grid, gridImageFile);
-				
-		int width = grid.getRenderedImage().getTileWidth();
-		int height = grid.getRenderedImage().getTileHeight();
-		
-		double[] gridValue = null;
-		double[][] gridValues = new double[height][width];			
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
-				gridValue = grid.evaluate(gridPos, gridValue);
-				gridValues[j][i] = gridValue[0];
-			}
-		}
-		
-		IO.twodDoubleArrayToCSV(gridValues, gridValueFile);		
+		IO.gridCoverageValuesToCSV(grid, gridValueFile);	
 	}
 
 	/*
