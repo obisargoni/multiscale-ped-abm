@@ -499,6 +499,24 @@ public class GISFunctions {
 	 *			The polygon (a square) representing the same envelop in a geographical space
 	 */
 	public static Polygon getWorldPolygonFromGridEnvelope(WritableGridCoverage2D grid, GridEnvelope2D gridEnvelope) {
+		GridCoverage2D grd = (GridCoverage2D)grid;
+		
+		Polygon wEPoly = getWorldPolygonFromGridEnvelope(grd, gridEnvelope);
+		
+		return wEPoly;
+	}
+	
+	/**
+	 * Takes an envelope expressed in grid coordinates and transforms it to the equivalent envelope 
+	 * expressed in the coordinate reference system the grid maps to - the 'real world' space.
+	 * @param grid
+	 * 			The grid coverage the grid envelope belongs to
+	 * @param gridEnvelope
+	 * 			The grid envelope to transform
+	 * @return
+	 *			The polygon (a square) representing the same envelop in a geographical space
+	 */
+	public static Polygon getWorldPolygonFromGridEnvelope(GridCoverage2D grid, GridEnvelope2D gridEnvelope) {
 		
 		Envelope2D worldEnv = null;
 		
