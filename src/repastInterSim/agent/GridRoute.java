@@ -158,8 +158,13 @@ public class GridRoute extends Route {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
-			prevCellRoadLinkFID = GISFunctions.getGridPolygonRoads(prevCellPoly).get(0).getRoadLinkFI();
-			cellRoadLinkFID = GISFunctions.getGridPolygonRoads(cellPoly).get(0).getRoadLinkFI();
+			try {
+				prevCellRoadLinkFID = GISFunctions.getGridPolygonRoads(prevCellPoly).get(0).getRoadLinkFI();
+				cellRoadLinkFID = GISFunctions.getGridPolygonRoads(cellPoly).get(0).getRoadLinkFI();
+			} catch (RoutingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {
