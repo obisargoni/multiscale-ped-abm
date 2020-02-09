@@ -110,11 +110,11 @@ public class Ped implements MobileAgent {
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
-        	walk(routeCoord);
-        	if (this.pLoc.distance(routeCoord) < 1) {
-        		this.route.removeNextRouteCoord();;
-        		this.routeCoord = this.route.getNextRouteCoord();
+        	if (this.pLoc.distance(routeCoord) < 0.5) {
+        		this.route.getRouteX().remove(0);
+        		this.routeCoord = this.route.getRouteX().get(0);
         	}
+        	walk(routeCoord);
     	}
    		
    		// If agent does intend to yield, agent walks as usual until the crossing point is reached
@@ -124,12 +124,13 @@ public class Ped implements MobileAgent {
     		double distanceToCrossing = this.pLoc.distance(this.getRoute().getRouteCrossings().get(0));
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
-            	walk(routeCoord);
-            	if (this.pLoc.distance(routeCoord) < 1) {
+            	if (this.pLoc.distance(routeCoord) < 0.5) {
             		// Get next coordinate
-            		this.route.removeNextRouteCoord();
-            		this.routeCoord = this.route.getNextRouteCoord();
+            		this.route.getRouteX().remove(0);
+            		this.routeCoord = this.route.getRouteX().get(0);
             	}
+            	walk(routeCoord);
+
         	}
         	else {
         		assert true;
