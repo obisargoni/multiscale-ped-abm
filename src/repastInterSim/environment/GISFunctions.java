@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
@@ -423,7 +424,7 @@ public class GISFunctions {
 	 * @param attributeName The name of the agent attribute to use to set grid cell values
 	 * @param agentAttributeValueMap A map between attribute value and grid cell value
 	 */
-	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, List<GridEnvelope2D> gridEnvelopeList, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
+	public static <T extends FixedGeography> void setGridCoverageValuesFromGeography(WritableGridCoverage2D grid, Class<T> cl, Geography<T> geography, String attributeName, Map<String,Integer> agentAttributeValueMap) {
 		
 	    // Get class attributeMethodMap read attribute methods
 	    Map<String, Method> readAttributeMethodMap = ShapefileLoader.getAttributeMethodMap(cl, "r");
@@ -432,60 +433,66 @@ public class GISFunctions {
 
 		Iterable<T> Obs = geography.getAllObjects();
 		
+		// Cast to int. 
+		int width = grid.getRenderedImage().getWidth();
+		int height = grid.getRenderedImage().getHeight();
 		
-			
-		for(GridEnvelope2D gridEnv: gridEnvelopeList) {
-			
-			GridCoordinates2D gridPos = new GridCoordinates2D(gridEnv.x,gridEnv.y);
-			Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
-			
-			List<T> intersectingObs = SpatialIndexManager.findIntersectingObjects(geography, worldPoly);
-			if (intersectingObs.size() == 0) {
-				continue;
-			}
-			
-			// For each of the objects that intersect the geometry get the
-			// string attribute values. Set grid cell value based on these
-			List<String> obsAttributeValues = new ArrayList<String>();
-			for(T Ob: intersectingObs) {
-				Object attributeValue = null;
-				String strAttrVal = null;
-				try {
-					attributeValue = readAttributeMethod.invoke(Ob);
-					strAttrVal = attributeValue.toString();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		// Loop over coverage grid cells
+		for(int i=0;i<width;i++) {
+			for (int j=0;j<height;j++) {
+						
+				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);
+				GridEnvelope2D gridEnv = new GridEnvelope2D(gridPos.x, gridPos.y,1, 1);
+				Polygon worldPoly = getWorldPolygonFromGridEnvelope(grid, gridEnv);
+				
+				List<T> intersectingObs = SpatialIndexManager.findIntersectingObjects(geography, worldPoly);
+				if (intersectingObs.size() == 0) {
+					continue;
 				}
 				
-				if(!obsAttributeValues.contains(strAttrVal)) {
-					obsAttributeValues.add(strAttrVal);
+				// For each of the objects that intersect the geometry get the
+				// string attribute values. Set grid cell value based on these
+				List<String> obsAttributeValues = new ArrayList<String>();
+				for(T Ob: intersectingObs) {
+					Object attributeValue = null;
+					String strAttrVal = null;
+					try {
+						attributeValue = readAttributeMethod.invoke(Ob);
+						strAttrVal = attributeValue.toString();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InvocationTargetException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					if(!obsAttributeValues.contains(strAttrVal)) {
+						obsAttributeValues.add(strAttrVal);
+					}
 				}
-			}
-
-			// Choose GIS method based on attribute value
-			Integer gridValue = null;
-			
-			// First check for ped obstructions, set value based on this
-			if (obsAttributeValues.contains("pedestrian_obstruction")) {
-				gridValue = agentAttributeValueMap.get("pedestrian_obstruction");
-			}
-			// Next check if grid cell intersects with a vehicle priority geom
-			else if (obsAttributeValues.contains("vehicle")){
-				gridValue = agentAttributeValueMap.get("vehicle");
-			}
-			// Finally, can set grid value to be pedestrian if no other types intersect
-			else {
-				gridValue = agentAttributeValueMap.get("pedestrian");
-			}
-			grid.setValue(gridPos, gridValue);
-		}
+				
+				// Choose GIS method based on attribute value
+				Integer gridValue = null;
+				
+				// First check for ped obstructions, set value based on this
+				if (obsAttributeValues.contains("pedestrian_obstruction")) {
+					gridValue = agentAttributeValueMap.get("pedestrian_obstruction");
+				}
+				// Next check if grid cell intersects with a vehicle priority geom
+				else if (obsAttributeValues.contains("vehicle")){
+					gridValue = agentAttributeValueMap.get("vehicle");
+				}
+				// Finally, can set grid value to be pedestrian if no other types intersect
+				else {
+					gridValue = agentAttributeValueMap.get("pedestrian");
+				}
+				grid.setValue(gridPos, gridValue);
+			} // j
+		}//i
 	}
 	
 	/**
@@ -499,6 +506,24 @@ public class GISFunctions {
 	 *			The polygon (a square) representing the same envelop in a geographical space
 	 */
 	public static Polygon getWorldPolygonFromGridEnvelope(WritableGridCoverage2D grid, GridEnvelope2D gridEnvelope) {
+		GridCoverage2D grd = (GridCoverage2D)grid;
+		
+		Polygon wEPoly = getWorldPolygonFromGridEnvelope(grd, gridEnvelope);
+		
+		return wEPoly;
+	}
+	
+	/**
+	 * Takes an envelope expressed in grid coordinates and transforms it to the equivalent envelope 
+	 * expressed in the coordinate reference system the grid maps to - the 'real world' space.
+	 * @param grid
+	 * 			The grid coverage the grid envelope belongs to
+	 * @param gridEnvelope
+	 * 			The grid envelope to transform
+	 * @return
+	 *			The polygon (a square) representing the same envelop in a geographical space
+	 */
+	public static Polygon getWorldPolygonFromGridEnvelope(GridCoverage2D grid, GridEnvelope2D gridEnvelope) {
 		
 		Envelope2D worldEnv = null;
 		
@@ -560,6 +585,22 @@ public class GISFunctions {
 	    Point pt = new Point(cs, fac);
 	    
 	    return pt;
+	}
+	
+    /**
+     *  Gets list of roads the input polygon intersects with.
+     *  
+     *  List should have one, where road is one-way, or two, where road is two way, RoadLink objects in.
+     * @return
+     * 		Road Link the agent is on
+     * @throws RoutingException 
+     */
+	public static List<Road> getGridPolygonRoads(Polygon p) throws RoutingException {
+		Road r = null;
+		
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p);
+    	
+    	return intersectingRoads;
 	}
 	
     /**
