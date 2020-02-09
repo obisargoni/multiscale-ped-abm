@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.ArrayUtils;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.InvalidGridGeometryException;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.referencing.GeodeticCalculator;
@@ -54,6 +55,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import cern.colt.Arrays;
@@ -571,12 +573,15 @@ public class Route implements Cacheable {
 		// The first cell in the path corresponds to the agents starting position,
 		// therefore don't need to include this coordinate in the route
 		GridCoordinates2D prevCell = gridPath.get(0);
-		Coordinate prevCellCoord = gridCellToCoordinate(grid, prevCell);
 		
 		// Get indices of grid cells that are at location where road priority changes (crossing points)
 		for (int i = 1; i < gridPath.size(); i++) {
 			GridCoordinates2D gridCell = gridPath.get(i);
-			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
+			
+			GridEnvelope2D prevGridEnv = new GridEnvelope2D(prevCell.x, prevCell.y,1, 1);
+			Polygon prevCellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, prevGridEnv);
+			GridEnvelope2D gridEnv = new GridEnvelope2D(gridCell.x, gridCell.y,1, 1);
+			Polygon cellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, gridEnv);
 			
 			// Get grid cell value of this and previous coord. If values differ this means they are located in
 			// road space with different priority and therefore the previous grid cell should be included in the route
@@ -585,8 +590,8 @@ public class Route implements Cacheable {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
-			prevCellRoadLinkFID = GISFunctions.getCoordinateRoad(prevCellCoord).getRoadLinkFI();
-			cellRoadLinkFID = GISFunctions.getCoordinateRoad(cellCoord).getRoadLinkFI();
+			prevCellRoadLinkFID = GISFunctions.getGridPolygonRoads(prevCellPoly).get(0).getRoadLinkFI();
+			cellRoadLinkFID = GISFunctions.getGridPolygonRoads(cellPoly).get(0).getRoadLinkFI();
 			
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {

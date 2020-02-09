@@ -588,22 +588,12 @@ public class GISFunctions {
      * 		Road Link the agent is on
      * @throws RoutingException 
      */
-	public static Road getCoordinateRoad(Coordinate c) throws RoutingException {
+	public static List<Road> getGridPolygonRoads(Polygon p) throws RoutingException {
 		Road r = null;
 		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p);
     	
-    	if(intersectingRoads.size() == 0) {
-    		// Method returns default value, null, if there are no intersecting roads
-    	}
-    	else if (intersectingRoads.size() == 1) {
-        	r = intersectingRoads.get(0);
-    	}
-    	else {
-    		throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
-    	}
-    	
-    	return r;
+    	return intersectingRoads;
 	}
 
 }
