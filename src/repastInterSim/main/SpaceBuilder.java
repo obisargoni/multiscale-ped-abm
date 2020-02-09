@@ -444,12 +444,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
-		try {
-			newPed.getRoute().setPedestrianGridRoute();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		newPed.getRoute().setPedestrianGridRoute();
 		
 		// Now set the initial bearing of the pedestrian to be the direction of the first coordinate on the route
         Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
@@ -463,7 +458,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
-    private void exportGridRouteData(MobileAgent ma) {
+    private void exportGridRouteData(Ped p) {
     	
     	// Export dir used for data exports, output dir used for figures
     	String exportDir = ".\\data\\export\\";
@@ -475,15 +470,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
     	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
 
-    	
     	String gridImageFile = outputDir + "output_grid_vales.png";
     	
 		// TODO Auto-generated method stub
-		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
-		List<GridCoordinates2D> gridPath = ma.getRoute().getGridPath();
-		List<GridCoordinates2D> prunedGridPath = ma.getRoute().getPrunedGridPath();
-		List<GridCoordinates2D> gridPathCrossings = ma.getRoute().getGridPathCrossings();
+		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		double[][] floodFillValues = p.getRoute().getFloodFillGridValues();
+		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
+		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
+		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
 		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
 		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
