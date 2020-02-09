@@ -459,7 +459,6 @@ public class Vehicle implements MobileAgent {
      * @returns Route of the vehicle
      * 
      */
-	@Override
 	public Route getRoute() {
     	return this.route;
     }

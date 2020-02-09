@@ -28,6 +28,7 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
 public class GridRoute extends Route {
@@ -107,7 +108,7 @@ public class GridRoute extends Route {
 	 * @throws RoutingException 
 	 * 
 	 */
-	public void setPedestrianGridRoute() throws RoutingException {
+	public void setPedestrianGridRoute() {
 				
 		// Initialise class attributes
 		this.routeX = new Vector<Coordinate>();
@@ -122,6 +123,7 @@ public class GridRoute extends Route {
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 
 		gridPath = getGridCoveragePath(grid);
+		IO.gridCoordiantesIterableToCSV(gridPath, ".\\data\\export\\export_grid_coverage_path.csv");
 		Set<Integer> routeIndices = new HashSet<Integer>();
 		Set<Integer> crossingIndices = new HashSet<Integer>();
 		Set<Integer> roadLinkChangeIndices = new HashSet<Integer>();
@@ -144,7 +146,7 @@ public class GridRoute extends Route {
 		for (int i = 1; i < gridPath.size(); i++) {
 			GridCoordinates2D gridCell = gridPath.get(i);
 			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
-			
+
 			// Get grid cell value of this and previous coord. If values differ this means they are located in
 			// road space with different priority and therefore the previous grid cell should be included in the route
 			prevCellValue = grid.evaluate(prevCell, prevCellValue);
@@ -152,8 +154,15 @@ public class GridRoute extends Route {
 			Double prevVal = prevCellValue[0];
 			Double val = cellValue[0];
 			
-			prevCellRoadLinkFID = GISFunctions.getCoordinateRoad(prevCellCoord).getRoadLinkFI();
-			cellRoadLinkFID = GISFunctions.getCoordinateRoad(cellCoord).getRoadLinkFI();
+			try {
+				prevCellRoadLinkFID = GISFunctions.getCoordinateRoad(prevCellCoord).getRoadLinkFI();
+				cellRoadLinkFID = GISFunctions.getCoordinateRoad(cellCoord).getRoadLinkFI();
+			} catch (RoutingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+			}
 			
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {

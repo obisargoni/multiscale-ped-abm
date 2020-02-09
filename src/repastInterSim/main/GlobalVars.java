@@ -163,5 +163,8 @@ public abstract class GlobalVars {
 		public static double vehicleSpeed = vehicleMPH * 1609.34 * (1.0/(60*60)); // Convert mph to ms-1
 		public static double vehicleReactionTime = 0.85; // Taken from trl report https://trl.co.uk/sites/default/files/PPR313_new.pdf
 		public static double laneWidth = 3.65;
+		
+		// Linear proportion factor to multiply vehicle road space proportion by to get addition to grid cell cost
+		public static double gridCellCostParam = 1.0;
 	}
 }

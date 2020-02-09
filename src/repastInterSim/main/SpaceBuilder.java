@@ -254,6 +254,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, Road.class, roadGeography, "priority", priorityValueMap);
 		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
 		
+		// Check the grid values
+		String exportDir = ".\\data\\export\\";    	
+    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
+		IO.gridCoverageValuesToCSV(baseGrid, gridValueFile);
+		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
 		
@@ -345,14 +350,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
 			
-			int iD = pDI % nOD;
+			int iD = 0;//pDI % nOD;
 			
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO)[iD]);
 			float threshold = rn.nextFloat();
 			
 			// Create vehicle instance probabilistically according to flow rates
-			if (flow > threshold) {
+			if ((iO==3)&(iD==0)) {
 				Coordinate o = pedestrianDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
 				Destination d = pedestrianDestinationContext.getObjects(Destination.class).get(iD);
 				addPed(o, d);
@@ -464,12 +469,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
-		try {
-			newPed.getRoute().setPedestrianGridRoute();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		newPed.getRoute().setPedestrianGridRoute();
 		
 		// Now set the initial bearing of the pedestrian to be the direction of the first coordinate on the route
         Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
@@ -483,7 +483,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
-    private void exportGridRouteData(MobileAgent ma) {
+    private void exportGridRouteData(Ped p) {
     	
     	// Export dir used for data exports, output dir used for figures
     	String exportDir = ".\\data\\export\\";
@@ -495,36 +495,21 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
     	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
 
-    	
     	String gridImageFile = outputDir + "output_grid_vales.png";
     	
 		// TODO Auto-generated method stub
-		GridCoverage2D grid = ma.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		double[][] floodFillValues = ma.getRoute().getFloodFillGridValues();
-		List<GridCoordinates2D> gridPath = ma.getRoute().getGridPath();
-		List<GridCoordinates2D> prunedGridPath = ma.getRoute().getPrunedGridPath();
-		List<GridCoordinates2D> gridPathCrossings = ma.getRoute().getGridPathCrossings();
+		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		double[][] floodFillValues = p.getRoute().getFloodFillGridValues();
+		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
+		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
+		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
 		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
 		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
 		IO.gridCoverageToImage(grid, gridImageFile);
-				
-		int width = grid.getRenderedImage().getTileWidth();
-		int height = grid.getRenderedImage().getTileHeight();
-		
-		double[] gridValue = null;
-		double[][] gridValues = new double[height][width];			
-		for (int j = 0; j < height; j++) {
-			for (int i = 0; i < width; i++) {
-				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
-				gridValue = grid.evaluate(gridPos, gridValue);
-				gridValues[j][i] = gridValue[0];
-			}
-		}
-		
-		IO.twodDoubleArrayToCSV(gridValues, gridValueFile);		
+		IO.gridCoverageValuesToCSV(grid, gridValueFile);	
 	}
 
 	/*

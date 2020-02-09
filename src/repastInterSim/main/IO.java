@@ -79,6 +79,22 @@ public class IO {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void gridCoverageValuesToCSV(GridCoverage2D grid, String path) {
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		double[] gridValue = null;
+		double[][] gridValues = new double[height][width];			
+		for (int j = 0; j < height; j++) {
+			for (int i = 0; i < width; i++) {
+				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
+				gridValue = grid.evaluate(gridPos, gridValue);
+				gridValues[j][i] = gridValue[0];
+			}
+		}
+		
+		twodDoubleArrayToCSV(gridValues, path);
+	}
 
 }
 

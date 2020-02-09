@@ -21,7 +21,6 @@ import repastInterSim.environment.Destination;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
-import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
@@ -31,7 +30,7 @@ public class Ped implements MobileAgent {
     private Geography<Object> geography; // Space the agent exists in
     public Destination destination; // The destination agent that this pedestrian agents is heading towards.
     
-    private Route route;
+    private GridRoute route;
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
     
@@ -94,7 +93,7 @@ public class Ped implements MobileAgent {
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
-		this.route = new Route(geography, this, this.gridSummandPriorityMap, dCoord);
+		this.route = new GridRoute(geography, this, this.gridSummandPriorityMap, dCoord);
 		
     }
     
@@ -113,8 +112,8 @@ public class Ped implements MobileAgent {
    		if (!this.yieldAtCrossing) {
         	walk(routeCoord);
         	if (this.pLoc.distance(routeCoord) < 1) {
-        		this.route.getRouteX().remove(0);
-        		this.routeCoord = this.route.getRouteX().get(0);
+        		this.route.removeNextRouteCoord();;
+        		this.routeCoord = this.route.getNextRouteCoord();
         	}
     	}
    		
@@ -128,8 +127,8 @@ public class Ped implements MobileAgent {
             	walk(routeCoord);
             	if (this.pLoc.distance(routeCoord) < 1) {
             		// Get next coordinate
-            		this.route.getRouteX().remove(0);
-            		this.routeCoord = this.route.getRouteX().get(0);
+            		this.route.removeNextRouteCoord();
+            		this.routeCoord = this.route.getNextRouteCoord();
             	}
         	}
         	else {
@@ -493,11 +492,23 @@ public class Ped implements MobileAgent {
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(nextRouteCoordRoad);
+    	double updatedVehicleGridCellCost = 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace;
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
+    	// Use this updated perception of costs when calculating updated Route
+    	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio * updatedVehicleGridCellCost);
     	
-    	// Create new Route object
-    	Route partialRoute = new Route(this.geography, this, this.routeCoord);
+    	// Create new Route object, that evaluates flood fill values over a partial section of the grid
+    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, this.routeCoord, true);
+    	
+    	// Get updated set of route coords to follow to next road link coordinate
+    	partialRoute.setPedestrianGridRoute();
+    	
+    	List<Coordinate> updatedRouteSection = partialRoute.getRouteX();
+    	
+    	// Need a way of structuring route coordinates so that the sections of the route between road links are easy to update
+    	
     	
     }
     
@@ -655,8 +666,7 @@ public class Ped implements MobileAgent {
      * @returns Route of the pedestrian
      * 
      */
-    @Override
-    public Route getRoute() {
+    public GridRoute getRoute() {
     	return this.route;
     }
     
@@ -664,6 +674,7 @@ public class Ped implements MobileAgent {
     public Geography<Object> getGeography() {
     	return this.geography;
     }
+    
     
     public void setRouteCoord(Coordinate rC) {
     	this.routeCoord = rC;
