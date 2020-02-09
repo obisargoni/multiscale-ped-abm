@@ -250,9 +250,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		geography.addCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, baseGrid);
 
 		// Loop over coverage grid cells to check values and number of cells
-		List<GridEnvelope2D> geList = gridCoverageCellEnvelopeList(baseGrid);
-		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, Road.class, roadGeography, "priority", priorityValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, geList, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, Road.class, roadGeography, "priority", priorityValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
@@ -271,25 +270,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		return context;
 		
-	}
-	
-	public static List<GridEnvelope2D> gridCoverageCellEnvelopeList(WritableGridCoverage2D grid) {
-		
-		List<GridEnvelope2D> geList = new ArrayList<GridEnvelope2D>();
-		
-		// Cast to int. 
-		int width = grid.getRenderedImage().getWidth();
-		int height = grid.getRenderedImage().getHeight();
-		
-		// Loop over coverage grid cells
-		for(int i=0;i<width;i++) {
-			for (int j=0;j<height;j++) {
-				GridEnvelope2D gridEnv = new GridEnvelope2D(i, j,1, 1);
-				geList.add(gridEnv);
-			}
-		}
-		
-		return geList;
 	}
 
 	/*
