@@ -305,7 +305,7 @@ public class GridRoute extends Route {
 	}
 
 	
-	public void routeCoordinatesFromGridCellPath(List<GridCoordinates2D> gridPath) {
+	public void addCoordinatesToRouteFromGridPath(List<GridCoordinates2D> gridPath) {
 		
 		Set<Integer> routeIndices = new HashSet<Integer>();
 		Map<Integer, String> descriptionMap = new HashMap<Integer, String>();
@@ -684,7 +684,7 @@ public class GridRoute extends Route {
 		if(this.routeX.size() == 0) {
 			Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
 			List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
-			routeCoordinatesFromGridCellPath(nextPathSection);
+			addCoordinatesToRouteFromGridPath(nextPathSection);
 		}
 		Coordinate nextCoord = this.routeX.get(0);
 		return nextCoord;
