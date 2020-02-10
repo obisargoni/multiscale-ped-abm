@@ -690,6 +690,18 @@ public class GridRoute extends Route {
 		return nextCoord;
 	}
 	
+	public Coordinate getNextRouteCrossingCoord() {
+		Coordinate crossingC = null;
+		for (int i = 0; i< this.routeDescriptionX.size(); i++) {
+			if (this.routeDescriptionX.get(i).contentEquals(GlobalVars.TRANSPORT_PARAMS.routeCrossingDescription)) {
+				crossingC = this.routeX.get(i);
+				break;
+			}
+		}
+		// Could be null if there is not a crossing in the upcoming section of the route.
+		return crossingC;
+	}
+	
 	public void removeNextFromRoute() {
 		removeFromRoute(0);
 	}
