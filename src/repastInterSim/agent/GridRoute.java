@@ -681,19 +681,17 @@ public class GridRoute extends Route {
 	}
 	
 	public Coordinate getNextRouteCoord() {
-		Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
-		List<Coordinate> nextCoordSection = this.routeSectionsX.get(nextRoadLinkCoord);
-		Coordinate nextCoord = nextCoordSection.get(0);
+		if(this.routeX.size() == 0) {
+			Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
+			List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
+			routeCoordinatesFromGridCellPath(nextPathSection);
+		}
+		Coordinate nextCoord = this.routeX.get(0);
 		return nextCoord;
 	}
 	
 	public void removeNextRouteCoord() {
-		Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
-		List<Coordinate> nextCoordSection = this.routeSectionsX.get(nextRoadLinkCoord);
-		nextCoordSection.remove(0);
-		if (nextCoordSection.size() == 0) {
-			this.routeRoadLinkX.remove(0);
-		}
+		this.routeX.remove(0);
 	}
 	
 	public List<Coordinate> getRouteCrossings(){
