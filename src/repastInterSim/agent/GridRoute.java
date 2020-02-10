@@ -690,8 +690,15 @@ public class GridRoute extends Route {
 		return nextCoord;
 	}
 	
-	public void removeNextRouteCoord() {
-		this.routeX.remove(0);
+	public void removeNextFromRoute() {
+		removeFromRoute(0);
+	}
+	
+	public void removeFromRoute(int index) {
+		this.routeX.remove(index);
+		this.roadsX.remove(index);
+		this.routeSpeedsX.remove(index);
+		this.routeDescriptionX.remove(index);
 	}
 	
 	public List<Coordinate> getRouteCrossings(){
