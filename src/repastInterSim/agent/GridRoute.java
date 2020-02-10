@@ -102,6 +102,60 @@ public class GridRoute extends Route {
 	}
 	
 	/**
+	 * This method produces a path of grid cells from the agents current position to its destination (hence 'full'). 
+	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
+	 */
+	public void setFullGroupedGridPath() {
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		
+		// sequence of grid cell coordinates leading from agent' current position to end destination
+		gridPath = getGridCoveragePath(grid);
+		
+		Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
+		
+		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
+		GridCoordinates2D roadLinkGridCoord = gridPath.get(0);
+		groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+		
+		// Add the grid cell to the group of coodinates itself
+		groupedGridPath.get(roadLinkGridCoord).add(roadLinkGridCoord);
+
+		GridCoordinates2D prevCell = roadLinkGridCoord;		
+		String prevCellRoadLinkFID = null;
+		String cellRoadLinkFID = null;
+		
+		// For each grid cell in the path:
+		// - check if it is located on a different road link
+		// - if it is, use to index a new group of grid cell coordiantes
+		// - add the grid cell coordiante to the group of grid cells that belong to the same road link
+		for (int i = 1; i < gridPath.size(); i++) {			
+			GridCoordinates2D gridCell = gridPath.get(i);
+			
+			GridEnvelope2D prevGridEnv = new GridEnvelope2D(prevCell.x, prevCell.y,1, 1);
+			Polygon prevCellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, prevGridEnv);
+			GridEnvelope2D gridEnv = new GridEnvelope2D(gridCell.x, gridCell.y, 1, 1);
+			Polygon cellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, gridEnv);
+			
+			try {
+				prevCellRoadLinkFID = GISFunctions.getGridPolygonRoads(prevCellPoly).get(0).getRoadLinkFI();
+				cellRoadLinkFID = GISFunctions.getGridPolygonRoads(cellPoly).get(0).getRoadLinkFI();
+			} catch (RoutingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// Check for change in road link id
+			if (!cellRoadLinkFID.contentEquals(prevCellRoadLinkFID)) {
+				roadLinkGridCoord = gridCell;
+				groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+			}
+			groupedGridPath.get(roadLinkGridCoord).add(gridCell);
+			prevCell = gridCell;
+		}
+	}
+	
+	
+	/**
 	 * Set the route of a mobile agent using the agent's corresponding grid coverage
 	 * layer and the flood fill algorithm. This produces a path of coordinates that each correspond
 	 * to a grid cell in the coverage. The full path coordinates are pruned to retain
