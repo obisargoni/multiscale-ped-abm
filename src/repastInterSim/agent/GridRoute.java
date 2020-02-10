@@ -330,12 +330,12 @@ public class GridRoute extends Route {
 			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
 			if (val.compareTo(prevVal) > 0) {
 				routeIndices.add(i);
-				descriptionMap.put(i, "crossing");
+				descriptionMap.put(i, GlobalVars.TRANSPORT_PARAMS.routeCrossingDescription);
 			}
 			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
 			else if (val.compareTo(prevVal) < 0) {
 				routeIndices.add(i);
-				descriptionMap.put(i, "route");
+				descriptionMap.put(i, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
 
 			}
 			prevCell = gridCell;
@@ -366,7 +366,7 @@ public class GridRoute extends Route {
 					gridPathIndexToIncludeInRoute = i-1;
 				}
 				routeIndices.add(gridPathIndexToIncludeInRoute);
-				descriptionMap.put(gridPathIndexToIncludeInRoute, "route");
+				descriptionMap.put(gridPathIndexToIncludeInRoute, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
 				startCellIndex = gridPathIndexToIncludeInRoute;
 				
 				// Update start cell

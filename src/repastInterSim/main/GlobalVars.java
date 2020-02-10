@@ -130,7 +130,9 @@ public abstract class GlobalVars {
 		
 		// Used to synchronise routing code blocks
 		public static Object currentBurglarLock = new Object();
-
+		
+		public static String routeDefaultDescription = "route";
+		public static String routeCrossingDescription = "crossing";
 	}
 	
 	public static final class GRID_PARAMS {
