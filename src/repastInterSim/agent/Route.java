@@ -533,6 +533,12 @@ public class Route implements Cacheable {
 		this.routeSpeedsX.remove(index);
 		this.routeDescriptionX.remove(index);
 	}
+	
+	protected void updateRouteCoordDescription(Coordinate c, String newDesc) {
+		int i = this.routeX.indexOf(c);
+		this.routeDescriptionX.set(i, newDesc);
+	}
+	
 	/**
 	 * Find the nearest coordinate which is part of a Road. Returns the coordinate which is actually the closest to the
 	 * given coord, not just the corner of the segment which is closest. Uses the DistanceOp class which finds the
