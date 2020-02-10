@@ -49,9 +49,12 @@ public class GridRoute extends Route {
 	// Record the coordinates of route points that correspond to crossing locations
 	private List<Coordinate> routeCrossingsX;
 	
-	// Record coordinates at which agent enters new road link
+	// Record cells/coordinates at which agent enters new road link
+	private Map<Coordinate, GridCoordinates2D> routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
 	private List<Coordinate> routeRoadLinkX;
 	
+	// Used to recrode the route of grid cells or coordinates, grouped by the road link they belong to
+	private Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
 	private Map<Coordinate, List<Coordinate>> routeSectionsX;
 	
 	// Record the value of grid cells following flood fill (used when routing via a grid)
@@ -109,16 +112,17 @@ public class GridRoute extends Route {
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		gridPath = getGridCoveragePath(grid);
-		
-		Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
-		
+		this.gridPath = getGridCoveragePath(grid);
+				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D roadLinkGridCoord = gridPath.get(0);
-		groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+		Coordinate roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
+		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
+		this.routeRoadLinkX.add(roadLinkCoord);
+		this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
 		
 		// Add the grid cell to the group of coodinates itself
-		groupedGridPath.get(roadLinkGridCoord).add(roadLinkGridCoord);
+		this.groupedGridPath.get(roadLinkGridCoord).add(roadLinkGridCoord);
 
 		GridCoordinates2D prevCell = roadLinkGridCoord;		
 		String prevCellRoadLinkFID = null;
@@ -147,9 +151,12 @@ public class GridRoute extends Route {
 			// Check for change in road link id
 			if (!cellRoadLinkFID.contentEquals(prevCellRoadLinkFID)) {
 				roadLinkGridCoord = gridCell;
-				groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+				roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
+				this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
+				this.routeRoadLinkX.add(roadLinkCoord);
+				this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
 			}
-			groupedGridPath.get(roadLinkGridCoord).add(gridCell);
+			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
 			prevCell = gridCell;
 		}
 	}
