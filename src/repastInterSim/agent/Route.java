@@ -494,7 +494,7 @@ public class Route implements Cacheable {
 	 * @param description
 	 *            A description of why the coordinate has been added
 	 */
-	private void addToRoute(Coordinate coord, RoadLink nullRoad, double speed, String description) {
+	protected void addToRoute(Coordinate coord, RoadLink nullRoad, double speed, String description) {
 		this.routeX.add(coord);
 		this.roadsX.add(nullRoad);
 		this.routeSpeedsX.add(speed);
@@ -514,7 +514,7 @@ public class Route implements Cacheable {
 	 * @param description
 	 *            A description of why the coordinates have been added
 	 */
-	private void addToRoute(List<Coordinate> coords, RoadLink road, double speed, String description) {
+	protected void addToRoute(List<Coordinate> coords, RoadLink road, double speed, String description) {
 		for (Coordinate c : coords) {
 			this.routeX.add(c);
 			this.roadsX.add(road);
@@ -523,6 +523,16 @@ public class Route implements Cacheable {
 		}
 	}
 	
+	protected void removeNextFromRoute() {
+		removeFromRoute(0);
+	}
+	
+	protected void removeFromRoute(int index) {
+		this.routeX.remove(index);
+		this.roadsX.remove(index);
+		this.routeSpeedsX.remove(index);
+		this.routeDescriptionX.remove(index);
+	}
 	/**
 	 * Find the nearest coordinate which is part of a Road. Returns the coordinate which is actually the closest to the
 	 * given coord, not just the corner of the segment which is closest. Uses the DistanceOp class which finds the

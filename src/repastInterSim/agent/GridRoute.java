@@ -637,26 +637,6 @@ public class GridRoute extends Route {
 	}
 	
 	/**
-	 * Convenience function that can be used to add details to the route. This should be used rather than updating
-	 * individual lists because it makes sure that all lists stay in sync
-	 * 
-	 * @param coord
-	 *            The coordinate to add to the route
-	 * @param nullRoad
-	 *            The road that the coordinate is part of
-	 * @param speed
-	 *            The speed that the road can be travelled along
-	 * @param description
-	 *            A description of why the coordinate has been added
-	 */
-	private void addToRoute(Coordinate coord, RoadLink nullRoad, double speed, String description) {
-		this.routeX.add(coord);
-		this.roadsX.add(nullRoad);
-		this.routeSpeedsX.add(speed);
-		this.routeDescriptionX.add(description);
-	}
-	
-	/**
 	 * Get the gis coordinate that corresponds to the location of the input Grid Coordinate
 	 * in the coordinate reference system used by the grid coverage
 	 * 
@@ -700,17 +680,6 @@ public class GridRoute extends Route {
 		}
 		// Could be null if there is not a crossing in the upcoming section of the route.
 		return crossingC;
-	}
-	
-	public void removeNextFromRoute() {
-		removeFromRoute(0);
-	}
-	
-	public void removeFromRoute(int index) {
-		this.routeX.remove(index);
-		this.roadsX.remove(index);
-		this.routeSpeedsX.remove(index);
-		this.routeDescriptionX.remove(index);
 	}
 	
 	public List<Coordinate> getRouteCrossings(){
