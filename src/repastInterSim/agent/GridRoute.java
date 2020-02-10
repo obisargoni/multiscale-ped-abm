@@ -296,6 +296,89 @@ public class GridRoute extends Route {
 		// Finally add the destination as a route coordinate, roadLinkChangeCoord at this point should be the last route change coord
 		addToRoute(this.destination, RoadLink.nullRoad, 1, "grid coverage path");
 	}
+
+	
+	public void routeCoordinatesFromGridCellPath(List<GridCoordinates2D> gridPath) {
+		
+		Set<Integer> routeIndices = new HashSet<Integer>();
+		Map<Integer, String> descriptionMap = new HashMap<Integer, String>();
+				
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		
+		double[] prevCellValue = new double[1];
+		double[] cellValue = new double[1];
+		GridCoordinates2D prevCell = gridPath.get(0);
+		
+		// Get indices of grid cells that are at location where road priority changes (crossing points)
+		for (int i = 1; i < gridPath.size(); i++) {
+			GridCoordinates2D gridCell = gridPath.get(i);
+			
+			// Get grid cell value of this and previous coord. If values differ this means they are located in
+			// road space with different priority and therefore the previous grid cell should be included in the route
+			prevCellValue = grid.evaluate(prevCell, prevCellValue);
+			cellValue = grid.evaluate(gridCell, cellValue);
+			Double prevVal = prevCellValue[0];
+			Double val = cellValue[0];
+			
+			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
+			if (val.compareTo(prevVal) > 0) {
+				routeIndices.add(i);
+				descriptionMap.put(i, "crossing");
+			}
+			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
+			else if (val.compareTo(prevVal) < 0) {
+				routeIndices.add(i);
+				descriptionMap.put(i, "route");
+
+			}
+			prevCell = gridCell;
+		}
+		
+		
+		// Now prune path coordinates that are redundant.
+		// These are defined as those which lay between coordinates which are not separated by a ped obstruction
+		// or change in road priority
+		int startCellIndex = 0;
+		GridCoordinates2D startCell = gridPath.get(startCellIndex);
+		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+		
+		// Given a fixed starting path coordinate, loop through path coordinates, create line between pairs
+		// if line intersects with an obstacle, set the route coord to be the previous path coord for which there 
+		// was no intersection
+		for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
+			int gridPathIndexToIncludeInRoute;
+			GridCoordinates2D gridCell = gridPath.get(i);
+			Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
+			
+			if (checkForObstaclesBetweenRouteCoordinates(startCoord, gridCoord)) {
+				// Handle the case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
+				if (i-1 == startCellIndex) {
+					gridPathIndexToIncludeInRoute = i;
+				}
+				else {
+					gridPathIndexToIncludeInRoute = i-1;
+				}
+				routeIndices.add(gridPathIndexToIncludeInRoute);
+				descriptionMap.put(gridPathIndexToIncludeInRoute, "route");
+				startCellIndex = gridPathIndexToIncludeInRoute;
+				
+				// Update start cell
+				startCell = gridPath.get(startCellIndex);
+				startCoord = gridCellToCoordinate(grid, startCell);
+				
+				// Loop continues two steps ahead from starting cell but this doesn't change route outcome
+			}
+		}
+		
+		// Order final set of route indicies
+		List<Integer> routeIndicesSorted = routeIndices.stream().sorted().collect(Collectors.toList());
+		for (int i:routeIndicesSorted) {
+			GridCoordinates2D routeCell = gridPath.get(i);
+			prunedGridPath.add(routeCell);
+			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
+			addToRoute(routeCoord, RoadLink.nullRoad, 1, descriptionMap.get(i));
+		}
+	}
 	
 	public boolean checkForObstaclesBetweenRouteCoordinates(Coordinate startCoord, Coordinate endCoord) {
 		boolean isObstructingObjects = false;
