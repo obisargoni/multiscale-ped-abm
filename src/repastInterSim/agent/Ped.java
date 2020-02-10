@@ -451,15 +451,17 @@ public class Ped implements MobileAgent {
 	    		this.yieldAtCrossing = false;
 	    		this.yieldTime = 0;
 				this.enteringCrossing = false;
-				this.getRoute().getRouteCrossings().remove(0);
+				
+				// Change its description so that not recognised as a crossing coord
+		    	Coordinate nextCrossingCoord = this.route.getNextRouteCrossingCoord();
+				this.route.updateRouteCoordDescription(nextCrossingCoord, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
 	    	}
     	}
     }
     
     public void checkIfEnteringCrossing() {
-    	
-    	if (this.getRoute().getRouteCrossings().size()>0) {
-        	Coordinate nextCrossingCoord = this.getRoute().getRouteCrossings().get(0);
+    	Coordinate nextCrossingCoord = this.route.getNextRouteCrossingCoord();
+    	if (nextCrossingCoord != null) {
         	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
         	
         	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
