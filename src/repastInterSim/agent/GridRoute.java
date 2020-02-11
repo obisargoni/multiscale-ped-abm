@@ -530,24 +530,28 @@ public class GridRoute extends Route {
 	
 	public Coordinate getNextRouteCoord() {
 		if(this.routeX.size() == 0) {
-			Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
-			List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
-			addCoordinatesToRouteFromGridPath(nextPathSection);
-			
-			// Finish this section of the route with the next road link change coordinate or the destination if all road link change coordinates have been passed
-			if(this.routeRoadLinkX.size()>1) {
-				addToRoute(this.routeRoadLinkX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
-			}
-			else {
-				Coordinate dCoord = this.mA.getDestination().getGeom().getCentroid().getCoordinate();
-				addToRoute(dCoord, RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
-			}
-			
-			// Remove the current road link coord since this section of the path has been added to the route
-			this.routeRoadLinkX.remove(0);
+			setNextRouteSection();
 		}
 		Coordinate nextCoord = this.routeX.get(0);
 		return nextCoord;
+	}
+	
+	private void setNextRouteSection() {
+		Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
+		List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
+		addCoordinatesToRouteFromGridPath(nextPathSection);
+		
+		// Finish this section of the route with the next road link change coordinate or the destination if all road link change coordinates have been passed
+		if(this.routeRoadLinkX.size()>1) {
+			addToRoute(this.routeRoadLinkX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
+		}
+		else {
+			Coordinate dCoord = this.mA.getDestination().getGeom().getCentroid().getCoordinate();
+			addToRoute(dCoord, RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
+		}
+		
+		// Remove the current road link coord since this section of the path has been added to the route
+		this.routeRoadLinkX.remove(0);
 	}
 	
 	public Coordinate getNextRouteCrossingCoord() {
