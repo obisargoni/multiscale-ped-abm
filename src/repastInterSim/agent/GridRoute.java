@@ -309,15 +309,21 @@ public class GridRoute extends Route {
 		}
 		
 		// Set the bounds of the flood fill search based on whether this is a partial route search or not
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
 		int mini = 0;
 		int minj = 0;
-		int maxi = grid.getRenderedImage().getTileWidth();
-		int maxj = grid.getRenderedImage().getTileHeight();
+		int maxi = width;
+		int maxj = height;
 		if (this.partialFF == true) {
-			mini = Math.min(start.x, end.x);
-			minj = Math.min(start.y, end.y);
-			maxi = Math.max(start.x, end.x);
-			maxj = Math.max(start.y, end.y);
+			// Bounds set to bounding box of start-destination +- 30% in x and y direction
+			int dx = Math.abs(start.x-end.x);
+			int dy = Math.abs(start.y-end.y);
+			
+			mini = Math.max(Math.min(start.x, end.x) - (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease),0);
+			minj = Math.max(Math.min(start.y, end.y) - (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease),0);
+			maxi = Math.min(Math.max(start.x, end.x) + (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease), width);
+			maxj = Math.min(Math.max(start.y, end.y) + (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease), height);
 		}
 		
 		double[][] cellValues = gridCoverageFloodFill(grid, end, mini, minj, maxi, maxj);
