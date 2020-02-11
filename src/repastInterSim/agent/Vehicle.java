@@ -280,7 +280,7 @@ public class Vehicle implements MobileAgent {
 		
 		while (disp > distanceAlongRoute) {
 			// Get next coordinate along the route
-	        Coordinate routeCoord = this.route.getRouteXCoordinate(0);
+	        Coordinate routeCoord = this.route.routeX.get(0);
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
 	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
@@ -325,7 +325,7 @@ public class Vehicle implements MobileAgent {
 					distanceAlongRoute += distToCoord;	
 				}
 				
-				this.route.removeRouteXCoordinate(routeCoord);
+				this.route.routeX.remove(routeCoord);
 				currentRoadLink = nextRoadLink;
 				this.route.getRoadsX().remove(0);
 			}
