@@ -483,7 +483,7 @@ public class Ped implements MobileAgent {
     	}
     }
     
-    private void decideUpdateRoute() {
+    private void updateRoadLinkRouteSection() {
     	
     	Road nextRoad = null;
 		try {
