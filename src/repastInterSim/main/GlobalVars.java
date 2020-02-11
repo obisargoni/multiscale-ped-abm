@@ -133,6 +133,7 @@ public abstract class GlobalVars {
 		
 		public static String routeDefaultDescription = "route";
 		public static String routeCrossingDescription = "crossing";
+		public static String routeRoadLinkChangeDescription = "link";
 	}
 	
 	public static final class GRID_PARAMS {
