@@ -168,6 +168,10 @@ public class GridRoute extends Route {
 			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
 			prevCell = gridCell;
 		}
+		
+		// Add the destination to the list of primary route coordinates (those related to changing road link)
+		this.routeRoadLinkX.add(this.destination);
+		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
 	}
 	
 	private void addCoordinatesToRouteFromGridPath(List<GridCoordinates2D> gridPath) {
@@ -547,14 +551,8 @@ public class GridRoute extends Route {
 		List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
 		addCoordinatesToRouteFromGridPath(nextPathSection);
 		
-		// Finish this section of the route with the next road link change coordinate or the destination if all road link change coordinates have been passed
-		if(this.routeRoadLinkX.size()>1) {
-			addToRoute(this.routeRoadLinkX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
-		}
-		else {
-			Coordinate dCoord = this.mA.getDestination().getGeom().getCentroid().getCoordinate();
-			addToRoute(dCoord, RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
-		}
+		// Finish by adding next road link route coord
+		addToRoute(this.routeRoadLinkX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
 		
 		// Remove the current road link coord since this section of the path has been added to the route
 		this.routeRoadLinkX.remove(0);
