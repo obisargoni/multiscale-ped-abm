@@ -599,4 +599,12 @@ public class GridRoute extends Route {
 	public List<Coordinate> getRouteRoadLinkX(){
 		return this.routeRoadLinkX;
 	}
+
+	public Map<GridCoordinates2D, List<GridCoordinates2D>> getGroupedGridPath() {
+		return groupedGridPath;
+	}
+
+	public Map<Coordinate, GridCoordinates2D> getRouteCoordMap() {
+		return routeCoordMap;
+	}
 }
