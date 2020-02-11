@@ -50,12 +50,11 @@ public class GridRoute extends Route {
 	private List<Coordinate> routeCrossingsX;
 	
 	// Record cells/coordinates at which agent enters new road link
-	private Map<Coordinate, GridCoordinates2D> routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
+	private Map<Coordinate, GridCoordinates2D> routeCoordMap;
 	private List<Coordinate> routeRoadLinkX;
 	
 	// Used to recrode the route of grid cells or coordinates, grouped by the road link they belong to
-	private Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
-	private Map<Coordinate, List<Coordinate>> routeSectionsX;
+	private Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath;
 	
 	// Record the value of grid cells following flood fill (used when routing via a grid)
 	private double[][] floodFillValues = null;
@@ -109,6 +108,16 @@ public class GridRoute extends Route {
 	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
 	 */
 	public void setFullGroupedGridPath() {
+		this.routeX = new Vector<Coordinate>();
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+		this.gridPathCrossings = new Vector<GridCoordinates2D>();
+		this.prunedGridPath = new Vector<GridCoordinates2D>();
+		this.routeRoadLinkX = new Vector<Coordinate>();
+		this.routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
+		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
+		
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
@@ -177,7 +186,6 @@ public class GridRoute extends Route {
 		this.roadsX = new Vector<RoadLink>();
 		this.routeDescriptionX = new Vector<String>();
 		this.routeSpeedsX = new Vector<Double>();
-		this.routeSectionsX = new HashMap<Coordinate, List<Coordinate>>();
 		this.routeCrossingsX = new Vector<Coordinate>();
 		this.gridPathCrossings = new Vector<GridCoordinates2D>();
 		this.prunedGridPath = new Vector<GridCoordinates2D>();

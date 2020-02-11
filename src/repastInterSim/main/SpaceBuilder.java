@@ -444,16 +444,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
-		newPed.getRoute().setPedestrianGridRoute();
+		newPed.getRoute().setFullGroupedGridPath();
 		
 		// Now set the initial bearing of the pedestrian to be the direction of the first coordinate on the route
-        Coordinate routeCoord = newPed.getRoute().getRouteXCoordinate(0);
+        Coordinate routeCoord = newPed.getRoute().getNextRouteCoord();
+		// Export pedestrian route data
+		//exportGridRouteData(newPed);
         newPed.setRouteCoord(routeCoord);
 		double ang = newPed.setBearingToDestinationCoord(routeCoord);
 		newPed.setPedestrianBearing(ang);
 		
-		// Export pedestrian route data
-		exportGridRouteData(newPed);
+
 		
         return newPed;
     }
