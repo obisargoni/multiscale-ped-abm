@@ -581,4 +581,8 @@ public class GridRoute extends Route {
 	public List<GridCoordinates2D> getGridPathCrossings(){
 		return this.gridPathCrossings;
 	}
+	
+	public List<Coordinate> getRouteRoadLinkX(){
+		return this.routeRoadLinkX;
+	}
 }
