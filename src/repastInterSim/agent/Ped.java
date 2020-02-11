@@ -485,16 +485,16 @@ public class Ped implements MobileAgent {
     
     private void decideUpdateRoute() {
     	
-    	Road nextRouteCoordRoad = null;
+    	Road nextRoad = null;
 		try {
-			nextRouteCoordRoad = GISFunctions.getCoordinateRoad(this.routeCoord);
+			nextRoad = GISFunctions.getCoordinateRoad(this.routeCoord);
 		} catch (RoutingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
-    	double vehicleRoadSpace = estimateVehicleRoadSpace(nextRouteCoordRoad);
+    	double vehicleRoadSpace = estimateVehicleRoadSpace(nextRoad);
     	double updatedVehicleGridCellCost = 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace;
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
@@ -502,17 +502,15 @@ public class Ped implements MobileAgent {
     	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
     	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio * updatedVehicleGridCellCost);
     	
-    	// Create new Route object, that evaluates flood fill values over a partial section of the grid
-    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, this.routeCoord, true);
+    	// Create new Route object, that evaluates flood fill values over a partial section of the grid, with the coordinate where the road changes as the destination
+    	Coordinate nextRoadLinkCoord = this.route.getRouteRoadLinkX().get(0);
+    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, nextRoadLinkCoord, true);
     	
     	// Get updated set of route coords to follow to next road link coordinate
-    	partialRoute.setPedestrianGridRoute();
+    	partialRoute.setGroupedGridPath();
     	
-    	List<Coordinate> updatedRouteSection = partialRoute.getRouteX();
-    	
-    	// Need a way of structuring route coordinates so that the sections of the route between road links are easy to update
-    	
-    	
+    	// Update the next section of the pedestrian's route with the path produced by this partial route (which only goes up to the end of the current road link)
+    	this.route.updateGroupedGridPath(partialRoute, nextRoadLinkCoord);
     }
     
     private double estimateVehicleRoadSpace(Road r) {
