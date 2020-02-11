@@ -365,8 +365,13 @@ public class GridRoute extends Route {
 				else {
 					gridPathIndexToIncludeInRoute = i-1;
 				}
-				routeIndices.add(gridPathIndexToIncludeInRoute);
-				descriptionMap.put(gridPathIndexToIncludeInRoute, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
+				
+				// Only add this grid cell to the route if not already included
+				if (!routeIndices.contains(gridPathIndexToIncludeInRoute)) {
+					routeIndices.add(gridPathIndexToIncludeInRoute);
+					descriptionMap.put(gridPathIndexToIncludeInRoute, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
+				}
+
 				startCellIndex = gridPathIndexToIncludeInRoute;
 				
 				// Update start cell
