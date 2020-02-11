@@ -104,10 +104,10 @@ public class GridRoute extends Route {
 	}
 	
 	/**
-	 * This method produces a path of grid cells from the agents current position to its destination (hence 'full'). 
+	 * This method produces a path of grid cells from the agents current position to the destination set when creating a GridRoute instance. 
 	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
 	 */
-	public void setFullGroupedGridPath() {
+	public void setGroupedGridPath() {
 		this.routeX = new Vector<Coordinate>();
 		this.roadsX = new Vector<RoadLink>();
 		this.routeDescriptionX = new Vector<String>();
