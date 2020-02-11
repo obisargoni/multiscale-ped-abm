@@ -570,12 +570,6 @@ public class GridRoute extends Route {
 		return crossingC;
 	}
 	
-	public void updateGroupedGridPath(GridRoute updatedRoute, Coordinate nextRoadLinkCoord) {
-		GridCoordinates2D nextRoadLinkCell = this.routeCoordMap.get(nextRoadLinkCoord);
-		List<GridCoordinates2D> updatedPathSection = updatedRoute.groupedGridPath.get(nextRoadLinkCell);
-		this.groupedGridPath.replace(nextRoadLinkCell, updatedPathSection);
-	}
-	
 	public List<Coordinate> getRouteCrossings(){
 		return this.routeCrossingsX;
 	}

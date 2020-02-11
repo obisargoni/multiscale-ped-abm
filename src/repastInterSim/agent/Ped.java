@@ -510,8 +510,23 @@ public class Ped implements MobileAgent {
     	partialRoute.setGroupedGridPath();
     	
     	// Update the next section of the pedestrian's route with the path produced by this partial route (which only goes up to the end of the current road link)
-    	this.route.updateGroupedGridPath(partialRoute, nextRoadLinkCoord);
+    	updateGroupedGridPath(partialRoute, thisRoadLinkCoord);
     }
+    
+	// Consider moving to ped, confusing to be in route - a bit meta
+	private void updateGroupedGridPath(GridRoute updatedRoute, Coordinate routeSectionCoord) {
+		GridCoordinates2D routeSectionCell = this.route.getRouteCoordMap().get(routeSectionCoord);
+		
+		// Iterate over the route section cells in the partial route to find the one that matches the one we are replacing
+		List<GridCoordinates2D> updatedPathSection = null;
+		for (GridCoordinates2D cell: updatedRoute.getGroupedGridPath().keySet()) {
+			if((cell.x==routeSectionCell.x)&(cell.y==routeSectionCell.y)) {
+				updatedPathSection = updatedRoute.getGroupedGridPath().get(cell);
+			}
+		}
+		this.route.getGroupedGridPath().replace(routeSectionCell, updatedPathSection);
+	}
+	
     
     private double estimateVehicleRoadSpace(Road r) {
     	int vehicleNumber = r.getRoadLinksVehicleCount();
