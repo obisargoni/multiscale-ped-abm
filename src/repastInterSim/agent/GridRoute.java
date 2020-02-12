@@ -117,8 +117,12 @@ public class GridRoute extends Route {
 		
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		
+		if (this.origin == null) {
+			this.origin = this.mA.getLoc();
+		}
+		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		this.gridPath = getGridCoveragePath(grid);
+		this.gridPath = getGridCoveragePath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D roadLinkGridCoord = gridPath.get(0);
@@ -293,16 +297,12 @@ public class GridRoute extends Route {
 	 * @return
 	 * 			List<GridCoordinates2D> The grid coordinates path
 	 */
-	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid){
+	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid, Coordinate o, Coordinate d){
 		
 		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
-		
-		if (this.origin == null) {
-			this.origin = this.mA.getLoc();
-		}
 
-		DirectPosition2D dpStart = new DirectPosition2D(this.origin.x, this.origin.y);
-		DirectPosition2D dpEnd = new DirectPosition2D(this.destination.x, this.destination.y);
+		DirectPosition2D dpStart = new DirectPosition2D(o.x, o.y);
+		DirectPosition2D dpEnd = new DirectPosition2D(d.x, d.y);
 		GridCoordinates2D start = null;
 		GridCoordinates2D end = null;
 		try {
