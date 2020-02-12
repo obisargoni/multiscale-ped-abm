@@ -7,7 +7,8 @@
     <string>tick</string>
     <string>Vehicle Count</string>
     <string>Road Link Count</string>
+    <string>run</string>
   </sourceIds>
-  <fileName>..\data\model_run_exports\vehicle_counts.txt</fileName>
+  <fileName>.\data\model_run_exports\vehicle_counts.txt</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
