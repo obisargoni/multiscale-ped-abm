@@ -142,6 +142,25 @@ public class Ped implements MobileAgent {
     	}
     }
     
+    public void updateRouteCoord() {		
+		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
+		if(this.route.routeX.size() == 0) {
+			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
+			//updateNextRouteSection();
+			this.route.setNextRouteSection();
+		}
+		
+    	// If crossing coord is null, check the route for upcoming crossing coord
+		// Importantly, do this before any coords are removed from the route
+    	if(this.crossingCoord == null) {
+    		this.crossingCoord = this.route.getNextRouteCrossingCoord();
+    	}
+    	
+		this.routeCoord = this.route.routeX.get(0);
+		this.routeCoordDescription = this.route.routeDescriptionX.get(0);
+		this.route.removeNextFromRoute();
+    }
+    
     public void walk(Coordinate dLoc) {
     	
     	// Update pedestrians knowledge of which direction the current destination is
