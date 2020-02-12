@@ -542,8 +542,9 @@ public class Ped implements MobileAgent {
 		// Iterate over the route section cells in the partial route to find the one that matches the one we are replacing
 		List<GridCoordinates2D> updatedPathSection = null;
 		for (GridCoordinates2D cell: updatedRoute.getGroupedGridPath().keySet()) {
-			if((cell.x==routeSectionCell.x)&(cell.y==routeSectionCell.y)) {
+			if(cell.equals(routeSectionCell)) {
 				updatedPathSection = updatedRoute.getGroupedGridPath().get(cell);
+				break;
 			}
 		}
 		this.route.getGroupedGridPath().replace(routeSectionCell, updatedPathSection);
