@@ -535,13 +535,6 @@ public class GridRoute extends Route {
 		return c;
 	}
 	
-	public Coordinate getNextRouteCoord() {
-		if(this.routeX.size() == 0) {
-			setNextRouteSection();
-		}
-		Coordinate nextCoord = this.routeX.get(0);
-		return nextCoord;
-	}
 	
 	public void setNextRouteSection() {
 		Coordinate nextRoadLinkCoord = this.primaryRouteX.get(0);
