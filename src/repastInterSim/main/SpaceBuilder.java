@@ -105,6 +105,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
+	// Directories for model exports
+	// Export dir used for data exports, output dir used for figures
+	public static String exportDir = ".\\data\\export\\";
+	public static String outputDir = ".\\output\\";
+	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
 	 * 
@@ -456,12 +461,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
-    private void exportGridRouteData(Ped p) {
-    	
-    	// Export dir used for data exports, output dir used for figures
-    	String exportDir = ".\\data\\export\\";
-    	String outputDir = ".\\output\\";
-    	
     	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
     	String floodFillValueFile = exportDir + "export_flood_fill_values.csv";
     	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";

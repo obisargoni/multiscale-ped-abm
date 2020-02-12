@@ -26,6 +26,7 @@ import repastInterSim.environment.Road;
 import repastInterSim.environment.Vector;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
 public class Ped extends MobileAgent {    
@@ -576,6 +577,18 @@ public class Ped extends MobileAgent {
         return stationaryVehicleSpace + vehicleSeparationSpace + pedestrianGapSpace;
     }
     
+    public void exportRoutePaths(String filePrefix) {
+    	if (filePrefix == null) {
+    		filePrefix = "";
+    	}
+    	List<GridCoordinates2D> gridPath = this.route.getGridPath();
+    	String gridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pedID_"+this.id+".txt";
+		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
+		
+		List<GridCoordinates2D> prunedGridPath = this.route.getPrunedGridPath();
+    	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".txt";
+		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
+    }
     public Color getColor() {
     	return this.col;
     }
