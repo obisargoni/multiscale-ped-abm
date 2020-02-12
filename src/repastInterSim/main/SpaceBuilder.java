@@ -20,7 +20,6 @@ import java.util.logging.Logger;
 import org.geotools.coverage.Category;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
@@ -47,7 +46,6 @@ import repast.simphony.space.gis.RepastCoverageFactory;
 import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
-import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.Destination;
@@ -113,6 +111,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	@Override
 	public Context<Object> build(Context<Object> c) {
+		
+		RepastInterSimLogging.init();
 	    
 		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
