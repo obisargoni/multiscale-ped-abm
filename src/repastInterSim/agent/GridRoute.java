@@ -101,6 +101,30 @@ public class GridRoute extends Route {
 	}
 	
 	/**
+	 * Create a new route object
+	 * 
+	 * @param geography
+	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param mA
+	 * 		The mobile agent this route belongs to
+	 * @param gSPM
+	 * 		The map from integers used to indicate the road user priority of grid cells to the agents perceived cost of moving through those grid cells. 
+	 * Used for routing on a grid.
+	 * @param origin
+	 * 		The origin coordinate of the route
+	 * @param destination
+	 * 		The destination coordinate of the route
+	 * @param
+	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
+	 */
+	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
+		super(geography, mA, origin, destination);
+		// TODO Auto-generated constructor stub
+		this.gridSummandPriorityMap = gSPM;
+		this.partialFF = partial;
+	}
+	
+	/**
 	 * This method produces a path of grid cells from the agents current position to the destination set when creating a GridRoute instance. 
 	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
 	 */
