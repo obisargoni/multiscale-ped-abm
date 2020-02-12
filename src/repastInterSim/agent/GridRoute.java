@@ -46,9 +46,6 @@ public class GridRoute extends Route {
 	// The grid coordinates of crosisng points - used for visualisation
 	private List<GridCoordinates2D> gridPathCrossings;	
 	
-	// Record the coordinates of route points that correspond to crossing locations
-	private List<Coordinate> routeCrossingsX;
-	
 	// Record cells/coordinates at which agent enters new road link
 	private Map<Coordinate, GridCoordinates2D> routeCoordMap;
 	private List<Coordinate> primaryRouteX;
@@ -568,10 +565,6 @@ public class GridRoute extends Route {
 		}
 		// Could be null if there is not a crossing in the upcoming section of the route.
 		return crossingC;
-	}
-	
-	public List<Coordinate> getRouteCrossings(){
-		return this.routeCrossingsX;
 	}
 	
 	public double[][] getFloodFillGridValues() {
