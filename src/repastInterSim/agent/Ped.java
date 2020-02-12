@@ -51,6 +51,8 @@ public class Ped implements MobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
     private Coordinate routeCoord; // The next coordiante of the agent's route
+	private String routeCoordDescription;
+    private Coordinate crossingCoord; // The next crossing coordinate in agents route
     
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
@@ -123,7 +125,7 @@ public class Ped implements MobileAgent {
    		// Once crossing point is reached agent does not move whilst in yield state
    		// Separation here between intention to yield and performing of yielding action (during which intention could be allowed to change, in principle)
     	else if (this.yieldAtCrossing) {
-    		double distanceToCrossing = this.pLoc.distance(this.route.getNextRouteCrossingCoord());
+    		double distanceToCrossing = this.pLoc.distance(this.crossingCoord);
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
             	if (this.pLoc.distance(routeCoord) < 0.5) {
@@ -454,17 +456,16 @@ public class Ped implements MobileAgent {
 	    		this.yieldTime = 0;
 				this.enteringCrossing = false;
 				
-				// Change its description so that not recognised as a crossing coord
-		    	Coordinate nextCrossingCoord = this.route.getNextRouteCrossingCoord();
-				this.route.updateRouteCoordDescription(nextCrossingCoord, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
+				// Set crossing coord to null because agent has stopped yielding so this crossing can be considered to be passed
+				this.crossingCoord = null;
 	    	}
     	}
     }
     
-    public void checkIfEnteringCrossing() {
-    	Coordinate nextCrossingCoord = this.route.getNextRouteCrossingCoord();
-    	if (nextCrossingCoord != null) {
-        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(nextCrossingCoord);
+    public void checkIfEnteringCrossing() {    	
+    	// Crossing coord could be null if there isn't a crossing coming up on the route
+    	if (this.crossingCoord != null) {
+        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(this.crossingCoord);
         	
         	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
         	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
