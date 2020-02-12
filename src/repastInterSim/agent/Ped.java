@@ -108,17 +108,17 @@ public class Ped implements MobileAgent {
      */
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {        
-    	// Agent decides whether to yield, in which case it doesn't progress to the next route coord
-        // Order here assumes that agent does this (which requires evaluating if they are approaching a crossing) before moving
+    	
+    	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
+    	// its route coordinate because this involves removing coordinates from the route.
    		decideYield(); 
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
-        	if (this.pLoc.distance(routeCoord) < 0.5) {
-        		this.route.removeNextFromRoute();;
-        		this.routeCoord = this.route.getNextRouteCoord();
+        	if (this.pLoc.distance(this.routeCoord) < 0.5) {
+        		updateRouteCoord();
         	}
-        	walk(routeCoord);
+        	walk(this.routeCoord);
     	}
    		
    		// If agent does intend to yield, agent walks as usual until the crossing point is reached
@@ -128,12 +128,10 @@ public class Ped implements MobileAgent {
     		double distanceToCrossing = this.pLoc.distance(this.crossingCoord);
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
-            	if (this.pLoc.distance(routeCoord) < 0.5) {
-            		// Get next coordinate
-            		this.route.removeNextFromRoute();;
-            		this.routeCoord = this.route.getNextRouteCoord();
+            	if (this.pLoc.distance(this.routeCoord) < 0.5) {
+            		updateRouteCoord();
             	}
-            	walk(routeCoord);
+            	walk(this.routeCoord);
 
         	}
         	else {
