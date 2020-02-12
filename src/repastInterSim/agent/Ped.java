@@ -144,7 +144,7 @@ public class Ped implements MobileAgent {
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.route.routeX.size() == 0) {
 			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
-			//updateNextRouteSection();
+			updateNextRouteSection();
 			this.route.setNextRouteSection();
 		}
 		
