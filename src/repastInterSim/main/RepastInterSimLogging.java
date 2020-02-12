@@ -51,7 +51,7 @@ abstract class RepastInterSimLogging {
 //			Logger logger = Logger.getLogger("repastcity3");
 
 			// Create handlers
-			File logFile = new File("model_log.txt");
+			File logFile = new File(".\\output\\logs\\model_log.txt");
 			if (logFile.exists())
 				logFile.delete(); // Delete an old log file
 			FileHandler fileHandler = new FileHandler(logFile.getAbsolutePath());
