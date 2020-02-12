@@ -19,23 +19,18 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class Vehicle implements MobileAgent {
+public class Vehicle extends MobileAgent {
 
 	private int maxSpeed, followDist; // The distance from a vehicle ahead at which the agent adjusts speed to follow
 	private double speed;
 	private double acc;
 	private double dmax;	    
-	private Geography<Object> geography;
-	private Coordinate vLoc; // The coordinate of the centroid of the vehicle agent.
-	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
-
-	public Destination destination;
-	
+	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another	
 	private Route route;
 
 
 	public Vehicle(Geography<Object> geography, Geography<Destination> destinationGeography, int mS, double a, double s, Destination d) {
-		this.geography = geography;
+		super(geography, d);
 		this.maxSpeed = mS;
 		this.acc = a;
 		this.speed = s;
@@ -82,9 +77,9 @@ public class Vehicle implements MobileAgent {
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
     	
     	// Get the coordinate of the end of the field of vision in this direction
-    	Coordinate rayEnd = new Coordinate(vLoc.x + rayVector[0]*this.dmax, vLoc.y + rayVector[1]*this.dmax);
+    	Coordinate rayEnd = new Coordinate(maLoc.x + rayVector[0]*this.dmax, maLoc.y + rayVector[1]*this.dmax);
     	
-    	Coordinate[] lineCoords = {vLoc, rayEnd};
+    	Coordinate[] lineCoords = {maLoc, rayEnd};
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
     	
@@ -99,7 +94,7 @@ public class Vehicle implements MobileAgent {
                		// Iterate over them find the distance to the nearest pedestrian
                		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
                		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = vLoc.distance(c);
+                   		double dAgent = maLoc.distance(c);
                    		if (dAgent < d) {
                    			d = dAgent;
                    			vInFront = V;
@@ -231,7 +226,7 @@ public class Vehicle implements MobileAgent {
 
 			// Acceleration is negative since in order to have caught up to car in front
 			// will have been travelling faster
-			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(vLoc.distance(vifPt),l)) * (objV - this.speed));
+			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(vifPt),l)) * (objV - this.speed));
 		} else {
 			this.acc = GlobalVars.defaultVehicleAcceleration; // Default acceleration
 		}
@@ -294,15 +289,15 @@ public class Vehicle implements MobileAgent {
 	        boolean isFinal = (routeCoord.equals2D(destC));
 	        
 	        // Calculate the distance to this coordinate
-			double distToCoord = vLoc.distance(routeCoord);
+			double distToCoord = maLoc.distance(routeCoord);
 			
 			// Calculate the angle
-			double angleToCoord = GISFunctions.bearingBetweenCoordinates(vLoc, routeCoord);
+			double angleToCoord = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (distToCoord > disp) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
-				Coordinate newCoord = new Coordinate(vLoc.x + disp*Math.sin(angleToCoord), vLoc.y + disp*Math.cos(angleToCoord));
+				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
 				SpaceBuilder.moveAgentToGeometry(geography, g, this);
@@ -388,6 +383,7 @@ public class Vehicle implements MobileAgent {
 	 * 
 	 * In this case make sure to reduce the count of vehicles on the current road link
 	 */
+	@Override
 	public void tidyForRemoval() {
 		this.currentRoadLink.removeVehicleFromCount();
 	}
@@ -415,18 +411,6 @@ public class Vehicle implements MobileAgent {
 	public double getSpeed() {
 		return this.speed;
 	}
-	
-    /*
-     * Get the coordinate of the agents centroid in the references frame used 
-     * by the agent class for GIS calculations. Note that this attribute is updated
-     * as part of the algorithm for producing pedestrian movement.
-     * 
-     * @returns Coordinate. The coordinate of the centroid of the pedestrian agent.
-     */
-	@Override
-    public Coordinate getLoc() {
-    	return this.vLoc;
-    }
     
     /*
      * Set the location attribute of the agent to be the coordinate of its 
@@ -439,7 +423,7 @@ public class Vehicle implements MobileAgent {
     	DecimalFormat newFormat = new DecimalFormat("#.#######");
     	vL.x = Double.valueOf(newFormat.format(vL.x));
     	vL.y = Double.valueOf(newFormat.format(vL.y));
-    	this.vLoc = vL;
+    	this.maLoc = vL;
     }
     
     /*

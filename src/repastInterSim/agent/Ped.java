@@ -28,10 +28,7 @@ import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class Ped implements MobileAgent {
-    private Geography<Object> geography; // Space the agent exists in
-    public Destination destination; // The destination agent that this pedestrian agents is heading towards.
-    
+public class Ped extends MobileAgent {    
     private GridRoute route;
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
@@ -49,7 +46,6 @@ public class Ped implements MobileAgent {
     private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres
-    private Coordinate pLoc; // The coordinate of the centroid of the pedestrian agent.
     private Coordinate routeCoord; // The next coordiante of the agent's route
 	private String routeCoordDescription;
     private Coordinate crossingCoord; // The next crossing coordinate in agents route
@@ -74,8 +70,7 @@ public class Ped implements MobileAgent {
      * @param direction the pedestrian's direction
      */
     public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, Destination d) {
-        this.geography = geography;
-        this.destination = d;
+    	super(geography, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
         this.rad = m / 320; // As per Moussaid
@@ -115,7 +110,7 @@ public class Ped implements MobileAgent {
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
-        	if (this.pLoc.distance(this.routeCoord) < 0.5) {
+        	if (this.maLoc.distance(this.routeCoord) < 0.5) {
         		updateRouteCoord();
         	}
         	walk(this.routeCoord);
@@ -125,10 +120,10 @@ public class Ped implements MobileAgent {
    		// Once crossing point is reached agent does not move whilst in yield state
    		// Separation here between intention to yield and performing of yielding action (during which intention could be allowed to change, in principle)
     	else if (this.yieldAtCrossing) {
-    		double distanceToCrossing = this.pLoc.distance(this.crossingCoord);
+    		double distanceToCrossing = this.maLoc.distance(this.crossingCoord);
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
-            	if (this.pLoc.distance(this.routeCoord) < 0.5) {
+            	if (this.maLoc.distance(this.routeCoord) < 0.5) {
             		updateRouteCoord();
             	}
             	walk(this.routeCoord);
@@ -169,11 +164,11 @@ public class Ped implements MobileAgent {
         this.newV  = Vector.sumV(v,dv);
         this.v = newV;
 
-        pLoc.x += this.v[0]*this.tau;
-        pLoc.y += this.v[1]*this.tau;
+        maLoc.x += this.v[0]*this.tau;
+        maLoc.y += this.v[1]*this.tau;
         
         // Now create new geometry at the location of the new centroid
-        Point pt = GISFunctions.pointGeometryFromCoordinate(pLoc);
+        Point pt = GISFunctions.pointGeometryFromCoordinate(maLoc);
 		Geometry pGeomNew = pt.buffer(this.rad);
         
         // Move the agent to the new location. This requires transforming the geometry 
@@ -274,11 +269,11 @@ public class Ped implements MobileAgent {
     	double r_j = agentPed.rad;
     	
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
-    	double d_ij = pLoc.distance(agentCoord);
+    	double d_ij = maLoc.distance(agentCoord);
     	
     	// Get the vector that points from centorid of other agent to the ego agent,
     	// this is the direction that the force acts in
-    	double[] n = {pLoc.x - agentCoord.x, pLoc.y - agentCoord.y};
+    	double[] n = {maLoc.x - agentCoord.x, maLoc.y - agentCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i + r_j - d_ij) / this.m;
@@ -294,12 +289,12 @@ public class Ped implements MobileAgent {
     	
     	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
     	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
-    	double d_ij = pLoc.distance(intersectionCoord);
+    	double d_ij = maLoc.distance(intersectionCoord);
     	
     	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in.
     	// This should also be perpendicular to the obstacle 
-    	double[] n = {pLoc.x - intersectionCoord.x, pLoc.y - intersectionCoord.y};
+    	double[] n = {maLoc.x - intersectionCoord.x, maLoc.y - intersectionCoord.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i - d_ij) / this.m;
@@ -336,9 +331,9 @@ public class Ped implements MobileAgent {
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
     	
     	// Get the coordinate of the end of the field of vision in this direction
-    	Coordinate rayEnd = new Coordinate(pLoc.x + rayVector[0]*this.dmax, pLoc.y + rayVector[1]*this.dmax);
+    	Coordinate rayEnd = new Coordinate(maLoc.x + rayVector[0]*this.dmax, maLoc.y + rayVector[1]*this.dmax);
     	
-    	Coordinate[] lineCoords = {pLoc, rayEnd};
+    	Coordinate[] lineCoords = {maLoc, rayEnd};
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
     	
@@ -353,7 +348,7 @@ public class Ped implements MobileAgent {
                		// Iterate over them find the distance to the nearest pedestrian
                		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
                		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = pLoc.distance(c);
+                   		double dAgent = maLoc.distance(c);
                    		if (dAgent < d) {
                    			d = dAgent;
                    		}
@@ -371,7 +366,7 @@ public class Ped implements MobileAgent {
            		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
            		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
            		for(Coordinate c: obstIntersectionCoords) {
-           			double dAgent = pLoc.distance(c);
+           			double dAgent = maLoc.distance(c);
                		if (dAgent < d) {
                			d = dAgent;
                		}
@@ -485,7 +480,7 @@ public class Ped implements MobileAgent {
         	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(this.crossingCoord);
         	
         	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
-        	Coordinate[] lookAheadLineCoords = {this.pLoc, lookAhead};
+        	Coordinate[] lookAheadLineCoords = {this.maLoc, lookAhead};
         	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
         	
         	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
@@ -590,7 +585,7 @@ public class Ped implements MobileAgent {
      */
     public double setBearingToDestinationCoord(Coordinate dLoc)  {
     	
-        double[] dirToEnd = {dLoc.x - pLoc.x, dLoc.y - pLoc.y};        
+        double[] dirToEnd = {dLoc.x - maLoc.x, dLoc.y - maLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
         this.a0 = Vector.angleBetweenNorthAndUnitVector(dirToEnd);
@@ -635,7 +630,7 @@ public class Ped implements MobileAgent {
     	double dx = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.sin(this.aP);
     	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.aP);
     	
-    	Coordinate newLookAhead = new Coordinate(this.pLoc.x + dx, this.pLoc.y + dy);
+    	Coordinate newLookAhead = new Coordinate(this.maLoc.x + dx, this.maLoc.y + dy);
     	return newLookAhead;
     }
     
@@ -664,17 +659,6 @@ public class Ped implements MobileAgent {
     	return Vector.mag(this.v);
     }
     
-    /*
-     * Get the coordinate of the agents centroid in the references frame used 
-     * by the agent class for GIS calculations. Note that this attribute is updated
-     * as part of the algorithm for producing pedestrian movement.
-     * 
-     * @returns Coordinate. The coordinate of the centroid of the pedestrian agent.
-     */
-    @Override
-    public Coordinate getLoc() {
-    	return this.pLoc;
-    }
     
     /*
      * Set the location attribute of the agent to be the coordinate of its 
@@ -684,7 +668,7 @@ public class Ped implements MobileAgent {
     public void setLoc()  {
     	// Get centroid coordinate of this agent
     	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
-    	this.pLoc = pL;
+    	this.maLoc = pL;
     }
     
     /*
@@ -713,11 +697,14 @@ public class Ped implements MobileAgent {
     	return this.routeCoord;
     }
     
+    public String getRouteCoordString() {
+    	return this.routeCoord.toString();
+    }
+    
     @Override
     public Geography<Object> getGeography() {
     	return this.geography;
     }
-    
     
     public void setRouteCoord(Coordinate rC) {
     	this.routeCoord = rC;
