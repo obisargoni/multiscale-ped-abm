@@ -589,6 +589,14 @@ public class Ped extends MobileAgent {
     	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".txt";
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
     }
+    
+    /**
+     * Method to be run when agent is removed from the context.
+     */
+    public void tidyForRemoval() {
+    	exportRoutePaths("final_");
+    }
+    
     public Color getColor() {
     	return this.col;
     }
@@ -653,15 +661,6 @@ public class Ped extends MobileAgent {
     
     public String getRoadLinkFID() {
     	return this.roadLinkFID;
-    }
-    
-    /**
-     * Method to be run when agent is removed from the context.
-     * 
-     * Currently nothing needs to be tidied for pedestrian agents.
-     */
-    public void tidyForRemoval() {
-    	;
     }
     
     public double getRad() {
