@@ -1,13 +1,14 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.7.0">
-  <name>Vehicle Counts</name>
-  <dataSet>Vehicle Count</dataSet>
+  <name>Vehicle Locations</name>
+  <dataSet>Vehicle Locations</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
+    <string>run</string>
     <string>tick</string>
-    <string>Vehicle Count</string>
-    <string>Road Link Count</string>
+    <string>ID</string>
+    <string>Location</string>
   </sourceIds>
-  <fileName>..\data\model_run_exports\vehicle_counts.txt</fileName>
+  <fileName>C:\Users\othompsonsargoni\eclipse-workspace\repastInterSim\data\model_run_exports\vehicle_locations.txt</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
