@@ -1,15 +1,14 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.7.0">
-  <name>Pedestrian Locations</name>
-  <dataSet>Pedestrian Locations</dataSet>
+  <name>Vehicle Locations</name>
+  <dataSet>Vehicle Locations</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
-    <string>tick</string>
     <string>run</string>
-    <string>Location</string>
+    <string>tick</string>
     <string>ID</string>
-    <string>RouteCoordinate</string>
+    <string>Location</string>
   </sourceIds>
-  <fileName>.\data\model_run_exports\pedestrian_locations.txt</fileName>
+  <fileName>.\data\model_run_exports\vehicle_locations.txt</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>

@@ -1,7 +1,6 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Vehicle Locations</name>
-  <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.agent.Vehicle</sourceType>
+  <name>Vehicle Count</name>
+  <type>AGGREGATE</type>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>false</inclRandomSeed>
@@ -12,28 +11,29 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>631403376</hashCode>
+    <hashCode>1257901417</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
     <entry>
-      <string>ID</string>
+      <string>Road Link Vehicle Count</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>ID</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getID</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>Location</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>Location</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getLocString</methodName>
+        <id>Road Link Vehicle Count</id>
+        <className>repastInterSim.environment.RoadLink</className>
+        <methodName>getVehicleCount</methodName>
+        <aggType>SUM</aggType>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>
-  <countSources class="linked-hash-map"/>
+  <countSources class="linked-hash-map">
+    <entry>
+      <string>Vehicle Count</string>
+      <repast.simphony.data2.engine.CountSourceDefinition>
+        <typeName>repastInterSim.agent.Vehicle</typeName>
+        <id>Vehicle Count</id>
+      </repast.simphony.data2.engine.CountSourceDefinition>
+    </entry>
+  </countSources>
   <customNADataSources class="linked-hash-map"/>
   <customAggDataSources class="linked-hash-map"/>
 </repast.simphony.data2.engine.DataSetDescriptor>
