@@ -10,6 +10,6 @@
     <string>ID</string>
     <string>RouteCoordinate</string>
   </sourceIds>
-  <fileName>C:\Users\othompsonsargoni\eclipse-workspace\repastInterSim\data\model_run_exports\pedestrian_locations.txt</fileName>
+  <fileName>.\data\model_run_exports\pedestrian_locations.txt</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
