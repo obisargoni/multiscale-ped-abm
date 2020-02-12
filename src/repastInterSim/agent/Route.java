@@ -85,6 +85,7 @@ public class Route implements Cacheable {
 	
 	protected MobileAgent mA;
 
+	protected Coordinate origin;
 	protected Coordinate destination;
 
 	/*
@@ -150,6 +151,25 @@ public class Route implements Cacheable {
 		this.mA = mA;
 		this.destination = destination;
 	}
+	
+	/**
+	 * Create a new route object
+	 * 
+	 * @param geography
+	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param mA
+	 * 		The mobile agent this route belongs to
+	 * @param origin
+	 * 		The origin coordinate of the route. Used instead of the mobile agent's current position.
+	 * @param destination
+	 * 		The destination coordinate of the route
+	 */
+	public Route(Geography<Object> geography, MobileAgent mA, Coordinate origin, Coordinate destination) {
+		this.geography = geography;
+		this.mA = mA;
+		this.origin = origin;
+		this.destination = destination;
+	}
 
 	/**
 	 * Find a route from the origin to the destination. A route is a list of Coordinates which describe the route to a
@@ -177,8 +197,11 @@ public class Route implements Cacheable {
 		if (atDestination()) {
 			return;
 		}
-
-		Coordinate currentCoord = mA.getLoc();		
+		
+		if (this.origin == null) {
+			this.origin = mA.getLoc();
+		}
+		Coordinate currentCoord = this.origin;		
 		Coordinate destCoord = this.destination;
 
 
@@ -377,8 +400,11 @@ public class Route implements Cacheable {
 		if (atDestination()) {
 			return;
 		}
-
-		Coordinate currentCoord = mA.getLoc();
+		
+		if (this.origin == null) {
+			this.origin = mA.getLoc();
+		}
+		Coordinate currentCoord = this.origin;
 		Coordinate destCoord = this.destination;
 
 

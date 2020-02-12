@@ -296,8 +296,12 @@ public class GridRoute extends Route {
 	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid){
 		
 		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
+		
+		if (this.origin == null) {
+			this.origin = this.mA.getLoc();
+		}
 
-		DirectPosition2D dpStart = new DirectPosition2D(this.mA.getLoc().x, this.mA.getLoc().y);
+		DirectPosition2D dpStart = new DirectPosition2D(this.origin.x, this.origin.y);
 		DirectPosition2D dpEnd = new DirectPosition2D(this.destination.x, this.destination.y);
 		GridCoordinates2D start = null;
 		GridCoordinates2D end = null;
