@@ -503,18 +503,20 @@ public class Ped implements MobileAgent {
     	}
     }
     
-    private void updateRoadLinkRouteSection() {
+    private void updateNextRouteSection() {
     	
-    	Road nextRoad = null;
+    	Road thisRoad = null;
+    	Coordinate thisRoadLinkCoord = this.route.getPrimaryRouteX().get(0);
+    	Coordinate nextRoadLinkCoord = this.route.getPrimaryRouteX().get(1);
 		try {
-			nextRoad = GISFunctions.getCoordinateRoad(this.routeCoord);
+			thisRoad = GISFunctions.getCoordinateRoad(thisRoadLinkCoord);
 		} catch (RoutingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
-    	double vehicleRoadSpace = estimateVehicleRoadSpace(nextRoad);
+    	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
     	double updatedVehicleGridCellCost = 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace;
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
@@ -522,9 +524,9 @@ public class Ped implements MobileAgent {
     	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
     	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio * updatedVehicleGridCellCost);
     	
-    	// Create new Route object, that evaluates flood fill values over a partial section of the grid, with the coordinate where the road changes as the destination
-    	Coordinate nextRoadLinkCoord = this.route.getRouteRoadLinkX().get(0);
-    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, nextRoadLinkCoord, true);
+    	// Create new Route object, that evaluates flood fill values over a partial section of the grid
+    	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
+    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
     	
     	// Get updated set of route coords to follow to next road link coordinate
     	partialRoute.setGroupedGridPath();
