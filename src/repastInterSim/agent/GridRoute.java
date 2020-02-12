@@ -51,7 +51,7 @@ public class GridRoute extends Route {
 	
 	// Record cells/coordinates at which agent enters new road link
 	private Map<Coordinate, GridCoordinates2D> routeCoordMap;
-	private List<Coordinate> routeRoadLinkX;
+	private List<Coordinate> primaryRouteX;
 	
 	// Used to recrode the route of grid cells or coordinates, grouped by the road link they belong to
 	private Map<GridCoordinates2D, List<GridCoordinates2D>> groupedGridPath;
@@ -114,7 +114,7 @@ public class GridRoute extends Route {
 		this.routeSpeedsX = new Vector<Double>();
 		this.gridPathCrossings = new Vector<GridCoordinates2D>();
 		this.prunedGridPath = new Vector<GridCoordinates2D>();
-		this.routeRoadLinkX = new Vector<Coordinate>();
+		this.primaryRouteX = new Vector<Coordinate>();
 		this.routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
 		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
 		
@@ -127,7 +127,7 @@ public class GridRoute extends Route {
 		GridCoordinates2D roadLinkGridCoord = gridPath.get(0);
 		Coordinate roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
 		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
-		this.routeRoadLinkX.add(roadLinkCoord);
+		this.primaryRouteX.add(roadLinkCoord);
 		this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
 		
 		// Add the grid cell to the group of coodinates itself
@@ -162,7 +162,7 @@ public class GridRoute extends Route {
 				roadLinkGridCoord = gridCell;
 				roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
 				this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
-				this.routeRoadLinkX.add(roadLinkCoord);
+				this.primaryRouteX.add(roadLinkCoord);
 				this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
 			}
 			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
@@ -170,7 +170,7 @@ public class GridRoute extends Route {
 		}
 		
 		// Add the destination to the list of primary route coordinates (those related to changing road link)
-		this.routeRoadLinkX.add(this.destination);
+		this.primaryRouteX.add(this.destination);
 		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
 	}
 	
@@ -546,16 +546,16 @@ public class GridRoute extends Route {
 		return nextCoord;
 	}
 	
-	private void setNextRouteSection() {
-		Coordinate nextRoadLinkCoord = this.routeRoadLinkX.get(0);
+	public void setNextRouteSection() {
+		Coordinate nextRoadLinkCoord = this.primaryRouteX.get(0);
 		List<GridCoordinates2D> nextPathSection = this.groupedGridPath.get(this.routeCoordMap.get(nextRoadLinkCoord));
 		addCoordinatesToRouteFromGridPath(nextPathSection);
 		
 		// Finish by adding next road link route coord
-		addToRoute(this.routeRoadLinkX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
+		addToRoute(this.primaryRouteX.get(1), RoadLink.nullRoad, 1, GlobalVars.TRANSPORT_PARAMS.routeRoadLinkChangeDescription);
 		
 		// Remove the current road link coord since this section of the path has been added to the route
-		this.routeRoadLinkX.remove(0);
+		this.primaryRouteX.remove(0);
 	}
 	
 	public Coordinate getNextRouteCrossingCoord() {
@@ -590,8 +590,8 @@ public class GridRoute extends Route {
 		return this.gridPathCrossings;
 	}
 	
-	public List<Coordinate> getRouteRoadLinkX(){
-		return this.routeRoadLinkX;
+	public List<Coordinate> getPrimaryRouteX(){
+		return this.primaryRouteX;
 	}
 
 	public Map<GridCoordinates2D, List<GridCoordinates2D>> getGroupedGridPath() {
