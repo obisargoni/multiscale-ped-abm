@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
@@ -33,6 +35,8 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class GridRoute extends Route {
+	
+	private static Logger LOGGER = Logger.getLogger(GridRoute.class.getName());
 	
 	// Used to get grid cell summand value when running flood fill algorithm for routing. Single agent can produce routes from different costs, reflecting agent's changing perceptions of costs.
 	private HashMap<Integer, Double> gridSummandPriorityMap;
@@ -535,7 +539,19 @@ public class GridRoute extends Route {
 		}
 		
 	    Random rand = new Random();
-	    GridCoordinates2D greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    GridCoordinates2D greedyNeighbour = null;
+	    try {
+		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    } catch (IllegalArgumentException e) {
+	    	String msg = "GridRoute.greedyManhattanNeighbour(): Problem getting greedy neighbour \n\r" + 
+					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
+					"n neighbourghs: " + String.valueOf(manhattanNeighbours.size()) + "\n\r" +
+					"origin coord: " + this.origin.toString() + "\n\r" +
+					"destination coord: " + this.destination.toString() + "\n\r";
+			LOGGER.log(Level.SEVERE,msg);
+			System.out.print(msg);
+			throw e;
+	    }
 	    return greedyNeighbour;
 	}
 	
