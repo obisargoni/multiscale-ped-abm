@@ -708,6 +708,10 @@ public class Ped implements MobileAgent {
     	return this.route;
     }
     
+    public Coordinate getRouteCoord() {
+    	return this.routeCoord;
+    }
+    
     @Override
     public Geography<Object> getGeography() {
     	return this.geography;
