@@ -152,6 +152,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Road link geography is used to create the road network projection
 		roadLinkContext = new RoadLinkContext();
 		roadLinkGeography = createTypedGeography(RoadLink.class, roadLinkContext, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		context.addSubContext(roadLinkContext);
 		fixedGeographies.add(roadLinkGeography);
 
 		// Junction geography also used to create the road network
