@@ -459,6 +459,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         return newPed;
     }
     
+    private void exportGridRouteData(Ped p) {    	
     	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
     	String floodFillValueFile = exportDir + "export_flood_fill_values.csv";
     	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
