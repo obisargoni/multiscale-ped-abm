@@ -48,7 +48,6 @@ abstract class RepastInterSimLogging {
 
 			// Get the root logger
 			Logger logger = Logger.getLogger("");
-//			Logger logger = Logger.getLogger("repastcity3");
 
 			// Create handlers
 			File logFile = new File(".\\output\\logs\\model_log.txt");
