@@ -153,16 +153,8 @@ public class GridRoute extends Route {
 		this.gridPath = getGridCoveragePath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
-		GridCoordinates2D roadLinkGridCoord = gridPath.get(0);
-		Coordinate roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
-		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
-		this.primaryRouteX.add(roadLinkCoord);
-		this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
-		
-		// Add the grid cell to the group of coodinates itself
-		this.groupedGridPath.get(roadLinkGridCoord).add(roadLinkGridCoord);
-
-		GridCoordinates2D prevCell = roadLinkGridCoord;		
+		GridCoordinates2D roadLinkGridCoord = null;
+		Coordinate roadLinkCoord = null;
 		String prevCellRoadLinkFID = null;
 		String cellRoadLinkFID = null;
 		
@@ -170,37 +162,41 @@ public class GridRoute extends Route {
 		// - check if it is located on a different road link
 		// - if it is, use to index a new group of grid cell coordiantes
 		// - add the grid cell coordiante to the group of grid cells that belong to the same road link
-		for (int i = 1; i < gridPath.size(); i++) {			
+		for (int i = 0; i < gridPath.size(); i++) {			
 			GridCoordinates2D gridCell = gridPath.get(i);
-			
-			GridEnvelope2D prevGridEnv = new GridEnvelope2D(prevCell.x, prevCell.y,1, 1);
-			Polygon prevCellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, prevGridEnv);
 			GridEnvelope2D gridEnv = new GridEnvelope2D(gridCell.x, gridCell.y, 1, 1);
 			Polygon cellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, gridEnv);
 			
+			List<String> cellRoadLinkFIDs = null;
 			try {
-				prevCellRoadLinkFID = GISFunctions.getGridPolygonRoads(prevCellPoly).get(0).getRoadLinkFI();
-				cellRoadLinkFID = GISFunctions.getGridPolygonRoads(cellPoly).get(0).getRoadLinkFI();
+				cellRoadLinkFIDs = GISFunctions.getGridPolygonRoadLinkIDs(cellPoly);
 			} catch (RoutingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
+			// Only update the current grid cell road link ID if there is only one road link ID associated with this cell
+			// Avoids ambiguity about which road link the primary route coordinates link to
+			if (cellRoadLinkFIDs.size()==1) {
+				cellRoadLinkFID = cellRoadLinkFIDs.get(0);
+			}
+			
 			// Check for change in road link id
-			if (!cellRoadLinkFID.contentEquals(prevCellRoadLinkFID)) {
+			// IDs will be the same unless cellRoadLinkID has been updated. Ensures that only coordinates that unambiguously belong to a road linj
+			// are added as primary route coordinates
+			if (!cellRoadLinkFID.equals(prevCellRoadLinkFID)) {
 				roadLinkGridCoord = gridCell;
 				roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
 				this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
 				this.primaryRouteX.add(roadLinkCoord);
 				this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+				prevCellRoadLinkFID = cellRoadLinkFID;
 			}
 			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
-			prevCell = gridCell;
 		}
 		
 		// Add the destination to the list of primary route coordinates (those related to changing road link)
 		this.primaryRouteX.add(this.destination);
-		this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
 	}
 	
 	private void addCoordinatesToRouteFromGridPath(List<GridCoordinates2D> gridPath) {
