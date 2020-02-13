@@ -195,6 +195,8 @@ public class GridRoute extends Route {
 			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
 		}
 		
+		checkGridRoute();
+		
 		// Add the destination to the list of primary route coordinates (those related to changing road link)
 		this.primaryRouteX.add(this.destination);
 	}
@@ -575,6 +577,15 @@ public class GridRoute extends Route {
 		return c;
 	}
 	
+	private void checkGridRoute() {
+		// Each primary route coordinate should be in the route map
+		assert this.routeCoordMap.keySet().containsAll(this.primaryRouteX) : 
+				"Mismatch between list of primary route coordinates and the coordiante:grid cell map";
+		
+		// Each grid cell the primary route coordinate looks up to should be used as an index in the grouped grid path
+		assert this.routeCoordMap.values().containsAll(this.groupedGridPath.keySet()) : 
+				"Mismatch between the grid cells used to index sections of the path and those in the coordiante:grid cell map";
+	}	
 	
 	public void setNextRouteSection() {
 		Coordinate nextRoadLinkCoord = this.primaryRouteX.get(0);
