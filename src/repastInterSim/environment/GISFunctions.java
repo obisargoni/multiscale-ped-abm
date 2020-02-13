@@ -603,6 +603,29 @@ public class GISFunctions {
     	return intersectingRoads;
 	}
 	
+	/**
+	 * Gets list of unique road link IDs the input polygon intersects.
+	 * 
+	 * Typically set will contain only one entry, but polygon can overlap Roads that have different road link IDs
+	 * @param p
+	 * 		Polygon to get intersecting road links for
+	 * @return
+	 * 		List of unique intersecting road link IDs
+	 * @throws RoutingException 
+	 */
+	public static List<String> getGridPolygonRoadLinkIDs(Polygon p) throws RoutingException{
+		List<String> roadLinkIDs = new ArrayList<String>();
+		
+		List<Road> intersectingRoads = getGridPolygonRoads(p);
+		
+		// Gather the ID of road links the current and previous grid cells overlap with
+		for(Road r:intersectingRoads) {
+			if (!roadLinkIDs.contains(r.getRoadLinkFI())) {
+				roadLinkIDs.add(r.getRoadLinkFI());
+			}
+		}
+		return roadLinkIDs;
+	}
     /**
      *  Gets Road the input coordinate intersects with.
      *  
