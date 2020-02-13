@@ -175,8 +175,6 @@ public abstract class SpatialIndexManager implements Cacheable {
 				
 		// Query the spatial index for the nearest objects.
 		List<Geometry> close = index.si.query(geomIn.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
-		assert close != null && close.size() > 0 : "For some reason the spatial index query hasn't found any obejects " +
-				"close to the given coordinate "+geomIn.toString();
 		
 		// Now go through and find the intersecting geometries
 		List<Geometry> intersectingGeoms = new ArrayList<Geometry>();
@@ -185,9 +183,6 @@ public abstract class SpatialIndexManager implements Cacheable {
 				intersectingGeoms.add(g);
 			} // if thisDist < minDist
 		} // for nearRoads
-		
-		assert intersectingGeoms != null : "Internal error: could not find the closest geometry from the list of " +
-				close.size()+" close objects.";
 		
 		// This not a very neat method for getting the objects associated with these geometries.
 		// Required due to the way the data is structured, having duplicated geometries associated to different objects.
