@@ -582,11 +582,11 @@ public class Ped extends MobileAgent {
     		filePrefix = "";
     	}
     	List<GridCoordinates2D> gridPath = this.route.getGridPath();
-    	String gridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pedID_"+this.id+".txt";
+    	String gridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pedID_"+this.id+".csv";
 		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
 		
 		List<GridCoordinates2D> prunedGridPath = this.route.getPrunedGridPath();
-    	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".txt";
+    	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".csv";
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
     }
     
