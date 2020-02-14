@@ -153,15 +153,13 @@ public class GridRoute extends Route {
 		this.gridPath = getGridCoveragePath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
-		GridCoordinates2D roadLinkGridCoord = null;
-		Coordinate roadLinkCoord = null;
+		GridCoordinates2D primaryRouteCell = null;
+		Coordinate primaryRouteCoord = null;
 		String prevCellRoadLinkFID = null;
 		String cellRoadLinkFID = null;
 		
-		// For each grid cell in the path:
-		// - check if it is located on a different road link
-		// - if it is, use to index a new group of grid cell coordiantes
-		// - add the grid cell coordiante to the group of grid cells that belong to the same road link
+		// Identify the primary route coordinates as those coordinate along the path where the road link changes
+		// Use each primary grid cell to index a new group of grid cell coordinates (the path along a particular road link)
 		for (int i = 0; i < gridPath.size(); i++) {			
 			GridCoordinates2D gridCell = gridPath.get(i);
 			GridEnvelope2D gridEnv = new GridEnvelope2D(gridCell.x, gridCell.y, 1, 1);
@@ -185,14 +183,14 @@ public class GridRoute extends Route {
 			// IDs will be the same unless cellRoadLinkID has been updated. Ensures that only coordinates that unambiguously belong to a road linj
 			// are added as primary route coordinates
 			if (!cellRoadLinkFID.equals(prevCellRoadLinkFID)) {
-				roadLinkGridCoord = gridCell;
-				roadLinkCoord = gridCellToCoordinate(grid, roadLinkGridCoord);
-				this.routeCoordMap.put(roadLinkCoord, roadLinkGridCoord);
-				this.primaryRouteX.add(roadLinkCoord);
-				this.groupedGridPath.put(roadLinkGridCoord, new ArrayList<GridCoordinates2D>());
+				primaryRouteCell = gridCell;
+				primaryRouteCoord = gridCellToCoordinate(grid, primaryRouteCell);
+				this.routeCoordMap.put(primaryRouteCoord, primaryRouteCell);
+				this.primaryRouteX.add(primaryRouteCoord);
+				this.groupedGridPath.put(primaryRouteCell, new ArrayList<GridCoordinates2D>());
 				prevCellRoadLinkFID = cellRoadLinkFID;
 			}
-			this.groupedGridPath.get(roadLinkGridCoord).add(gridCell);
+			this.groupedGridPath.get(primaryRouteCell).add(gridCell);
 		}
 		
 		checkGridRoute();
