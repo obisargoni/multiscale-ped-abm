@@ -588,6 +588,10 @@ public class Ped extends MobileAgent {
 		List<GridCoordinates2D> prunedGridPath = this.route.getPrunedGridPath();
     	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".txt";
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
+		
+		List<Coordinate> primaryRouteCoords = this.route.getPrimaryRouteX();
+    	String primaryCoordinatesFile = SpaceBuilder.exportDir + filePrefix + "primary_route_pedID_"+this.id+".txt";
+		IO.coordiantesIterableToCSV(primaryRouteCoords, primaryCoordinatesFile);
     }
     
     /**
