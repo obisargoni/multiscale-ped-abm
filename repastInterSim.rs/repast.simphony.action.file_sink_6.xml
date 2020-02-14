@@ -9,6 +9,6 @@
     <string>Vehicle Count</string>
     <string>Road Link Vehicle Count</string>
   </sourceIds>
-  <fileName>.\data\model_run_exports\vehicle_count.txt</fileName>
+  <fileName>.\data\model_run_exports\vehicle_count.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>

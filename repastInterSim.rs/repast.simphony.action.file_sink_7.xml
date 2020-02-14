@@ -9,6 +9,6 @@
     <string>FID</string>
     <string>VehicleCount</string>
   </sourceIds>
-  <fileName>.\data\model_run_exports\road_link_vehicle_counts.txt</fileName>
+  <fileName>.\data\model_run_exports\road_link_vehicle_counts.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
