@@ -10,6 +10,8 @@ import javax.imageio.ImageIO;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 
+import com.vividsolutions.jts.geom.Coordinate;
+
 public class IO {
 	
 	public IO() {
@@ -94,6 +96,26 @@ public class IO {
 		}
 		
 		twodDoubleArrayToCSV(gridValues, path);
+	}
+	
+	public static void coordiantesIterableToCSV(Iterable<Coordinate> coordinates, String path) {
+		String header = "x,y";
+		
+	    try {
+			FileWriter writer = new FileWriter(path);
+			writer.append(header);
+			writer.append("\n");
+			for (Coordinate c: coordinates) {
+				writer.append(String.valueOf(c.x) + "," + String.valueOf(c.y));
+				writer.append("\n");
+			}
+			writer.close();
+	    }
+			
+	    catch (IOException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
