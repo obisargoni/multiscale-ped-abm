@@ -1,7 +1,7 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
-  <name>Vehicle Locations</name>
+  <name>Pedestrian Primary Route</name>
   <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.agent.Vehicle</sourceType>
+  <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>false</inclRandomSeed>
@@ -12,7 +12,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>631403376</hashCode>
+    <hashCode>-886704623</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -20,16 +20,16 @@
       <string>ID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>ID</id>
-        <className>repastInterSim.agent.Vehicle</className>
+        <className>repastInterSim.agent.Ped</className>
         <methodName>getID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>Location</string>
+      <string>PrimaryRouteCoordinatesString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>Location</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getLocString</methodName>
+        <id>PrimaryRouteCoordinatesString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getPrimaryRouteCoordinatesString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

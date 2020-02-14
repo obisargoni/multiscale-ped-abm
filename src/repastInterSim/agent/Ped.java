@@ -721,4 +721,13 @@ public class Ped extends MobileAgent {
     public void setRouteCoord(Coordinate rC) {
     	this.routeCoord = rC;
     }
+    
+    public String getPrimaryRouteCoordinatesString() {
+    	List<Coordinate> primaryRouteCoords = this.route.getPrimaryRouteX();
+    	String pRCS = "";
+    	for (Coordinate c: primaryRouteCoords) {
+    		pRCS = pRCS + c.toString()+",";
+    	}
+    	return pRCS;
+    }
 }
