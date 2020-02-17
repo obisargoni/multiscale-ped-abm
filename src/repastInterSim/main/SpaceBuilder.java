@@ -278,8 +278,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks);
 	    schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
-	    // Model ends at 3600 ticks (1hrs)
-	    RunEnvironment.getInstance().endAt(3600);
+	    // Model ends at 1800 ticks
+	    RunEnvironment.getInstance().endAt(1800);
 	    
 		return context;
 		
