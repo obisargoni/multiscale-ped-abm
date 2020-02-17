@@ -39,7 +39,7 @@ def linestring_from_coord_string(coord_string):
 #
 #####################################
 
-data_dir = "..\\data\\model_run_exports\\"
+data_dir = "..\\output\\data\\model_run_exports"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 output_directory = "..\\output\\processed_data\\"
 
@@ -63,7 +63,7 @@ output_data_dir = "..\\output\\processed_data\\"
 ####################################
     
 file_prefix = "pedestrian_locations"
-file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})")
+file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 
 # read the data
@@ -102,7 +102,7 @@ gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
 
 # Work flow to get primary route coordinates
 file_prefix = 'pedestrian_primary_route'
-file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})")
+file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
 ped_primary_route_file = most_recent_directory_file(data_dir, file_re)
 
 df_prim = pd.read_csv(os.path.join(data_dir, ped_primary_route_file))
