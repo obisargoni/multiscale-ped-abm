@@ -30,11 +30,6 @@ public class Destination implements FixedGeography{
 	public void removeAgent() {
         ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
         
-        // If there are no agents to remove end the simulation
-        if (context.getObjects(MobileAgent.class).size() == 0) {
-        	RunEnvironment.getInstance().endRun();
-        }
-        
         // Iterate over peds and remove them if they have arrived at the destination
         for (Object o :context.getObjects(MobileAgent.class)) {
         	MobileAgent mA  = (MobileAgent) o;
