@@ -48,6 +48,14 @@ ped_od_file = "OD_pedestrian_nodes.shp"
 vehicle_polygons = "topographicAreaVehicle-withPriority-RoadLinkGrouping-Crossing.shp"
 
 
+# Output paths
+img_dir = "..\\output\\img\\"
+path_deviation_fig = "path_deviation.png"
+crossing_percent_fig = "crossing_percent.png"
+
+output_data_dir = "..\\output\\processed_data\\"
+
+
 ####################################
 #
 # Get pedestrian locations and route as seperate dataframes
@@ -168,7 +176,7 @@ gdf_crossing_polys = gdf_veh_poly.loc[gdf_veh_poly['priority'] == 'pedestrian'].
 
 gdf_cross_traj = gpd.sjoin(gdf_cross_traj, gdf_crossing_polys, how = 'left')
 gdf_cross_traj['use_crossing'] = ~gdf_cross_traj['fid'].isnull()
-gdf_cross_traj.drop(gdf_crossing_polys.columns + ['index_right'], axis=1, inplace=True)
+gdf_cross_traj.drop(list(gdf_crossing_polys.columns) + ['index_right'], axis=1, inplace=True)
 
 df_cross_pct = gdf_cross_traj.groupby('run').apply(lambda df: df.loc[df['use_crossing']==True].count() / df.count())
 df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(columns = ['cross_pct']).reset_index()
@@ -186,3 +194,23 @@ df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(column
 # Make figures
 #
 ###############################
+import matplotlib.pyplot as plt
+import seaborn as sn
+
+runs = gdf_comb['run'].unique()
+n = len(runs)
+
+# Histogram of deviation from straight line distance
+f,axs = plt.subplots(1,n,figsize=(10,20), sharey=True)
+for i in range(n):
+	data = gdf_comb.loc[gdf_comb['run']==runs[i], 'pct_deviation']
+	f.get_axes()[i].hist(data, bins = 10)
+
+f.show()
+plt.savefig(os.path.join(img_dir, path_deviation_fig))
+
+
+f,ax = plt.subplots(1,1,figsize=(10,20), sharey=True)
+ax.bar(df_cross_pct['run'], df_cross_pct['cross_pct'])
+f.show()
+plt.savefig(os.path.join(img_dir, crossing_percent_fig))
