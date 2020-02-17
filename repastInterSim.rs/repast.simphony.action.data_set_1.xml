@@ -1,4 +1,4 @@
-<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
   <name>Vehicle Locations</name>
   <type>NON_AGGREGATE</type>
   <sourceType>repastInterSim.agent.Vehicle</sourceType>
@@ -8,11 +8,11 @@
   <scheduleParams>
     <start>1.0</start>
     <interval>1.0</interval>
-    <priority>-Infinity</priority>
-    <pType>LAST</pType>
+    <priority>Infinity</priority>
+    <pType>FIRST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>631403376</hashCode>
+    <hashCode>1533145429</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
