@@ -267,17 +267,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1,50);
+		Parameters  params = GlobalVars.params;
+		
+		int  addVehicleTicks = params.getInteger("addVehicleTicks");
+	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1,addVehicleTicks);
 	    schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
-	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,100);
+		int  addPedTicks = params.getInteger("addPedTicks");
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks);
 	    schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
 	    // Model ends at 3600 ticks (1hrs)
 	    RunEnvironment.getInstance().endAt(3600);
 	    
-		
 		return context;
 		
 	}

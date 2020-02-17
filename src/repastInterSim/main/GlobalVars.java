@@ -23,6 +23,9 @@ import java.util.logging.Logger;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
+
 /**
  * 
  * @author nick
@@ -31,6 +34,8 @@ import com.vividsolutions.jts.geom.Geometry;
 public abstract class GlobalVars {
 	
 	private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
+	
+	public static Parameters params = RunEnvironment.getInstance ().getParameters();
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
 	static String geographyCRSString = "EPSG:27700";
@@ -161,7 +166,7 @@ public abstract class GlobalVars {
 		public static double boldPriorityCostRatio = 1; // Perceives cost of moving through vehicle space as the same as moving through pedestrian space
 		
 		// Parameter used to convert from proportion of road space occupied by vehicles to perception of grid cell cost
-		public static double gridCellCostParam = 1.0;
+		public static double gridCellCostParam = params.getDouble("cellCostUpdate");
 		
 		public static double destinationArrivalDistance = 1.0; // Distance from destination at which agent is considered to ahve arrived
 		
