@@ -129,10 +129,60 @@ gdf_comb['pct_deviation'] = gdf_comb['deviation'] / gdf_comb['length']
 gdf_ped_od = gpd.read_file(os.path.join(geo_data_dir, ped_od_file))
 gdf_veh_poly = gpd.read_file(os.path.join(geo_data_dir, vehicle_polygons))
 
-# Match up ped ODs to ped trajectories
+# Buffer ODs slightly
+gdf_ped_od.rename(columns = {"id":"od_id"}, inplace=True)
+gdf_ped_od['geometry'] = gdf_ped_od['geometry'].buffer(0.1)
+
+gdf_prim['start'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[0]))
+gdf_prim['end'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[-1]))
+
+# Spatial join
+gdf_prim.set_geometry("start")
+gdf_prim = gpd.sjoin(gdf_prim, gdf_ped_od, how='left', op='intersects')
+gdf_prim.drop('index_right', axis=1, inplace=True)
+gdf_prim.rename(columns = {"od_id":"od_id_start"}, inplace=True)
+
+gdf_prim.set_geometry("end")
+gdf_prim = gpd.sjoin(gdf_prim, gdf_ped_od, how='left', op='intersects')
+gdf_prim.drop('index_right', axis=1, inplace=True)
+gdf_prim.rename(columns = {"od_id":"od_id_end"}, inplace=True)
+
+gdf_prim.set_geometry("geometry")
+
+# Select ped routes that could have made use of a crossing
+df_crossing_ped = gdf_prim.reindex(columns = ['run','ID', 'od_id_start', 'od_id_end'])
+df_crossing_ped = df_crossing_ped.loc[	((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==1)) |
+										((df_crossing_ped['od_id_start']==4) & (df_crossing_ped['od_id_end']==1)) |
+										((df_crossing_ped['od_id_start']==3) & (df_crossing_ped['od_id_end']==2)) |
+
+										((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==2)) |
+										((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==4)) |
+										((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==3)) ]
+
+# Filter routes by those that could pass through crossing
+gdf_cross_traj = pd.merge(gdf_traj, df_crossing_ped, on = ['run','ID'], how = 'inner')
+gdf_cross_traj = gpd.GeoDataFrame(gdf_cross_traj)
+
+# Get crossing polygons
+gdf_crossing_polys = gdf_veh_poly.loc[gdf_veh_poly['priority'] == 'pedestrian'].reindex(columns = ['fid','priority','geometry'])
+
+gdf_cross_traj = gpd.sjoin(gdf_cross_traj, gdf_crossing_polys, how = 'left')
+gdf_cross_traj['use_crossing'] = ~gdf_cross_traj['fid'].isnull()
+gdf_cross_traj.drop(gdf_crossing_polys.columns + ['index_right'], axis=1, inplace=True)
+
+df_cross_pct = gdf_cross_traj.groupby('run').apply(lambda df: df.loc[df['use_crossing']==True].count() / df.count())
+df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(columns = ['cross_pct']).reset_index()
 
 ###############################
 #
 # Save processed data
+#
+###############################
+
+
+
+###############################
+#
+# Make figures
 #
 ###############################
