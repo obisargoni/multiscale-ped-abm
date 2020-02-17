@@ -1,1 +1,0 @@
-<?xml version="1.0" ?><sweep runs="1"><parameter name="addPedTicks" type="constant" constant_type="int" value="50"></parameter><parameter name="addVehicleTicks" type="constant" constant_type="int" value="50"></parameter><parameter name="cellCostUpdate" type="constant" constant_type="double" value="1"></parameter></sweep>
