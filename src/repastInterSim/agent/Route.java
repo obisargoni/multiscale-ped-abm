@@ -76,7 +76,7 @@ import repastInterSim.main.SpaceBuilder;
  */
 public class Route implements Cacheable {
 
-	private static Logger LOGGER = Logger.getLogger(Route.class.getName());
+	//private static Logger LOGGER = Logger.getLogger(Route.class.getName());
 
 	static {
 		// Route.routeCache = new Hashtable<CachedRoute, CachedRoute>();
@@ -350,8 +350,10 @@ public class Route implements Cacheable {
 			checkListSizes();
 
 		} catch (RoutingException e) {
+			/*
 			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.mA.toString()
 					+ " going from " + currentCoord.toString() + " to " + this.destination.toString());
+					*/
 			throw e;
 		}
 		// Cache the route and route speeds
@@ -366,9 +368,10 @@ public class Route implements Cacheable {
 		// Route.routeCache.put(cachedRoute, cachedRoute);
 		// }
 		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
-
+		/*
 		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.mA.toString() + "with "
 				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
+				*/
 
 		// Finished, just check that the route arrays are all in sync
 		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
@@ -472,8 +475,10 @@ public class Route implements Cacheable {
 			checkListSizes();
 
 		} catch (RoutingException e) {
+			/*
 			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + this.mA.toString()
 					+ " going from " + currentCoord.toString() + " to " + this.destination.toString());
+					*/
 			throw e;
 		}
 		// Cache the route and route speeds
@@ -488,10 +493,10 @@ public class Route implements Cacheable {
 		// Route.routeCache.put(cachedRoute, cachedRoute);
 		// }
 		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
-
+		/*
 		LOGGER.log(Level.FINER, "Route Finished planning route for " + this.mA.toString() + "with "
 				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
-
+	*/
 		// Finished, just check that the route arrays are all in sync
 		assert this.roadsX.size() == this.routeX.size() && this.routeDescriptionX.size() == this.routeSpeedsX.size()
 				&& this.roadsX.size() == this.routeDescriptionX.size();
@@ -586,8 +591,10 @@ public class Route implements Cacheable {
 		// Don't bother with the cache for now
 		synchronized (buildingsOnRoadCacheLock) {
 			if (nearestRoadCoordCache == null) {
+				/*
 				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
 						+ "creating cache of all roads and the buildings which are on them ...");
+						*/
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
@@ -629,9 +636,11 @@ public class Route implements Cacheable {
 			for (Junction o : currentJunctions) {
 				for (Junction d : destJunctions) {
 					if (o == null || d == null) {
+						/*
 						LOGGER.log(Level.WARNING, "Route.getShortestRoute() error: either the destination or origin "
 								+ "junction is null. This can be caused by disconnected roads. It's probably OK"
 								+ "to ignore this as a route should still be created anyway.");
+								*/
 					} else {
 						p = new ShortestPath<Junction>(SpaceBuilder.roadNetwork);
 						pathLength = p.getPathLength(o,d);
@@ -656,9 +665,11 @@ public class Route implements Cacheable {
 					debugString += "\t" + j.toString() + ", roads: " + j.getRoads().toString() + "\n";
 				throw new RoutingException(debugString);
 			}
+			/*
 			LOGGER.log(Level.FINER, "Route.getShortestRoute (" + (0.000001 * (System.nanoTime() - time))
 					+ "ms) found shortest path " + "(length: " + shortestPathLength + ") from "
 					+ routeEndpoints[0].toString() + " to " + routeEndpoints[1].toString());
+					*/
 			return shortestPath;
 		} // synchronized
 	}
@@ -760,7 +771,9 @@ public class Route implements Cacheable {
 			}
 		} // for
 		if (foundAllCoords) {
+			/*
 			LOGGER.log(Level.FINER, "getCoordsAlongRoad (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
+			*/
 			return;
 		} else { // If we get here then the route hasn't been created
 			// A load of debugging info
@@ -878,7 +891,9 @@ public class Route implements Cacheable {
 					&& this.roadsX.size() == this.routeDescriptionX.size();
 
 			// Finished!
+			/*
 			LOGGER.log(Level.FINER, "getRouteBetweenJunctions (" + (0.000001 * (System.nanoTime() - time)) + "ms");
+			*/
 			return;
 		} // synchronized
 	} // getRouteBetweenJunctions
@@ -907,7 +922,9 @@ public class Route implements Cacheable {
 					+ this.routeSpeedsX.get(i).toString() + "\t" + this.roadsX.get(i) + "\t"
 					+ this.routeDescriptionX.get(i));
 		}
+		/*
 		LOGGER.info(out.toString());
+		*/
 	}
 
 	
@@ -1027,12 +1044,16 @@ public class Route implements Cacheable {
 		double time = System.nanoTime();
 		if (coordCache == null) { // Fist check cache has been created
 			coordCache = new HashMap<Coordinate, List<RoadLink>>();
+			/*
 			LOGGER.log(Level.FINER,
 					"Route.populateCoordCache called for first time, creating new cache of all Road coordinates.");
+					*/
 		}
 		if (coordCache.size() == 0) { // Now popualte it if it hasn't already
 										// been populated
+			/*
 			LOGGER.log(Level.FINER, "Route.populateCoordCache: is empty, creating new cache of all Road coordinates.");
+			*/
 
 			for (RoadLink r : SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
 				for (Coordinate c : r.getGeom().getCoordinates()) {
@@ -1047,9 +1068,10 @@ public class Route implements Cacheable {
 					}
 				}
 			}
-
+			/*
 			LOGGER.log(Level.FINER, "... finished caching all road coordinates (in " + 0.000001
 					* (System.nanoTime() - time) + "ms)");
+					*/
 		}
 	}
 

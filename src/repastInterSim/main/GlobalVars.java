@@ -33,7 +33,7 @@ import repast.simphony.parameter.Parameters;
  */
 public abstract class GlobalVars {
 	
-	private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
+	//private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
 	
 	public static Parameters params = RunEnvironment.getInstance ().getParameters();
 	

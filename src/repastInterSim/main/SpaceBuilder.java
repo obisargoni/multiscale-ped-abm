@@ -103,7 +103,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
 	 * (at the bottom of this file).
 	 */
-	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
+	//private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
 	// Directories for model exports
 	// Export dir used for data exports, output dir used for figures
@@ -117,7 +117,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	@Override
 	public Context<Object> build(Context<Object> c) {
 		
-		RepastInterSimLogging.init();
+		//RepastInterSimLogging.init();
 	    
 		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
@@ -601,13 +601,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	private void readProperties() throws FileNotFoundException, IOException {
 
-		File propFile = new File("./respastInterSim.properties");
+		File propFile = new File("./data/respastInterSim.properties");
 		if (!propFile.exists()) {
 			throw new FileNotFoundException("Could not find properties file in the default location: "
 					+ propFile.getAbsolutePath());
 		}
 
-		LOGGER.log(Level.FINE, "Initialising properties from file " + propFile.toString());
+		//LOGGER.log(Level.FINE, "Initialising properties from file " + propFile.toString());
 
 		SpaceBuilder.properties = new Properties();
 
@@ -622,9 +622,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			if (newVal != null) {
 				// The system property has the same name as the one from the
 				// properties file, replace the one in the properties file.
+				/*
 				LOGGER.log(Level.INFO, "Found a system property '" + k + "->" + newVal
 						+ "' which matches a NeissModel property '" + k + "->" + properties.getProperty(k)
 						+ "', replacing the non-system one.");
+						*/
 				properties.setProperty(k, newVal);
 			}
 		} // for

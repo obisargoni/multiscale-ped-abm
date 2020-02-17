@@ -36,7 +36,7 @@ import repastInterSim.main.SpaceBuilder;
 
 public class GridRoute extends Route {
 	
-	private static Logger LOGGER = Logger.getLogger(GridRoute.class.getName());
+	//private static Logger LOGGER = Logger.getLogger(GridRoute.class.getName());
 	
 	// Used to get grid cell summand value when running flood fill algorithm for routing. Single agent can produce routes from different costs, reflecting agent's changing perceptions of costs.
 	private HashMap<Integer, Double> gridSummandPriorityMap;
@@ -544,7 +544,7 @@ public class GridRoute extends Route {
 					"n neighbourghs: " + String.valueOf(manhattanNeighbours.size()) + "\n\r" +
 					"origin coord: " + this.origin.toString() + "\n\r" +
 					"destination coord: " + this.destination.toString() + "\n\r";
-			LOGGER.log(Level.SEVERE,msg);
+			//LOGGER.log(Level.SEVERE,msg);
 			System.out.print(msg);
 			throw e;
 	    }
