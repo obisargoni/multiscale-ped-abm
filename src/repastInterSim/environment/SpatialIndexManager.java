@@ -34,7 +34,6 @@ import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
-import gov.nasa.worldwind.cache.Cacheable;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
