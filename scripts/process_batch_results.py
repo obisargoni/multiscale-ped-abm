@@ -39,7 +39,7 @@ def linestring_from_coord_string(coord_string):
 #
 #####################################
 
-data_dir = "..\\output\\data\\model_run_exports"
+data_dir = "..\\data\\model_run_exports"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 output_directory = "..\\output\\processed_data\\"
 
@@ -201,16 +201,16 @@ runs = gdf_comb['run'].unique()
 n = len(runs)
 
 # Histogram of deviation from straight line distance
-f,axs = plt.subplots(1,n,figsize=(10,20), sharey=True)
+f,axs = plt.subplots(1,n,figsize=(10,20), sharey=True, sharex = True)
 for i in range(n):
 	data = gdf_comb.loc[gdf_comb['run']==runs[i], 'pct_deviation']
-	f.get_axes()[i].hist(data, bins = 10)
+	f.get_axes()[i].hist(data, bins = 20)
 
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
 
-f,ax = plt.subplots(1,1,figsize=(10,20), sharey=True)
+f,ax = plt.subplots(1,1,figsize=(10,20), sharey=True, sharex = True)
 ax.bar(df_cross_pct['run'], df_cross_pct['cross_pct'])
 f.show()
 plt.savefig(os.path.join(img_dir, crossing_percent_fig))
