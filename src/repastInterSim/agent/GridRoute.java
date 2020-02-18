@@ -405,7 +405,7 @@ public class GridRoute extends Route {
 			q.remove(0);
 			
 			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
-			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, mini, minj, maxi, maxj)) {
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "manhattan", mini, minj, maxi, maxj)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
 				i = nextCell.x;
