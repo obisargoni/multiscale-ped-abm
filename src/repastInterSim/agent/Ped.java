@@ -108,7 +108,7 @@ public class Ped extends MobileAgent {
     	
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
-   		decideYield(); 
+   		//decideYield(); 
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
