@@ -88,7 +88,7 @@ public class Ped extends MobileAgent {
         this.k = GlobalVars.interactionForceConstant;
         
         // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
-        this.vehiclePriorityCostRatio = GlobalVars.MOBILE_AGENT_PARAMS.cautiousPriorityCostRatio;
+        this.vehiclePriorityCostRatio = GlobalVars.MOBILE_AGENT_PARAMS.vehiclePriorityCostRatio;
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
 
