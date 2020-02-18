@@ -596,7 +596,8 @@ public class GridRoute extends Route {
 					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
 					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
 					"origin coord: " + this.origin.toString() + "\n\r" +
-					"destination coord: " + this.destination.toString() + "\n\r";
+					"destination coord: " + this.destination.toString() + "\n\r" +
+					"ped id: " + String.valueOf(this.mA.id) + "\n\r";
 			//LOGGER.log(Level.SEVERE,msg);
 			System.out.print(msg);
 			throw e;
