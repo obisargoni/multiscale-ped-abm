@@ -364,7 +364,7 @@ public class GridRoute extends Route {
 				atEnd = true;
 			}
 			gridPath.add(next);
-			next = greedyManhattanNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
+			next = greedyMooreNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
 		}
 		
 		return gridPath;
@@ -405,7 +405,7 @@ public class GridRoute extends Route {
 			q.remove(0);
 			
 			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
-			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "manhattan", mini, minj, maxi, maxj)) {
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
 				i = nextCell.x;
