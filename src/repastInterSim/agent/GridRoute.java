@@ -162,21 +162,29 @@ public class GridRoute extends Route {
 		// Use each primary grid cell to index a new group of grid cell coordinates (the path along a particular road link)
 		for (int i = 0; i < gridPath.size(); i++) {			
 			GridCoordinates2D gridCell = gridPath.get(i);
-			GridEnvelope2D gridEnv = new GridEnvelope2D(gridCell.x, gridCell.y, 1, 1);
-			Polygon cellPoly = GISFunctions.getWorldPolygonFromGridEnvelope(grid, gridEnv);
+			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
 			
-			List<String> cellRoadLinkFIDs = null;
+			Road cellRoad = null;
 			try {
-				cellRoadLinkFIDs = GISFunctions.getGridPolygonRoadLinkIDs(cellPoly);
+				cellRoad = GISFunctions.getCoordinateRoad(cellCoord);
 			} catch (RoutingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			// Only update the current grid cell road link ID if there is only one road link ID associated with this cell
-			// Avoids ambiguity about which road link the primary route coordinates link to
-			if (cellRoadLinkFIDs.size()==1) {
-				cellRoadLinkFID = cellRoadLinkFIDs.get(0);
+			try {
+				cellRoadLinkFID = cellRoad.getRoadLinkFI();
+			} catch (NullPointerException e) {
+				// The coordinate that a grid cell transforms to does not intersect a road
+				// Grid cell can be included in path because this the coord not intersecting with a road shouldnt affect the pruning of grid cells to coords
+				// But don't consider for primary route coordinate
+				/*
+		    	String msg = "GridRoute.setGroupedGridPath(): Grid cell coordinate does not intersect Road \n\r" + 
+						"GridCell: " + gridCell.toString()+ "\n\r" +
+						"cellCoord: " + cellCoord.toString() + "\n\r";
+				//LOGGER.log(Level.SEVERE,msg);
+				System.out.print(msg);
+				*/
 			}
 			
 			// Check for change in road link id
@@ -184,7 +192,7 @@ public class GridRoute extends Route {
 			// are added as primary route coordinates
 			if (!cellRoadLinkFID.equals(prevCellRoadLinkFID)) {
 				primaryRouteCell = gridCell;
-				primaryRouteCoord = gridCellToCoordinate(grid, primaryRouteCell);
+				primaryRouteCoord = cellCoord;
 				this.routeCoordMap.put(primaryRouteCoord, primaryRouteCell);
 				this.primaryRouteX.add(primaryRouteCoord);
 				this.groupedGridPath.put(primaryRouteCell, new ArrayList<GridCoordinates2D>());
