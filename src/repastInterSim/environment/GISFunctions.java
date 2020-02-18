@@ -598,9 +598,9 @@ public class GISFunctions {
 	public static List<Road> getGridPolygonRoads(Polygon p) throws RoutingException {
 		Road r = null;
 		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p);
+		List<Road> containingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p, "contains");
     	
-    	return intersectingRoads;
+    	return containingRoads;
 	}
 	
 	/**
