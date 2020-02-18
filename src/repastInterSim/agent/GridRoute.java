@@ -528,7 +528,7 @@ public class GridRoute extends Route {
 				if ((dx==0) & (dy==0)) {
 					continue;
 				}
-				if ((i + dx >= mini) & (i + dx < maxi) & (j >= minj) & (j < maxj)) {
+				if ((i + dx >= mini) & (i + dx < maxi) & (j + dy >= minj) & (j + dy < maxj)) {
 					mN.add(new GridCoordinates2D(i + dx, j + dy));
 				}
 			}
