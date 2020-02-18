@@ -359,12 +359,13 @@ public class GridRoute extends Route {
 		boolean atEnd = false;
 		
 		GridCoordinates2D next = start;
+		gridPath.add(next);
 		while(!atEnd) {
+			next = greedyManhattanNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
+			gridPath.add(next);
 			if (next.equals(end)) {
 				atEnd = true;
 			}
-			gridPath.add(next);
-			next = greedyManhattanNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
 		}
 		
 		return gridPath;
