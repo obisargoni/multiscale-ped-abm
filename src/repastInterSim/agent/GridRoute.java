@@ -497,8 +497,6 @@ public class GridRoute extends Route {
 		return mN;
 	}
 	
-	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
-		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
 	/**
 	 * Given a grid coordinate return a list of the Moore neighbours of this coordinate.
 	 * 
@@ -549,6 +547,10 @@ public class GridRoute extends Route {
 		}
 		return neighbours;
 	}
+	
+	private GridCoordinates2D greedyXNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, String neighbourType, int mini, int minj, int maxi, int maxj) {
+		
+		List<GridCoordinates2D> neighbours = xNeighbours(cell, neighbourType, mini, minj, maxi, maxj);
 		
 		// Initialise greedy options
 		List<Double> minVal = new ArrayList<Double>();
@@ -557,7 +559,7 @@ public class GridRoute extends Route {
 		minVal.add((double) Integer.MAX_VALUE);
 
 		
-		for(GridCoordinates2D neighbour:manhattanNeighbours) {
+		for(GridCoordinates2D neighbour:neighbours) {
 			// Don't consider cells already in the path
 			if (path.contains(neighbour)) {
 				continue;
@@ -589,9 +591,10 @@ public class GridRoute extends Route {
 	    try {
 		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
 	    } catch (IllegalArgumentException e) {
-	    	String msg = "GridRoute.greedyManhattanNeighbour(): Problem getting greedy neighbour \n\r" + 
+	    	String msg = "GridRoute.greedyXNeighbour(): Problem getting greedy neighbour \n\r" + 
+	    			"neighbour type: " + neighbourType + "\n\r" +
 					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
-					"n neighbourghs: " + String.valueOf(manhattanNeighbours.size()) + "\n\r" +
+					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
 					"origin coord: " + this.origin.toString() + "\n\r" +
 					"destination coord: " + this.destination.toString() + "\n\r";
 			//LOGGER.log(Level.SEVERE,msg);
@@ -599,6 +602,16 @@ public class GridRoute extends Route {
 			throw e;
 	    }
 	    return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "manhattan", mini, minj, maxi, maxj);
+		return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyMooreNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "moore", mini, minj, maxi, maxj);
+		return greedyNeighbour;
 	}
 	
 	/**
