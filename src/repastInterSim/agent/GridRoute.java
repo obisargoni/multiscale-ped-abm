@@ -349,10 +349,13 @@ public class GridRoute extends Route {
 			int dx = Math.abs(start.x-end.x);
 			int dy = Math.abs(start.y-end.y);
 			
-			mini = Math.max(Math.min(start.x, end.x) - (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease),0);
-			minj = Math.max(Math.min(start.y, end.y) - (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease),0);
-			maxi = Math.min(Math.max(start.x, end.x) + (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease), width);
-			maxj = Math.min(Math.max(start.y, end.y) + (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease), height);
+			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			
+			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
+			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
+			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
+			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
 		}
 		
 		double[][] cellValues = gridCoverageFloodFill(grid, end, mini, minj, maxi, maxj);
