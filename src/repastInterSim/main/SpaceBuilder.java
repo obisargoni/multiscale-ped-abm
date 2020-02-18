@@ -281,6 +281,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    // Model ends at 1800 ticks
 	    RunEnvironment.getInstance().endAt(1800);
 	    
+	    IO.gridCoverageToImage(baseGrid, outputDir + "output_grid_vales.png");
+	    
 		return context;
 		
 	}
