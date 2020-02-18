@@ -538,6 +538,17 @@ public class GridRoute extends Route {
 		
 		return mN;
 	}
+	
+	private List<GridCoordinates2D> xNeighbours(GridCoordinates2D cell, String neighbourType, int mini, int minj, int maxi, int maxj){
+		List<GridCoordinates2D> neighbours;
+		if (neighbourType.contentEquals("manhattan")) {
+			neighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
+		}
+		else {
+			neighbours = mooreNeighbourghs(cell, mini, minj, maxi, maxj);
+		}
+		return neighbours;
+	}
 		
 		// Initialise greedy options
 		List<Double> minVal = new ArrayList<Double>();
