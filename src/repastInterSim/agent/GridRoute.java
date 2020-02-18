@@ -499,6 +499,45 @@ public class GridRoute extends Route {
 	
 	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
 		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
+	/**
+	 * Given a grid coordinate return a list of the Moore neighbours of this coordinate.
+	 * 
+	 * Exclude coordinates that are lower than the minimum i and j parameters or greater than or equal to the
+	 * maximum i and j parameters.
+	 * 
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @param mini
+	 * 			Minimum i value
+	 * @param minj
+	 * 			Minimum j value
+	 * @param maxi
+	 * 			Maximum i value
+	 * @param maxj
+	 * 			Maximum j value
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
+	private List<GridCoordinates2D> mooreNeighbourghs(GridCoordinates2D cell, int mini, int minj, int maxi, int maxj){
+		
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
+		
+		int[] range = {-1,1,0};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			for (int dy: range) {
+				if ((dx==0) & (dy==0)) {
+					continue;
+				}
+				if ((i + dx >= mini) & (i + dx < maxi) & (j >= minj) & (j < maxj)) {
+					mN.add(new GridCoordinates2D(i + dx, j + dy));
+				}
+			}
+		}
+		
+		return mN;
+	}
 		
 		// Initialise greedy options
 		List<Double> minVal = new ArrayList<Double>();
