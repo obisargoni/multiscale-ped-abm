@@ -55,7 +55,7 @@ def exctract_coords(string, i, regex):
 #
 #####################################
 
-data_dir = "..\\output\\data\\model_run_exports\\"
+data_dir = "..\\output\\batch\\model_run_data\\"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 output_directory = "..\\output\\processed_data\\"
 
@@ -127,7 +127,7 @@ gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
 #################################
 
 # Work flow to get primary route coordinates
-file_prefix = 'pedestrian_primary_route'
+file_prefix = 'pedestrian_initial_route'
 file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
 ped_primary_route_file = most_recent_directory_file(data_dir, file_re)
 #ped_primary_route_file = "manual_pedestrian_primary_route_batch4_6.csv"
@@ -155,7 +155,7 @@ df_prim = pd.read_csv(os.path.join(data_dir, ped_primary_route_file))
 df_prim.sort_values(by = ['run','ID','tick'], inplace=True)
 df_prim_first = df_prim.groupby(['run','ID']).apply(lambda df: df.iloc[0])
 df_prim_first.index = np.arange(df_prim_first.shape[0])
-df_prim_first['geometry'] = df_prim_first['PrimaryRouteCoordinatesString'].map(lambda x: linestring_from_coord_string(x))
+df_prim_first['geometry'] = df_prim_first['InitialRouteCoordinatesString'].map(lambda x: linestring_from_coord_string(x))
 df_prim_first.dropna(subset = ['geometry'], inplace = True)
 
 gdf_prim = gpd.GeoDataFrame(df_prim_first)
@@ -185,7 +185,7 @@ gdf_veh_poly = gpd.read_file(os.path.join(geo_data_dir, vehicle_polygons))
 
 # Buffer ODs slightly
 gdf_ped_od.rename(columns = {"id":"od_id"}, inplace=True)
-gdf_ped_od['geometry'] = gdf_ped_od['geometry'].buffer(0.1)
+gdf_ped_od['geometry'] = gdf_ped_od['geometry'].buffer(0.5)
 
 gdf_prim['start'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[0]))
 gdf_prim['end'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[-1]))
@@ -241,17 +241,16 @@ df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(column
 ###############################
 
 # Read in batch runs metadata
-file_prefix = 'pedestrian_primary_route'
+file_prefix = 'pedestrian_initial_route'
 file_suffix = 'batch_param_map'
 file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\."+file_suffix + "\.csv")
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
-selection_columns = ['addPedTicks', 'vehiclePriorityCostRatio', 'addVehicleTicks', 'cellCostUpdate']
-selction_values = [ [50],
-                    [1,10],
+selection_columns = ['vehiclePriorityCostRatio', 'addVehicleTicks', 'cellCostUpdate']
+selction_values = [ [1,10],
                     [5,10],
-                    [0,1,5]
+                    [0,10]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -299,7 +298,7 @@ for ki in range(len(keys)):
 
     ax.hist(data['pct_deviation'])
     plt.text(0.1,0.9, results_string, fontsize = 9, transform = ax.transAxes)
-    #ax.set_title("{},{}".format(*group_key[1:]), fontsize = 9)
+    #ax.set_title("{},{},{}".format(*group_key), fontsize = 9)
 
 # Add in row group legend values
 for i in range(x):
@@ -314,7 +313,7 @@ for i in range(x):
     plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
 
 for j in range(y):
-    ki = key_indices[0, j, 1]
+    ki = key_indices[0, j, 0]
     group_key = keys[ki]
 
     i,j= np.where(fig_indices == ki)
@@ -322,7 +321,7 @@ for j in range(y):
     ax = axs[i[0], j[0]]
 
     s = "{}: {}".format(groupby_columns[1], group_key[1])
-    plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
+    plt.text(0.75,1.1, s, fontsize = 9, transform = ax.transAxes)
 
 for ki in np.nditer(key_indices):
     group_key = keys[ki]
@@ -332,6 +331,7 @@ for ki in np.nditer(key_indices):
     ax = axs[i[0], j[0]]
 
     ax.set_title("{}:\n{}".format(groupby_columns[2], group_key[2]), fontsize = 9)
+
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
