@@ -254,6 +254,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		 Category[] valueCategories	= new Category[] {	
 	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
 	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
+	        new Category("Pedestrian crossing area", Color.PINK, priorityValueMap.get("pedestrian_crossing")),
 	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle"))
 	    };
 
