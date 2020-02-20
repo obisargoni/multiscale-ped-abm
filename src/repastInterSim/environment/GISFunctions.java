@@ -651,5 +651,29 @@ public class GISFunctions {
     	
     	return r;
 	}
+	
+	/**
+	 * Get the gis coordinate that corresponds to the location of the input Grid Coordinate
+	 * in the coordinate reference system used by the grid coverage
+	 * 
+	 * @param grid
+	 * 			The grid in which the grid cell sits
+	 * @param cell
+	 * 			The grid coordinate to get the gis coordinate of
+	 * @return
+	 * 			Coordinate. The gis coordinate
+	 */
+	public static Coordinate gridCellToCoordinate(GridCoverage2D grid, GridCoordinates2D cell) {
+		double[] cellCoord = null;
+		try {
+			cellCoord = grid.getGridGeometry().gridToWorld(cell).getCoordinate();
+		} catch (TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Coordinate c = new Coordinate(cellCoord[0], cellCoord[1]);
+		
+		return c;
+	}
 
 }

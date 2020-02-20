@@ -162,7 +162,7 @@ public class GridRoute extends Route {
 		// Use each primary grid cell to index a new group of grid cell coordinates (the path along a particular road link)
 		for (int i = 0; i < gridPath.size(); i++) {			
 			GridCoordinates2D gridCell = gridPath.get(i);
-			Coordinate cellCoord = gridCellToCoordinate(grid, gridCell);
+			Coordinate cellCoord = GISFunctions.gridCellToCoordinate(grid, gridCell);
 			
 			Road cellRoad = null;
 			try {
@@ -249,7 +249,7 @@ public class GridRoute extends Route {
 		// or change in road priority
 		int startCellIndex = 0;
 		GridCoordinates2D startCell = gP.get(startCellIndex);
-		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
+		Coordinate startCoord = GISFunctions.gridCellToCoordinate(grid, startCell);
 		
 		// Given a fixed starting path coordinate, loop through path coordinates, create line between pairs
 		// if line intersects with an obstacle, set the route coord to be the previous path coord for which there 
@@ -257,7 +257,7 @@ public class GridRoute extends Route {
 		for (int i = startCellIndex + 1; i < gP.size(); i++) {
 			int gridPathIndexToIncludeInRoute;
 			GridCoordinates2D gridCell = gP.get(i);
-			Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
+			Coordinate gridCoord = GISFunctions.gridCellToCoordinate(grid, gridCell);
 			
 			if (checkForObstaclesBetweenRouteCoordinates(startCoord, gridCoord)) {
 				// Handle the case where lines between neighbouring cells intersect with obstrucctions in order to avoid infinite loop
@@ -278,7 +278,7 @@ public class GridRoute extends Route {
 				
 				// Update start cell
 				startCell = gP.get(startCellIndex);
-				startCoord = gridCellToCoordinate(grid, startCell);
+				startCoord = GISFunctions.gridCellToCoordinate(grid, startCell);
 				
 				// Loop continues two steps ahead from starting cell but this doesn't change route outcome
 			}
@@ -289,7 +289,7 @@ public class GridRoute extends Route {
 		for (int i:routeIndicesSorted) {
 			GridCoordinates2D routeCell = gP.get(i);
 			prunedGridPath.add(routeCell);
-			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
+			Coordinate routeCoord = GISFunctions.gridCellToCoordinate(grid, routeCell);
 			addToRoute(routeCoord, RoadLink.nullRoad, 1, descriptionMap.get(i));
 		}
 	}
@@ -561,30 +561,6 @@ public class GridRoute extends Route {
 			throw e;
 	    }
 	    return greedyNeighbour;
-	}
-	
-	/**
-	 * Get the gis coordinate that corresponds to the location of the input Grid Coordinate
-	 * in the coordinate reference system used by the grid coverage
-	 * 
-	 * @param grid
-	 * 			The grid in which the grid cell sits
-	 * @param cell
-	 * 			The grid coordinate to get the gis coordinate of
-	 * @return
-	 * 			Coordinate. The gis coordinate
-	 */
-	private Coordinate gridCellToCoordinate(GridCoverage2D grid, GridCoordinates2D cell) {
-		double[] cellCoord = null;
-		try {
-			cellCoord = grid.getGridGeometry().gridToWorld(cell).getCoordinate();
-		} catch (TransformException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Coordinate c = new Coordinate(cellCoord[0], cellCoord[1]);
-		
-		return c;
 	}
 	
 	private void checkGridRoute() {
