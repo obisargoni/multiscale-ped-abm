@@ -275,26 +275,63 @@ import seaborn as sn
 # Histogram of deviation from straight line distance
 groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
 grouped = gdf_comb.groupby(groupby_columns)
-keys = np.array(list(grouped.groups.keys()))
+keys = list(grouped.groups.keys())
 
 x = len(run_selection_dict[groupby_columns[0]])
-y = int(len(keys) / x)
-z = int(keys.size / (x * y))
-keys = np.reshape(keys, (x,y,z))
+y = len(run_selection_dict[groupby_columns[1]])
+z = len(run_selection_dict[groupby_columns[2]])
+key_indices = np.reshape(np.arange(len(keys)), (x,y,z))
 
-f,axs = plt.subplots(x, y,figsize=(10,20), sharey=True, sharex = True)
+fig_indices = np.reshape(key_indices, (x, y*z))
+
+f,axs = plt.subplots(x, y*z,figsize=(10,20), sharey=True, sharex = True)
+for ki in range(len(keys)):
+    group_key = keys[ki]
+    data = grouped.get_group(group_key)
+    assert data['run'].unique().shape[0] == 1
+
+    stats = data['pct_deviation'].describe().map(lambda x: round(x,4))
+    results_string = "mean = {}\nstd = {}".format(stats['mean'], stats['std'])
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    ax.hist(data['pct_deviation'])
+    plt.text(0.1,0.9, results_string, fontsize = 9, transform = ax.transAxes)
+    #ax.set_title("{},{}".format(*group_key[1:]), fontsize = 9)
+
+# Add in row group legend values
 for i in range(x):
-    for j in range(y):
-        group_key = tuple(keys[i,j,:])
-        data = grouped.get_group(group_key)
-        assert data['run'].unique().shape[0] == 1
+    ki = key_indices[i, y-1, z-1]
+    group_key = keys[ki]
 
-        stats = data['pct_deviation'].describe().map(lambda x: round(x,4))
-        results_string = "mean = {}\nstd = {}".format(stats['mean'], stats['std'])
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
 
-        axs[i,j].hist(data['pct_deviation'])
-        plt.text(0.1,0.9, results_string, fontsize = 9, transform = axs[i,j].transAxes)
-        axs[i,j].set_title("{},{},{}".format(*group_key))
+    s = "{}:\n{}".format(groupby_columns[0], group_key[0])
+    plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
+
+for j in range(y):
+    ki = key_indices[0, j, 1]
+    group_key = keys[ki]
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    s = "{}: {}".format(groupby_columns[1], group_key[1])
+    plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
+
+for ki in np.nditer(key_indices):
+    group_key = keys[ki]
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    ax.set_title("{}:\n{}".format(groupby_columns[2], group_key[2]), fontsize = 9)
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
