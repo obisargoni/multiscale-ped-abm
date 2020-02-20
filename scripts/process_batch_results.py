@@ -6,6 +6,7 @@ import geopandas as gpd
 import re
 from shapely.geometry import LineString
 from shapely.geometry import Point
+import csv
 
 ######################################
 #
@@ -19,19 +20,34 @@ def dt_from_file_name(file_name, regex):
     return file_dt
 
 def most_recent_directory_file(directory, file_regex):
-	files = os.listdir(directory)
-	filtered_files = [f for f in files if file_regex.search(f) is not None]
-	filtered_files.sort(key = lambda x: dt_from_file_name(x, file_regex), reverse=True)
-	return filtered_files[0]
+    files = os.listdir(directory)
+    filtered_files = [f for f in files if file_regex.search(f) is not None]
+    filtered_files.sort(key = lambda x: dt_from_file_name(x, file_regex), reverse=True)
+    return filtered_files[0]
 
 def linestring_from_coord_string(coord_string):
     points = []
     for c in coord_string.split("),("):
-        x,y = l_re.search(c).groups()
+        found = l_re.search(c)
+        if found is None:
+            return
+
+        x,y = found.groups()
         p = Point(float(x), float(y))
         points.append(p)
     l = LineString(points)
     return l
+
+def exctract_coords(string, i, regex):
+    found = regex.search(string)
+    if found is None:
+        return
+    else:
+        try:
+            coord = float(found.groups()[i])
+        except TypeError as e:
+            return None
+        return coord
 
 #####################################
 #
@@ -39,7 +55,7 @@ def linestring_from_coord_string(coord_string):
 #
 #####################################
 
-data_dir = "..\\data\\model_run_exports"
+data_dir = "..\\output\\data\\model_run_exports\\"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 output_directory = "..\\output\\processed_data\\"
 
@@ -65,22 +81,32 @@ output_data_dir = "..\\output\\processed_data\\"
 file_prefix = "pedestrian_locations"
 file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
+#ped_locations_file = "manual_pedestrian_locations_batch4_6.csv"
 
 # read the data
+'''
+f = open(os.path.join(data_dir, ped_locations_file))
+csv_reader = csv.reader(f)
+data = []
+for row in csv_reader:
+    if len(row) != 5:
+        continue
+    else:
+        data.append(row)
+        
+df_ped_loc = pd.DataFrame(data)
+data = None
+df_ped_loc.columns = df_ped_loc.iloc[0]
+df_ped_loc = df_ped_loc.iloc[1:]
+'''
 df_ped_loc = pd.read_csv(os.path.join(data_dir, ped_locations_file))
 
-loc_cols = ['Location', 'RouteCoordinate']
-for c in loc_cols:
-    for i in [0,1]:
-        df_ped_loc[c+str(i)] = df_ped_loc[c].map(lambda x: float(l_re.search(x).groups()[i]))
-
 # Now split df into one for locations, one for route coords
-route_cols = [i for i in df_ped_loc.columns if 'RouteCoordinate' in i]
-lo_cols = [i for i in df_ped_loc.columns if 'Location' in i]
+lo_cols = [i for i in df_ped_loc.columns if 'Loc' in i]
 
-df_loc = df_ped_loc.drop(route_cols, axis=1)
-df_route = df_ped_loc.drop(lo_cols, axis=1)
-
+df_loc = df_ped_loc.dropna(subset = lo_cols)
+for c in lo_cols:
+    df_loc[c] = df_loc[c].map(float)
 
 ##################################
 #
@@ -89,7 +115,7 @@ df_route = df_ped_loc.drop(lo_cols, axis=1)
 ##################################
 
 # Create geopandas data frame in order to crete coordiante object from coords
-gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.Location0, df_loc.Location1))
+gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.LocXString, df_loc.LocXString))
 gdf_traj = gdf_loc.groupby(['run', 'ID'])['geometry'].apply(lambda x: LineString(x.tolist())).reset_index()
 gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
 
@@ -104,7 +130,24 @@ gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
 file_prefix = 'pedestrian_primary_route'
 file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
 ped_primary_route_file = most_recent_directory_file(data_dir, file_re)
+#ped_primary_route_file = "manual_pedestrian_primary_route_batch4_6.csv"
 
+# read the data
+'''
+f = open(os.path.join(data_dir, ped_primary_route_file))
+csv_reader = csv.reader(f)
+data = []
+for row in csv_reader:
+    if len(row) != 4:
+        continue
+    else:
+        data.append(row)
+        
+df_prim = pd.DataFrame(data)
+data = None
+df_prim.columns = df_prim.iloc[0]
+df_prim = df_prim.iloc[1:]
+'''
 df_prim = pd.read_csv(os.path.join(data_dir, ped_primary_route_file))
 
 
@@ -113,6 +156,7 @@ df_prim.sort_values(by = ['run','ID','tick'], inplace=True)
 df_prim_first = df_prim.groupby(['run','ID']).apply(lambda df: df.iloc[0])
 df_prim_first.index = np.arange(df_prim_first.shape[0])
 df_prim_first['geometry'] = df_prim_first['PrimaryRouteCoordinatesString'].map(lambda x: linestring_from_coord_string(x))
+df_prim_first.dropna(subset = ['geometry'], inplace = True)
 
 gdf_prim = gpd.GeoDataFrame(df_prim_first)
 gdf_prim['length'] = gdf_prim['geometry'].map(lambda l: l.length)
@@ -127,6 +171,8 @@ gdf_prim['length'] = gdf_prim['geometry'].map(lambda l: l.length)
 gdf_comb = pd.merge(gdf_traj, gdf_prim, on = ['run', 'ID'], how='outer')
 gdf_comb['deviation'] = gdf_comb['traj_length'] - gdf_comb['length']
 gdf_comb['pct_deviation'] = gdf_comb['deviation'] / gdf_comb['length']
+gdf_comb = gdf_comb.reindex(columns = ['run', 'ID', 'traj_length', 'length', 'deviation', 'pct_deviation'])
+gdf_comb = gdf_comb.dropna(subset = ['pct_deviation'])
 
 
 ###############################
@@ -159,13 +205,13 @@ gdf_prim.set_geometry("geometry")
 
 # Select ped routes that could have made use of a crossing
 df_crossing_ped = gdf_prim.reindex(columns = ['run','ID', 'od_id_start', 'od_id_end'])
-df_crossing_ped = df_crossing_ped.loc[	((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==1)) |
-										((df_crossing_ped['od_id_start']==4) & (df_crossing_ped['od_id_end']==1)) |
-										((df_crossing_ped['od_id_start']==3) & (df_crossing_ped['od_id_end']==2)) |
+df_crossing_ped = df_crossing_ped.loc[  ((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==1)) |
+                                        ((df_crossing_ped['od_id_start']==4) & (df_crossing_ped['od_id_end']==1)) |
+                                        ((df_crossing_ped['od_id_start']==3) & (df_crossing_ped['od_id_end']==2)) |
 
-										((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==2)) |
-										((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==4)) |
-										((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==3)) ]
+                                        ((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==2)) |
+                                        ((df_crossing_ped['od_id_start']==1) & (df_crossing_ped['od_id_end']==4)) |
+                                        ((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==3)) ]
 
 # Filter routes by those that could pass through crossing
 gdf_cross_traj = pd.merge(gdf_traj, df_crossing_ped, on = ['run','ID'], how = 'inner')
@@ -188,6 +234,34 @@ df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(column
 ###############################
 
 
+###############################
+#
+# Filter data by desired batch runs
+#
+###############################
+
+# Read in batch runs metadata
+file_prefix = 'pedestrian_primary_route'
+file_suffix = 'batch_param_map'
+file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\."+file_suffix + "\.csv")
+batch_file = most_recent_directory_file(data_dir, file_re)
+df_run = pd.read_csv(os.path.join(data_dir, batch_file))
+
+selection_columns = ['addPedTicks', 'vehiclePriorityCostRatio', 'addVehicleTicks', 'cellCostUpdate']
+selction_values = [ [50],
+                    [1,10],
+                    [5,10],
+                    [0,1,5]
+                    ]
+
+run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
+
+for col in selection_columns:
+    df_run  = df_run.loc[df_run[col].isin(run_selection_dict[col])]
+
+# Join this to the data
+gdf_comb = pd.merge(gdf_comb, df_run, left_on = 'run', right_on = 'run', how = 'inner')
+df_cross_pct = pd.merge(df_cross_pct, df_run, left_on = 'run', right_on = 'run', how = 'inner')
 
 ###############################
 #
@@ -197,19 +271,34 @@ df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(column
 import matplotlib.pyplot as plt
 import seaborn as sn
 
-runs = gdf_comb['run'].unique()
-n = len(runs)
 
 # Histogram of deviation from straight line distance
-f,axs = plt.subplots(1,n,figsize=(10,20), sharey=True, sharex = True)
-for i in range(n):
-	data = gdf_comb.loc[gdf_comb['run']==runs[i], 'pct_deviation']
-	f.get_axes()[i].hist(data, bins = 20)
+groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
+grouped = gdf_comb.groupby(groupby_columns)
+keys = np.array(list(grouped.groups.keys()))
 
+x = len(run_selection_dict[groupby_columns[0]])
+y = int(len(keys) / x)
+z = int(keys.size / (x * y))
+keys = np.reshape(keys, (x,y,z))
+
+f,axs = plt.subplots(x, y,figsize=(10,20), sharey=True, sharex = True)
+for i in range(x):
+    for j in range(y):
+        group_key = tuple(keys[i,j,:])
+        data = grouped.get_group(group_key)
+        assert data['run'].unique().shape[0] == 1
+
+        stats = data['pct_deviation'].describe().map(lambda x: round(x,4))
+        results_string = "mean = {}\nstd = {}".format(stats['mean'], stats['std'])
+
+        axs[i,j].hist(data['pct_deviation'])
+        plt.text(0.1,0.9, results_string, fontsize = 9, transform = axs[i,j].transAxes)
+        axs[i,j].set_title("{},{},{}".format(*group_key))
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
-
+df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
 f,ax = plt.subplots(1,1,figsize=(10,20), sharey=True, sharex = True)
 ax.bar(df_cross_pct['run'], df_cross_pct['cross_pct'])
 f.show()
