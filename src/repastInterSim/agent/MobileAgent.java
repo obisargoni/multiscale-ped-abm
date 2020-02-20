@@ -35,6 +35,14 @@ public class MobileAgent {
     	return this.maLoc.toString();
     }
     
+    public String getLocXString() {
+    	return String.valueOf(this.maLoc.x);
+    }
+    
+    public String getLocYString() {
+    	return String.valueOf(this.maLoc.y);
+    }
+    
 	public void setLoc() {
 		// TODO Auto-generated method stub
 		
