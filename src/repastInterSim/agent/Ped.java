@@ -517,12 +517,12 @@ public class Ped extends MobileAgent {
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
-    	double updatedVehicleGridCellCost = 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace;
+    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio * ( 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace);
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
     	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio * updatedVehicleGridCellCost);
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
     	
     	// Create new Route object, that evaluates flood fill values over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
