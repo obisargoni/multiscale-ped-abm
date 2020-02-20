@@ -153,7 +153,8 @@ public abstract class GlobalVars {
 		public static HashMap<String, Integer> getPriorityValueMap() {
 			if (priorityValueMap.isEmpty()) {
 				priorityValueMap.put("pedestrian", 1);
-				priorityValueMap.put("vehicle", 2);
+				priorityValueMap.put("pedestrian_crossing", 2);
+				priorityValueMap.put("vehicle", 3);
 				priorityValueMap.put("pedestrian_obstruction", defaultGridValue);
 			}
 			return GRID_PARAMS.priorityValueMap;
