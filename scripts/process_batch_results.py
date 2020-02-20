@@ -218,7 +218,7 @@ gdf_cross_traj = pd.merge(gdf_traj, df_crossing_ped, on = ['run','ID'], how = 'i
 gdf_cross_traj = gpd.GeoDataFrame(gdf_cross_traj)
 
 # Get crossing polygons
-gdf_crossing_polys = gdf_veh_poly.loc[gdf_veh_poly['priority'] == 'pedestrian'].reindex(columns = ['fid','priority','geometry'])
+gdf_crossing_polys = gdf_veh_poly.loc[gdf_veh_poly['priority'] == 'pedestrian_crossing'].reindex(columns = ['fid','priority','geometry'])
 
 gdf_cross_traj = gpd.sjoin(gdf_cross_traj, gdf_crossing_polys, how = 'left')
 gdf_cross_traj['use_crossing'] = ~gdf_cross_traj['fid'].isnull()
