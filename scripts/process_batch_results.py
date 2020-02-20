@@ -115,9 +115,9 @@ for c in lo_cols:
 ##################################
 
 # Create geopandas data frame in order to crete coordiante object from coords
-gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.LocXString, df_loc.LocXString))
 gdf_traj = gdf_loc.groupby(['run', 'ID'])['geometry'].apply(lambda x: LineString(x.tolist())).reset_index()
 gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
+gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.LocXString, df_loc.LocYString))
 
 
 #################################
