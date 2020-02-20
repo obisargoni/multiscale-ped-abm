@@ -207,7 +207,7 @@ public class GridRoute extends Route {
 		this.primaryRouteX.add(this.destination);
 	}
 	
-	private void addCoordinatesToRouteFromGridPath(List<GridCoordinates2D> gridPath) {
+	private void addCoordinatesToRouteFromGridPath(List<GridCoordinates2D> gP) {
 		
 		Set<Integer> routeIndices = new HashSet<Integer>();
 		Map<Integer, String> descriptionMap = new HashMap<Integer, String>();
@@ -216,11 +216,11 @@ public class GridRoute extends Route {
 		
 		double[] prevCellValue = new double[1];
 		double[] cellValue = new double[1];
-		GridCoordinates2D prevCell = gridPath.get(0);
+		GridCoordinates2D prevCell = gP.get(0);
 		
 		// Get indices of grid cells that are at location where road priority changes (crossing points)
-		for (int i = 1; i < gridPath.size(); i++) {
-			GridCoordinates2D gridCell = gridPath.get(i);
+		for (int i = 1; i < gP.size(); i++) {
+			GridCoordinates2D gridCell = gP.get(i);
 			
 			// Get grid cell value of this and previous coord. If values differ this means they are located in
 			// road space with different priority and therefore the previous grid cell should be included in the route
@@ -248,15 +248,15 @@ public class GridRoute extends Route {
 		// These are defined as those which lay between coordinates which are not separated by a ped obstruction
 		// or change in road priority
 		int startCellIndex = 0;
-		GridCoordinates2D startCell = gridPath.get(startCellIndex);
+		GridCoordinates2D startCell = gP.get(startCellIndex);
 		Coordinate startCoord = gridCellToCoordinate(grid, startCell);
 		
 		// Given a fixed starting path coordinate, loop through path coordinates, create line between pairs
 		// if line intersects with an obstacle, set the route coord to be the previous path coord for which there 
 		// was no intersection
-		for (int i = startCellIndex + 1; i < gridPath.size(); i++) {
+		for (int i = startCellIndex + 1; i < gP.size(); i++) {
 			int gridPathIndexToIncludeInRoute;
-			GridCoordinates2D gridCell = gridPath.get(i);
+			GridCoordinates2D gridCell = gP.get(i);
 			Coordinate gridCoord = gridCellToCoordinate(grid, gridCell);
 			
 			if (checkForObstaclesBetweenRouteCoordinates(startCoord, gridCoord)) {
@@ -277,7 +277,7 @@ public class GridRoute extends Route {
 				startCellIndex = gridPathIndexToIncludeInRoute;
 				
 				// Update start cell
-				startCell = gridPath.get(startCellIndex);
+				startCell = gP.get(startCellIndex);
 				startCoord = gridCellToCoordinate(grid, startCell);
 				
 				// Loop continues two steps ahead from starting cell but this doesn't change route outcome
@@ -287,7 +287,7 @@ public class GridRoute extends Route {
 		// Order final set of route indicies
 		List<Integer> routeIndicesSorted = routeIndices.stream().sorted().collect(Collectors.toList());
 		for (int i:routeIndicesSorted) {
-			GridCoordinates2D routeCell = gridPath.get(i);
+			GridCoordinates2D routeCell = gP.get(i);
 			prunedGridPath.add(routeCell);
 			Coordinate routeCoord = gridCellToCoordinate(grid, routeCell);
 			addToRoute(routeCoord, RoadLink.nullRoad, 1, descriptionMap.get(i));
@@ -331,7 +331,7 @@ public class GridRoute extends Route {
 	 */
 	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid, Coordinate o, Coordinate d){
 		
-		List<GridCoordinates2D> gridPath = new ArrayList<GridCoordinates2D>();
+		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
 
 		DirectPosition2D dpStart = new DirectPosition2D(o.x, o.y);
 		DirectPosition2D dpEnd = new DirectPosition2D(d.x, d.y);
@@ -370,16 +370,16 @@ public class GridRoute extends Route {
 		boolean atEnd = false;
 		
 		GridCoordinates2D next = start;
-		gridPath.add(next);
+		gP.add(next);
 		while(!atEnd) {
-			next = greedyManhattanNeighbour(next, cellValues, gridPath, mini, minj, maxi, maxj);
-			gridPath.add(next);
+			next = greedyManhattanNeighbour(next, cellValues, gP, mini, minj, maxi, maxj);
+			gP.add(next);
 			if (next.equals(end)) {
 				atEnd = true;
 			}
 		}
 		
-		return gridPath;
+		return gP;
 	}
 	
 	/**
