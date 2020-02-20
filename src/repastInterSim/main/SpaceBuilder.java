@@ -112,7 +112,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	// Directories for model exports
 	// Export dir used for data exports, output dir used for figures
-	public static String exportDir = ".\\data\\export\\";
+	public static String exportDir = ".\\output\\export\\";
 	public static String outputDir = ".\\output\\";
 	
 	    /* (non-Javadoc)
