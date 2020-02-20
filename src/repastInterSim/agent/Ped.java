@@ -51,6 +51,7 @@ public class Ped extends MobileAgent {
 	private String routeCoordDescription;
     private Coordinate crossingCoord; // The next crossing coordinate in agents route
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
+    private List<Coordinate> pedInitialRoute; // The coordinates of the grid path produced when the ped first computes their path to their destination.
     
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
@@ -730,5 +731,16 @@ public class Ped extends MobileAgent {
     
     public void setPedPrimaryRoute(List<Coordinate> pPR) {
     	this.pedPrimaryRoute = new ArrayList<Coordinate>(pPR);
+    	setInitialGridPathCoordinates();
+    }
+    
+    public void setInitialGridPathCoordinates() {
+    	this.pedInitialRoute = new ArrayList<Coordinate>();
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+    	for (GridCoordinates2D cell : this.route.getGridPath()) {
+    		Coordinate c = GISFunctions.gridCellToCoordinate(grid, cell);
+    		this.pedInitialRoute.add(c);
+    	}
+    }
     }
 }
