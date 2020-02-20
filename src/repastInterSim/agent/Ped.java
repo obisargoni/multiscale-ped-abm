@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
