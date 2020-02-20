@@ -71,6 +71,8 @@ crossing_percent_fig = "crossing_percent.png"
 
 output_data_dir = "..\\output\\processed_data\\"
 
+project_crs = "EPSG:27700"
+
 
 ####################################
 #
@@ -115,9 +117,11 @@ for c in lo_cols:
 ##################################
 
 # Create geopandas data frame in order to crete coordiante object from coords
-gdf_traj = gdf_loc.groupby(['run', 'ID'])['geometry'].apply(lambda x: LineString(x.tolist())).reset_index()
-gdf_traj['traj_length'] = gdf_traj['geometry'].map(lambda l: l.length)
 gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.LocXString, df_loc.LocYString))
+df_traj = gdf_loc.groupby(['run', 'ID'])['geometry'].apply(lambda x: LineString(x.tolist())).reset_index()
+gdf_traj = gpd.GeoDataFrame(df_traj)
+project_crs = project_crs
+gdf_traj['traj_length'] = gdf_traj['geometry'].length
 
 
 #################################
@@ -159,7 +163,8 @@ df_prim_first['geometry'] = df_prim_first['InitialRouteCoordinatesString'].map(l
 df_prim_first.dropna(subset = ['geometry'], inplace = True)
 
 gdf_prim = gpd.GeoDataFrame(df_prim_first)
-gdf_prim['length'] = gdf_prim['geometry'].map(lambda l: l.length)
+gdf_prim.crs = project_crs
+gdf_prim['length'] = gdf_prim['geometry'].length
 
 
 ################################
@@ -226,6 +231,7 @@ gdf_cross_traj.drop(list(gdf_crossing_polys.columns) + ['index_right'], axis=1, 
 
 df_cross_pct = gdf_cross_traj.groupby('run').apply(lambda df: df.loc[df['use_crossing']==True].count() / df.count())
 df_cross_pct = df_cross_pct.rename(columns = {'run':'cross_pct'}).reindex(columns = ['cross_pct']).reset_index()
+
 
 ###############################
 #
