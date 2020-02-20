@@ -58,6 +58,7 @@ public class Ped extends MobileAgent {
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     
     private String roadLinkFID = null;
+    private String initialRouteCoordString = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
@@ -743,5 +744,11 @@ public class Ped extends MobileAgent {
     		this.pedInitialRoute.add(c);
     	}
     }
+    
+    public String getInitialRouteCoordinatesString() {
+    	if (initialRouteCoordString == null) {
+    		initialRouteCoordString = IO.getCoordinateListString(this.pedInitialRoute);
+    	}
+    	return initialRouteCoordString;
     }
 }
