@@ -14,6 +14,35 @@ import csv
 #
 ######################################
 
+def get_file_regex(prefix, file_datetime = None, suffix = None, ext = "csv"):
+    if file_datetime is None:
+        year_re = r"\d{4}"
+        month_re = r"[a-zA-Z]{3}"
+        day_re = r"\d{2}"
+        hr_re = r"\d{2}"
+        min_re = r"\d{2}"
+        sec_re = r"\d{2}"
+    else:
+        date_string = file_datetime.strftime("%Y.%b.%d.%H.%M.%S")
+        year_re, month_re, day_re, hr_re, min_re, sec_re = date_string.split(".")
+
+    if suffix is None:
+        suffix_re = r""
+    else:
+        suffix_re = r"\." + suffix
+
+    file_re = re.compile(prefix+   r"\.("+ year_re + 
+                                        r")\.(" + month_re + 
+                                        r")\.(" + day_re    + 
+                                        r")\.(" + hr_re +
+                                        r")_(" + min_re + 
+                                        r")_(" + sec_re + 
+                                        r")" +suffix_re + 
+                                        r"\." + ext + 
+                                        r"")
+    return file_re
+
+
 def dt_from_file_name(file_name, regex):
     s = regex.search(file_name)
     file_dt = dt.strptime(''.join(s.groups()), "%Y%b%d%H%M%S")
@@ -71,7 +100,10 @@ crossing_percent_fig = "crossing_percent.png"
 
 output_data_dir = "..\\output\\processed_data\\"
 
-project_crs = "EPSG:27700"
+project_crs = {'init': 'epsg:27700'}
+
+file_datetime_string = "2020.Feb.20.14_58_33"
+file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 
 ####################################
@@ -79,9 +111,8 @@ project_crs = "EPSG:27700"
 # Get pedestrian locations and route as seperate dataframes
 #
 ####################################
-    
-file_prefix = "pedestrian_locations"
-file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
+
+file_re = get_file_regex("pedestrian_locations")
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 #ped_locations_file = "manual_pedestrian_locations_batch4_6.csv"
 
@@ -120,7 +151,7 @@ for c in lo_cols:
 gdf_loc = gpd.GeoDataFrame(df_loc, geometry=gpd.points_from_xy(df_loc.LocXString, df_loc.LocYString))
 df_traj = gdf_loc.groupby(['run', 'ID'])['geometry'].apply(lambda x: LineString(x.tolist())).reset_index()
 gdf_traj = gpd.GeoDataFrame(df_traj)
-project_crs = project_crs
+gdf_traj.crs = project_crs
 gdf_traj['traj_length'] = gdf_traj['geometry'].length
 
 
@@ -132,7 +163,7 @@ gdf_traj['traj_length'] = gdf_traj['geometry'].length
 
 # Work flow to get primary route coordinates
 file_prefix = 'pedestrian_initial_route'
-file_re = re.compile(file_prefix+r"\.(\d{4})\.([a-zA-Z]{3})\.(\d{2})\.(\d{2})_(\d{2})_(\d{2})\.csv")
+file_re = get_file_regex(file_prefix)
 ped_primary_route_file = most_recent_directory_file(data_dir, file_re)
 #ped_primary_route_file = "manual_pedestrian_primary_route_batch4_6.csv"
 
@@ -221,6 +252,7 @@ df_crossing_ped = df_crossing_ped.loc[  ((df_crossing_ped['od_id_start']==2) & (
 # Filter routes by those that could pass through crossing
 gdf_cross_traj = pd.merge(gdf_traj, df_crossing_ped, on = ['run','ID'], how = 'inner')
 gdf_cross_traj = gpd.GeoDataFrame(gdf_cross_traj)
+gdf_cross_traj.crs = project_crs
 
 # Get crossing polygons
 gdf_crossing_polys = gdf_veh_poly.loc[gdf_veh_poly['priority'] == 'pedestrian_crossing'].reindex(columns = ['fid','priority','geometry'])
@@ -254,9 +286,9 @@ batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
 selection_columns = ['vehiclePriorityCostRatio', 'addVehicleTicks', 'cellCostUpdate']
-selction_values = [ [1,10],
-                    [5,10],
-                    [0,10]
+selction_values = [ [1,100],
+                    [5,50],
+                    [0,100]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -341,8 +373,67 @@ for ki in np.nditer(key_indices):
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
+
 df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
-f,ax = plt.subplots(1,1,figsize=(10,20), sharey=True, sharex = True)
-ax.bar(df_cross_pct['run'], df_cross_pct['cross_pct'])
+
+groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio']
+grouped = df_cross_pct.groupby(groupby_columns)
+keys = list(grouped.groups.keys())
+
+x = len(run_selection_dict[groupby_columns[0]])
+y = len(run_selection_dict[groupby_columns[1]])
+key_indices = np.reshape(np.arange(len(keys)), (x,y))
+
+fig_indices = np.reshape(key_indices, (x, y))
+f,axs = plt.subplots(x, y,figsize=(10,20), sharey=True, sharex = True)
+for ki in range(len(keys)):
+    group_key = keys[ki]
+    data = grouped.get_group(group_key)
+    assert data['run'].unique().shape[0] == 2
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    xind = np.arange(len(data['cross_pct']))
+    xlab = data['cellCostUpdate'].values
+    clrs = ['grey','blue']
+    ax.bar(xind, data['cross_pct'], color = clrs, label = xlab)
+    plt.xticks(xind, xlab)
+    ax.set_xlabel("cellCostUpdate")
+    ax.tick_params(labelbottom=True)
+    #ax.set_title("{},{}".format(*group_key), fontsize = 9)
+    #ax.legend(loc = 'upper right')
+
+# Add in row group legend values
+for i in range(x):
+    ki = key_indices[i, y-1]
+    group_key = keys[ki]
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    s = "{}:\n{}".format(groupby_columns[0], group_key[0])
+    plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
+
+for j in range(y):
+    ki = key_indices[0, j]
+    group_key = keys[ki]
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+
+    s = "{}: {}".format(groupby_columns[1], group_key[1])
+    plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
+
+for ki in np.nditer(key_indices):
+    group_key = keys[ki]
+
+    i,j= np.where(fig_indices == ki)
+    assert len(i) == len(j) == 1
+    ax = axs[i[0], j[0]]
+f.suptitle("Percentage of pedestrian trajectories passing through pedestrian crossing", fontsize=16)
 f.show()
 plt.savefig(os.path.join(img_dir, crossing_percent_fig))
