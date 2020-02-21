@@ -1,1 +1,0 @@
-A directory used to store data produced by the model

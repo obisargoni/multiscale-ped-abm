@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
+import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -51,11 +52,13 @@ public class Ped extends MobileAgent {
 	private String routeCoordDescription;
     private Coordinate crossingCoord; // The next crossing coordinate in agents route
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
+    private List<Coordinate> pedInitialRoute; // The coordinates of the grid path produced when the ped first computes their path to their destination.
     
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     
     private String roadLinkFID = null;
+    private String initialRouteCoordString = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
@@ -90,6 +93,7 @@ public class Ped extends MobileAgent {
         // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
         this.vehiclePriorityCostRatio = GlobalVars.MOBILE_AGENT_PARAMS.vehiclePriorityCostRatio;
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian_crossing"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
@@ -108,7 +112,7 @@ public class Ped extends MobileAgent {
     	
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
-   		decideYield(); 
+   		//decideYield(); 
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
@@ -514,12 +518,12 @@ public class Ped extends MobileAgent {
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
-    	double updatedVehicleGridCellCost = 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace;
+    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio * ( 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace);
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
     	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio * updatedVehicleGridCellCost);
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
     	
     	// Create new Route object, that evaluates flood fill values over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
@@ -595,7 +599,7 @@ public class Ped extends MobileAgent {
      * Method to be run when agent is removed from the context.
      */
     public void tidyForRemoval() {
-    	exportRoutePaths("final_");
+    	//exportRoutePaths("final_");
     }
     
     public Color getColor() {
@@ -723,15 +727,29 @@ public class Ped extends MobileAgent {
     	this.routeCoord = rC;
     }
     
-    public String getPrimaryRouteCoordinatesString() {
-    	String pRCS = "";
-    	for (Coordinate c: this.pedPrimaryRoute) {
-    		pRCS = pRCS + c.toString()+",";
-    	}
-    	return pRCS;
+    public String getPrimaryRouteCoordinatesString() {    	
+    	String coordString = IO.getCoordinateListString(this.pedPrimaryRoute);
+    	return coordString;
     }
     
     public void setPedPrimaryRoute(List<Coordinate> pPR) {
     	this.pedPrimaryRoute = new ArrayList<Coordinate>(pPR);
+    	setInitialGridPathCoordinates();
+    }
+    
+    public void setInitialGridPathCoordinates() {
+    	this.pedInitialRoute = new ArrayList<Coordinate>();
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+    	for (GridCoordinates2D cell : this.route.getGridPath()) {
+    		Coordinate c = GISFunctions.gridCellToCoordinate(grid, cell);
+    		this.pedInitialRoute.add(c);
+    	}
+    }
+    
+    public String getInitialRouteCoordinatesString() {
+    	if (initialRouteCoordString == null) {
+    		initialRouteCoordString = IO.getCoordinateListString(this.pedInitialRoute);
+    	}
+    	return initialRouteCoordString;
     }
 }

@@ -1,1 +1,0 @@
-Directory for data created during model runs and exported for further analysis or visualisation

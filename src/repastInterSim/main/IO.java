@@ -4,6 +4,7 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -11,6 +12,8 @@ import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
+
+import repast.simphony.util.collections.IndexedIterable;
 
 public class IO {
 	
@@ -117,6 +120,14 @@ public class IO {
 			e.printStackTrace();
 		}
 	}
+	
+    public static String getCoordinateListString(List<Coordinate> pedPrimaryRoute) {
+    	String cString = "";
+    	for (Coordinate c: pedPrimaryRoute) {
+    		cString = cString + c.toString()+",";
+    	}
+    	return cString;
+    }
 
 }
 

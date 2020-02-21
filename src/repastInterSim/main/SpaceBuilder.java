@@ -36,6 +36,7 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.gis.util.GeometryUtil;
@@ -46,6 +47,7 @@ import repast.simphony.space.gis.RepastCoverageFactory;
 import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.Destination;
@@ -99,6 +101,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static GeometryFactory fac;
 	
+	private static ISchedulableAction addVehicleAction;
+	private static ISchedulableAction addPedAction;
+	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
 	 * (at the bottom of this file).
@@ -107,7 +112,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	// Directories for model exports
 	// Export dir used for data exports, output dir used for figures
-	public static String exportDir = ".\\data\\export\\";
+	public static String exportDir = ".\\output\\export\\";
 	public static String outputDir = ".\\output\\";
 	
 	    /* (non-Javadoc)
@@ -249,6 +254,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		 Category[] valueCategories	= new Category[] {	
 	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
 	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
+	        new Category("Pedestrian crossing area", Color.PINK, priorityValueMap.get("pedestrian_crossing")),
 	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle"))
 	    };
 
@@ -270,19 +276,47 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Parameters  params = GlobalVars.params;
 		
 		int  addVehicleTicks = params.getInteger("addVehicleTicks");
-	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1,addVehicleTicks);
-	    schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
+	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, addVehicleTicks, ScheduleParameters.FIRST_PRIORITY);
+	    addVehicleAction = schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
 		int  addPedTicks = params.getInteger("addPedTicks");
-	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks);
-	    schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
+	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
-	    // Model ends at 1800 ticks
-	    RunEnvironment.getInstance().endAt(1800);
+	    // Stop adding agents to the simualtion at 1500 ticks
+	    int endTick = 1500;
+	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
+	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingAgents");
 	    
+	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
+	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
+	    
+	    //IO.gridCoverageToImage(baseGrid, outputDir + "output_grid_vales.png");
 		return context;
 		
+	}
+	
+	/**
+	 * Stop adding mobile agents to the context after a certain number of ticks
+	 * @param endTick
+	 * 		Number of ticks at which to stop adding mobile agents
+	 */
+	public void stopAddingAgents() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+
+		// Remove add agents methods from the scedule
+		schedule.removeAction(addVehicleAction);
+		schedule.removeAction(addPedAction);
+	}
+	
+	/**
+	 * End the simulation if there are no mobile agents in the context.
+	 */
+	public void endSimulation() {
+		if (context.getObjects(MobileAgent.class).size() == 0) {
+			RunEnvironment.getInstance().endRun();
+		}
 	}
 
 	/*
@@ -458,13 +492,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
 		newPed.getRoute().setGroupedGridPath();
-		newPed.exportRoutePaths("initial_"); // Saves the grid path and pruned grid path. Not sure if this is needed for every agent.
+		//newPed.exportRoutePaths("initial_"); // Saves the grid path and pruned grid path. Not sure if this is needed for every agent.
 		newPed.setPedPrimaryRoute(newPed.getRoute().getPrimaryRouteX()); // Set the ped attribute primary route to be the primary route before it is updated as ped progresses
 		newPed.updateRouteCoord();
 
 		double ang = newPed.setBearingToDestinationCoord(newPed.getRouteCoord());
 		newPed.setPedestrianBearing(ang);
-
+		//exportGridRouteData(newPed);
         return newPed;
     }
     
