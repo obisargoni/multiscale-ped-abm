@@ -584,7 +584,7 @@ public class GridRoute extends Route {
 		GridCoordinates2D thisCell;
 		int[] cellValue = new int[1];
 		
-	    final Comparator<GridCoordinates2D> fComparator = new Comparator<GridCoordinates2D>() {
+	    Comparator<GridCoordinates2D> fComparator = new Comparator<GridCoordinates2D>() {
 	        /**
 	         * {@inheritDoc}
 	         */
@@ -664,10 +664,10 @@ public class GridRoute extends Route {
 	}
 	
     private List<GridCoordinates2D> reconstructPath(Map<GridCoordinates2D,GridCoordinates2D> cameFrom, GridCoordinates2D thisCell) {
-        final List<GridCoordinates2D> path = new ArrayList<GridCoordinates2D>();
+        List<GridCoordinates2D> path = new ArrayList<GridCoordinates2D>();
 
         while (thisCell != null) {
-            final GridCoordinates2D previousCell = thisCell;
+            GridCoordinates2D previousCell = thisCell;
             thisCell = cameFrom.get(thisCell);
             if (thisCell != null) {
             	path.add(thisCell);
