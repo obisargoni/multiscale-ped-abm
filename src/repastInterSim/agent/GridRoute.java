@@ -657,6 +657,20 @@ public class GridRoute extends Route {
 		return manDist;
 	}
 	
+    private List<GridCoordinates2D> reconstructPath(Map<GridCoordinates2D,GridCoordinates2D> cameFrom, GridCoordinates2D thisCell) {
+        final List<GridCoordinates2D> path = new ArrayList<GridCoordinates2D>();
+
+        while (thisCell != null) {
+            final GridCoordinates2D previousCell = thisCell;
+            thisCell = cameFrom.get(thisCell);
+            if (thisCell != null) {
+            	path.add(thisCell);
+            }
+        }
+        Collections.reverse(path);
+        return path;
+    }
+	
 	/**
 	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
 	 * @param cell
