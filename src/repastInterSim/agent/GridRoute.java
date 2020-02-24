@@ -583,6 +583,19 @@ public class GridRoute extends Route {
 		GridCoordinates2D thisCell;
 		double[] cellValue;
 		
+	    final Comparator<GridCoordinates2D> fComparator = new Comparator<GridCoordinates2D>() {
+	        /**
+	         * {@inheritDoc}
+	         */
+	        @Override
+	        public int compare(GridCoordinates2D c1, GridCoordinates2D c2) {
+	            if (fScore.get(c1) < fScore.get(c2))
+	                return -1;
+	            if (fScore.get(c2) < fScore.get(c1))
+	                return 1;
+	            return 0;
+	        }
+	    };
 		
 		// Initialise f score values
 		for (int j = minj; j<maxj;j++) {
@@ -628,7 +641,7 @@ public class GridRoute extends Route {
 				gScore.put(nextCell, tentativeGScore);
 				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, dest);
 				fScore.put(nextCell, tentativeFScore);
-				Collections.sort(fScore, fScores);
+				Collections.sort(openSet, fComparator);
 			}
 			
 		}
