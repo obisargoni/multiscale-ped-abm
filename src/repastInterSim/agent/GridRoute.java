@@ -150,7 +150,7 @@ public class GridRoute extends Route {
 		}
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		this.gridPath = getGridCoveragePath(grid, this.origin, this.destination);
+		this.gridPath = getFloodFillGridPath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D primaryRouteCell = null;
@@ -329,7 +329,7 @@ public class GridRoute extends Route {
 	 * @return
 	 * 			List<GridCoordinates2D> The grid coordinates path
 	 */
-	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid, Coordinate o, Coordinate d){
+	private List<GridCoordinates2D> getFloodFillGridPath(GridCoverage2D grid, Coordinate o, Coordinate d){
 		
 		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
 
