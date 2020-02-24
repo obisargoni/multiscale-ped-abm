@@ -582,7 +582,7 @@ public class GridRoute extends Route {
 		Map<GridCoordinates2D, Double> fScore = new HashMap<GridCoordinates2D, Double>();
 		
 		GridCoordinates2D thisCell;
-		double[] cellValue;
+		int[] cellValue = new int[1];
 		
 	    final Comparator<GridCoordinates2D> fComparator = new Comparator<GridCoordinates2D>() {
 	        /**
