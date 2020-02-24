@@ -640,7 +640,7 @@ public class GridRoute extends Route {
 				// thisCell is best path so far, record it
 				cameFrom.put(nextCell, thisCell);
 				gScore.put(nextCell, tentativeGScore);
-				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, dest);
+				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, end);
 				fScore.put(nextCell, tentativeFScore);
 				Collections.sort(openSet, fComparator);
 			}
@@ -648,6 +648,13 @@ public class GridRoute extends Route {
 		}
 		
 		return gP;
+	}
+	
+	private double heuristicCostEstimate(GridCoordinates2D cell, GridCoordinates2D destinationCell) {
+		// Calculate manhattan distance
+		double manDist = Math.max(	Math.abs(cell.x - destinationCell.x),
+									Math.abs(cell.y - destinationCell.y));
+		return manDist;
 	}
 	
 	/**
