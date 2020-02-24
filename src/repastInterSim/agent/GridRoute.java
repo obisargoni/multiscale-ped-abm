@@ -515,6 +515,62 @@ public class GridRoute extends Route {
 	
 	
 	/**
+	 * Find a path through a grid coverage layer by using the A star algorithm.
+	 * 
+	 * @param grid
+	 * 		The grid coverage object
+	 * @param o
+	 * 		The coordinate of the origin
+	 * @param d
+	 * 		The coordinate of the destination
+	 * @return
+	 * 			List<GridCoordinates2D> The grid coordinates path
+	 */
+	private List<GridCoordinates2D> getAStarGridPath(GridCoverage2D grid, Coordinate o, Coordinate d){
+		
+		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
+
+		DirectPosition2D dpStart = new DirectPosition2D(o.x, o.y);
+		DirectPosition2D dpEnd = new DirectPosition2D(d.x, d.y);
+		GridCoordinates2D start = null;
+		GridCoordinates2D end = null;
+		try {
+			start = grid.getGridGeometry().worldToGrid(dpStart);
+			end = grid.getGridGeometry().worldToGrid(dpEnd);
+		} catch (InvalidGridGeometryException | TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the bounds of the flood fill search based on whether this is a partial route search or not
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		int mini = 0;
+		int minj = 0;
+		int maxi = width;
+		int maxj = height;
+		if (this.partialFF == true) {
+			// Bounds set to bounding box of start-destination +- 30% in x and y direction
+			int dx = Math.abs(start.x-end.x);
+			int dy = Math.abs(start.y-end.y);
+			
+			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			
+			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
+			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
+			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
+			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
+		}
+		
+		/*
+		 * Do A Star Algo
+		 */
+		
+		return gP;
+	}
+	
+	/**
 	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
 	 * @param cell
 	 * 			The grid coordinate to get the neighbours of
