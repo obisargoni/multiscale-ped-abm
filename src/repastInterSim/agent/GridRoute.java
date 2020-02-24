@@ -607,6 +607,7 @@ public class GridRoute extends Route {
 		
 		// Add stating coordinate to the openSet
 		openSet.add(start);
+        gScore.put(start, 0.0);
 		
 		// Run algorithm until destination is reached
 		while(!openSet.isEmpty()) {
