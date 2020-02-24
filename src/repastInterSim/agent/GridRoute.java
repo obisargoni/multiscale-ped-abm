@@ -581,6 +581,8 @@ public class GridRoute extends Route {
 		Map<GridCoordinates2D, Double> fScore = new HashMap<GridCoordinates2D, Double>();
 		
 		GridCoordinates2D thisCell;
+		double[] cellValue;
+		
 		
 		// Initialise f score values
 		for (int j = minj; j<maxj;j++) {
@@ -611,7 +613,8 @@ public class GridRoute extends Route {
 					continue;
 				}
 				
-				
+				cellValue = grid.evaluate(nextCell, cellValue);
+				double summand = this.gridSummandPriorityMap.get(cellValue[0]);
 				double tentativeGScore = gScore.get(thisCell) + summand;
 				if(!openSet.contains(nextCell)) {
 					openSet.add(nextCell); // New candidate cell identified
