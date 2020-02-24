@@ -413,8 +413,11 @@ public class GridRoute extends Route {
 		n[j][i] = 1; // Make sure the end cell value doesn't get updated
 		q.add(end);
 		while(q.size() > 0) {
-			thisCell = q.get(0);
-			q.remove(0);
+			// Get random cell from queue - random is important
+		    Random rand = new Random();
+			int nextCellIndex = rand.nextInt(q.size());
+			thisCell = q.get(nextCellIndex);
+			q.remove(nextCellIndex);
 			
 			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
 			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
