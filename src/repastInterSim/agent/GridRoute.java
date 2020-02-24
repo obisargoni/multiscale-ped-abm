@@ -565,7 +565,34 @@ public class GridRoute extends Route {
 		
 		/*
 		 * Do A Star Algo
+		 * 
+		 * Taken, in part, from Justin Wetherell's Java implementation of the A Star algorithm:
+		 * https://github.com/phishman3579/java-algorithms-implementation/blob/master/src/com/jwetherell/algorithms/graph/AStar.java
+		 * 
+		 * 
 		 */
+		
+		// Initialise records of grid cell distance measures used to choose path
+		Set<GridCoordinates2D> closedSet = new HashSet<GridCoordinates2D>();
+		List<GridCoordinates2D> openSet = new ArrayList<GridCoordinates2D>();
+		Map<GridCoordinates2D, GridCoordinates2D> cameFrom = new HashMap<GridCoordinates2D, GridCoordinates2D>();
+		Map<GridCoordinates2D, Double> gScore = new HashMap<GridCoordinates2D, Double>();
+		Map<GridCoordinates2D, Double> fScore = new HashMap<GridCoordinates2D, Double>();
+		
+		// Initialise f score values
+		for (int j = minj; j<maxj;j++) {
+			for (int i = mini; i<maxi;i++) {
+				fScore.put(new GridCoordinates2D(i, j), (double) Integer.MAX_VALUE);
+			}
+		}
+		
+		// Add stating coordinate to the openSet
+		openSet.add(start);
+		
+		// Run algorithm until destination is reached
+		while(!openSet.isEmpty()) {
+			
+		}
 		
 		return gP;
 	}
