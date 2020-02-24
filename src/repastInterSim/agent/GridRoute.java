@@ -1,6 +1,7 @@
 package repastInterSim.agent;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -579,6 +580,8 @@ public class GridRoute extends Route {
 		Map<GridCoordinates2D, Double> gScore = new HashMap<GridCoordinates2D, Double>();
 		Map<GridCoordinates2D, Double> fScore = new HashMap<GridCoordinates2D, Double>();
 		
+		GridCoordinates2D thisCell;
+		
 		// Initialise f score values
 		for (int j = minj; j<maxj;j++) {
 			for (int i = mini; i<maxi;i++) {
@@ -591,6 +594,39 @@ public class GridRoute extends Route {
 		
 		// Run algorithm until destination is reached
 		while(!openSet.isEmpty()) {
+			thisCell = openSet.get(0);
+			
+			// If this is the destination, job's done
+			if (thisCell.equals(end)) {
+				// return something
+				break;
+			}
+			
+			openSet.remove(0);
+			closedSet.add(thisCell);
+			
+			// Get neighbours and compute fScores for each of these
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
+				if(closedSet.contains(nextCell)) {
+					continue;
+				}
+				
+				
+				double tentativeGScore = gScore.get(thisCell) + summand;
+				if(!openSet.contains(nextCell)) {
+					openSet.add(nextCell); // New candidate cell identified
+				}
+				else if (tentativeGScore >= gScore.get(nextCell)) {
+					continue; // Don't bother if neighbour not going to have good f score
+				}
+				
+				// thisCell is best path so far, record it
+				cameFrom.put(nextCell, thisCell);
+				gScore.put(nextCell, tentativeGScore);
+				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, dest);
+				fScore.put(nextCell, tentativeFScore);
+				Collections.sort(fScore, fScores);
+			}
 			
 		}
 		
