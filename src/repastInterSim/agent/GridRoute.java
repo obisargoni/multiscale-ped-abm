@@ -614,8 +614,9 @@ public class GridRoute extends Route {
 			
 			// If this is the destination, job's done
 			if (thisCell.equals(end)) {
-				// return something
-				break;
+				// Unpack and return the path
+				gP = reconstructPath(cameFrom, thisCell);
+				return gP;
 			}
 			
 			openSet.remove(0);
@@ -643,11 +644,9 @@ public class GridRoute extends Route {
 				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, end);
 				fScore.put(nextCell, tentativeFScore);
 				Collections.sort(openSet, fComparator);
-			}
-			
+			}	
 		}
-		
-		return gP;
+		return null;
 	}
 	
 	private double heuristicCostEstimate(GridCoordinates2D cell, GridCoordinates2D destinationCell) {
