@@ -630,7 +630,13 @@ public class GridRoute extends Route {
 				}
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
-				double summand = this.gridSummandPriorityMap.get(cellValue[0]);
+				double summand;
+				if (cellValue[0] == GlobalVars.GRID_PARAMS.defaultGridValue) {
+					summand = Integer.MAX_VALUE;
+				}
+				else {
+					summand = this.gridSummandPriorityMap.get(cellValue[0]);
+				}
 				double tentativeGScore = gScore.get(thisCell) + summand;
 				if(!openSet.contains(nextCell)) {
 					openSet.add(nextCell); // New candidate cell identified
