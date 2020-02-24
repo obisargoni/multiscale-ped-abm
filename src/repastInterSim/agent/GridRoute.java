@@ -446,6 +446,74 @@ public class GridRoute extends Route {
 		return floodFillValues;
 	}
 	
+	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "manhattan", mini, minj, maxi, maxj);
+		return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyMooreNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "moore", mini, minj, maxi, maxj);
+		return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyXNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, String neighbourType, int mini, int minj, int maxi, int maxj) {
+		
+		List<GridCoordinates2D> neighbours = xNeighbours(cell, neighbourType, mini, minj, maxi, maxj);
+		
+		// Initialise greedy options
+		List<Double> minVal = new ArrayList<Double>();
+		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
+		
+		minVal.add((double) Integer.MAX_VALUE);
+
+		
+		for(GridCoordinates2D neighbour:neighbours) {
+			// Don't consider cells already in the path
+			if (path.contains(neighbour)) {
+				continue;
+			}
+			double val = cellValues[neighbour.y][neighbour.x];
+			
+			// If cell value equal to current minimum include in greedy option
+			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			
+			// Else  clear the current min values and replace with new min
+			else if (val < minVal.get(0)) {
+				// Replace old values with new ones
+				minVal.clear();
+				greedyNeighbours.clear();
+				
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			else {
+				continue;
+			}
+		}
+		
+	    Random rand = new Random();
+	    GridCoordinates2D greedyNeighbour = null;
+	    try {
+		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    } catch (IllegalArgumentException e) {
+	    	String msg = "GridRoute.greedyXNeighbour(): Problem getting greedy neighbour \n\r" + 
+	    			"neighbour type: " + neighbourType + "\n\r" +
+					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
+					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
+					"origin coord: " + this.origin.toString() + "\n\r" +
+					"destination coord: " + this.destination.toString() + "\n\r" +
+					"ped id: " + String.valueOf(this.mA.id) + "\n\r";
+			//LOGGER.log(Level.SEVERE,msg);
+			System.out.print(msg);
+			throw e;
+	    }
+	    return greedyNeighbour;
+	}
+	
+	
 	/**
 	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
 	 * @param cell
@@ -561,73 +629,6 @@ public class GridRoute extends Route {
 			neighbours = mooreNeighbourghs(cell, mini, minj, maxi, maxj);
 		}
 		return neighbours;
-	}
-	
-	private GridCoordinates2D greedyXNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, String neighbourType, int mini, int minj, int maxi, int maxj) {
-		
-		List<GridCoordinates2D> neighbours = xNeighbours(cell, neighbourType, mini, minj, maxi, maxj);
-		
-		// Initialise greedy options
-		List<Double> minVal = new ArrayList<Double>();
-		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
-		
-		minVal.add((double) Integer.MAX_VALUE);
-
-		
-		for(GridCoordinates2D neighbour:neighbours) {
-			// Don't consider cells already in the path
-			if (path.contains(neighbour)) {
-				continue;
-			}
-			double val = cellValues[neighbour.y][neighbour.x];
-			
-			// If cell value equal to current minimum include in greedy option
-			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
-				minVal.add(val);
-				greedyNeighbours.add(neighbour);
-			}
-			
-			// Else  clear the current min values and replace with new min
-			else if (val < minVal.get(0)) {
-				// Replace old values with new ones
-				minVal.clear();
-				greedyNeighbours.clear();
-				
-				minVal.add(val);
-				greedyNeighbours.add(neighbour);
-			}
-			else {
-				continue;
-			}
-		}
-		
-	    Random rand = new Random();
-	    GridCoordinates2D greedyNeighbour = null;
-	    try {
-		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
-	    } catch (IllegalArgumentException e) {
-	    	String msg = "GridRoute.greedyXNeighbour(): Problem getting greedy neighbour \n\r" + 
-	    			"neighbour type: " + neighbourType + "\n\r" +
-					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
-					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
-					"origin coord: " + this.origin.toString() + "\n\r" +
-					"destination coord: " + this.destination.toString() + "\n\r" +
-					"ped id: " + String.valueOf(this.mA.id) + "\n\r";
-			//LOGGER.log(Level.SEVERE,msg);
-			System.out.print(msg);
-			throw e;
-	    }
-	    return greedyNeighbour;
-	}
-	
-	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
-		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "manhattan", mini, minj, maxi, maxj);
-		return greedyNeighbour;
-	}
-	
-	private GridCoordinates2D greedyMooreNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
-		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "moore", mini, minj, maxi, maxj);
-		return greedyNeighbour;
 	}
 	
 	private void checkGridRoute() {
