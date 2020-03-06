@@ -828,6 +828,14 @@ public class GridRoute extends Route {
 		return crossingC;
 	}
 	
+	public List<GridCoordinates2D> getNextGroupedGridPathSection(){
+		
+		Coordinate thisRoadLinkCoord = this.primaryRouteX.get(0);
+		GridCoordinates2D thisRoadLinkCell = this.routeCoordMap.get(thisRoadLinkCoord);
+		List<GridCoordinates2D> pathSection = this.groupedGridPath.get(thisRoadLinkCell);
+		return pathSection;
+	}
+	
 	public double[][] getFloodFillGridValues() {
 		return this.floodFillValues;
 	}
