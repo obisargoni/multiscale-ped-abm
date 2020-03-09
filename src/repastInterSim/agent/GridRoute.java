@@ -657,10 +657,9 @@ public class GridRoute extends Route {
 	}
 	
 	private double heuristicCostEstimate(GridCoordinates2D cell, GridCoordinates2D destinationCell) {
-		// Calculate manhattan distance
-		double manDist = Math.max(	Math.abs(cell.x - destinationCell.x),
-									Math.abs(cell.y - destinationCell.y));
-		return manDist;
+		// Calculate as the crow flies distance
+		double dist = Math.sqrt(Math.pow(cell.x - destinationCell.x, 2) +	Math.pow(cell.y - destinationCell.y,2));
+		return dist;
 	}
 	
     private List<GridCoordinates2D> reconstructPath(Map<GridCoordinates2D,GridCoordinates2D> cameFrom, GridCoordinates2D thisCell) {
