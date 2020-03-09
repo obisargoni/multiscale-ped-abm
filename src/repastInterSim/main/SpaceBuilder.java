@@ -504,7 +504,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     
     private void exportGridRouteData(Ped p) {    	
     	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
-    	String floodFillValueFile = exportDir + "export_flood_fill_values.csv";
     	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
     	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
     	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
@@ -514,13 +513,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     	
 		// TODO Auto-generated method stub
 		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		double[][] floodFillValues = p.getRoute().getFloodFillGridValues();
 		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
 		List<GridCoordinates2D> gridPathSection = p.getNextPathSection();
 		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
 		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
-		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
 		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathSection, gridPathSectionFile);
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
