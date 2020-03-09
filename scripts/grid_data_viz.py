@@ -71,6 +71,10 @@ max_int = 2147483647
 floodValues = np.where(floodValues == max_int, np.nan, floodValues)
 '''
 
+# Make sure pruned path is nested coords, required if only one coord in pruned path
+if len(prunedPath.shape) == 1:
+	prunedPath = np.array([prunedPath])
+
 # Plot grid values and flood fill
 plot_grid_image(gridValues, cm.Blues, output_path = gridOutput)
 #plot_grid_image(floodValues, cm.Blues, output_path = floodOutput)
