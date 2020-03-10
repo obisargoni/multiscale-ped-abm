@@ -517,15 +517,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		IO.gridCoverageToImage(grid, gridImageFile);
 		IO.gridCoverageValuesToCSV(grid, gridValueFile);
 	}
+    
+    private void exportFinalGridRouteData(Ped p) {    	
+    	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
+    	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
+    	String pedGridPathFile = exportDir + "export_grid_coverage_path_final.csv";
+    	
+		// TODO Auto-generated method stub
+		List<GridCoordinates2D> pedGridPath = p.getPedGridPath(); // The grid path actually used by the pedestrian, accounts for dynamic updates
 		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
 		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
-		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
-		IO.gridCoordiantesIterableToCSV(gridPathSection, gridPathSectionFile);
+		IO.gridCoordiantesIterableToCSV(pedGridPath, pedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
-		IO.gridCoverageToImage(grid, gridImageFile);
-		IO.gridCoverageValuesToCSV(grid, gridValueFile);	
 	}
 
 	/*
