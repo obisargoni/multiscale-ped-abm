@@ -10,13 +10,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.InvalidGridGeometryException;
 import org.geotools.geometry.DirectPosition2D;
 import org.opengis.referencing.operation.TransformException;
@@ -24,7 +21,6 @@ import org.opengis.referencing.operation.TransformException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.GISFunctions;
