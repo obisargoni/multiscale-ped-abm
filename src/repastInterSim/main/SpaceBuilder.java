@@ -287,8 +287,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
 	    
-	    //IO.gridCoverageToImage(baseGrid, outputDir + "output_grid_vales.png");
-	    //IO.gridCoverageCoordinatesToCSV(baseGrid, outputDir + "output_grid_coordinates.csv");
+	    IO.exportGridCoverageData(baseGrid);
 		return context;
 		
 	}

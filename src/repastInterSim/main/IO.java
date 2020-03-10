@@ -13,6 +13,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
@@ -150,20 +151,14 @@ public class IO {
     	return cString;
     }
     
-    public static void exportInitialGridRouteData(Ped p) {
-    	String exportDir = GlobalVars.outputDir + "\\export\\";
-    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
-    	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
-
+    public static void exportGridCoverageData(WritableGridCoverage2D grid) {
+    	String gridValueFile =  GlobalVars.exportDir + "export_grid_coverage_values.csv";
     	String gridImageFile = GlobalVars.outputDir + "output_grid_vales.png";
-    	
-		// TODO Auto-generated method stub
-		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath(); // The grid path initially planned by the pedestrian
-		
-		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
+    	String griCoordinatesFile = GlobalVars.outputDir + "output_grid_coordinates.csv";
+    			
 		IO.gridCoverageToImage(grid, gridImageFile);
 		IO.gridCoverageValuesToCSV(grid, gridValueFile);
+		IO.gridCoverageCoordinatesToCSV(grid, griCoordinatesFile);
 	}
     
     public static void exportFinalGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
