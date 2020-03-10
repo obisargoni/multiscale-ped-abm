@@ -180,7 +180,9 @@ public class IO {
     	String pedGridPathFile = GlobalVars.exportDir + filePrefix + "export_grid_coverage_path_final"+suffix+".csv";
     	
 		// TODO Auto-generated method stub
-		List<GridCoordinates2D> pedGridPath = p.getPedGridPath(); // The grid path actually used by the pedestrian, accounts for dynamic updates
+    	// Because this method should be called once ped has completed their route,
+    	// the grid path is the one actually used by the pedestrian, accounts for dynamic updates
+		List<GridCoordinates2D> pedGridPath = p.getRoute().getGridPath();
 		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
 		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
