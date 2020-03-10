@@ -33,6 +33,10 @@ import repast.simphony.parameter.Parameters;
  */
 public abstract class GlobalVars {
 	
+	// Directories for data exports
+	public static String outputDir = ".\\output\\";
+	public static String exportDir = outputDir + "\\export\\";
+	
 	//private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
 	
 	public static Parameters params = RunEnvironment.getInstance ().getParameters();
@@ -153,7 +157,8 @@ public abstract class GlobalVars {
 		public static HashMap<String, Integer> getPriorityValueMap() {
 			if (priorityValueMap.isEmpty()) {
 				priorityValueMap.put("pedestrian", 1);
-				priorityValueMap.put("vehicle", 2);
+				priorityValueMap.put("pedestrian_crossing", 2);
+				priorityValueMap.put("vehicle", 3);
 				priorityValueMap.put("pedestrian_obstruction", defaultGridValue);
 			}
 			return GRID_PARAMS.priorityValueMap;

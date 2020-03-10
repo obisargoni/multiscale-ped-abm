@@ -486,6 +486,10 @@ public class GISFunctions {
 				else if (obsAttributeValues.contains("vehicle")){
 					gridValue = agentAttributeValueMap.get("vehicle");
 				}
+				// Next check if grid cell intersects with a pedestrian crossing geom
+				else if (obsAttributeValues.contains("pedestrian_crossing")){
+					gridValue = agentAttributeValueMap.get("pedestrian_crossing");
+				}
 				// Finally, can set grid value to be pedestrian if no other types intersect
 				else {
 					gridValue = agentAttributeValueMap.get("pedestrian");
@@ -598,9 +602,9 @@ public class GISFunctions {
 	public static List<Road> getGridPolygonRoads(Polygon p) throws RoutingException {
 		Road r = null;
 		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p);
+		List<Road> containingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p, "contains");
     	
-    	return intersectingRoads;
+    	return containingRoads;
 	}
 	
 	/**

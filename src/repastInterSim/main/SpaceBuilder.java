@@ -73,7 +73,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
 	
-	private static Integer gridResolution = 3; // Sets grid coverage cells to be 1/3m by 1/3m
+	private static Integer gridResolution = 1; // Sets grid coverage cells to be 1/3m by 1/3m
 	
 	private static Context<Object> context;
 	private static Geography<Object> geography; 
@@ -109,11 +109,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * (at the bottom of this file).
 	 */
 	//private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
-	
-	// Directories for model exports
-	// Export dir used for data exports, output dir used for figures
-	public static String exportDir = ".\\data\\export\\";
-	public static String outputDir = ".\\output\\";
 	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
@@ -254,6 +249,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		 Category[] valueCategories	= new Category[] {	
 	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
 	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
+	        new Category("Pedestrian crossing area", Color.PINK, priorityValueMap.get("pedestrian_crossing")),
 	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle"))
 	    };
 
@@ -283,7 +279,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
-	    // Stop adding agents to the simualtion at 1500 ticks
+	    // Stop adding agents to the simulation at 1500 ticks
 	    int endTick = 1500;
 	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingAgents");
@@ -291,7 +287,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
 	    
-	    //IO.gridCoverageToImage(baseGrid, outputDir + "output_grid_vales.png");
+	    IO.exportGridCoverageData(baseGrid);
 		return context;
 		
 	}
@@ -491,39 +487,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
 		newPed.getRoute().setGroupedGridPath();
-		//newPed.exportRoutePaths("initial_"); // Saves the grid path and pruned grid path. Not sure if this is needed for every agent.
 		newPed.setPedPrimaryRoute(newPed.getRoute().getPrimaryRouteX()); // Set the ped attribute primary route to be the primary route before it is updated as ped progresses
 		newPed.updateRouteCoord();
 
 		double ang = newPed.setBearingToDestinationCoord(newPed.getRouteCoord());
 		newPed.setPedestrianBearing(ang);
-		//exportGridRouteData(newPed);
+		IO.exportPedGridRouteData(newPed, "initial_", false);
         return newPed;
     }
-    
-    private void exportGridRouteData(Ped p) {    	
-    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
-    	String floodFillValueFile = exportDir + "export_flood_fill_values.csv";
-    	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
-    	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
-    	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
-
-    	String gridImageFile = outputDir + "output_grid_vales.png";
-    	
-		// TODO Auto-generated method stub
-		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		double[][] floodFillValues = p.getRoute().getFloodFillGridValues();
-		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
-		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
-		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
-		
-		IO.twodDoubleArrayToCSV(floodFillValues, floodFillValueFile);
-		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
-		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
-		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
-		IO.gridCoverageToImage(grid, gridImageFile);
-		IO.gridCoverageValuesToCSV(grid, gridValueFile);	
-	}
 
 	/*
      * Initialise a vehicle agent and add to to the context and projection

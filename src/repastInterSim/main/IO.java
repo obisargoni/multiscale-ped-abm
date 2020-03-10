@@ -13,7 +13,10 @@ import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.agent.Ped;
+import repastInterSim.environment.GISFunctions;
 
 public class IO {
 	
@@ -92,13 +95,32 @@ public class IO {
 		double[][] gridValues = new double[height][width];			
 		for (int j = 0; j < height; j++) {
 			for (int i = 0; i < width; i++) {
-				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
-				gridValue = grid.evaluate(gridPos, gridValue);
+				GridCoordinates2D cell = new GridCoordinates2D(i,j);					
+				gridValue = grid.evaluate(cell, gridValue);
 				gridValues[j][i] = gridValue[0];
 			}
 		}
 		
 		twodDoubleArrayToCSV(gridValues, path);
+	}
+	
+	public static void gridCoverageCoordinatesToCSV(GridCoverage2D grid, String path) {
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		// 4 entries for each grid cell: grid cell coords, gis coords
+		double[][] gridCoordiantes = new double[height*width][4];
+		int rowi = 0;
+		for (int j = 0; j < height; j++) {
+			for (int i = 0; i < width; i++) {
+				GridCoordinates2D cell = new GridCoordinates2D(i,j);
+				Coordinate cellCoord = GISFunctions.gridCellToCoordinate(grid, cell);
+				double[] row = {cell.x, cell.y, cellCoord.x, cellCoord.y};
+				gridCoordiantes[rowi] = row;
+				rowi++;
+			}
+		}
+		twodDoubleArrayToCSV(gridCoordiantes, path);
 	}
 	
 	public static void coordiantesIterableToCSV(Iterable<Coordinate> coordinates, String path) {
@@ -128,7 +150,41 @@ public class IO {
     	}
     	return cString;
     }
-
+    
+    public static void exportGridCoverageData(WritableGridCoverage2D grid) {
+    	String gridValueFile =  GlobalVars.exportDir + "export_grid_coverage_values.csv";
+    	String gridImageFile = GlobalVars.outputDir + "output_grid_vales.png";
+    	String griCoordinatesFile = GlobalVars.outputDir + "output_grid_coordinates.csv";
+    			
+		IO.gridCoverageToImage(grid, gridImageFile);
+		IO.gridCoverageValuesToCSV(grid, gridValueFile);
+		IO.gridCoverageCoordinatesToCSV(grid, griCoordinatesFile);
+	}
+    
+    public static void exportPedGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
+    	if (filePrefix == null) {
+    		filePrefix = "";
+    	}
+    	String suffix = "";
+    	if (idSuffix) {
+    		suffix = "_pedID_"+p.getID();
+    	}
+    	
+    	String prunedGridPathFile = GlobalVars.exportDir + filePrefix +  "export_pruned_grid_coverage_path"+suffix+".csv";
+    	String gridPathCrossingsFile = GlobalVars.exportDir + filePrefix +  "export_grid_coverage_path_crossings"+suffix+".csv";
+    	String gridPathFile = GlobalVars.exportDir + filePrefix + "export_grid_coverage_path"+suffix+".csv";
+    	
+		// TODO Auto-generated method stub
+    	// Because this method should be called once ped has completed their route,
+    	// the grid path is the one actually used by the pedestrian, accounts for dynamic updates
+		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
+		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
+		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
+		
+		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
+		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
+		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
+	}
 }
 
 	

@@ -1,6 +1,8 @@
 package repastInterSim.agent;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -8,13 +10,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
-import org.geotools.coverage.grid.GridEnvelope2D;
 import org.geotools.coverage.grid.InvalidGridGeometryException;
 import org.geotools.geometry.DirectPosition2D;
 import org.opengis.referencing.operation.TransformException;
@@ -22,7 +21,6 @@ import org.opengis.referencing.operation.TransformException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.GISFunctions;
@@ -150,7 +148,7 @@ public class GridRoute extends Route {
 		}
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		this.gridPath = getGridCoveragePath(grid, this.origin, this.destination);
+		this.gridPath = getAStarGridPath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D primaryRouteCell = null;
@@ -329,7 +327,7 @@ public class GridRoute extends Route {
 	 * @return
 	 * 			List<GridCoordinates2D> The grid coordinates path
 	 */
-	private List<GridCoordinates2D> getGridCoveragePath(GridCoverage2D grid, Coordinate o, Coordinate d){
+	private List<GridCoordinates2D> getFloodFillGridPath(GridCoverage2D grid, Coordinate o, Coordinate d){
 		
 		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
 
@@ -372,7 +370,7 @@ public class GridRoute extends Route {
 		GridCoordinates2D next = start;
 		gP.add(next);
 		while(!atEnd) {
-			next = greedyManhattanNeighbour(next, cellValues, gP, mini, minj, maxi, maxj);
+			next = greedyMooreNeighbour(next, cellValues, gP, mini, minj, maxi, maxj);
 			gP.add(next);
 			if (next.equals(end)) {
 				atEnd = true;
@@ -413,11 +411,14 @@ public class GridRoute extends Route {
 		n[j][i] = 1; // Make sure the end cell value doesn't get updated
 		q.add(end);
 		while(q.size() > 0) {
-			thisCell = q.get(0);
-			q.remove(0);
+			// Get random cell from queue - random is important
+		    Random rand = new Random();
+			int nextCellIndex = rand.nextInt(q.size());
+			thisCell = q.get(nextCellIndex);
+			q.remove(nextCellIndex);
 			
 			thisCellValue = floodFillValues[thisCell.y][thisCell.x];
-			for (GridCoordinates2D nextCell: manhattanNeighbourghs(thisCell, mini, minj, maxi, maxj)) {
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
 				
 				cellValue = grid.evaluate(nextCell, cellValue);
 				i = nextCell.x;
@@ -442,6 +443,234 @@ public class GridRoute extends Route {
 		}
 		return floodFillValues;
 	}
+	
+	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "manhattan", mini, minj, maxi, maxj);
+		return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyMooreNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
+		GridCoordinates2D greedyNeighbour = greedyXNeighbour(cell, cellValues, path, "moore", mini, minj, maxi, maxj);
+		return greedyNeighbour;
+	}
+	
+	private GridCoordinates2D greedyXNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, String neighbourType, int mini, int minj, int maxi, int maxj) {
+		
+		List<GridCoordinates2D> neighbours = xNeighbours(cell, neighbourType, mini, minj, maxi, maxj);
+		
+		// Initialise greedy options
+		List<Double> minVal = new ArrayList<Double>();
+		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
+		
+		minVal.add((double) Integer.MAX_VALUE);
+
+		
+		for(GridCoordinates2D neighbour:neighbours) {
+			// Don't consider cells already in the path
+			if (path.contains(neighbour)) {
+				continue;
+			}
+			double val = cellValues[neighbour.y][neighbour.x];
+			
+			// If cell value equal to current minimum include in greedy option
+			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			
+			// Else  clear the current min values and replace with new min
+			else if (val < minVal.get(0)) {
+				// Replace old values with new ones
+				minVal.clear();
+				greedyNeighbours.clear();
+				
+				minVal.add(val);
+				greedyNeighbours.add(neighbour);
+			}
+			else {
+				continue;
+			}
+		}
+		
+	    Random rand = new Random();
+	    GridCoordinates2D greedyNeighbour = null;
+	    try {
+		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    } catch (IllegalArgumentException e) {
+	    	String msg = "GridRoute.greedyXNeighbour(): Problem getting greedy neighbour \n\r" + 
+	    			"neighbour type: " + neighbourType + "\n\r" +
+					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
+					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
+					"origin coord: " + this.origin.toString() + "\n\r" +
+					"destination coord: " + this.destination.toString() + "\n\r" +
+					"ped id: " + String.valueOf(this.mA.id) + "\n\r";
+			//LOGGER.log(Level.SEVERE,msg);
+			System.out.print(msg);
+			throw e;
+	    }
+	    return greedyNeighbour;
+	}
+	
+	
+	/**
+	 * Find a path through a grid coverage layer by using the A star algorithm.
+	 * 
+	 * @param grid
+	 * 		The grid coverage object
+	 * @param o
+	 * 		The coordinate of the origin
+	 * @param d
+	 * 		The coordinate of the destination
+	 * @return
+	 * 			List<GridCoordinates2D> The grid coordinates path
+	 */
+	private List<GridCoordinates2D> getAStarGridPath(GridCoverage2D grid, Coordinate o, Coordinate d){
+		
+		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
+
+		DirectPosition2D dpStart = new DirectPosition2D(o.x, o.y);
+		DirectPosition2D dpEnd = new DirectPosition2D(d.x, d.y);
+		GridCoordinates2D start = null;
+		GridCoordinates2D end = null;
+		try {
+			start = grid.getGridGeometry().worldToGrid(dpStart);
+			end = grid.getGridGeometry().worldToGrid(dpEnd);
+		} catch (InvalidGridGeometryException | TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the bounds of the flood fill search based on whether this is a partial route search or not
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		int mini = 0;
+		int minj = 0;
+		int maxi = width;
+		int maxj = height;
+		if (this.partialFF == true) {
+			// Bounds set to bounding box of start-destination +- 30% in x and y direction
+			int dx = Math.abs(start.x-end.x);
+			int dy = Math.abs(start.y-end.y);
+			
+			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			
+			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
+			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
+			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
+			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
+		}
+		
+		/*
+		 * Do A Star Algo
+		 * 
+		 * Taken, in part, from Justin Wetherell's Java implementation of the A Star algorithm:
+		 * https://github.com/phishman3579/java-algorithms-implementation/blob/master/src/com/jwetherell/algorithms/graph/AStar.java
+		 * 
+		 * 
+		 */
+		
+		// Initialise records of grid cell distance measures used to choose path
+		Set<GridCoordinates2D> closedSet = new HashSet<GridCoordinates2D>();
+		List<GridCoordinates2D> openSet = new ArrayList<GridCoordinates2D>();
+		Map<GridCoordinates2D, GridCoordinates2D> cameFrom = new HashMap<GridCoordinates2D, GridCoordinates2D>();
+		Map<GridCoordinates2D, Double> gScore = new HashMap<GridCoordinates2D, Double>();
+		Map<GridCoordinates2D, Double> fScore = new HashMap<GridCoordinates2D, Double>();
+		
+		GridCoordinates2D thisCell;
+		int[] cellValue = new int[1];
+		
+	    Comparator<GridCoordinates2D> fComparator = new Comparator<GridCoordinates2D>() {
+	        /**
+	         * {@inheritDoc}
+	         */
+	        @Override
+	        public int compare(GridCoordinates2D c1, GridCoordinates2D c2) {
+	            if (fScore.get(c1) < fScore.get(c2))
+	                return -1;
+	            if (fScore.get(c2) < fScore.get(c1))
+	                return 1;
+	            return 0;
+	        }
+	    };
+		
+		// Initialise f score values
+		for (int j = minj; j<maxj;j++) {
+			for (int i = mini; i<maxi;i++) {
+				fScore.put(new GridCoordinates2D(i, j), (double) Integer.MAX_VALUE);
+			}
+		}
+		
+		// Add stating coordinate to the openSet
+		openSet.add(start);
+        gScore.put(start, 0.0);
+		
+		// Run algorithm until destination is reached
+		while(!openSet.isEmpty()) {
+			thisCell = openSet.get(0);
+			
+			// If this is the destination, job's done
+			if (thisCell.equals(end)) {
+				// Unpack and return the path
+				gP = reconstructPath(cameFrom, thisCell);
+				return gP;
+			}
+			
+			openSet.remove(0);
+			closedSet.add(thisCell);
+			
+			// Get neighbours and compute fScores for each of these
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
+				if(closedSet.contains(nextCell)) {
+					continue;
+				}
+				
+				cellValue = grid.evaluate(nextCell, cellValue);
+				double summand;
+				if (cellValue[0] == GlobalVars.GRID_PARAMS.defaultGridValue) {
+					summand = Integer.MAX_VALUE;
+				}
+				else {
+					summand = this.gridSummandPriorityMap.get(cellValue[0]);
+				}
+				double tentativeGScore = gScore.get(thisCell) + summand;
+				if(!openSet.contains(nextCell)) {
+					openSet.add(nextCell); // New candidate cell identified
+				}
+				else if (tentativeGScore >= gScore.get(nextCell)) {
+					continue; // Don't bother if neighbour not going to have good f score
+				}
+				
+				// thisCell is best path so far, record it
+				cameFrom.put(nextCell, thisCell);
+				gScore.put(nextCell, tentativeGScore);
+				double tentativeFScore = gScore.get(nextCell) + heuristicCostEstimate(nextCell, end);
+				fScore.put(nextCell, tentativeFScore);
+				Collections.sort(openSet, fComparator);
+			}	
+		}
+		return null;
+	}
+	
+	private double heuristicCostEstimate(GridCoordinates2D cell, GridCoordinates2D destinationCell) {
+		// Calculate as the crow flies distance
+		double dist = Math.sqrt(Math.pow(cell.x - destinationCell.x, 2) +	Math.pow(cell.y - destinationCell.y,2));
+		return dist;
+	}
+	
+    private List<GridCoordinates2D> reconstructPath(Map<GridCoordinates2D,GridCoordinates2D> cameFrom, GridCoordinates2D thisCell) {
+        List<GridCoordinates2D> path = new ArrayList<GridCoordinates2D>();
+
+        while (thisCell != null) {
+            GridCoordinates2D previousCell = thisCell;
+            thisCell = cameFrom.get(thisCell);
+            if (thisCell != null) {
+            	path.add(thisCell);
+            }
+        }
+        Collections.reverse(path);
+        return path;
+    }
 	
 	/**
 	 * Given a grid coordinate return a list of the Manhattan neighbours of this coordinate (N, E, S, W)
@@ -509,58 +738,55 @@ public class GridRoute extends Route {
 		return mN;
 	}
 	
-	private GridCoordinates2D greedyManhattanNeighbour(GridCoordinates2D cell, double[][] cellValues, List<GridCoordinates2D> path, int mini, int minj, int maxi, int maxj) {
-		List<GridCoordinates2D> manhattanNeighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
+	/**
+	 * Given a grid coordinate return a list of the Moore neighbours of this coordinate.
+	 * 
+	 * Exclude coordinates that are lower than the minimum i and j parameters or greater than or equal to the
+	 * maximum i and j parameters.
+	 * 
+	 * @param cell
+	 * 			The grid coordinate to get the neighbours of
+	 * @param mini
+	 * 			Minimum i value
+	 * @param minj
+	 * 			Minimum j value
+	 * @param maxi
+	 * 			Maximum i value
+	 * @param maxj
+	 * 			Maximum j value
+	 * @return
+	 * 			List of GridCoordinates2D objects
+	 */
+	private List<GridCoordinates2D> mooreNeighbourghs(GridCoordinates2D cell, int mini, int minj, int maxi, int maxj){
 		
-		// Initialise greedy options
-		List<Double> minVal = new ArrayList<Double>();
-		List<GridCoordinates2D> greedyNeighbours = new ArrayList<GridCoordinates2D>();
+		List<GridCoordinates2D> mN = new ArrayList<GridCoordinates2D>();
 		
-		minVal.add((double) Integer.MAX_VALUE);
-
-		
-		for(GridCoordinates2D neighbour:manhattanNeighbours) {
-			// Don't consider cells already in the path
-			if (path.contains(neighbour)) {
-				continue;
-			}
-			double val = cellValues[neighbour.y][neighbour.x];
-			
-			// If cell value equal to current minimum include in greedy option
-			if (Math.abs(val - minVal.get(0)) < 0.0000000001) {
-				minVal.add(val);
-				greedyNeighbours.add(neighbour);
-			}
-			
-			// Else  clear the current min values and replace with new min
-			else if (val < minVal.get(0)) {
-				// Replace old values with new ones
-				minVal.clear();
-				greedyNeighbours.clear();
-				
-				minVal.add(val);
-				greedyNeighbours.add(neighbour);
-			}
-			else {
-				continue;
+		int[] range = {-1,1,0};
+		int i = cell.x;
+		int j = cell.y;
+		for (int dx: range) {
+			for (int dy: range) {
+				if ((dx==0) & (dy==0)) {
+					continue;
+				}
+				if ((i + dx >= mini) & (i + dx < maxi) & (j + dy >= minj) & (j + dy < maxj)) {
+					mN.add(new GridCoordinates2D(i + dx, j + dy));
+				}
 			}
 		}
 		
-	    Random rand = new Random();
-	    GridCoordinates2D greedyNeighbour = null;
-	    try {
-		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
-	    } catch (IllegalArgumentException e) {
-	    	String msg = "GridRoute.greedyManhattanNeighbour(): Problem getting greedy neighbour \n\r" + 
-					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
-					"n neighbourghs: " + String.valueOf(manhattanNeighbours.size()) + "\n\r" +
-					"origin coord: " + this.origin.toString() + "\n\r" +
-					"destination coord: " + this.destination.toString() + "\n\r";
-			//LOGGER.log(Level.SEVERE,msg);
-			System.out.print(msg);
-			throw e;
-	    }
-	    return greedyNeighbour;
+		return mN;
+	}
+	
+	private List<GridCoordinates2D> xNeighbours(GridCoordinates2D cell, String neighbourType, int mini, int minj, int maxi, int maxj){
+		List<GridCoordinates2D> neighbours;
+		if (neighbourType.contentEquals("manhattan")) {
+			neighbours = manhattanNeighbourghs(cell, mini, minj, maxi, maxj);
+		}
+		else {
+			neighbours = mooreNeighbourghs(cell, mini, minj, maxi, maxj);
+		}
+		return neighbours;
 	}
 	
 	private void checkGridRoute() {
@@ -595,6 +821,14 @@ public class GridRoute extends Route {
 		}
 		// Could be null if there is not a crossing in the upcoming section of the route.
 		return crossingC;
+	}
+	
+	public List<GridCoordinates2D> getNextGroupedGridPathSection(){
+		
+		Coordinate thisRoadLinkCoord = this.primaryRouteX.get(0);
+		GridCoordinates2D thisRoadLinkCell = this.routeCoordMap.get(thisRoadLinkCoord);
+		List<GridCoordinates2D> pathSection = this.groupedGridPath.get(thisRoadLinkCell);
+		return pathSection;
 	}
 	
 	public double[][] getFloodFillGridValues() {
