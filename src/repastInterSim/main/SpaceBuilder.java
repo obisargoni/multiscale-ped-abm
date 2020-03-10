@@ -293,6 +293,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
 	    
 	    //IO.gridCoverageToImage(baseGrid, outputDir + "output_grid_vales.png");
+	    //IO.gridCoverageCoordinatesToCSV(baseGrid, outputDir + "output_grid_coordinates.csv");
 		return context;
 		
 	}
