@@ -161,7 +161,7 @@ public class IO {
 		IO.gridCoverageCoordinatesToCSV(grid, griCoordinatesFile);
 	}
     
-    public static void exportFinalGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
+    public static void exportPedGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
     	if (filePrefix == null) {
     		filePrefix = "";
     	}
