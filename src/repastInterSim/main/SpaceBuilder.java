@@ -494,39 +494,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		double ang = newPed.setBearingToDestinationCoord(newPed.getRouteCoord());
 		newPed.setPedestrianBearing(ang);
-		//exportInitialGridRouteData(newPed);
+		IO.exportInitialGridRouteData(newPed);
         return newPed;
     }
-    
-    private void exportInitialGridRouteData(Ped p) {    	
-    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
-    	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
-
-    	String gridImageFile = outputDir + "output_grid_vales.png";
-    	
-		// TODO Auto-generated method stub
-		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath(); // The grid path initially planned by the pedestrian
-		
-		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
-		IO.gridCoverageToImage(grid, gridImageFile);
-		IO.gridCoverageValuesToCSV(grid, gridValueFile);
-	}
-    
-    private void exportFinalGridRouteData(Ped p) {    	
-    	String prunedGridPathFile = exportDir + "export_pruned_grid_coverage_path.csv";
-    	String gridPathCrossingsFile = exportDir + "export_grid_coverage_path_crossings.csv";
-    	String pedGridPathFile = exportDir + "export_grid_coverage_path_final.csv";
-    	
-		// TODO Auto-generated method stub
-		List<GridCoordinates2D> pedGridPath = p.getPedGridPath(); // The grid path actually used by the pedestrian, accounts for dynamic updates
-		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
-		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
-		
-		IO.gridCoordiantesIterableToCSV(pedGridPath, pedGridPathFile);
-		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
-		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
-	}
 
 	/*
      * Initialise a vehicle agent and add to to the context and projection

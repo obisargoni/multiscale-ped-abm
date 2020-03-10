@@ -14,6 +14,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 
 public class IO {
@@ -148,7 +149,22 @@ public class IO {
     	}
     	return cString;
     }
+    
+    public static void exportInitialGridRouteData(Ped p) {
+    	String exportDir = GlobalVars.outputDir + "\\export\\";
+    	String gridValueFile =  exportDir + "export_grid_coverage_values.csv";
+    	String gridPathFile = exportDir + "export_grid_coverage_path.csv";
 
+    	String gridImageFile = GlobalVars.outputDir + "output_grid_vales.png";
+    	
+		// TODO Auto-generated method stub
+		GridCoverage2D grid = p.getGeography().getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath(); // The grid path initially planned by the pedestrian
+		
+		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
+		IO.gridCoverageToImage(grid, gridImageFile);
+		IO.gridCoverageValuesToCSV(grid, gridValueFile);
+	}
 }
 
 	
