@@ -177,11 +177,11 @@ public class IO {
 		// TODO Auto-generated method stub
     	// Because this method should be called once ped has completed their route,
     	// the grid path is the one actually used by the pedestrian, accounts for dynamic updates
-		List<GridCoordinates2D> pedGridPath = p.getRoute().getGridPath();
+		List<GridCoordinates2D> gridPath = p.getRoute().getGridPath();
 		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
 		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
 		
-		IO.gridCoordiantesIterableToCSV(pedGridPath, pedGridPathFile);
+		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
 	}
