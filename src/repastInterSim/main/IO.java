@@ -14,6 +14,7 @@ import org.geotools.coverage.grid.GridCoverage2D;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.util.collections.IndexedIterable;
+import repastInterSim.environment.GISFunctions;
 
 public class IO {
 	
@@ -99,6 +100,25 @@ public class IO {
 		}
 		
 		twodDoubleArrayToCSV(gridValues, path);
+	}
+	
+	public static void gridCoverageCoordinatesToCSV(GridCoverage2D grid, String path) {
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		
+		// 4 entries for each grid cell: grid cell coords, gis coords
+		double[][] gridCoordiantes = new double[height*width][4];
+		int rowi = 0;
+		for (int j = 0; j < height; j++) {
+			for (int i = 0; i < width; i++) {
+				GridCoordinates2D cell = new GridCoordinates2D(i,j);
+				Coordinate cellCoord = GISFunctions.gridCellToCoordinate(grid, cell);
+				double[] row = {cell.x, cell.y, cellCoord.x, cellCoord.y};
+				gridCoordiantes[rowi] = row;
+				rowi++;
+			}
+		}
+		twodDoubleArrayToCSV(gridCoordiantes, path);
 	}
 	
 	public static void coordiantesIterableToCSV(Iterable<Coordinate> coordinates, String path) {
