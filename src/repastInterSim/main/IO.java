@@ -92,8 +92,8 @@ public class IO {
 		double[][] gridValues = new double[height][width];			
 		for (int j = 0; j < height; j++) {
 			for (int i = 0; i < width; i++) {
-				GridCoordinates2D gridPos = new GridCoordinates2D(i,j);					
-				gridValue = grid.evaluate(gridPos, gridValue);
+				GridCoordinates2D cell = new GridCoordinates2D(i,j);					
+				gridValue = grid.evaluate(cell, gridValue);
 				gridValues[j][i] = gridValue[0];
 			}
 		}
