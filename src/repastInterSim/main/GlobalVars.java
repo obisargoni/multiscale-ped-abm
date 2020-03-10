@@ -33,6 +33,10 @@ import repast.simphony.parameter.Parameters;
  */
 public abstract class GlobalVars {
 	
+	// Directories for data exports
+	public static String outputDir = ".\\output\\";
+	public static String exportDir = outputDir + "\\export\\";
+	
 	//private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
 	
 	public static Parameters params = RunEnvironment.getInstance ().getParameters();

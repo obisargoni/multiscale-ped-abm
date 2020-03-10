@@ -110,11 +110,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	//private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
-	// Directories for model exports
-	// Export dir used for data exports, output dir used for figures
-	public static String exportDir = ".\\output\\export\\";
-	public static String outputDir = ".\\output\\";
-	
 	    /* (non-Javadoc)
 	 * @see repast.simphony.dataLoader.ContextBuilder#build(repast.simphony.context.Context)
 	 * 
