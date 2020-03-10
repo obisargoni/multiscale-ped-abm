@@ -284,7 +284,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
-	    // Stop adding agents to the simualtion at 1500 ticks
+	    // Stop adding agents to the simulation at 1500 ticks
 	    int endTick = 1500;
 	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingAgents");
