@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import csv
+import os
 
 def grid_mask_array(grid, mask_coordiantes):
 	array = np.empty(grid.shape)
@@ -32,34 +33,28 @@ def plot_grid_image(array, colour_map, alpha = 1, mask_coordiantes = None, mask_
 
 	return fig, ax
 
+output_dir = "..\\output\\"
+export_dir = os.path.join(output_dir,"export\\")
 
+input_files = {	"grid_path":"export_grid_coverage_path.csv",
+				"pruned_path":"export_pruned_grid_coverage_path.csv",
+				"path_crossings":"export_grid_coverage_path_crossings.csv"}
+
+output_files = {"grid_path":"floodValues_path.png",
+				"pruned_path":"gridValues_pruned.png",
+				"path_crossings":"gridValues_crossing.png"}
 
 # Input paths
-gridValuesFile = "..\\output\\export\\export_grid_coverage_values.csv"
-floodFillValuesFile = "..\\output\\export\\export_flood_fill_values.csv"
-
-gridPathFile = "..\\output\\export\\export_grid_coverage_path.csv"
-gridPathSectionFile = "..\\output\\export\\export_grid_coverage_path_section.csv"
-prunedPathFile = "..\\output\\export\\export_pruned_grid_coverage_path.csv"
-pathCrossingsFile = "..\\output\\export\\export_grid_coverage_path_crossings.csv"
-
-
+gridValuesFile = os.path.join(export_dir, "export_grid_coverage_values.csv")
+floodFillValuesFile = os.path.join(export_dir,"export_flood_fill_values.csv")
 # Output paths
-gridOutput = "..\\output\\gridValues.png"
-floodOutput = "..\\output\\floodValues.png"
-floodPathOutput = "..\\output\\floodValues_path.png"
-floodPathSectionOutput = "..\\output\\floodValues_path_section.png"
-gridPrunedOutput = "..\\output\\gridValues_pruned.png"
-gridCrossingOutput = "..\\output\\gridValues_crossing.png"
+gridOutput = os.path.join(output_dir,"gridValues.png")
+floodOutput = os.path.join(output_dir,"floodValues.png")
+
 
 # Data input and cleaning
 gridValues = np.genfromtxt(gridValuesFile, delimiter=',')
 #floodValues = np.genfromtxt(floodFillValuesFile, delimiter = ',')
-
-gridPath = np.genfromtxt(gridPathFile, delimiter = ',')
-gridPathSection = np.genfromtxt(gridPathSectionFile, delimiter = ',')
-prunedPath = np.genfromtxt(prunedPathFile, delimiter = ',')
-pathCrossings = np.genfromtxt(pathCrossingsFile, delimiter = ',')
 
 if(np.isnan(gridValues[:,-1]).all()):
 	gridValues = gridValues[:,:-1]
@@ -71,18 +66,38 @@ max_int = 2147483647
 floodValues = np.where(floodValues == max_int, np.nan, floodValues)
 '''
 
-# Make sure pruned path is nested coords, required if only one coord in pruned path
-if len(prunedPath.shape) == 1:
-	prunedPath = np.array([prunedPath])
-
 # Plot grid values and flood fill
 plot_grid_image(gridValues, cm.Blues, output_path = gridOutput)
 #plot_grid_image(floodValues, cm.Blues, output_path = floodOutput)
 
-# Plot flood with with path
-plot_grid_image(gridValues, cm.Blues, 0.5, gridPath, 'cool_r', output_path = floodPathOutput)
-plot_grid_image(gridValues, cm.Blues, 0.5, gridPathSection, 'cool_r', output_path = floodPathSectionOutput)
 
-# Plot grid values with pruned route and crossing points
-plot_grid_image(gridValues, cm.Blues, 0.5, prunedPath, 'cool_r', output_path = gridPrunedOutput)
-plot_grid_image(gridValues, cm.Blues, 0.5, pathCrossings, 'cool_r', output_path = gridCrossingOutput)
+for prefix in ["initial_", "final_"]:
+	in_path_file = prefix + input_files['grid_path']
+	in_prune_file = prefix + input_files['pruned_path']
+	in_crossing_file = prefix + input_files['path_crossings']
+
+	out_path_file = prefix + output_files['grid_path']
+	out_prune_file = prefix + output_files['pruned_path']
+	out_crossing_file = prefix + output_files['path_crossings']
+
+	gridPathFile = os.path.join(export_dir,in_path_file)
+	prunedPathFile = os.path.join(export_dir,in_prune_file)
+	pathCrossingsFile = os.path.join(export_dir,in_crossing_file)
+
+	floodPathOutput = os.path.join(output_dir,out_path_file)
+	gridPrunedOutput = os.path.join(output_dir,out_prune_file)
+	gridCrossingOutput = os.path.join(output_dir,out_crossing_file)
+
+	gridPath = np.genfromtxt(gridPathFile, delimiter = ',')
+	prunedPath = np.genfromtxt(prunedPathFile, delimiter = ',')
+	pathCrossings = np.genfromtxt(pathCrossingsFile, delimiter = ',')
+
+	# Make sure pruned path is nested coords, required if only one coord in pruned path
+	if len(prunedPath.shape) == 1:
+		prunedPath = np.array([prunedPath])
+
+	# Plot flood with with path
+	plot_grid_image(gridValues, cm.Blues, 0.5, gridPath, 'cool_r', output_path = floodPathOutput)
+	# Plot grid values with pruned route and crossing points
+	plot_grid_image(gridValues, cm.Blues, 0.5, prunedPath, 'cool_r', output_path = gridPrunedOutput)
+	plot_grid_image(gridValues, cm.Blues, 0.5, pathCrossings, 'cool_r', output_path = gridCrossingOutput)
