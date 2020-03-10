@@ -165,6 +165,29 @@ public class IO {
 		IO.gridCoverageToImage(grid, gridImageFile);
 		IO.gridCoverageValuesToCSV(grid, gridValueFile);
 	}
+    
+    public static void exportFinalGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
+    	if (filePrefix == null) {
+    		filePrefix = "";
+    	}
+    	String suffix = "";
+    	if (idSuffix) {
+    		suffix = "_pedID_"+p.getID();
+    	}
+    	
+    	String prunedGridPathFile = GlobalVars.exportDir + filePrefix +  "export_pruned_grid_coverage_path"+suffix+".csv";
+    	String gridPathCrossingsFile = GlobalVars.exportDir + filePrefix +  "export_grid_coverage_path_crossings"+suffix+".csv";
+    	String pedGridPathFile = GlobalVars.exportDir + filePrefix + "export_grid_coverage_path_final"+suffix+".csv";
+    	
+		// TODO Auto-generated method stub
+		List<GridCoordinates2D> pedGridPath = p.getPedGridPath(); // The grid path actually used by the pedestrian, accounts for dynamic updates
+		List<GridCoordinates2D> prunedGridPath = p.getRoute().getPrunedGridPath();
+		List<GridCoordinates2D> gridPathCrossings = p.getRoute().getGridPathCrossings();
+		
+		IO.gridCoordiantesIterableToCSV(pedGridPath, pedGridPathFile);
+		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
+		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
+	}
 }
 
 	

@@ -585,24 +585,11 @@ public class Ped extends MobileAgent {
         return stationaryVehicleSpace + vehicleSeparationSpace + pedestrianGapSpace;
     }
     
-    public void exportRoutePaths(String filePrefix) {
-    	if (filePrefix == null) {
-    		filePrefix = "";
-    	}
-    	List<GridCoordinates2D> gridPath = this.route.getGridPath();
-    	String gridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pedID_"+this.id+".csv";
-		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
-		
-		List<GridCoordinates2D> prunedGridPath = this.route.getPrunedGridPath();
-    	String prunedGridPathFile = SpaceBuilder.exportDir + filePrefix + "grid_path_pruned_pedID_"+this.id+".csv";
-		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
-    }
-    
     /**
      * Method to be run when agent is removed from the context.
      */
     public void tidyForRemoval() {
-    	//exportRoutePaths("final_");
+    	//IO.exportFinalGridRouteData(this, null, false);
     }
     
     public Color getColor() {
