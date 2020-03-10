@@ -588,7 +588,7 @@ public class Ped extends MobileAgent {
      * Method to be run when agent is removed from the context.
      */
     public void tidyForRemoval() {
-    	IO.exportPedGridRouteData(this, "final", true);
+    	IO.exportPedGridRouteData(this, "final_", false);
     }
     
     public Color getColor() {

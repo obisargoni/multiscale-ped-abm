@@ -172,7 +172,7 @@ public class IO {
     	
     	String prunedGridPathFile = GlobalVars.exportDir + filePrefix +  "export_pruned_grid_coverage_path"+suffix+".csv";
     	String gridPathCrossingsFile = GlobalVars.exportDir + filePrefix +  "export_grid_coverage_path_crossings"+suffix+".csv";
-    	String pedGridPathFile = GlobalVars.exportDir + filePrefix + "export_grid_coverage_path_final"+suffix+".csv";
+    	String gridPathFile = GlobalVars.exportDir + filePrefix + "export_grid_coverage_path"+suffix+".csv";
     	
 		// TODO Auto-generated method stub
     	// Because this method should be called once ped has completed their route,
