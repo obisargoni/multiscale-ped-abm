@@ -159,6 +159,7 @@ public abstract class GlobalVars {
 				priorityValueMap.put("pedestrian", 1);
 				priorityValueMap.put("pedestrian_crossing", 2);
 				priorityValueMap.put("vehicle", 3);
+				priorityValueMap.put("road_link", 4);
 				priorityValueMap.put("pedestrian_obstruction", defaultGridValue);
 			}
 			return GRID_PARAMS.priorityValueMap;
