@@ -96,6 +96,7 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian_crossing"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
+        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
@@ -526,6 +527,7 @@ public class Ped extends MobileAgent {
     	// Use this updated perception of costs when calculating updated Route
     	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
     	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
     	
     	// Create new Route object, that evaluates flood fill values over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
