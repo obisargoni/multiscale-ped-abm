@@ -490,6 +490,10 @@ public class GISFunctions {
 				else if (obsAttributeValues.contains("pedestrian_crossing")){
 					gridValue = agentAttributeValueMap.get("pedestrian_crossing");
 				}
+				// Next check if grid cell intersects with a road link
+				else if (obsAttributeValues.contains("road_link")){
+					gridValue = agentAttributeValueMap.get("road_link");
+				}
 				// Finally, can set grid value to be pedestrian if no other types intersect
 				else {
 					gridValue = agentAttributeValueMap.get("pedestrian");
