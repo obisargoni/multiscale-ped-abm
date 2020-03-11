@@ -212,33 +212,43 @@ public class GridRoute extends Route {
 				
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		
-		double[] prevCellValue = new double[1];
-		double[] cellValue = new double[1];
-		GridCoordinates2D prevCell = gP.get(0);
+		int[] cellValue = new int[1];
 		
-		// Get indices of grid cells that are at location where road priority changes (crossing points)
+		// Search for primary crossings
+		// Identify grid cells in the route that are located on primary road links
 		for (int i = 1; i < gP.size(); i++) {
 			GridCoordinates2D gridCell = gP.get(i);
-			
-			// Get grid cell value of this and previous coord. If values differ this means they are located in
-			// road space with different priority and therefore the previous grid cell should be included in the route
-			prevCellValue = grid.evaluate(prevCell, prevCellValue);
 			cellValue = grid.evaluate(gridCell, cellValue);
-			Double prevVal = prevCellValue[0];
-			Double val = cellValue[0];
+			Integer val = cellValue[0];
 			
-			// If grid cell value increases, priority has decreased for this agent. Indicates crossing point where yielding is possible
-			if (val.compareTo(prevVal) > 0) {
-				routeIndices.add(i);
-				descriptionMap.put(i, GlobalVars.TRANSPORT_PARAMS.routeCrossingDescription);
+			// If grid cell is a primary road link, a primary crossing has occured in the route
+			// Search forward and back in the route to find the crossing entry and exit points
+			if (val.compareTo(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link")) == 0) {
+				
+				// Search forward
+				for (int j = i; j<gP.size(); j++) {
+					GridCoordinates2D crossingCell = gP.get(j);
+					cellValue = grid.evaluate(crossingCell, cellValue);
+					val = cellValue[0];
+					if (val.compareTo(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian")) == 0) {
+						routeIndices.add(j);
+						descriptionMap.put(j, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
+						break;
+					}
+				}
+				
+				// Search backwards
+				for (int j = i; j>1; j--) {
+					GridCoordinates2D crossingCell = gP.get(j);
+					cellValue = grid.evaluate(crossingCell, cellValue);
+					val = cellValue[0];
+					if (val.compareTo(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian")) == 0) {
+						routeIndices.add(j);
+						descriptionMap.put(j, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
+						break;
+					}
+				}
 			}
-			// If grid cell value decreases, this indicates this agents' priority is greater. Also crossing point but not one where yielding required
-			else if (val.compareTo(prevVal) < 0) {
-				routeIndices.add(i);
-				descriptionMap.put(i, GlobalVars.TRANSPORT_PARAMS.routeDefaultDescription);
-
-			}
-			prevCell = gridCell;
 		}
 		
 		
