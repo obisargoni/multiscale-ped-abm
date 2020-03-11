@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 public class RoadLink implements FixedGeography {
 	
 	private Geometry geom;
+	private String priority = "";
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
 	private NetworkEdge<Junction> edge;
 	private String fid = null;
@@ -119,6 +120,14 @@ public class RoadLink implements FixedGeography {
 	
 	public void removeVehicleFromCount() {
 		this.vehicleCount--;
+	}
+	
+	public String getPriority() {
+		return this.priority;
+	}
+	
+	public void setPriority(String pri) {
+		this.priority = pri;
 	}
 
 }
