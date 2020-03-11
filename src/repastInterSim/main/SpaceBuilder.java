@@ -250,7 +250,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
 	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
 	        new Category("Pedestrian crossing area", Color.PINK, priorityValueMap.get("pedestrian_crossing")),
-	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle"))
+	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle")),
+	        new Category("Road Link area", Color.CYAN, priorityValueMap.get("road_link"))
 	    };
 
 		WritableGridCoverage2D baseGrid = RepastCoverageFactory.createWritableByteIndexedCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, width, height, fixedGeographyEnvelope, valueCategories, null, GlobalVars.GRID_PARAMS.defaultGridValue);
@@ -258,7 +259,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		// Loop over coverage grid cells to check values and number of cells
 		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, Road.class, roadGeography, "priority", priorityValueMap);
+		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, RoadLink.class, roadLinkGeography, "priority", priorityValueMap);
 		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
+		
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
