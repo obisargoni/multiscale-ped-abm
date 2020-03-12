@@ -49,6 +49,22 @@ public class MobileAgent {
     	return String.valueOf(this.maLoc.y);
     }
     
+    public String getOriginXString() {
+    	return String.valueOf(this.origin.getGeom().getCentroid().getCoordinate().x);
+    }
+    
+    public String getOriginYString() {
+    	return String.valueOf(this.origin.getGeom().getCentroid().getCoordinate().y);
+    }
+    
+    public String getDestinationXString() {
+    	return String.valueOf(this.destination.getGeom().getCentroid().getCoordinate().x);
+    }
+    
+    public String getDestinationYString() {
+    	return String.valueOf(this.destination.getGeom().getCentroid().getCoordinate().y);
+    }
+    
 	public void setLoc() {
 		// TODO Auto-generated method stub
 		
