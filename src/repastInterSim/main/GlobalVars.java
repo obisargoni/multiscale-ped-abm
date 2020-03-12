@@ -146,7 +146,7 @@ public abstract class GlobalVars {
 		public static String routeRoadLinkChangeDescription = "link";
 		
 		// Proportion by which to expand bounding box of start-end coordinates for partial routing
-		public static double partialBoundingBoxIncrease = 0.15;
+		public static double partialBoundingBoxIncrease = 0.5;
 	}
 	
 	public static final class GRID_PARAMS {
