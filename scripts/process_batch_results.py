@@ -190,12 +190,22 @@ df_prim = pd.read_csv(os.path.join(data_dir, ped_primary_route_file))
 df_prim.sort_values(by = ['run','ID','tick'], inplace=True)
 df_prim_first = df_prim.groupby(['run','ID']).apply(lambda df: df.iloc[0])
 df_prim_first.index = np.arange(df_prim_first.shape[0])
+
+
 df_prim_first['geometry'] = df_prim_first['InitialRouteCoordinatesString'].map(lambda x: linestring_from_coord_string(x))
 df_prim_first.dropna(subset = ['geometry'], inplace = True)
 
-gdf_prim = gpd.GeoDataFrame(df_prim_first)
+gdf_prim = gpd.GeoDataFrame(df_prim_first).reindex(columns = ['run','ID','tick', 'geometry'])
 gdf_prim.crs = project_crs
 gdf_prim['length'] = gdf_prim['geometry'].length
+
+# Get the ped ODs
+df_ped_ods = df_prim_first.reindex(columns = ['run','ID','tick','OriginXString','OriginYString','DestinationXString','DestinationYString'])
+df_ped_ods['origin'] = df_ped_ods.apply(lambda df: Point(df.OriginXString, df.OriginYString), axis=1)
+df_ped_ods['destination'] = df_ped_ods.apply(lambda df: Point(df.DestinationXString, df.DestinationYString), axis=1)
+gdf_ped_ods = gpd.GeoDataFrame(df_ped_ods).reindex(columns = ['run','ID', 'origin','destination'])
+gdf_ped_ods.crs = project_crs
+
 
 
 ################################
@@ -216,31 +226,26 @@ gdf_comb = gdf_comb.dropna(subset = ['pct_deviation'])
 # Load pedestrian ODs and Road Polygons data and use to calculate proportion of pedestrian journeys that use/don't use crossing
 #
 ###############################
-gdf_ped_od = gpd.read_file(os.path.join(geo_data_dir, ped_od_file))
+gdf_ods = gpd.read_file(os.path.join(geo_data_dir, ped_od_file))
 gdf_veh_poly = gpd.read_file(os.path.join(geo_data_dir, vehicle_polygons))
 
 # Buffer ODs slightly
-gdf_ped_od.rename(columns = {"id":"od_id"}, inplace=True)
-gdf_ped_od['geometry'] = gdf_ped_od['geometry'].buffer(0.5)
-
-gdf_prim['start'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[0]))
-gdf_prim['end'] = gdf_prim['geometry'].map(lambda l: Point(l.coords[-1]))
+gdf_ods.rename(columns = {"id":"od_id"}, inplace=True)
+gdf_ods['geometry'] = gdf_ods['geometry'].buffer(0.1)
 
 # Spatial join
-gdf_prim.set_geometry("start")
-gdf_prim = gpd.sjoin(gdf_prim, gdf_ped_od, how='left', op='intersects')
-gdf_prim.drop('index_right', axis=1, inplace=True)
-gdf_prim.rename(columns = {"od_id":"od_id_start"}, inplace=True)
+gdf_ped_ods = gdf_ped_ods.set_geometry("origin")
+gdf_ped_ods = gpd.sjoin(gdf_ped_ods, gdf_ods, how='left', op='intersects')
+gdf_ped_ods.drop('index_right', axis=1, inplace=True)
+gdf_ped_ods.rename(columns = {"od_id":"od_id_start"}, inplace=True)
 
-gdf_prim.set_geometry("end")
-gdf_prim = gpd.sjoin(gdf_prim, gdf_ped_od, how='left', op='intersects')
-gdf_prim.drop('index_right', axis=1, inplace=True)
-gdf_prim.rename(columns = {"od_id":"od_id_end"}, inplace=True)
-
-gdf_prim.set_geometry("geometry")
+gdf_ped_ods = gdf_ped_ods.set_geometry("destination")
+gdf_ped_ods = gpd.sjoin(gdf_ped_ods, gdf_ods, how='left', op='intersects')
+gdf_ped_ods.drop('index_right', axis=1, inplace=True)
+gdf_ped_ods.rename(columns = {"od_id":"od_id_end"}, inplace=True)
 
 # Select ped routes that could have made use of a crossing
-df_crossing_ped = gdf_prim.reindex(columns = ['run','ID', 'od_id_start', 'od_id_end'])
+df_crossing_ped = gdf_ped_ods.reindex(columns = ['run','ID', 'od_id_start', 'od_id_end'])
 df_crossing_ped = df_crossing_ped.loc[  ((df_crossing_ped['od_id_start']==2) & (df_crossing_ped['od_id_end']==1)) |
                                         ((df_crossing_ped['od_id_start']==4) & (df_crossing_ped['od_id_end']==1)) |
                                         ((df_crossing_ped['od_id_start']==3) & (df_crossing_ped['od_id_end']==2)) |
