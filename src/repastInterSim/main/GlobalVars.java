@@ -127,6 +127,7 @@ public abstract class GlobalVars {
 		public static final String PEDESTRIAN_DESTINATION_GEOGRAPHY = "DestinationGeography";
 		
 		public static final String ROAD_NETWORK = "RoadNetwork";
+		public static final String GRID_NETWORK = "GridNetwork";
 		
 		public static final String AGENT_CONTEXT = "AgentContext";
 		public static final String AGENT_GEOGRAPHY = "AgentGeography";
