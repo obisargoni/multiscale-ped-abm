@@ -158,7 +158,7 @@ public class GridRoute extends Route {
 		}
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		this.gridPath = getAStarGridPath(grid, this.origin, this.destination);
+		this.gridPath = getDijkstraGridPath(grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D primaryRouteCell = null;
