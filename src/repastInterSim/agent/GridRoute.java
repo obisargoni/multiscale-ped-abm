@@ -22,8 +22,18 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 
+import repast.simphony.context.Context;
+import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
+import repast.simphony.space.graph.ShortestPath;
+import repast.simphony.space.graph.UndirectedJungNetwork;
+import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
@@ -630,6 +640,104 @@ public class GridRoute extends Route {
 			}	
 		}
 		return null;
+	}
+	
+	/**
+	 * Find a path through a grid coverage layer by using the Dijkstra's algorithm.
+	 * 
+	 * To do this, need to first create a network object from the grid , which enables the use of
+	 * existing implementation of Dijkstra's.
+	 * 
+	 * @param grid
+	 * 		The grid coverage object
+	 * @param o
+	 * 		The coordinate of the origin
+	 * @param d
+	 * 		The coordinate of the destination
+	 * @return
+	 * 			List<GridCoordinates2D> The grid coordinates path
+	 */
+	private List<GridCoordinates2D> getDijkstraGridPath(GridCoverage2D grid, Coordinate o, Coordinate d){
+		
+		// Initialise the grid path to be produced
+		List<GridCoordinates2D> gP = new ArrayList<GridCoordinates2D>();
+		
+		DirectPosition2D dpStart = new DirectPosition2D(o.x, o.y);
+		DirectPosition2D dpEnd = new DirectPosition2D(d.x, d.y);
+		GridCoordinates2D start = null;
+		GridCoordinates2D end = null;
+		try {
+			start = grid.getGridGeometry().worldToGrid(dpStart);
+			end = grid.getGridGeometry().worldToGrid(dpEnd);
+		} catch (InvalidGridGeometryException | TransformException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Network<GridCoordinates2D> gridNetwork = new UndirectedJungNetwork<GridCoordinates2D>(GlobalVars.CONTEXT_NAMES.GRID_NETWORK, new NetworkEdgeCreator<GridCoordinates2D>());
+		
+		// Initialise records of grid cell distance measures used to choose path
+		Set<GridCoordinates2D> closedSet = new HashSet<GridCoordinates2D>();
+		List<GridCoordinates2D> openSet = new ArrayList<GridCoordinates2D>();
+		
+		GridCoordinates2D thisCell;
+		int[] cellValue = new int[1];
+		
+		Map<String, Integer> gridBounds = gridBounds(grid, start, end, this.partialFF);
+		int mini = gridBounds.get("mini");
+		int minj = gridBounds.get("minj");
+		int maxi = gridBounds.get("maxi");
+		int maxj = gridBounds.get("maxj");
+		
+		// Create the network
+		openSet.add(start);
+		while(!openSet.isEmpty()) {
+			thisCell = openSet.get(0);			
+			openSet.remove(0);
+			closedSet.add(thisCell);
+			
+			// Get neighbours and compute fScores for each of these
+			for (GridCoordinates2D nextCell: xNeighbours(thisCell, "moore", mini, minj, maxi, maxj)) {
+				if(closedSet.contains(nextCell)) {
+					continue;
+				}
+				
+				cellValue = grid.evaluate(nextCell, cellValue);
+				double perceivedValue;
+				if (cellValue[0] == GlobalVars.GRID_PARAMS.defaultGridValue) {
+					perceivedValue = Integer.MAX_VALUE;
+				}
+				else {
+					perceivedValue = this.gridSummandPriorityMap.get(cellValue[0]);
+				}
+		
+				// Create an edge between the two junctions, assigning a weight equal to it's length
+				RepastEdge<GridCoordinates2D> edge = new RepastEdge<GridCoordinates2D>(thisCell, nextCell, false, perceivedValue);
+		
+				// Add the edge to the network
+				if (!gridNetwork.containsEdge(edge)) {
+					gridNetwork.addEdge(edge);
+				} else {
+					//LOGGER.severe("CityContext: buildRoadNetwork: for some reason this edge that has just been created "
+						//	+ "already exists in the RoadNetwork.");
+				}
+				
+				if(!openSet.contains(nextCell)) {
+					openSet.add(nextCell); // New candidate cell identified
+				}
+			}
+		}
+		
+		// Get path using Dijkstras
+		ShortestPath<GridCoordinates2D> p = new ShortestPath<GridCoordinates2D>(gridNetwork);
+		List<RepastEdge<GridCoordinates2D>> shortestPath = p.getPath(start, end);
+		
+		// Iterate over the path to get the grid cells that make up the path
+		for (RepastEdge<GridCoordinates2D> edge : shortestPath) {
+			gP.add(edge.getSource());
+		}
+
+		return gP;
 	}
 	
 	private double heuristicCostEstimate(GridCoordinates2D cell, GridCoordinates2D destinationCell) {
