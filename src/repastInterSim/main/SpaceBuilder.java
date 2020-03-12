@@ -343,7 +343,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				Coordinate o = vehicleDestinationContext.getObjects(OD.class).get(iO).getGeom().getCentroid().getCoordinate();
+				OD o = vehicleDestinationContext.getObjects(OD.class).get(iO);
 				OD d = vehicleDestinationContext.getObjects(OD.class).get(iD);
 				addVehicle(o, d);
 			}
@@ -503,10 +503,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
      * Initialise a vehicle agent and add to to the context and projection
      */
-    private Vehicle addVehicle(Coordinate o, OD d) {
+    private Vehicle addVehicle(OD o, OD d) {
 		Vehicle V = new Vehicle(geography, vehicleDestinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
 		context.add(V);
-		Point pt = fac.createPoint(o);
+		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = fac.createPoint(oCoord);
 		Geometry vehicleCircle = pt.buffer(2);
 		moveAgentToGeometry(geography, vehicleCircle, V);
 		V.setLoc();
