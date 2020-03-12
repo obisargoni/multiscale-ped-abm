@@ -378,7 +378,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				Coordinate o = pedestrianDestinationContext.getObjects(OD.class).get(iO).getGeom().getCentroid().getCoordinate();
+				OD o = pedestrianDestinationContext.getObjects(OD.class).get(iO);
 				OD d = pedestrianDestinationContext.getObjects(OD.class).get(iD);
 				addPed(o, d);
 			}
@@ -469,7 +469,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public Ped addPed(Coordinate coord, OD d)  {
+    public Ped addPed(OD o, OD d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
@@ -477,7 +477,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         context.add(newPed);
         
         // Create a new point geometry.
-		Point pt = GISFunctions.pointGeometryFromCoordinate(coord);
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		
 		// Transform the coordinate so that the circle can be created using a radius in metres
 		Geometry circle = pt.buffer(newPed.getRad());
