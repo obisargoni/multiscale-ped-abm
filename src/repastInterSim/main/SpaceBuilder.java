@@ -290,7 +290,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
 	    
-	    IO.exportGridCoverageData(baseGrid);
+	    //IO.exportGridCoverageData(baseGrid);
 		return context;
 		
 	}
@@ -495,7 +495,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		double ang = newPed.setBearingToDestinationCoord(newPed.getRouteCoord());
 		newPed.setPedestrianBearing(ang);
-		IO.exportPedGridRouteData(newPed, "initial_", false);
+		//IO.exportPedGridRouteData(newPed, "initial_", false);
         return newPed;
     }
 
