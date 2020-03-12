@@ -888,7 +888,7 @@ public class GridRoute extends Route {
 		int maxi = width;
 		int maxj = height;
 		if (this.partialFF == true) {
-			// Bounds set to bounding box of start-destination +- 30% in x and y direction
+			// Bounds set to bounding box of start-destination +- partialBoundingBoxIncrease % in x and y direction
 			int dx = Math.abs(start.x-end.x);
 			int dy = Math.abs(start.y-end.y);
 			

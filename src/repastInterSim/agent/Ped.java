@@ -529,7 +529,7 @@ public class Ped extends MobileAgent {
     	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
     	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
     	
-    	// Create new Route object, that evaluates flood fill values over a partial section of the grid
+    	// Create new Route object, that produces route over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
     	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
     	
