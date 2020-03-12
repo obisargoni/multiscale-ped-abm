@@ -353,26 +353,11 @@ public class GridRoute extends Route {
 			e.printStackTrace();
 		}
 		
-		// Set the bounds of the flood fill search based on whether this is a partial route search or not
-		int width = grid.getRenderedImage().getTileWidth();
-		int height = grid.getRenderedImage().getTileHeight();
-		int mini = 0;
-		int minj = 0;
-		int maxi = width;
-		int maxj = height;
-		if (this.partialFF == true) {
-			// Bounds set to bounding box of start-destination +- 30% in x and y direction
-			int dx = Math.abs(start.x-end.x);
-			int dy = Math.abs(start.y-end.y);
-			
-			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
-			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
-			
-			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
-			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
-			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
-			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
-		}
+		Map<String, Integer> gridBounds = gridBounds(grid, start, end, this.partialFF);
+		int mini = gridBounds.get("mini");
+		int minj = gridBounds.get("minj");
+		int maxi = gridBounds.get("maxi");
+		int maxj = gridBounds.get("maxj");
 		
 		double[][] cellValues = gridCoverageFloodFill(grid, end, mini, minj, maxi, maxj);
 		boolean atEnd = false;
@@ -550,26 +535,11 @@ public class GridRoute extends Route {
 			e.printStackTrace();
 		}
 		
-		// Set the bounds of the flood fill search based on whether this is a partial route search or not
-		int width = grid.getRenderedImage().getTileWidth();
-		int height = grid.getRenderedImage().getTileHeight();
-		int mini = 0;
-		int minj = 0;
-		int maxi = width;
-		int maxj = height;
-		if (this.partialFF == true) {
-			// Bounds set to bounding box of start-destination +- 30% in x and y direction
-			int dx = Math.abs(start.x-end.x);
-			int dy = Math.abs(start.y-end.y);
-			
-			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
-			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
-			
-			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
-			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
-			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
-			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
-		}
+		Map<String, Integer> gridBounds = gridBounds(grid, start, end, this.partialFF);
+		int mini = gridBounds.get("mini");
+		int minj = gridBounds.get("minj");
+		int maxi = gridBounds.get("maxi");
+		int maxj = gridBounds.get("maxj");
 		
 		/*
 		 * Do A Star Algo
@@ -797,6 +767,36 @@ public class GridRoute extends Route {
 			neighbours = mooreNeighbourghs(cell, mini, minj, maxi, maxj);
 		}
 		return neighbours;
+	}
+	
+	private Map<String, Integer> gridBounds(GridCoverage2D grid, GridCoordinates2D start, GridCoordinates2D end, Boolean isPartial){
+		Map<String, Integer> bounds = new HashMap<String, Integer>();
+		
+		// Set the bounds of the flood fill search based on whether this is a partial route search or not
+		int width = grid.getRenderedImage().getTileWidth();
+		int height = grid.getRenderedImage().getTileHeight();
+		int mini = 0;
+		int minj = 0;
+		int maxi = width;
+		int maxj = height;
+		if (this.partialFF == true) {
+			// Bounds set to bounding box of start-destination +- 30% in x and y direction
+			int dx = Math.abs(start.x-end.x);
+			int dy = Math.abs(start.y-end.y);
+			
+			int xIncrease =  Math.max(5, (int) Math.floor(dx*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			int yIncrease =  Math.max(5, (int) Math.floor(dy*GlobalVars.TRANSPORT_PARAMS.partialBoundingBoxIncrease));
+			
+			mini = Math.max(Math.min(start.x, end.x) - xIncrease,0);
+			minj = Math.max(Math.min(start.y, end.y) - yIncrease,0);
+			maxi = Math.min(Math.max(start.x, end.x) + xIncrease, width);
+			maxj = Math.min(Math.max(start.y, end.y) + yIncrease, height);
+		}
+		bounds.put("mini", mini);
+		bounds.put("minj", minj);
+		bounds.put("maxi", maxi);
+		bounds.put("maxj", maxj);
+		return bounds;
 	}
 	
 	private void checkGridRoute() {
