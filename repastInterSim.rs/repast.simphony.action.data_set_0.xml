@@ -1,5 +1,5 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Pedestrian Initial Route</name>
+  <name>Pedestrian Locations</name>
   <type>NON_AGGREGATE</type>
   <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
@@ -25,11 +25,19 @@
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>InitialRouteCoordinatesString</string>
+      <string>LocXString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>InitialRouteCoordinatesString</id>
+        <id>LocXString</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getInitialRouteCoordinatesString</methodName>
+        <methodName>getLocXString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>LocYString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>LocYString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getLocYString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

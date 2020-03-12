@@ -1,5 +1,5 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Pedestrian Locations</name>
+  <name>Pedestrian Initial Route</name>
   <type>NON_AGGREGATE</type>
   <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
@@ -25,19 +25,43 @@
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocXString</string>
+      <string>InitialRouteCoordinatesString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocXString</id>
+        <id>InitialRouteCoordinatesString</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocXString</methodName>
+        <methodName>getInitialRouteCoordinatesString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocYString</string>
+      <string>DestinationXString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocYString</id>
+        <id>DestinationXString</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocYString</methodName>
+        <methodName>getDestinationXString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>DestinationYString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>DestinationYString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getDestinationYString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>OriginXString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>OriginXString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getOriginXString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>OriginYString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>OriginYString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getOriginYString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>
