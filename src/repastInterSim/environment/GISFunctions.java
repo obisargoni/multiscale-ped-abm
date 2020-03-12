@@ -219,10 +219,10 @@ public class GISFunctions {
 	 * @param context the context
 	 * @param geography the geography
 	 */
-	private static List<Destination> loadFeatures (String filename, Context context, Geography geography){
+	private static List<OD> loadFeatures (String filename, Context context, Geography geography){
 
 		List<SimpleFeature> features = loadFeaturesFromShapefile(filename);
-		List<Destination> destinations = new ArrayList<Destination>();
+		List<OD> destinations = new ArrayList<OD>();
 		
 		// For each feature in the file
 		for (SimpleFeature feature : features){
@@ -238,9 +238,9 @@ public class GISFunctions {
 			if (geom instanceof Point){
 				geom = (Point)feature.getDefaultGeometry();		
 				
-				agent = new Destination();
+				agent = new OD();
 				
-				destinations.add((Destination)agent);
+				destinations.add((OD)agent);
 								
 			}
 

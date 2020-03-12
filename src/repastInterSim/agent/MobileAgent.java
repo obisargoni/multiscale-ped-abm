@@ -3,7 +3,7 @@ package repastInterSim.agent;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.Geography;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 
 public class MobileAgent {
     private static int uniqueID = 0;
@@ -11,15 +11,15 @@ public class MobileAgent {
     protected int id;
     protected Geography<Object> geography; // Space the agent exists in
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
-    protected Destination destination; // The destination agent that this agents is heading towards.
+    protected OD destination; // The destination agent that this agents is heading towards.
     
-    MobileAgent(Geography<Object> geography, Destination d){
+    MobileAgent(Geography<Object> geography, OD d){
     	this.id = MobileAgent.uniqueID++;
     	this.geography = geography;
     	this.destination = d;
     }
 	
-	public Destination getDestination() {
+	public OD getDestination() {
 		return this.destination;
 	}
 	

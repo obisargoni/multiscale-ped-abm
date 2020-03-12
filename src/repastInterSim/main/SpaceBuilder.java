@@ -50,7 +50,7 @@ import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
@@ -84,11 +84,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<PedObstruction> pedObstructContext;
 	public static Geography<PedObstruction> pedObstructGeography;
 	
-	public static Context<Destination> vehicleDestinationContext;
-	public static Geography<Destination> vehicleDestinationGeography;
+	public static Context<OD> vehicleDestinationContext;
+	public static Geography<OD> vehicleDestinationGeography;
 	
-	public static Context<Destination> pedestrianDestinationContext;
-	public static Geography<Destination> pedestrianDestinationGeography;
+	public static Context<OD> pedestrianDestinationContext;
+	public static Geography<OD> pedestrianDestinationGeography;
 	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
@@ -163,12 +163,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
 		vehicleDestinationContext = new VehicleDestinationContext();
-		vehicleDestinationGeography = createTypedGeography(Destination.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
+		vehicleDestinationGeography = createTypedGeography(OD.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		context.addSubContext(vehicleDestinationContext);
 		fixedGeographies.add(vehicleDestinationGeography);
 
 		pedestrianDestinationContext = new PedestrianDestinationContext();
-		pedestrianDestinationGeography = createTypedGeography(Destination.class, pedestrianDestinationContext, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
+		pedestrianDestinationGeography = createTypedGeography(OD.class, pedestrianDestinationContext, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
@@ -195,10 +195,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 1. Load vehicle and pedestrian destinations
 			String vehicleDestinationsFile = GISDataDir + getProperty("VehicleDestinationsFile");
-			GISFunctions.readShapefile(Destination.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
+			GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
 			
 			String pedestrianDestinationsFile = GISDataDir + getProperty("PedestrianDestinationsFile");
-			GISFunctions.readShapefile(Destination.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
+			GISFunctions.readShapefile(OD.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
 			
 			// 2. Load roads
 			String vehicleRoadFile = GISDataDir + getProperty("VehicleRoadShapefile");
@@ -219,15 +219,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Set the internal context and geography attributes of the destination agents
-		IndexedIterable<Destination> vehicleDestinations = vehicleDestinationContext.getObjects(Destination.class);
-		for (Destination d : vehicleDestinations) {
+		IndexedIterable<OD> vehicleDestinations = vehicleDestinationContext.getObjects(OD.class);
+		for (OD d : vehicleDestinations) {
 			d.setRootContext(context);
 			d.setRootGeography(geography);
 			d.setDestinationGeography(vehicleDestinationGeography);
 		}
 		
-		IndexedIterable<Destination> pedestrianDestinations = pedestrianDestinationContext.getObjects(Destination.class);
-		for (Destination d : pedestrianDestinations) {
+		IndexedIterable<OD> pedestrianDestinations = pedestrianDestinationContext.getObjects(OD.class);
+		for (OD d : pedestrianDestinations) {
 			d.setRootContext(context);
 			d.setRootGeography(geography);
 			d.setDestinationGeography(pedestrianDestinationGeography);
@@ -343,8 +343,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				Coordinate o = vehicleDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
-				Destination d = vehicleDestinationContext.getObjects(Destination.class).get(iD);
+				Coordinate o = vehicleDestinationContext.getObjects(OD.class).get(iO).getGeom().getCentroid().getCoordinate();
+				OD d = vehicleDestinationContext.getObjects(OD.class).get(iD);
 				addVehicle(o, d);
 			}
 		}
@@ -378,8 +378,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				Coordinate o = pedestrianDestinationContext.getObjects(Destination.class).get(iO).getGeom().getCentroid().getCoordinate();
-				Destination d = pedestrianDestinationContext.getObjects(Destination.class).get(iD);
+				Coordinate o = pedestrianDestinationContext.getObjects(OD.class).get(iO).getGeom().getCentroid().getCoordinate();
+				OD d = pedestrianDestinationContext.getObjects(OD.class).get(iD);
 				addPed(o, d);
 			}
 		}
@@ -403,9 +403,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @returns d
 	 * 			The destination agent that was added to the context and geography
 	 */
-	public Destination addRandomDestination(Geometry bndry) {
+	public OD addRandomDestination(Geometry bndry) {
 		
-		Destination d = new Destination();
+		OD d = new OD();
 		context.add(d);
 		
 		// Initialize random coordinates for the destination
@@ -434,9 +434,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @returns d
 	 * 			The destination agent that was added to the context and geography
 	 */
-	public Destination addUserDestination( String paramX, String paramY) {
+	public OD addUserDestination( String paramX, String paramY) {
 		
-		Destination d = new Destination();
+		OD d = new OD();
 		context.add(d);
 		
 		// Get the x&y coords for the destination set by the user
@@ -469,7 +469,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public Ped addPed(Coordinate coord, Destination d)  {
+    public Ped addPed(Coordinate coord, OD d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
@@ -502,7 +502,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
      * Initialise a vehicle agent and add to to the context and projection
      */
-    private Vehicle addVehicle(Coordinate o, Destination d) {
+    private Vehicle addVehicle(Coordinate o, OD d) {
 		Vehicle V = new Vehicle(geography, vehicleDestinationGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, d);
 		context.add(V);
 		Point pt = fac.createPoint(o);

@@ -13,7 +13,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -29,7 +29,7 @@ public class Vehicle extends MobileAgent {
 	private Route route;
 
 
-	public Vehicle(Geography<Object> geography, Geography<Destination> destinationGeography, int mS, double a, double s, Destination d) {
+	public Vehicle(Geography<Object> geography, Geography<OD> destinationGeography, int mS, double a, double s, OD d) {
 		super(geography, d);
 		this.maxSpeed = mS;
 		this.acc = a;
@@ -433,7 +433,7 @@ public class Vehicle extends MobileAgent {
      *  	The Destination object of this vehicle
      */
 	@Override
-    public Destination getDestination() {
+    public OD getDestination() {
     	return this.destination;
     }
 	

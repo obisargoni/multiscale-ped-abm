@@ -52,7 +52,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.Cacheable;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
@@ -1215,7 +1215,7 @@ class NearestRoadCoordCache implements Serializable {
 
 	private GeometryFactory geomFac;
 
-	private NearestRoadCoordCache(Geography<Destination> buildingEnvironment, File buildingsFile,
+	private NearestRoadCoordCache(Geography<OD> buildingEnvironment, File buildingsFile,
 			Geography<RoadLink> roadLinkEnvironment, File roadsFile, File serialisedLoc, GeometryFactory geomFac)
 			throws Exception {
 
@@ -1241,12 +1241,12 @@ class NearestRoadCoordCache implements Serializable {
 	}
 
 	
-	private void populateCache(Geography<Destination> buildingEnvironment, Geography<RoadLink> roadLinkEnvironment)
+	private void populateCache(Geography<OD> buildingEnvironment, Geography<RoadLink> roadLinkEnvironment)
 			throws Exception {
 		double time = System.nanoTime();
 		theCache = new Hashtable<Coordinate, Coordinate>();
 		// Iterate over every building and find the nearest road point
-		for (Destination b : buildingEnvironment.getAllObjects()) {
+		for (OD b : buildingEnvironment.getAllObjects()) {
 			List<Coordinate> nearestCoords = new ArrayList<Coordinate>();
 			Geometry bGeom = b.getGeom();
 			Route.findNearestObject(bGeom.getCoordinate(), roadLinkEnvironment, nearestCoords,
@@ -1375,7 +1375,7 @@ class NearestRoadCoordCache implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public synchronized static NearestRoadCoordCache getInstance(Geography<Destination> buildingEnv, File buildingsFile,
+	public synchronized static NearestRoadCoordCache getInstance(Geography<OD> buildingEnv, File buildingsFile,
 			Geography<RoadLink> roadEnv, File roadsFile, File serialisedLoc, GeometryFactory geomFac) throws Exception {
 		double time = System.nanoTime();
 		// See if there is a cache object on disk.

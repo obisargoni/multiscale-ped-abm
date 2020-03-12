@@ -20,7 +20,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
@@ -75,7 +75,7 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Destination> destinationGeography, Destination d) {
+    public Ped(Geography<Object> geography, Geography<OD> destinationGeography, OD d) {
     	super(geography, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
@@ -686,7 +686,7 @@ public class Ped extends MobileAgent {
      *  	The Destination object of this pedestrian
      */
     @Override
-    public Destination getDestination() {
+    public OD getDestination() {
     	return this.destination;
     }
     

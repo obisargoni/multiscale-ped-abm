@@ -14,15 +14,15 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class Destination implements FixedGeography{
+public class OD implements FixedGeography{
 	
 	private Context<Object> context;
 	private Geography<Object> geography;
-	private Geography<Destination> destinationGeography;
+	private Geography<OD> destinationGeography;
 	private Geometry geom;
 	private double arrivalDist = GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance; // Distance from destination at which agents are removed from the simulation
 		
-	public Destination() {
+	public OD() {
 
 	}
 	
@@ -66,7 +66,7 @@ public class Destination implements FixedGeography{
 		this.geography = G;
 	}
 	
-	public void setDestinationGeography(Geography<Destination> G) {
+	public void setDestinationGeography(Geography<OD> G) {
 		this.destinationGeography = G;
 	}
 	

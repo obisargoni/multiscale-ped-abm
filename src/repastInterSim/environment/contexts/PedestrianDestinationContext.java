@@ -19,10 +19,10 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.environment.contexts;
 
 import repast.simphony.context.DefaultContext;
-import repastInterSim.environment.Destination;
+import repastInterSim.environment.OD;
 import repastInterSim.main.GlobalVars;
 
-public class PedestrianDestinationContext extends DefaultContext<Destination> {
+public class PedestrianDestinationContext extends DefaultContext<OD> {
 	
 	public PedestrianDestinationContext() {
 		super(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_CONTEXT);
