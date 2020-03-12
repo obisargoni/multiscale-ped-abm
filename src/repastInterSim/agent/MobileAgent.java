@@ -11,13 +11,19 @@ public class MobileAgent {
     protected int id;
     protected Geography<Object> geography; // Space the agent exists in
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
+    protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
     
-    MobileAgent(Geography<Object> geography, OD d){
+    MobileAgent(Geography<Object> geography, OD o, OD d){
     	this.id = MobileAgent.uniqueID++;
     	this.geography = geography;
+    	this.origin = o;
     	this.destination = d;
     }
+	
+	public OD getOrigin() {
+		return this.origin;
+	}
 	
 	public OD getDestination() {
 		return this.destination;
