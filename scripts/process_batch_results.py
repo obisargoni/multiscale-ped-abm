@@ -220,6 +220,15 @@ gdf_comb['pct_deviation'] = gdf_comb['deviation'] / gdf_comb['length']
 gdf_comb = gdf_comb.reindex(columns = ['run', 'ID', 'traj_length', 'length', 'deviation', 'pct_deviation'])
 gdf_comb = gdf_comb.dropna(subset = ['pct_deviation'])
 
+# Get mean path deviation
+def stats_df(df, data_col, stat_names = ['mean','std']):
+    stats = df[data_col].describe()
+    data = {}
+    for s in stat_names:
+        data[s] = [stats[s]]
+    return pd.DataFrame(data)
+
+df_mean_deviation = gdf_comb.groupby('run').apply(lambda df: stats_df(df, 'pct_deviation')).reset_index()
 
 ###############################
 #
