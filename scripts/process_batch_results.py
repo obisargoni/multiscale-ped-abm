@@ -315,6 +315,70 @@ df_cross_pct = pd.merge(df_cross_pct, df_run, left_on = 'run', right_on = 'run',
 import matplotlib.pyplot as plt
 import seaborn as sn
 
+def batch_run_bar(df_data, data_col, run_col, xlabel_col, title, output_path):
+
+    groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio']
+    grouped = df_data.groupby(groupby_columns)
+    keys = list(grouped.groups.keys())
+
+    x = len(run_selection_dict[groupby_columns[0]])
+    y = len(run_selection_dict[groupby_columns[1]])
+    key_indices = np.reshape(np.arange(len(keys)), (x,y))
+
+    fig_indices = np.reshape(key_indices, (x, y))
+    f,axs = plt.subplots(x, y,figsize=(10,20), sharey=True, sharex = True)
+    for ki in range(len(keys)):
+        group_key = keys[ki]
+        data = grouped.get_group(group_key)
+        assert data[run_col].unique().shape[0] == 2
+
+        i,j= np.where(fig_indices == ki)
+        assert len(i) == len(j) == 1
+        ax = axs[i[0], j[0]]
+
+        xind = np.arange(len(data[data_col]))
+        xlab = data[xlabel_col].values
+        clrs = ['grey','blue']
+        ax.bar(xind, data[data_col], color = clrs, label = xlabel_col)
+        plt.xticks(xind, xlab)
+        ax.set_xlabel(xlab)
+        ax.tick_params(labelbottom=True)
+        #ax.set_title("{},{}".format(*group_key), fontsize = 9)
+        #ax.legend(loc = 'upper right')
+
+    # Add in row group legend values
+    for i in range(x):
+        ki = key_indices[i, y-1]
+        group_key = keys[ki]
+
+        i,j= np.where(fig_indices == ki)
+        assert len(i) == len(j) == 1
+        ax = axs[i[0], j[0]]
+
+        s = "{}:\n{}".format(groupby_columns[0], group_key[0])
+        plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
+
+    for j in range(y):
+        ki = key_indices[0, j]
+        group_key = keys[ki]
+
+        i,j= np.where(fig_indices == ki)
+        assert len(i) == len(j) == 1
+        ax = axs[i[0], j[0]]
+
+        s = "{}: {}".format(groupby_columns[1], group_key[1])
+        plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
+
+    for ki in np.nditer(key_indices):
+        group_key = keys[ki]
+
+        i,j= np.where(fig_indices == ki)
+        assert len(i) == len(j) == 1
+        ax = axs[i[0], j[0]]
+    f.suptitle(title, fontsize=16)
+    f.show()
+    plt.savefig(output_path)
+
 
 # Histogram of deviation from straight line distance
 groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
@@ -380,67 +444,6 @@ for ki in np.nditer(key_indices):
 f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
-
 df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
+batch_run_bar(df_cross_pct, data_col = 'cross_pct', run_col = 'run', xlabel_col = 'cellCostUpdate', title = "Percentage of pedestrian trajectories passing through pedestrian crossing", output_path = os.path.join(img_dir, crossing_percent_fig))
 
-groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio']
-grouped = df_cross_pct.groupby(groupby_columns)
-keys = list(grouped.groups.keys())
-
-x = len(run_selection_dict[groupby_columns[0]])
-y = len(run_selection_dict[groupby_columns[1]])
-key_indices = np.reshape(np.arange(len(keys)), (x,y))
-
-fig_indices = np.reshape(key_indices, (x, y))
-f,axs = plt.subplots(x, y,figsize=(10,20), sharey=True, sharex = True)
-for ki in range(len(keys)):
-    group_key = keys[ki]
-    data = grouped.get_group(group_key)
-    assert data['run'].unique().shape[0] == 2
-
-    i,j= np.where(fig_indices == ki)
-    assert len(i) == len(j) == 1
-    ax = axs[i[0], j[0]]
-
-    xind = np.arange(len(data['cross_pct']))
-    xlab = data['cellCostUpdate'].values
-    clrs = ['grey','blue']
-    ax.bar(xind, data['cross_pct'], color = clrs, label = xlab)
-    plt.xticks(xind, xlab)
-    ax.set_xlabel("cellCostUpdate")
-    ax.tick_params(labelbottom=True)
-    #ax.set_title("{},{}".format(*group_key), fontsize = 9)
-    #ax.legend(loc = 'upper right')
-
-# Add in row group legend values
-for i in range(x):
-    ki = key_indices[i, y-1]
-    group_key = keys[ki]
-
-    i,j= np.where(fig_indices == ki)
-    assert len(i) == len(j) == 1
-    ax = axs[i[0], j[0]]
-
-    s = "{}:\n{}".format(groupby_columns[0], group_key[0])
-    plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
-
-for j in range(y):
-    ki = key_indices[0, j]
-    group_key = keys[ki]
-
-    i,j= np.where(fig_indices == ki)
-    assert len(i) == len(j) == 1
-    ax = axs[i[0], j[0]]
-
-    s = "{}: {}".format(groupby_columns[1], group_key[1])
-    plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
-
-for ki in np.nditer(key_indices):
-    group_key = keys[ki]
-
-    i,j= np.where(fig_indices == ki)
-    assert len(i) == len(j) == 1
-    ax = axs[i[0], j[0]]
-f.suptitle("Percentage of pedestrian trajectories passing through pedestrian crossing", fontsize=16)
-f.show()
-plt.savefig(os.path.join(img_dir, crossing_percent_fig))
