@@ -96,6 +96,7 @@ vehicle_polygons = "topographicAreaVehicle-withPriority-RoadLinkGrouping-Crossin
 # Output paths
 img_dir = "..\\output\\img\\"
 path_deviation_fig = "path_deviation.png"
+path_deviation_bar_fig = "path_deviation_bar.png"
 crossing_percent_fig = "crossing_percent.png"
 
 output_data_dir = "..\\output\\processed_data\\"
@@ -315,6 +316,7 @@ for col in selection_columns:
 # Join this to the data
 gdf_comb = pd.merge(gdf_comb, df_run, left_on = 'run', right_on = 'run', how = 'inner')
 df_cross_pct = pd.merge(df_cross_pct, df_run, left_on = 'run', right_on = 'run', how = 'inner')
+df_mean_deviation = pd.merge(df_mean_deviation, df_run, left_on = 'run', right_on = 'run', how = 'inner')
 
 ###############################
 #
@@ -462,4 +464,10 @@ df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
 batch_run_bar(df_cross_pct, data_col = 'cross_pct', error_col = None, run_col = 'run', xlabel_col = 'cellCostUpdate', 
                 title = "Percentage of pedestrian trajectories passing through pedestrian crossing", 
                 output_path = os.path.join(img_dir, crossing_percent_fig))
+
+
+batch_run_bar(df_mean_deviation, data_col = 'mean', error_col = 'std', run_col = 'run', xlabel_col = 'cellCostUpdate', 
+                title = "Mean factional difference between initial route plan and actual route", 
+                output_path = os.path.join(img_dir, path_deviation_bar_fig))
+
 
