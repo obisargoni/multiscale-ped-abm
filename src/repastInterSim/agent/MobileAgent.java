@@ -2,6 +2,8 @@ package repastInterSim.agent;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.OD;
 
@@ -13,6 +15,8 @@ public class MobileAgent {
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
     protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
+	protected Parameters params = RunEnvironment.getInstance ().getParameters();
+
     
     MobileAgent(Geography<Object> geography, OD o, OD d){
     	this.id = MobileAgent.uniqueID++;

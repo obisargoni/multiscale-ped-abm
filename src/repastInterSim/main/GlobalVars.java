@@ -39,7 +39,6 @@ public abstract class GlobalVars {
 	
 	//private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
 	
-	public static Parameters params = RunEnvironment.getInstance ().getParameters();
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
 	static String geographyCRSString = "EPSG:27700";
@@ -167,15 +166,7 @@ public abstract class GlobalVars {
 		}
 	}
 	
-	public static final class MOBILE_AGENT_PARAMS {
-		
-		// Value for how much more costly moving in vehicle priority space is for a pedestrian
-		// Value of 1 means pedestrian perceived vehicle space as costly as pedestrian space
-		public static double vehiclePriorityCostRatio = params.getDouble("vehiclePriorityCostRatio"); 
-		
-		// Parameter used to convert from proportion of road space occupied by vehicles to perception of grid cell cost
-		public static double gridCellCostParam = params.getDouble("cellCostUpdate");
-		
+	public static class MOBILE_AGENT_PARAMS {		
 		public static double destinationArrivalDistance = 1.0; // Distance from destination at which agent is considered to ahve arrived
 		
 		// Constants used to estimate space taken up by vehicles 

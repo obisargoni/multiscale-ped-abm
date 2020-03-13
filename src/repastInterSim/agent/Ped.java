@@ -91,8 +91,8 @@ public class Ped extends MobileAgent {
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
         
-        // Set the cost to the agent of moving in pedestrian and vehicle priority areas. Used when running flood fill for routing
-        this.vehiclePriorityCostRatio = GlobalVars.MOBILE_AGENT_PARAMS.vehiclePriorityCostRatio;
+		// Set pedestrian perception of cost of moving in vehicle priority areas. 1 = same cost as pavement. 10 = ten times more costly than pavement
+        this.vehiclePriorityCostRatio =  params.getDouble("vehiclePriorityCostRatio"); 
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian_crossing"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
@@ -521,7 +521,8 @@ public class Ped extends MobileAgent {
     	
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
-    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio * ( 1 + GlobalVars.MOBILE_AGENT_PARAMS.gridCellCostParam * vehicleRoadSpace);
+    	double gridCellCostParam = params.getDouble("cellCostUpdate");
+    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio * ( 1 + gridCellCostParam * vehicleRoadSpace);
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
