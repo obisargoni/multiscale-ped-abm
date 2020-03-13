@@ -200,10 +200,10 @@ gdf_prim.crs = project_crs
 gdf_prim['length'] = gdf_prim['geometry'].length
 
 # Get the ped ODs
-df_ped_ods = df_prim_first.reindex(columns = ['run','ID','tick','OriginXString','OriginYString','DestinationXString','DestinationYString', 'VehicleCost'])
+df_ped_ods = df_prim_first.reindex(columns = ['run','ID','tick','OriginXString','OriginYString','DestinationXString','DestinationYString'])
 df_ped_ods['origin'] = df_ped_ods.apply(lambda df: Point(df.OriginXString, df.OriginYString), axis=1)
 df_ped_ods['destination'] = df_ped_ods.apply(lambda df: Point(df.DestinationXString, df.DestinationYString), axis=1)
-gdf_ped_ods = gpd.GeoDataFrame(df_ped_ods).reindex(columns = ['run','ID', 'VehicleCost', 'origin','destination'])
+gdf_ped_ods = gpd.GeoDataFrame(df_ped_ods).reindex(columns = ['run','ID', 'origin','destination'])
 gdf_ped_ods.crs = project_crs
 
 
