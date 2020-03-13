@@ -324,7 +324,7 @@ df_cross_pct = pd.merge(df_cross_pct, df_run, left_on = 'run', right_on = 'run',
 import matplotlib.pyplot as plt
 import seaborn as sn
 
-def batch_run_bar(df_data, data_col, run_col, xlabel_col, title, output_path):
+def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, output_path):
 
     groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio']
     grouped = df_data.groupby(groupby_columns)
@@ -348,9 +348,14 @@ def batch_run_bar(df_data, data_col, run_col, xlabel_col, title, output_path):
         xind = np.arange(len(data[data_col]))
         xlab = data[xlabel_col].values
         clrs = ['grey','blue']
-        ax.bar(xind, data[data_col], color = clrs, label = xlabel_col)
+
+        error = None
+        if error_col is not None:
+            error = data[error_col]
+
+        ax.bar(xind, data[data_col], yerr = error, color = clrs, label = xlab)
         plt.xticks(xind, xlab)
-        ax.set_xlabel(xlab)
+        ax.set_xlabel(xlabel_col)
         ax.tick_params(labelbottom=True)
         #ax.set_title("{},{}".format(*group_key), fontsize = 9)
         #ax.legend(loc = 'upper right')
@@ -454,5 +459,7 @@ f.show()
 plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
 df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
-batch_run_bar(df_cross_pct, data_col = 'cross_pct', run_col = 'run', xlabel_col = 'cellCostUpdate', title = "Percentage of pedestrian trajectories passing through pedestrian crossing", output_path = os.path.join(img_dir, crossing_percent_fig))
+batch_run_bar(df_cross_pct, data_col = 'cross_pct', error_col = None, run_col = 'run', xlabel_col = 'cellCostUpdate', 
+                title = "Percentage of pedestrian trajectories passing through pedestrian crossing", 
+                output_path = os.path.join(img_dir, crossing_percent_fig))
 
