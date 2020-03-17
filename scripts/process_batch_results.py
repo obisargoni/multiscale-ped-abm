@@ -326,7 +326,7 @@ df_mean_deviation = pd.merge(df_mean_deviation, df_run, left_on = 'run', right_o
 import matplotlib.pyplot as plt
 import seaborn as sn
 
-def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, output_path):
+def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rename_dict, output_path):
 
     groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio']
     grouped = df_data.groupby(groupby_columns)
@@ -357,7 +357,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, outp
 
         ax.bar(xind, data[data_col], yerr = error, color = clrs, label = xlab)
         plt.xticks(xind, xlab)
-        ax.set_xlabel(xlabel_col)
+        ax.set_xlabel(rename_dict[xlabel_col])
         ax.tick_params(labelbottom=True)
         #ax.set_title("{},{}".format(*group_key), fontsize = 9)
         #ax.legend(loc = 'upper right')
@@ -371,7 +371,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, outp
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}:\n{}".format(groupby_columns[0], group_key[0])
+        s = "{}:\n{}".format(rename_dict[groupby_columns[0]], group_key[0])
         plt.text(1.1,0.5, s, fontsize = 9, transform = ax.transAxes)
 
     for j in range(y):
@@ -382,7 +382,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, outp
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}: {}".format(groupby_columns[1], group_key[1])
+        s = "{}: {}".format(rename_dict[groupby_columns[1]], group_key[1])
         plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
 
     for ki in np.nditer(key_indices):
@@ -397,6 +397,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, outp
 
 
 # Histogram of deviation from straight line distance
+rename_dict = {'addVehicleTicks':"Vehicle Addition Frequency",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
 groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
 grouped = gdf_comb.groupby(groupby_columns)
 keys = list(grouped.groups.keys())
@@ -462,12 +463,14 @@ plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
 df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
 batch_run_bar(df_cross_pct, data_col = 'cross_pct', error_col = None, run_col = 'run', xlabel_col = 'cellCostUpdate', 
-                title = "Percentage of pedestrian trajectories passing through pedestrian crossing", 
+                title = "Percentage of pedestrian trajectories passing through pedestrian crossing",
+                rename_dict = rename_dict,
                 output_path = os.path.join(img_dir, crossing_percent_fig))
 
 
 batch_run_bar(df_mean_deviation, data_col = 'mean', error_col = 'std', run_col = 'run', xlabel_col = 'cellCostUpdate', 
-                title = "Mean factional difference between initial route plan and actual route", 
+                title = "Mean factional difference between initial route plan and actual route",
+                rename_dict = rename_dict,
                 output_path = os.path.join(img_dir, path_deviation_bar_fig))
 
 
