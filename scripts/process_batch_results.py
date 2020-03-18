@@ -386,7 +386,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         ax = axs[i[0], j[0]]
 
         s = "{}: {}".format(rename_dict[groupby_columns[1]], group_key[1])
-        plt.text(0,1.1, s, fontsize = 9, transform = ax.transAxes)
+        plt.text(0.5,1.1, s, fontsize = 9, transform = ax.transAxes)
 
     for ki in np.nditer(key_indices):
         group_key = keys[ki]
