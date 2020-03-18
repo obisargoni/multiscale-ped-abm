@@ -348,15 +348,15 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         ax = axs[i[0], j[0]]
 
         xind = np.arange(len(data[data_col]))
-        xlab = data[xlabel_col].values
+        xval = data[xlabel_col].values
         clrs = ['grey','blue']
 
         error = None
         if error_col is not None:
             error = data[error_col]
 
-        ax.bar(xind, data[data_col], yerr = error, color = clrs, label = xlab)
-        plt.xticks(xind, xlab)
+        ax.bar(xind, data[data_col], yerr = error, color = clrs, label = xval)
+        plt.xticks(xind, xval)
         ax.set_xlabel(rename_dict[xlabel_col])
         ax.tick_params(labelbottom=True)
         #ax.set_title("{},{}".format(*group_key), fontsize = 9)
