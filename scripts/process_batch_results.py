@@ -358,7 +358,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         ax.bar(xind, data[data_col], yerr = error, color = clrs, label = xval)
         plt.xticks(xind, xval)
         ax.set_xlabel(rename_dict[xlabel_col])
-        ax.tick_params(labelbottom=True)
+        ax.tick_params(labelbottom=True, labelleft = True)
         #ax.set_title("{},{}".format(*group_key), fontsize = 9)
         #ax.legend(loc = 'upper right')
 
