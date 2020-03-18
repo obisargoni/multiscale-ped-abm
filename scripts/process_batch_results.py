@@ -394,7 +394,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         i,j= np.where(fig_indices == ki)
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
-    f.suptitle(title, fontsize=16)
+    f.suptitle(title, fontsize=16, y = 1)
     f.show()
     plt.savefig(output_path)
 
