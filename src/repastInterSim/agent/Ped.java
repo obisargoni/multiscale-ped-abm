@@ -522,7 +522,7 @@ public class Ped extends MobileAgent {
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
     	double gridCellCostParam = params.getDouble("cellCostUpdate");
-    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio * ( 1 + gridCellCostParam * vehicleRoadSpace);
+    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio + gridCellCostParam * vehicleRoadSpace;
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
