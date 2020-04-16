@@ -11,7 +11,8 @@ import pandas as pd
 
 gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
 topographic_data_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
-output_directory = os.path.join(gis_data_dir, "Intersect Within layers")
+
+output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
 if os.path.isdir(output_directory) == False:
 	os.mkdirs(output_directory)
