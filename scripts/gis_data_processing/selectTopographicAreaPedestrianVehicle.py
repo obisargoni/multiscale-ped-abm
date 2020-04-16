@@ -65,6 +65,9 @@ gdfVehicle = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin([	'(1:Road Or Track)
 																'(2:Road Or Track,Structure)'])]
 
 
+# Add in priority field
+gdfPedestrian[priority] = "pedestrian"
+gdfVehicle[priority] = "vehicle"
 
 ###########################
 #
