@@ -75,5 +75,5 @@ gdfVehicle[priority] = "vehicle"
 #
 ###########################
 # Save these polygon layers
-gdfPedestrian.to_file(os.path.join(output_directory, output_pedestrian_file))
-gdfVehicle.to_file(os.path.join(output_directory, output_vehicle_file))
+gdfPedestrian.to_file(output_pedestrian_file)
+gdfVehicle.to_file( output_vehicle_file)
