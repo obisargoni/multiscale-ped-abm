@@ -17,7 +17,7 @@ topographic_line_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\maste
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
 if os.path.isdir(output_directory) == False:
-	os.mkdirs(output_directory)
+    os.mkdir(output_directory)
 
 
 selection_layer_file = os.path.join(gis_data_dir, "JunctClip.shp")
