@@ -1,6 +1,8 @@
 import os
 import geopandas as gpd
 import pandas as pd
+import networkx as nx
+from shapely.geometry import Polygon, MultiPolygon, LineString, MultiLineString
 
 
 ################################
@@ -137,6 +139,64 @@ gdfPedestrianA = gdfPedestrianB = None
 # Add in priority field
 gdfPedestrian[priority_column] = "pedestrian"
 gdfVehicle[priority_column] = "vehicle"
+
+
+########################################
+#
+# Select only polygons that are withing the largest connected component, avoids unaccessible islands
+#
+########################################
+
+# Combine pedestrian and vehicle areas into a single geo series
+gdfPedVeh = pd.concat([gdfVehicle, gdfPedestrian])
+
+
+
+# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify cluders
+dfPedVehNeighbours = pd.DataFrame()
+for index, row in gdfPedVeh.iterrows():
+    # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
+    neighborFIDs = gdfPedVeh[gdfPedVeh.geometry.touches(row['geometry'])]['fid'].tolist() 
+    #neighborFIDs = neighborFIDs.remove(row['fid']) polygons don't touch them selves because they intersect
+    df = pd.DataFrame({'neighbourfid':neighborFIDs})
+    df['fid'] = row['fid']
+    dfPedVehNeighbours = pd.concat([dfPedVehNeighbours, df])
+
+
+g = nx.from_pandas_edgelist(dfPedVehNeighbours, source='fid', target = 'neighbourfid')
+ccs = list(nx.connected_components(g))
+ccs.sort(key=len)
+
+cc_largest = ccs.pop(-1)
+
+
+# Ideally want to restrict analysis to just the largest connected component since other ccs are likely to be court yard or other areas separate from roads
+# For the smaller ccs check that they dont intersect with road network, in which case they can be excluded
+# (might also want to check the road network is a single connected component)
+
+check_ok = True
+for cc in ccs:
+    gdfCC = gdfPedVeh.loc[ gdfPedVeh['fid'].isin(cc)]
+
+    # Check that none of these intersect with road links
+    if gpd.sjoin(gdfCC, gdfITNLink, op='intersects').shape[0] != 0:
+        print("Connected component at index {} intersects the road network".format(ccs.index(cc)))
+        check_ok = False
+
+assert check_ok
+
+
+# Filter pedestrian and vehicle polygons to just include those in the largest connected component
+gdfPedVeh = gdfPedVeh.loc[ gdfPedVeh['fid'].isin(cc_largest)]
+
+# Overwrite previous pedestrian and vehicle polygon geo dataframes as will want to replace witht he filtered data
+gdfPedestrian = gdfVehicle = None
+
+# Could do some cleaning here - multipart to singlepart
+
+
+gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] = 'pedestrian']
+gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] = 'vehicle']
 
 
 ##################################
