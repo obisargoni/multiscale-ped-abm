@@ -84,20 +84,60 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
 # Could do some cleaning here - multipart to singlepart
 
-# Now select just the polygons for pedestran or vehicle movement
-gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(['(1:Path)',
-																'(2:Path,Structure)',
-																'(2:Path,Tidal Water)',
-																'(2:Roadside,Structure)',
-																'(1:Roadside)'])]
 
-gdfVehicle = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin([	'(1:Road Or Track)',
-																'(2:Road Or Track,Structure)'])]
+
+################################
+#
+# Process topographic area data
+#
+################################
+
+# Select only the polygons that intersect or lie within the junc clip area
+gdfTopoAreaFiltered = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(SelectPolygon)) | (gdfTopoArea.geometry.within(SelectPolygon))]
+
+
+# Select vehicle areas as those that intersect the road network
+# Results in 252 polygons, many more that previous method
+gdfVehicle = gpd.sjoin(gdfTopoArea, gdfITNLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'itn')
+gdfVehicle.drop('index_itn', axis = 1, inplace=True)
+gdfVehicle.drop_duplicates(inplace = True)
+
+
+#gdfVehicle = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(gdfITNLink.geometry)) | (gdfTopoArea.geometry.intersects(gdfITNNode.geometry)) ]
+
+# Select polygons with descriptive types that correspons to areas where pedestrians typically have priority
+gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(['(1:Path)',
+                                                                '(2:Path,Structure)',
+                                                                '(2:Path,Tidal Water)',
+                                                                '(2:Roadside,Structure)',
+                                                                '(1:Roadside)'])]
+
+# Filter pedestrian polygons to just be those within the study area or that touch a vehicle polygon
+gdfPedestrianA = gdfPedestrian.loc[ (gdfPedestrian.geometry.intersects(SelectPolygon)) | (gdfPedestrian.geometry.within(SelectPolygon))]
+
+gdfPedestrianB = gdfPedestrian.copy()
+
+# Loop through geometries and include them if they touch a vehicle polygon
+keep_indices = []
+for i, row in gdfPedestrianB.iterrows():
+    poly = row['geometry']
+    for veh_poly in gdfVehicle['geometry']:
+        if poly.touches(veh_poly):
+            keep_indices.append(i)
+            break
+
+gdfPedestrianB = gdfPedestrianB.loc[keep_indices]
+
+# Overwrite initial ped polygon gdf with the polygons that are within the study area
+gdfPedestrian = pd.concat([gdfPedestrianA, gdfPedestrianB]).drop_duplicates()
+
+gdfPedestrianA = gdfPedestrianB = None 
 
 
 # Add in priority field
-gdfPedestrian[priority] = "pedestrian"
-gdfVehicle[priority] = "vehicle"
+gdfPedestrian[priority_column] = "pedestrian"
+gdfVehicle[priority_column] = "vehicle"
+
 
 ##################################
 #
