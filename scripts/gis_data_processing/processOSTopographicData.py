@@ -195,8 +195,8 @@ gdfPedestrian = gdfVehicle = None
 # Could do some cleaning here - multipart to singlepart
 
 
-gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] = 'pedestrian']
-gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] = 'vehicle']
+gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'pedestrian']
+gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
 
 
 ##################################
