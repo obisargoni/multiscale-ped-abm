@@ -16,7 +16,7 @@ from shapely.geometry import Point
 #from cartoframes.auth import set_default_credentials
 #from cartoframes.viz import Map, Layer, animation_widget, animation_style, basemaps
 
-set_default_credentials('cartoframes')
+#set_default_credentials('cartoframes')
 
 
 # In[2]:
@@ -70,6 +70,7 @@ def dt_from_file_name(file_name, regex):
 #
 ###############################
 data_dir = "..\\output\\batch\\model_run_data\\"
+outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
@@ -124,7 +125,7 @@ for col in selection_columns:
 #
 #
 #################################
-
+'''
 
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 hex_polys_file = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\hexgrid.shp"
@@ -146,16 +147,15 @@ df_hex_counts = pd.DataFrame(ser_hex_counts).reset_index().rename(columns = {'in
 # Join back with the polygons and with df run to get parameter info
 
 df_hex_counts = pd.merge(df_hex_counts, gdf_hex, on = 'hex_id', how = 'left')
-df_hex_counts = pd.merge(gdf_hex_counts, df_run, on = 'run', how = 'inner') # Only include the runs we are interested in
+df_hex_counts = pd.merge(df_hex_counts, df_run, on = 'run', how = 'inner') # Only include the runs we are interested in
 
 gdf_hex_counts = gpd.GeoDataFrame(df_hex_counts)
 gdf_hex_counts.crs = gdf_hex.crs
 
 # Save the data
-outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 gdf_hex_counts.to_file(outpath)
 
-
+'''
 #################################
 #
 #
@@ -165,6 +165,8 @@ gdf_hex_counts.to_file(outpath)
 ################################
 
 gdf_hex_counts = gpd.read_file(outpath)
+gdf_hex_counts.rename(columns = {"addPedTick":"addPedTicks", "vehiclePri":"vehiclePriorityCostRatio",
+                                    "addVehicle":"addVehicleTicks", "cellCostUp":"cellCostUpdate"}, inplace = True)
 print(gdf_hex_counts.columns)
 
 
@@ -216,7 +218,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
     # Add in row group info to the last axis in the row
     for i in range(p):
-        ki = key_indices[i, c-1]
+        ki = key_indices[i, q*r - 1]
         group_key = keys[ki]
 
         i,j= np.where(fig_indices == ki)
@@ -254,9 +256,10 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     plt.savefig(output_path)
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
+rename_dict = {'addVehicleTicks':"Vehicle\nAddition\nFrequency:",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
 batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Paths Heatmap", map_output_path)
 
-
+'''
 gdf_hex_run1 = gdf_hex_counts.loc[ ~gdf_hex_counts['loc_count_'].isnull()]
 bb = gdf_hex_run1.total_bounds
 
@@ -298,3 +301,4 @@ for i in range(len(cols)):
 
 f.savefig("..\\output\\img\\binned_trajectories_w_background.png")
 
+'''
