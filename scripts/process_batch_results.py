@@ -324,7 +324,6 @@ df_mean_deviation = pd.merge(df_mean_deviation, df_run, left_on = 'run', right_o
 #
 ###############################
 import matplotlib.pyplot as plt
-import seaborn as sn
 
 def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rename_dict, output_path):
 
@@ -362,6 +361,8 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         # Only add x label on bottom subplots
         if i[0] == axs.shape[0]-1:
             ax.set_xlabel(rename_dict[xlabel_col])
+            plt.text(0.1,-0.28, "Ignore Traffic", fontsize = 9, transform = ax.transAxes)
+            plt.text(0.6,-0.28, "Sensitive to Traffic", fontsize = 9, transform = ax.transAxes)
         #ax.set_title("{},{}".format(*group_key), fontsize = 9)
         #ax.legend(loc = 'upper right')
 
@@ -388,13 +389,26 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
         s = "{}: {}".format(rename_dict[groupby_columns[1]], group_key[1])
         plt.text(0.5,1.1, s, fontsize = 9, transform = ax.transAxes)
 
+        # Add some explanitory text
+        t = ""
+        if group_key[1] == 1.00:
+            t = "Non-compliant"
+        elif group_key[1] == 100:
+            t = "Compliant"
+        plt.text(0.35,1.2, t, fontsize = 15, transform = ax.transAxes)
+
+    '''
     for ki in np.nditer(key_indices):
         group_key = keys[ki]
 
         i,j= np.where(fig_indices == ki)
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
-    f.suptitle(title, fontsize=16, y = 1)
+    '''
+
+    if title is not None:
+        f.suptitle(title, fontsize=16, y = 1)
+
     f.show()
     plt.savefig(output_path)
 
@@ -466,7 +480,7 @@ plt.savefig(os.path.join(img_dir, path_deviation_fig))
 
 df_cross_pct = df_cross_pct.dropna(subset=['cross_pct'])
 batch_run_bar(df_cross_pct, data_col = 'cross_pct', error_col = None, run_col = 'run', xlabel_col = 'cellCostUpdate', 
-                title = "Percentage of pedestrian trajectories passing through pedestrian crossing",
+                title = None,
                 rename_dict = rename_dict,
                 output_path = os.path.join(img_dir, crossing_percent_fig))
 
