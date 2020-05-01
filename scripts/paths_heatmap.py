@@ -226,7 +226,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         ax = axs[i[0], j[0]]
 
         s = "{}:\n{}".format(rename_dict[groupby_columns[0]], group_key[0])
-        plt.text(1.1,0.5, s, fontsize = 12, transform = ax.transAxes)
+        plt.text(1.1,0.5, s, fontsize = 15, transform = ax.transAxes)
 
     for j in range(q):
         ki = key_indices[0, j*r]
@@ -237,7 +237,15 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         ax = axs[i[0], j[0]]
 
         s = "{}: {}".format(rename_dict[groupby_columns[1]], group_key[1])
-        plt.text(1.05,1.1, s, fontsize = 12, transform = ax.transAxes)
+        plt.text(1.05,1.1, s, fontsize = 11, transform = ax.transAxes)
+
+        # Add some explanitory text
+        t = ""
+        if group_key[1] == 1.0:
+            t = "Non-compliant"
+        elif group_key[1] == 100:
+            t = "Compliant"
+        plt.text(0.95,1.2, t, fontsize = 15, transform = ax.transAxes)
 
     for k in range(q*r):
         ki = key_indices[1, k]
@@ -248,7 +256,15 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         ax = axs[i[0], j[0]]
 
         s = "{}: {}".format(rename_dict[groupby_columns[2]], group_key[2])
-        plt.text(0.45, -0.1, s, fontsize = 12, transform = ax.transAxes)
+        plt.text(0.45, -0.1, s, fontsize = 11, transform = ax.transAxes)
+
+        # Add some explanitory text
+        t = ""
+        if group_key[2] == 0:
+            t = "Ignore Traffic"
+        elif group_key[2] == 100:
+            t = "Sensitive to Traffic"
+        plt.text(0.35,-0.2, t, fontsize = 15, transform = ax.transAxes)
 
 
     f.suptitle(title, fontsize=16, y = 1)
