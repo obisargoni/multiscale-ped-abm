@@ -337,6 +337,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
 
     fig_indices = np.reshape(key_indices, (x, y))
     f,axs = plt.subplots(x, y,figsize=(10,5), sharey=True, sharex = True)
+    plt.ylim(bottom = 0.0, top = 1.0)
     for ki in range(len(keys)):
         group_key = keys[ki]
         data = grouped.get_group(group_key)
