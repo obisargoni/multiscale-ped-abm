@@ -12,20 +12,44 @@ import geopandas as gpd
 import os
 import networkx as nx
 
-data_directory = "..\\CoventGardenWaterloo\\single_road_data\\"
+
+#############################
+#
+#
+# Initialise paths to inputs and outputs
+#
+#
+#############################
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
+
 OD_shapefile = "OD_vehicle_nodes_intersect_within.shp"
 itn_link_shapefile = "mastermap-itn RoadLink Intersect Within with orientation.shp" # The shapefile of the road network used in the model
 
+route_info_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\itn_route_info"
+road_route_info_path = os.path.join(route_info_dir, "extracted_RRI.csv")
+road_node_info_path = os.path.join(route_info_dir, "extracted_RLNodes.csv")
+
+output_flows_path = os.path.join(gis_data_dir, "vehicleODFlows.csv")
+
+
+############################
+#
+#
+# Load the data
+#
+#
+###########################
+
 # Load the vehicle OD nodes and the road link data
-gdfOD = gpd.read_file(os.path.join(data_directory, OD_shapefile))
-gdfLink = gpd.read_file(os.path.join(data_directory, itn_link_shapefile))
+gdfOD = gpd.read_file(os.path.join(gis_data_dir, OD_shapefile))
+gdfLink = gpd.read_file(os.path.join(gis_data_dir, itn_link_shapefile))
 
 # Calculate the linestring lengths, to use as network edge weights
 gdfLink['weight'] = gdfLink['geometry'].map(lambda g: g.length)
 
 # No need to join together because the OD nodes file has the fids in
-dfRLNode = pd.read_csv("extracted_RLNodes.csv")
-dfRRI = pd.read_csv("extracted_RRI.csv")
+dfRLNode = pd.read_csv(road_node_info_path)
+dfRRI = pd.read_csv(road_route_info_path)
 
 # Filter the nodes to be just those in the ITN Link data used for the model
 dfRLNode = dfRLNode.loc[ dfRLNode["RoadLinkFID"].isin(gdfLink.fid)]
@@ -101,4 +125,4 @@ dfFlows = dfFlows.set_index(['O','D']).unstack().fillna(0)
 dfFlows.columns = [c[1] for c in dfFlows.columns]
 
 # Save this dataframe and use as the flows matrix
-dfFlows.to_csv("vehicleODFlows.csv", index=False, header=False)
+dfFlows.to_csv(output_flows_path, index=False, header=False)
