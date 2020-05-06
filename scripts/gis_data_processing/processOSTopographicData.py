@@ -147,7 +147,7 @@ gdfVehicle[priority_column] = "vehicle"
 
 ########################################
 #
-# Select only polygons that are withing the largest connected component, avoids unaccessible islands
+# Select only polygons that are within the largest connected component, avoids inaccessible islands
 #
 ########################################
 
@@ -156,7 +156,7 @@ gdfPedVeh = pd.concat([gdfVehicle, gdfPedestrian])
 
 
 
-# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify cluders
+# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify clusters
 dfPedVehNeighbours = pd.DataFrame()
 for index, row in gdfPedVeh.iterrows():
     # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
