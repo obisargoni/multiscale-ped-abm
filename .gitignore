@@ -61,6 +61,7 @@ hs_err_pid*
 /data/export/*
 ~/data/README.txt
 /output/*
+/batch/*
 ~/output/README.txt
 ~/output/logs/README.txt
 /debug.log.1
