@@ -415,7 +415,7 @@ def batch_run_bar(df_data, data_col, error_col, run_col, xlabel_col, title, rena
 
 
 # Histogram of deviation from straight line distance
-rename_dict = {'addVehicleTicks':"Vehicle\nAddition\nFrequency:",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
+rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
 groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
 grouped = gdf_comb.groupby(groupby_columns)
 keys = list(grouped.groups.keys())
