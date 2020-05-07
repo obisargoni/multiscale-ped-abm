@@ -38,7 +38,7 @@ topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_29030
 
 output_vehicle_file = os.path.join(output_directory, "topographicAreaVehicle.shp")
 output_pedestrian_file = os.path.join(output_directory, "topographicAreaPedestrian.shp")
-output_line_file = os.path.join(output_directory, "topographicLineObstructing_VehiclePedestrianIntersect.shp")
+output_line_file = os.path.join(output_directory, "boundaryPedestrianVehicleArea.shp")
 
 output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
 output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
@@ -207,9 +207,13 @@ gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
 #
 # Process topographic line data
 #
+#
+# Have decided to use the perimiter of the pedestrian and vehicle polygons combined. This is less restrictive that the topographic lines
+# that are categorised as obstructing, which in some places wouls unrealistically constrict pedestrian movement.
+#
 ##################################
 
-
+'''
 # Read in the data
 gdfTopoLine = gpd.read_file(topographic_line_file)
 
@@ -222,7 +226,7 @@ gdfTopoLine = gdfTopoLine.loc[gdfTopoLine['physicalPr'] == "Obstructing"]
 # Select only the Obstructing lines that boarder the pedestrian or vehicle areas
 gdfTopoLineSJ = gpd.sjoin(gdfTopoLine, gdfPedVeh, how = 'inner', op='intersects')
 gdfTopoLineSJ.drop_duplicates(inplace=True)
-
+'''
 
 # Get perimiter(s) of pedestrian and vehicle areas and include this with the obstructing lines (will need to make sure that this perimiter includes all ITN network)
 
@@ -249,7 +253,7 @@ gdfDissolved = explode(gdfDissolved)
 
 # Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
 gdfPerimiter = gpd.GeoDataFrame(columns = ['type','geometry'])
-gdfPerimiter.crs = projectCRS
+gdfPerimiter.crs = gdfDissolved.crs
 for geom in gdfDissolved['geometry']:
     exterior = LineString(geom.exterior.coords)
     gdfPerimiter = gdfPerimiter.append({"type":"exterior", "geometry":exterior}, ignore_index = True)
@@ -258,19 +262,12 @@ for geom in gdfDissolved['geometry']:
         interior = LineString(i)
         gdfPerimiter = gdfPerimiter.append({"type":"interior", "geometry":interior}, ignore_index = True)
 
-# Combine perimiter and obstruction linestrings
-# Better to overlay
-'''
-gdfLines = pd.concat([gdfTopoLineSJ, gdfPerimiter])
+gdfPerimiter[priority_column] = "pedestrian_obstruction"
 
-# Disolve together to avoid duplicated geometries
-gdfLines['dissolve_key'] = 1
-gdfLinesDissolved = gdfLines.dissolve(by = 'dissolve_key')
-gdfLinesDissolved = explode(gdfLinesDissolved, single_type = LineString, multi_type = MultiLineString)
+# Check how many exterior boundaries - ideally want one by can have more than this is largest connected component of ped&veh polys includes a polygon
+# that only touches at one coordinate
+print(gdfPerimiter['type'].value_counts())
 
-# Could do some cleaning here - multipart to singlepart - I think this has been taken care of by explode()
-gdfLinesDissolved[priority_column] = "pedestrian_obstruction"
-'''
 
 ###########################
 #
@@ -390,7 +387,7 @@ gdfVehicleLinks = explode(gdfVehicleLinks)
 # Save these polygon layers
 gdfPedestrianLinks.to_file(output_pedestrian_file)
 gdfVehicleLinks.to_file( output_vehicle_file)
-gdfLinesDissolved.to_file(output_line_file)
+gdfPerimiter.to_file(output_line_file)
 
 # Save the selected ITN geometries
 gdfITNLink.to_file(output_itn_link_file)
