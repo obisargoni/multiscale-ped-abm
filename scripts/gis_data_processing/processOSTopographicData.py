@@ -262,6 +262,7 @@ for geom in gdfDissolved['geometry']:
         interior = LineString(i)
         gdfPerimiter = gdfPerimiter.append({"type":"interior", "geometry":interior}, ignore_index = True)
 
+gdfPerimiter.crs = projectCRS
 gdfPerimiter[priority_column] = "pedestrian_obstruction"
 
 # Check how many exterior boundaries - ideally want one by can have more than this is largest connected component of ped&veh polys includes a polygon
