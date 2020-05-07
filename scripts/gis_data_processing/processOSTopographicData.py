@@ -372,12 +372,14 @@ rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfPedest
 gdfPedestrianLinks.rename(columns = rename_dict, inplace = True)
 gdfPedestrianLinks = gdfPedestrianLinks.dissolve(by = 'fid_itn').reset_index()
 gdfPedestrianLinks = explode(gdfPedestrianLinks)
+gdfPedestrianLinks.crs = gdfPedestrian.crs
 
 gdfVehicleLinks = gpd.overlay(gdfVehicle, gdfLinksVoronoi, how = 'intersection')
 rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfVehicleLinks.columns}
 gdfVehicleLinks.rename(columns = rename_dict, inplace = True)
 gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_itn').reset_index()
 gdfVehicleLinks = explode(gdfVehicleLinks)
+gdfVehicleLinks.crs = gdfVehicle.crs
 
 ###########################
 #
