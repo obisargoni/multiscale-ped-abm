@@ -18,6 +18,8 @@ This uses the direction information extracted with the first script and edits th
 
 4. checkDiNetworkRouting.py
 
+NOTE: Requires manually placing shape files of vehicle OD nodes in the processed data directory.
+
 Given the road nodes to use as vehicle ODs this procudes random flows between ODs, checking that a route is possible.
 
 5. randomOD2.py
