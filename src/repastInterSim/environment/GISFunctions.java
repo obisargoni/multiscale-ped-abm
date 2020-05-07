@@ -628,8 +628,8 @@ public class GISFunctions {
 		
 		// Gather the ID of road links the current and previous grid cells overlap with
 		for(Road r:intersectingRoads) {
-			if (!roadLinkIDs.contains(r.getRoadLinkFI())) {
-				roadLinkIDs.add(r.getRoadLinkFI());
+			if (!roadLinkIDs.contains(r.getRoadLinkID())) {
+				roadLinkIDs.add(r.getRoadLinkID());
 			}
 		}
 		return roadLinkIDs;

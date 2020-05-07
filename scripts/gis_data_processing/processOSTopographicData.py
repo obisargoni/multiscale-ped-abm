@@ -382,6 +382,10 @@ gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_itn').reset_index()
 gdfVehicleLinks = explode(gdfVehicleLinks)
 gdfVehicleLinks.crs = gdfVehicle.crs
 
+# Rename the ITN Road Link FID column to match the name expected by the Repast Model
+gdfVehicleLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
+gdfPedestrianLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
+
 ###########################
 #
 # Save processed data

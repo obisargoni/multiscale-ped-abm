@@ -17,7 +17,7 @@ import repastInterSim.main.SpaceBuilder;
  */
 public class Road implements FixedGeography {
 	
-	private String roadLinkFI; // The id of the road link this road object should be linked with
+	private String roadLinkID; // The id of the road link this road object should be linked with
 	private Geometry geom;	
 	private String priority = ""; // Priority information comes from GIS data
 	
@@ -79,15 +79,15 @@ public class Road implements FixedGeography {
 		this.geom = g;
 	}
 	
-	public void setRoadLinkFI(String rlFID) {
-		this.roadLinkFI = rlFID;
+	public void setRoadLinkID(String rlFID) {
+		this.roadLinkID = rlFID;
 		
 		// Once road link FID is set, can set the Road Link object
 		setRoadLinks();
 	}
 	
-	public String getRoadLinkFI() {
-		return this.roadLinkFI;
+	public String getRoadLinkID() {
+		return this.roadLinkID;
 	}
 	
 	/**
@@ -96,7 +96,7 @@ public class Road implements FixedGeography {
 	 */
 	public void setRoadLinks() {
 		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
-			if (rl.getFID().contentEquals(this.roadLinkFI)) {
+			if (rl.getFID().contentEquals(this.roadLinkID)) {
 				this.roadLinks.add(rl);
 			}
 		}
