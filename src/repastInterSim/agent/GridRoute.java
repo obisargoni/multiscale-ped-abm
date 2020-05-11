@@ -181,7 +181,7 @@ public class GridRoute extends Route {
 			}
 			
 			try {
-				cellRoadLinkFID = cellRoad.getRoadLinkFI();
+				cellRoadLinkFID = cellRoad.getRoadLinkID();
 			} catch (NullPointerException e) {
 				// The coordinate that a grid cell transforms to does not intersect a road
 				// Grid cell can be included in path because this the coord not intersecting with a road shouldnt affect the pruning of grid cells to coords

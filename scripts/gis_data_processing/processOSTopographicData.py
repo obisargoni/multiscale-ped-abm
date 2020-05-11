@@ -2,7 +2,7 @@ import os
 import geopandas as gpd
 import pandas as pd
 import networkx as nx
-from shapely.geometry import Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 
 
 ################################
@@ -38,7 +38,7 @@ topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_29030
 
 output_vehicle_file = os.path.join(output_directory, "topographicAreaVehicle.shp")
 output_pedestrian_file = os.path.join(output_directory, "topographicAreaPedestrian.shp")
-output_line_file = os.path.join(output_directory, "topographicLineObstructing_VehiclePedestrianIntersect.shp")
+output_line_file = os.path.join(output_directory, "boundaryPedestrianVehicleArea.shp")
 
 output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
 output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
@@ -47,6 +47,31 @@ output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode In
 projectCRS = {'init' :'epsg:27700'}
 
 priority_column = "priority"
+
+
+
+#################################
+#
+#
+# Functions
+#
+#
+################################
+
+# Disolved geometries are multi polygons, explode to single polygons
+def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
+    outdf = gpd.GeoDataFrame(columns=indf.columns)
+    for idx, row in indf.iterrows():
+        if type(row.geometry) == single_type:
+            outdf = outdf.append(row,ignore_index=True)
+        if type(row.geometry) == multi_type:
+            multdf = gpd.GeoDataFrame(columns=indf.columns)
+            recs = len(row.geometry)
+            multdf = multdf.append([row]*recs,ignore_index=True)
+            for geom in range(recs):
+                multdf.loc[geom,'geometry'] = row.geometry[geom]
+            outdf = outdf.append(multdf,ignore_index=True)
+    return outdf
 
 
 #################################
@@ -98,10 +123,6 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 #
 ################################
 
-# Select only the polygons that intersect or lie within the junc clip area
-gdfTopoAreaFiltered = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(SelectPolygon)) | (gdfTopoArea.geometry.within(SelectPolygon))]
-
-
 # Select vehicle areas as those that intersect the road network
 # Results in 252 polygons, many more that previous method
 gdfVehicle = gpd.sjoin(gdfTopoArea, gdfITNLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'itn')
@@ -112,11 +133,8 @@ gdfVehicle.drop_duplicates(inplace = True)
 #gdfVehicle = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(gdfITNLink.geometry)) | (gdfTopoArea.geometry.intersects(gdfITNNode.geometry)) ]
 
 # Select polygons with descriptive types that correspons to areas where pedestrians typically have priority
-gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(['(1:Path)',
-                                                                '(2:Path,Structure)',
-                                                                '(2:Path,Tidal Water)',
-                                                                '(2:Roadside,Structure)',
-                                                                '(1:Roadside)'])]
+pedestrian_descriptivs = ['(1:Path)','(2:Path,Structure)','(2:Path,Tidal Water)','(2:Roadside,Structure)','(1:Roadside)']
+gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(pedestrian_descriptivs)]
 
 # Filter pedestrian polygons to just be those within the study area or that touch a vehicle polygon
 gdfPedestrianA = gdfPedestrian.loc[ (gdfPedestrian.geometry.intersects(SelectPolygon)) | (gdfPedestrian.geometry.within(SelectPolygon))]
@@ -137,8 +155,7 @@ gdfPedestrianB = gdfPedestrianB.loc[keep_indices]
 # Overwrite initial ped polygon gdf with the polygons that are within the study area
 gdfPedestrian = pd.concat([gdfPedestrianA, gdfPedestrianB]).drop_duplicates()
 
-gdfPedestrianA = gdfPedestrianB = None 
-
+gdfPedestrianA = gdfPedestrianB = None
 
 # Add in priority field
 gdfPedestrian[priority_column] = "pedestrian"
@@ -147,16 +164,59 @@ gdfVehicle[priority_column] = "vehicle"
 
 ########################################
 #
-# Select only polygons that are withing the largest connected component, avoids unaccessible islands
+# Include any missed out pedestrian and vehicle polygons by finding the topographic polygons 
+# that math up with interorior gaps in the pedestrian vehicle polygon set, that are of the descriptive 
+# type that matches other ped and vehicle areas
 #
 ########################################
 
 # Combine pedestrian and vehicle areas into a single geo series
 gdfPedVeh = pd.concat([gdfVehicle, gdfPedestrian])
 
+gdfPedVeh['dissolve_key'] = 1
+gdfDissolved = gdfPedVeh.dissolve(by = "dissolve_key")
+
+gdfDissolved = explode(gdfDissolved)
+
+interiors = []
+for geom in gdfDissolved['geometry']:
+    for i in geom.interiors:
+        interiors.append(Polygon(i))
+
+gdfPedVehInteriors = gpd.GeoDataFrame({'geometry':interiors})
+gdfPedVehInteriors.crs = projectCRS
+
+# Get Topographic polygons not included in the ped + veh selection
+polyIDs = gdfPedVeh['fid'].values
+gdfTopoAreaExcluded = gdfTopoArea.loc[ ~gdfTopoArea['fid'].isin(polyIDs)]
+
+# Select those that intersect with the pedestrian and vehicle polygons, so see if they should have been included
+# Loop through geometries and include them if they touch a vehicle polygon
+candidate_indices = []
+for i, row in gdfTopoAreaExcluded.iterrows():
+    poly = row['geometry']
+    for pv_poly in gdfPedVehInteriors['geometry']:
+        if poly.intersects(pv_poly):
+            candidate_indices.append(i)
+            break
+gdfTopoAreaCandidates = gdfTopoAreaExcluded.loc[candidate_indices]
+
+gdfVehicleAdditions  = gdfTopoAreaCandidates.loc[ gdfTopoAreaCandidates['descriptiv'] == "(1:Road Or Track)"]
+gdfPedestrianAdditions  = gdfTopoAreaCandidates.loc[ gdfTopoAreaCandidates['descriptiv'].isin(pedestrian_descriptivs)]
+
+gdfVehicleAdditions[priority_column] = 'vehicle'
+gdfPedestrianAdditions[priority_column] = 'pedestrian'
+
+gdfPedVeh = pd.concat([gdfPedVeh, gdfPedestrianAdditions, gdfVehicleAdditions])
 
 
-# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify cluders
+########################################
+#
+# Select only polygons that are within the largest connected component, avoids inaccessible islands
+#
+########################################
+
+# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify clusters
 dfPedVehNeighbours = pd.DataFrame()
 for index, row in gdfPedVeh.iterrows():
     # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
@@ -196,8 +256,6 @@ gdfPedVeh = gdfPedVeh.loc[ gdfPedVeh['fid'].isin(cc_largest)]
 # Overwrite previous pedestrian and vehicle polygon geo dataframes as will want to replace witht he filtered data
 gdfPedestrian = gdfVehicle = None
 
-# Could do some cleaning here - multipart to singlepart
-
 
 gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'pedestrian']
 gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
@@ -207,9 +265,13 @@ gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
 #
 # Process topographic line data
 #
+#
+# Have decided to use the perimiter of the pedestrian and vehicle polygons combined. This is less restrictive that the topographic lines
+# that are categorised as obstructing, which in some places wouls unrealistically constrict pedestrian movement.
+#
 ##################################
 
-
+'''
 # Read in the data
 gdfTopoLine = gpd.read_file(topographic_line_file)
 
@@ -222,34 +284,18 @@ gdfTopoLine = gdfTopoLine.loc[gdfTopoLine['physicalPr'] == "Obstructing"]
 # Select only the Obstructing lines that boarder the pedestrian or vehicle areas
 gdfTopoLineSJ = gpd.sjoin(gdfTopoLine, gdfPedVeh, how = 'inner', op='intersects')
 gdfTopoLineSJ.drop_duplicates(inplace=True)
-
+'''
 
 # Get perimiter(s) of pedestrian and vehicle areas and include this with the obstructing lines (will need to make sure that this perimiter includes all ITN network)
 
 # Disolve pedestrian and vehicle polygons into single polygon and extract perimiter
 gdfPedVeh['dissolve_key'] = 1
 gdfDissolved = gdfPedVeh.dissolve(by = "dissolve_key")
-
-# Disolved geometries are multi polygons, explode to single polygons
-def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
-    outdf = gpd.GeoDataFrame(columns=indf.columns)
-    for idx, row in indf.iterrows():
-        if type(row.geometry) == single_type:
-            outdf = outdf.append(row,ignore_index=True)
-        if type(row.geometry) == multi_type:
-            multdf = gpd.GeoDataFrame(columns=indf.columns)
-            recs = len(row.geometry)
-            multdf = multdf.append([row]*recs,ignore_index=True)
-            for geom in range(recs):
-                multdf.loc[geom,'geometry'] = row.geometry[geom]
-            outdf = outdf.append(multdf,ignore_index=True)
-    return outdf
-
 gdfDissolved = explode(gdfDissolved)
 
 # Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
 gdfPerimiter = gpd.GeoDataFrame(columns = ['type','geometry'])
-gdfPerimiter.crs = projectCRS
+gdfPerimiter.crs = gdfDissolved.crs
 for geom in gdfDissolved['geometry']:
     exterior = LineString(geom.exterior.coords)
     gdfPerimiter = gdfPerimiter.append({"type":"exterior", "geometry":exterior}, ignore_index = True)
@@ -258,19 +304,13 @@ for geom in gdfDissolved['geometry']:
         interior = LineString(i)
         gdfPerimiter = gdfPerimiter.append({"type":"interior", "geometry":interior}, ignore_index = True)
 
-# Combine perimiter and obstruction linestrings
-# Better to overlay
-'''
-gdfLines = pd.concat([gdfTopoLineSJ, gdfPerimiter])
+gdfPerimiter.crs = projectCRS
+gdfPerimiter[priority_column] = "pedestrian_obstruction"
 
-# Disolve together to avoid duplicated geometries
-gdfLines['dissolve_key'] = 1
-gdfLinesDissolved = gdfLines.dissolve(by = 'dissolve_key')
-gdfLinesDissolved = explode(gdfLinesDissolved, single_type = LineString, multi_type = MultiLineString)
+# Check how many exterior boundaries - ideally want one by can have more than this is largest connected component of ped&veh polys includes a polygon
+# that only touches at one coordinate
+print(gdfPerimiter['type'].value_counts())
 
-# Could do some cleaning here - multipart to singlepart - I think this has been taken care of by explode()
-gdfLinesDissolved[priority_column] = "pedestrian_obstruction"
-'''
 
 ###########################
 #
@@ -375,12 +415,18 @@ rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfPedest
 gdfPedestrianLinks.rename(columns = rename_dict, inplace = True)
 gdfPedestrianLinks = gdfPedestrianLinks.dissolve(by = 'fid_itn').reset_index()
 gdfPedestrianLinks = explode(gdfPedestrianLinks)
+gdfPedestrianLinks.crs = gdfPedestrian.crs
 
 gdfVehicleLinks = gpd.overlay(gdfVehicle, gdfLinksVoronoi, how = 'intersection')
 rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfVehicleLinks.columns}
 gdfVehicleLinks.rename(columns = rename_dict, inplace = True)
 gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_itn').reset_index()
 gdfVehicleLinks = explode(gdfVehicleLinks)
+gdfVehicleLinks.crs = gdfVehicle.crs
+
+# Rename the ITN Road Link FID column to match the name expected by the Repast Model
+gdfVehicleLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
+gdfPedestrianLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
 
 ###########################
 #
@@ -390,7 +436,7 @@ gdfVehicleLinks = explode(gdfVehicleLinks)
 # Save these polygon layers
 gdfPedestrianLinks.to_file(output_pedestrian_file)
 gdfVehicleLinks.to_file( output_vehicle_file)
-gdfLinesDissolved.to_file(output_line_file)
+gdfPerimiter.to_file(output_line_file)
 
 # Save the selected ITN geometries
 gdfITNLink.to_file(output_itn_link_file)

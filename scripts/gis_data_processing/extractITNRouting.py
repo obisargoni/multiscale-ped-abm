@@ -7,10 +7,28 @@ import pandas as pd
 import numpy as np
 import os
 
-# Parse the gml data
+########################
+#
+# Initialise paths
+#
+########################
 itnDir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\mastermap-itn_2903030\\"
 itnF = "mastermap-itn_2903030_0.gml"
 
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+output_directory = os.path.join(gis_data_dir, "itn_route_info")
+
+if os.path.isdir(output_directory) == False:
+    os.mkdir(output_directory)
+
+output_route_info_path = os.path.join(output_directory, "extracted_RRI.csv") 
+output_node_info_path = os.path.join(output_directory, "extracted_RLNodes.csv") 
+
+#######################
+#
+# Load Data
+#
+#######################
 elemTree = etree.parse(os.path.join(itnDir, itnF))
 itnTree = elemTree.getroot()
 rl_elements = itnTree.findall(".//osgb:RoadLink", itnTree.nsmap)
@@ -62,5 +80,11 @@ for ri_element in ri_elements:
 assert dfRLNodes.isnull().any().any() == False
 assert dfRRI.isnull().any().any() == False
 
-dfRRI.to_csv("extracted_RRI.csv", index= False)
-dfRLNodes.to_csv("extracted_RLNodes.csv", index = False)
+
+#########################
+#
+# Save data
+#
+#########################
+dfRRI.to_csv(output_route_info_path, index= False)
+dfRLNodes.to_csv(output_node_info_path, index = False)

@@ -61,9 +61,10 @@ hs_err_pid*
 /data/export/*
 ~/data/README.txt
 /output/*
+/batch/*
 ~/output/README.txt
 ~/output/logs/README.txt
 /debug.log.1
 /data/model_run_exports/*
 ~/data/model_run_exports/ReadMe.txt
-/scripts/.ipynb_checkpoints/paths_animation-checkpoint.ipynb
+/scripts/.ipynb_checkpoints/*
