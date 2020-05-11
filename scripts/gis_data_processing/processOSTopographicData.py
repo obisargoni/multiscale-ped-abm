@@ -49,6 +49,31 @@ projectCRS = {'init' :'epsg:27700'}
 priority_column = "priority"
 
 
+
+#################################
+#
+#
+# Functions
+#
+#
+################################
+
+# Disolved geometries are multi polygons, explode to single polygons
+def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
+    outdf = gpd.GeoDataFrame(columns=indf.columns)
+    for idx, row in indf.iterrows():
+        if type(row.geometry) == single_type:
+            outdf = outdf.append(row,ignore_index=True)
+        if type(row.geometry) == multi_type:
+            multdf = gpd.GeoDataFrame(columns=indf.columns)
+            recs = len(row.geometry)
+            multdf = multdf.append([row]*recs,ignore_index=True)
+            for geom in range(recs):
+                multdf.loc[geom,'geometry'] = row.geometry[geom]
+            outdf = outdf.append(multdf,ignore_index=True)
+    return outdf
+
+
 #################################
 #
 # Read in the data
@@ -233,22 +258,6 @@ gdfTopoLineSJ.drop_duplicates(inplace=True)
 # Disolve pedestrian and vehicle polygons into single polygon and extract perimiter
 gdfPedVeh['dissolve_key'] = 1
 gdfDissolved = gdfPedVeh.dissolve(by = "dissolve_key")
-
-# Disolved geometries are multi polygons, explode to single polygons
-def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
-    outdf = gpd.GeoDataFrame(columns=indf.columns)
-    for idx, row in indf.iterrows():
-        if type(row.geometry) == single_type:
-            outdf = outdf.append(row,ignore_index=True)
-        if type(row.geometry) == multi_type:
-            multdf = gpd.GeoDataFrame(columns=indf.columns)
-            recs = len(row.geometry)
-            multdf = multdf.append([row]*recs,ignore_index=True)
-            for geom in range(recs):
-                multdf.loc[geom,'geometry'] = row.geometry[geom]
-            outdf = outdf.append(multdf,ignore_index=True)
-    return outdf
-
 gdfDissolved = explode(gdfDissolved)
 
 # Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
