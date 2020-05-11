@@ -2,7 +2,7 @@ import os
 import geopandas as gpd
 import pandas as pd
 import networkx as nx
-from shapely.geometry import Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 
 
 ################################
@@ -123,10 +123,6 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 #
 ################################
 
-# Select only the polygons that intersect or lie within the junc clip area
-gdfTopoAreaFiltered = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(SelectPolygon)) | (gdfTopoArea.geometry.within(SelectPolygon))]
-
-
 # Select vehicle areas as those that intersect the road network
 # Results in 252 polygons, many more that previous method
 gdfVehicle = gpd.sjoin(gdfTopoArea, gdfITNLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'itn')
@@ -137,11 +133,8 @@ gdfVehicle.drop_duplicates(inplace = True)
 #gdfVehicle = gdfTopoArea.loc[ (gdfTopoArea.geometry.intersects(gdfITNLink.geometry)) | (gdfTopoArea.geometry.intersects(gdfITNNode.geometry)) ]
 
 # Select polygons with descriptive types that correspons to areas where pedestrians typically have priority
-gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(['(1:Path)',
-                                                                '(2:Path,Structure)',
-                                                                '(2:Path,Tidal Water)',
-                                                                '(2:Roadside,Structure)',
-                                                                '(1:Roadside)'])]
+pedestrian_descriptivs = ['(1:Path)','(2:Path,Structure)','(2:Path,Tidal Water)','(2:Roadside,Structure)','(1:Roadside)']
+gdfPedestrian = gdfTopoArea.loc[gdfTopoArea['descriptiv'].isin(pedestrian_descriptivs)]
 
 # Filter pedestrian polygons to just be those within the study area or that touch a vehicle polygon
 gdfPedestrianA = gdfPedestrian.loc[ (gdfPedestrian.geometry.intersects(SelectPolygon)) | (gdfPedestrian.geometry.within(SelectPolygon))]
@@ -162,8 +155,7 @@ gdfPedestrianB = gdfPedestrianB.loc[keep_indices]
 # Overwrite initial ped polygon gdf with the polygons that are within the study area
 gdfPedestrian = pd.concat([gdfPedestrianA, gdfPedestrianB]).drop_duplicates()
 
-gdfPedestrianA = gdfPedestrianB = None 
-
+gdfPedestrianA = gdfPedestrianB = None
 
 # Add in priority field
 gdfPedestrian[priority_column] = "pedestrian"
@@ -172,14 +164,57 @@ gdfVehicle[priority_column] = "vehicle"
 
 ########################################
 #
-# Select only polygons that are within the largest connected component, avoids inaccessible islands
+# Include any missed out pedestrian and vehicle polygons by finding the topographic polygons 
+# that math up with interorior gaps in the pedestrian vehicle polygon set, that are of the descriptive 
+# type that matches other ped and vehicle areas
 #
 ########################################
 
 # Combine pedestrian and vehicle areas into a single geo series
 gdfPedVeh = pd.concat([gdfVehicle, gdfPedestrian])
 
+gdfPedVeh['dissolve_key'] = 1
+gdfDissolved = gdfPedVeh.dissolve(by = "dissolve_key")
 
+gdfDissolved = explode(gdfDissolved)
+
+interiors = []
+for geom in gdfDissolved['geometry']:
+    for i in geom.interiors:
+        interiors.append(Polygon(i))
+
+gdfPedVehInteriors = gpd.GeoDataFrame({'geometry':interiors})
+gdfPedVehInteriors.crs = projectCRS
+
+# Get Topographic polygons not included in the ped + veh selection
+polyIDs = gdfPedVeh['fid'].values
+gdfTopoAreaExcluded = gdfTopoArea.loc[ ~gdfTopoArea['fid'].isin(polyIDs)]
+
+# Select those that intersect with the pedestrian and vehicle polygons, so see if they should have been included
+# Loop through geometries and include them if they touch a vehicle polygon
+candidate_indices = []
+for i, row in gdfTopoAreaExcluded.iterrows():
+    poly = row['geometry']
+    for pv_poly in gdfPedVehInteriors['geometry']:
+        if poly.intersects(pv_poly):
+            candidate_indices.append(i)
+            break
+gdfTopoAreaCandidates = gdfTopoAreaExcluded.loc[candidate_indices]
+
+gdfVehicleAdditions  = gdfTopoAreaCandidates.loc[ gdfTopoAreaCandidates['descriptiv'] == "(1:Road Or Track)"]
+gdfPedestrianAdditions  = gdfTopoAreaCandidates.loc[ gdfTopoAreaCandidates['descriptiv'].isin(pedestrian_descriptivs)]
+
+gdfVehicleAdditions[priority_column] = 'vehicle'
+gdfPedestrianAdditions[priority_column] = 'pedestrian'
+
+gdfPedVeh = pd.concat([gdfPedVeh, gdfPedestrianAdditions, gdfVehicleAdditions])
+
+
+########################################
+#
+# Select only polygons that are within the largest connected component, avoids inaccessible islands
+#
+########################################
 
 # initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify clusters
 dfPedVehNeighbours = pd.DataFrame()
@@ -220,8 +255,6 @@ gdfPedVeh = gdfPedVeh.loc[ gdfPedVeh['fid'].isin(cc_largest)]
 
 # Overwrite previous pedestrian and vehicle polygon geo dataframes as will want to replace witht he filtered data
 gdfPedestrian = gdfVehicle = None
-
-# Could do some cleaning here - multipart to singlepart
 
 
 gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'pedestrian']
