@@ -362,7 +362,23 @@ public class GISFunctions {
 	 */
 	public static <T> void moveAgentToGeometry(Geography<T> geography, Geometry geom, T agent) {
 		geography.move(agent, geom);
-	}	
+	}
+	
+	/*
+	 * Move an agent to the input geometry in the input geography.
+	 * 
+	 * @param geography
+	 * 			The geography to add the agent to
+	 * @param agent
+	 * 			The agent to move to the geometry
+	 * @param distance
+	 * 			The distance to move the agent by
+	 * @param angle
+	 * 			The direction to move the agent in
+	 */
+	public static <T> void moveAgentByVector(Geography<T> geography, T agent, double distance, double angle) {
+		geography.moveByVector(agent, distance, angle);
+	}
 	
 	/**
 	 * Iterates over the geometries in a Geography Projection and expands an envelope such that 
