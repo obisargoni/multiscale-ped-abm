@@ -45,7 +45,7 @@ public abstract class GlobalVars {
 	
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations
-	static String geographyCRSString = "EPSG:27700";
+	public static String geographyCRSString = "EPSG:27700";
 	
 	/* These are strings that match entries in the repastcity.properties file.*/
 	public static final String GISDataDirectory = "GISDataDirectory";
