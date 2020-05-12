@@ -469,7 +469,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param coord
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
-    public Ped addPed(OD o, OD d)  {
+    private Ped addPed(OD o, OD d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
