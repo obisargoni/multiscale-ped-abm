@@ -91,7 +91,7 @@ public class GISFunctions {
 				juncFirst.setGeom(pF);
 				junctionContext.add(juncFirst);
 				coordMap.put(cFirst, juncFirst);
-				SpaceBuilder.moveAgentToGeometry(junctionGeography, pF, juncFirst);
+				moveAgentToGeometry(junctionGeography, pF, juncFirst);
 			}
 			if (coordMap.containsKey(cLast)) {
 				juncLast = coordMap.get(cLast);
@@ -101,7 +101,7 @@ public class GISFunctions {
 				juncLast.setGeom(pL);
 				junctionContext.add(juncLast);
 				coordMap.put(cLast, juncLast);
-				SpaceBuilder.moveAgentToGeometry(junctionGeography, pL, juncLast);
+				moveAgentToGeometry(junctionGeography, pL, juncLast);
 			}
 			// Tell the road object who it's junctions are
 			roadLink.addJunction(juncFirst);
@@ -349,6 +349,20 @@ public class GISFunctions {
 		Geometry geom = geography.getGeometry(agent);
 		return geom;
 	}
+	
+	/*
+	 * Move an agent to the input geometry in the input geography.
+	 * 
+	 * @param geography
+	 * 			The geography to add the agent to
+	 * @param geom
+	 * 			The geometry to move the agent to
+	 * @param agent
+	 * 			The agent to move to the geometry
+	 */
+	public static <T> void moveAgentToGeometry(Geography<T> geography, Geometry geom, T agent) {
+		geography.move(agent, geom);
+	}	
 	
 	/**
 	 * Iterates over the geometries in a Geography Projection and expands an envelope such that 

@@ -182,7 +182,7 @@ public class Ped extends MobileAgent {
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        SpaceBuilder.moveAgentToGeometry(this.geography, pGeomNew, this);
+        GISFunctions.moveAgentToGeometry(this.geography, pGeomNew, this);
         
         // Update the coordinate after moving the pedestrian
         setLoc();

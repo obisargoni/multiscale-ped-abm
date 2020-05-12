@@ -484,7 +484,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Geometry circle = pt.buffer(newPed.getRad());
 		
 		// Move the pedestrian to this geometry
-		moveAgentToGeometry(geography, circle, newPed);
+		GISFunctions.moveAgentToGeometry(geography, circle, newPed);
 		
 		// Set the location attribute of the pedestrian agent to be its current location. Simplifies future calculations
 		newPed.setLoc();
@@ -509,26 +509,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = fac.createPoint(oCoord);
 		Geometry vehicleCircle = pt.buffer(2);
-		moveAgentToGeometry(geography, vehicleCircle, V);
+		GISFunctions.moveAgentToGeometry(geography, vehicleCircle, V);
 		V.setLoc();
 		
 		return V;
     }
-	
-
-	/*
-	 * Move an agent to the input geometry in the input geography.
-	 * 
-	 * @param geography
-	 * 			The geography to add the agent to
-	 * @param geom
-	 * 			The geometry to move the agent to
-	 * @param agent
-	 * 			The agent to move to the geometry
-	 */
-	public static <T> void moveAgentToGeometry(Geography<T> geography, Geometry geom, T agent) {
-		geography.move(agent, geom);
-	}	
 	
 	/*
 	 * Move an agent to the input geometry in the input geography.

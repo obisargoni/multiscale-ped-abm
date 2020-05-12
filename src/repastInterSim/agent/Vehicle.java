@@ -300,7 +300,7 @@ public class Vehicle extends MobileAgent {
 				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-				SpaceBuilder.moveAgentToGeometry(geography, g, this);
+				GISFunctions.moveAgentToGeometry(geography, g, this);
 				distanceAlongRoute += disp;
 			}
 			// The vehicle is able to travel up to or beyond its next route coordinate
@@ -308,7 +308,7 @@ public class Vehicle extends MobileAgent {
 				// Move to the coordinate and repeat with next coordinate along
 				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
 				Geometry g = p.buffer(1);
-				SpaceBuilder.moveAgentToGeometry(geography, g, this);
+				GISFunctions.moveAgentToGeometry(geography, g, this);
 				
 				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
 				// since the vehicle has now reached the destination and can't go any further
