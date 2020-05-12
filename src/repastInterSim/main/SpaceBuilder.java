@@ -12,7 +12,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +66,6 @@ import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
-	private static Properties properties;
 	private static Boolean isDirected = true; // Indicates whether the road network is directed ot not. 
 	
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
@@ -126,7 +124,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Read in the model properties
 		try {
-			readProperties();
+			IO.readProperties();
 		} catch (IOException ex) {
 			throw new RuntimeException("Could not read model properties,  reason: " + ex.toString(), ex);
 		}
@@ -174,13 +172,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		
 	    // Load agents from shapefiles
-		String GISDataDir = getProperty("GISDataDir");
+		String GISDataDir = IO.getProperty("GISDataDir");
 		try {
 			
 			// Build the road network - needs to happen first because road link agents are assigned to road agents
 			
 			// 1. Load the road links
-			String roadLinkFile = GISDataDir + getProperty("RoadLinkShapefile");
+			String roadLinkFile = GISDataDir + IO.getProperty("RoadLinkShapefile");
 			GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 
@@ -194,22 +192,22 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// Build the fixed environment
 			
 			// 1. Load vehicle and pedestrian destinations
-			String vehicleDestinationsFile = GISDataDir + getProperty("VehicleDestinationsFile");
+			String vehicleDestinationsFile = GISDataDir + IO.getProperty("VehicleDestinationsFile");
 			GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, vehicleDestinationGeography, vehicleDestinationContext);
 			
-			String pedestrianDestinationsFile = GISDataDir + getProperty("PedestrianDestinationsFile");
+			String pedestrianDestinationsFile = GISDataDir + IO.getProperty("PedestrianDestinationsFile");
 			GISFunctions.readShapefile(OD.class, pedestrianDestinationsFile, pedestrianDestinationGeography, pedestrianDestinationContext);
 			
 			// 2. Load roads
-			String vehicleRoadFile = GISDataDir + getProperty("VehicleRoadShapefile");
-			String pedestrianRoadFile = GISDataDir + getProperty("PedestrianRoadShapefile");
+			String vehicleRoadFile = GISDataDir + IO.getProperty("VehicleRoadShapefile");
+			String pedestrianRoadFile = GISDataDir + IO.getProperty("PedestrianRoadShapefile");
 			GISFunctions.readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
 
 			
 			// 3. Load pedestrian obstruction boundaries
-			String pedObstructionFile = GISDataDir + getProperty("PedestrianObstructionShapefile");
+			String pedObstructionFile = GISDataDir + IO.getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
 			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
 			
@@ -264,10 +262,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		
 		// Read in OD matrix data for vehicles from CSV
-		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
+		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + IO.getProperty("vehicleODFlowsFile"));
 		
 		// Read in OD matrix data for pedestrians from CSV
-		List<String[]> pedestrianFlows = IO.readCSV(GISDataDir + getProperty("pedestrianODFlowsFile"));
+		List<String[]> pedestrianFlows = IO.readCSV(GISDataDir + IO.getProperty("pedestrianODFlowsFile"));
 
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
@@ -534,71 +532,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		return size;
 	}
-	
-	/**
-	 * Get the value of a property in the properties file. If the input is empty or null or if there is no property with
-	 * a matching name, throw a RuntimeException.
-	 * 
-	 * @param property
-	 *            The property to look for.
-	 * @return A value for the property with the given name.
-	 */
-	public static String getProperty(String property) {
-		if (property == null || property.equals("")) {
-			throw new RuntimeException("getProperty() error, input parameter (" + property + ") is "
-					+ (property == null ? "null" : "empty"));
-		} else {
-			String val = SpaceBuilder.properties.getProperty(property);
-			if (val == null || val.equals("")) { // No value exists in the
-													// properties file
-				throw new RuntimeException("checkProperty() error, the required property (" + property + ") is "
-						+ (property == null ? "null" : "empty"));
-			}
-			return val;
-		}
-	}
-
-	/**
-	 * Read the properties file and add properties. Will check if any properties have been included on the command line
-	 * as well as in the properties file, in these cases the entries in the properties file are ignored in preference
-	 * for those specified on the command line.
-	 * 
-	 * @throws FileNotFoundException
-	 * @throws IOException
-	 */
-	private void readProperties() throws FileNotFoundException, IOException {
-
-		File propFile = new File("./data/respastInterSim.properties");
-		if (!propFile.exists()) {
-			throw new FileNotFoundException("Could not find properties file in the default location: "
-					+ propFile.getAbsolutePath());
-		}
-
-		//LOGGER.log(Level.FINE, "Initialising properties from file " + propFile.toString());
-
-		SpaceBuilder.properties = new Properties();
-
-		FileInputStream in = new FileInputStream(propFile.getAbsolutePath());
-		SpaceBuilder.properties.load(in);
-		in.close();
-
-		// See if any properties are being overridden by command-line arguments
-		for (Enumeration<?> e = properties.propertyNames(); e.hasMoreElements();) {
-			String k = (String) e.nextElement();
-			String newVal = System.getProperty(k);
-			if (newVal != null) {
-				// The system property has the same name as the one from the
-				// properties file, replace the one in the properties file.
-				/*
-				LOGGER.log(Level.INFO, "Found a system property '" + k + "->" + newVal
-						+ "' which matches a NeissModel property '" + k + "->" + properties.getProperty(k)
-						+ "', replacing the non-system one.");
-						*/
-				properties.setProperty(k, newVal);
-			}
-		} // for
-		return;
-	} // readProperties
 	
 	
 	/**

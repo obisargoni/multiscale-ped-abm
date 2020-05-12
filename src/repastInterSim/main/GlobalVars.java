@@ -19,6 +19,7 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.main;
 
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -38,6 +39,9 @@ public abstract class GlobalVars {
 	public static String exportDir = outputDir + "\\export\\";
 	
 	//private static Logger LOGGER = Logger.getLogger(GlobalVars.class.getName());
+	
+	// Store properties in Global Vars. Used to access data file names
+	public static Properties properties;
 	
 	
 	// Use to manage transformations between the CRS used in the geography and the CRS used for spatial calculations

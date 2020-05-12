@@ -2,13 +2,16 @@ package repastInterSim.main;
 
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.imageio.ImageIO;
 
@@ -225,6 +228,71 @@ public class IO {
 		}
 		return csvData;
 	}
+	
+	/**
+	 * Get the value of a property in the properties file. If the input is empty or null or if there is no property with
+	 * a matching name, throw a RuntimeException.
+	 * 
+	 * @param property
+	 *            The property to look for.
+	 * @return A value for the property with the given name.
+	 */
+	public static String getProperty(String property) {
+		if (property == null || property.equals("")) {
+			throw new RuntimeException("getProperty() error, input parameter (" + property + ") is "
+					+ (property == null ? "null" : "empty"));
+		} else {
+			String val = GlobalVars.properties.getProperty(property);
+			if (val == null || val.equals("")) { // No value exists in the
+													// properties file
+				throw new RuntimeException("checkProperty() error, the required property (" + property + ") is "
+						+ (property == null ? "null" : "empty"));
+			}
+			return val;
+		}
+	}
+
+	/**
+	 * Read the properties file and add properties. Will check if any properties have been included on the command line
+	 * as well as in the properties file, in these cases the entries in the properties file are ignored in preference
+	 * for those specified on the command line.
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static void readProperties() throws FileNotFoundException, IOException {
+
+		File propFile = new File("./data/respastInterSim.properties");
+		if (!propFile.exists()) {
+			throw new FileNotFoundException("Could not find properties file in the default location: "
+					+ propFile.getAbsolutePath());
+		}
+
+		//LOGGER.log(Level.FINE, "Initialising properties from file " + propFile.toString());
+
+		GlobalVars.properties = new Properties();
+
+		FileInputStream in = new FileInputStream(propFile.getAbsolutePath());
+		GlobalVars.properties.load(in);
+		in.close();
+
+		// See if any properties are being overridden by command-line arguments
+		for (Enumeration<?> e = GlobalVars.properties.propertyNames(); e.hasMoreElements();) {
+			String k = (String) e.nextElement();
+			String newVal = System.getProperty(k);
+			if (newVal != null) {
+				// The system property has the same name as the one from the
+				// properties file, replace the one in the properties file.
+				/*
+				LOGGER.log(Level.INFO, "Found a system property '" + k + "->" + newVal
+						+ "' which matches a NeissModel property '" + k + "->" + properties.getProperty(k)
+						+ "', replacing the non-system one.");
+						*/
+				GlobalVars.properties.setProperty(k, newVal);
+			}
+		} // for
+		return;
+	} // readProperties
 }
 
 	
