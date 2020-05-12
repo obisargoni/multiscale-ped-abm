@@ -1,29 +1,18 @@
 package repastInterSim.main;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.geotools.coverage.Category;
-import org.geotools.coverage.grid.GridCoordinates2D;
-import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
