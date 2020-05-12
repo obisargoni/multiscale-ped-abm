@@ -2,6 +2,8 @@ package repastInterSim.main;
 
 import java.awt.image.RenderedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,6 +15,8 @@ import javax.imageio.ImageIO;
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.WritableGridCoverage2D;
@@ -190,6 +194,36 @@ public class IO {
 		IO.gridCoordiantesIterableToCSV(gridPath, gridPathFile);
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
+	}
+    
+	/*
+	 * Read CSV data into List of String arrays. Catch exceptions.
+	 * 
+	 * @param String filePath. Path of the CSV file to read
+	 * 
+	 * @returns List<String[]> The csv data as a list of string arrays
+	 */
+	public static List<String[]> readCSV(String filePath) {
+		// Read in OD matrix data for pedestrians from CSV
+		List<String[]> csvData = null;
+		CSVReader reader = null;
+		try {
+			reader = new CSVReader(new FileReader(filePath));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		try {
+			csvData = reader.readAll();
+			reader.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CsvException e) {
+			e.printStackTrace();
+		}
+		return csvData;
 	}
 }
 

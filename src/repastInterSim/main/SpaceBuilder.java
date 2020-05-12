@@ -264,10 +264,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		
 		// Read in OD matrix data for vehicles from CSV
-		List<String[]> vehicleFlows = readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
+		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + getProperty("vehicleODFlowsFile"));
 		
 		// Read in OD matrix data for pedestrians from CSV
-		List<String[]> pedestrianFlows = readCSV(GISDataDir + getProperty("pedestrianODFlowsFile"));
+		List<String[]> pedestrianFlows = IO.readCSV(GISDataDir + getProperty("pedestrianODFlowsFile"));
 
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
@@ -600,35 +600,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return;
 	} // readProperties
 	
-	/*
-	 * Read CSV data into List of String arrays. Catch exceptions.
-	 * 
-	 * @param String filePath. Path of the CSV file to read
-	 * 
-	 * @returns List<String[]> The csv data as a list of string arrays
-	 */
-	private List<String[]> readCSV(String filePath) {
-		// Read in OD matrix data for pedestrians from CSV
-		List<String[]> csvData = null;
-		CSVReader reader = null;
-		try {
-			reader = new CSVReader(new FileReader(filePath));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
-			csvData = reader.readAll();
-			reader.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CsvException e) {
-			e.printStackTrace();
-		}
-		return csvData;
-	}
 	
 	/**
 	 * Initialise a geography projection. Set the geography name and coordinate reference system.
