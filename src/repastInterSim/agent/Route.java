@@ -60,6 +60,7 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 /**
  * Create routes around a GIS road network. The <code>setRoute</code> function actually finds the route and can be
@@ -599,10 +600,10 @@ public class Route implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				String gisDir = SpaceBuilder.getProperty(GlobalVars.GISDataDirectory);
-				File buildingsFile = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.BuildingShapefile));
-				File roadsFile = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.RoadShapefile));
-				File serialisedLoc = new File(gisDir + SpaceBuilder.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
+				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
+				File buildingsFile = new File(gisDir + IO.getProperty(GlobalVars.BuildingShapefile));
+				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadShapefile));
+				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
 
 				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.vehicleDestinationGeography,
 						buildingsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
