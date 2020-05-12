@@ -57,6 +57,7 @@ hs_err_pid*
 /data/buildings_roads_coords_cache.serialised
 /data/single_road_data/*
 /data/multi_road_data/*
+/data/test/*
 ~/data/export/README.txt
 /data/export/*
 ~/data/README.txt
