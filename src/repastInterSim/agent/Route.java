@@ -52,6 +52,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.Cacheable;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -909,7 +910,7 @@ public class Route implements Cacheable {
 	 * @throws MismatchedDimensionException 
 	 */
 	public boolean atDestination() throws MismatchedDimensionException, TransformException {
-		return SpaceBuilder.getAgentGeometry(geography, mA).getCoordinate().equals(this.destination);
+		return GISFunctions.getAgentGeometry(geography, mA).getCoordinate().equals(this.destination);
 	}
 
 

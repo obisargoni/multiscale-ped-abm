@@ -36,7 +36,7 @@ public class OD implements FixedGeography{
         	
         	// Get the geometries in the CRS used for spatial calculations
         	Geometry dGeom =  mA.getDestination().getGeom();
-        	Geometry mAGeom = SpaceBuilder.getAgentGeometry(this.geography, mA);
+        	Geometry mAGeom = GISFunctions.getAgentGeometry(this.geography, mA);
         	
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
         	if (dGeom.isWithinDistance(mAGeom, this.arrivalDist)) {

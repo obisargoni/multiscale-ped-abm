@@ -88,7 +88,7 @@ public class Vehicle extends MobileAgent {
         for (Object agent :context.getObjects(Vehicle.class)) {
         	Vehicle V = (Vehicle)agent;
         	if (V != this) {
-               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, V);
+               	Geometry agentG = GISFunctions.getAgentGeometry(geography, V);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -222,7 +222,7 @@ public class Vehicle extends MobileAgent {
 			m = 0;
 			l = 0; // Parameters for the car following model. Needs refactor.
 			
-			Coordinate vifPt = SpaceBuilder.getAgentGeometry(geography, objectInFront).getCentroid().getCoordinate();
+			Coordinate vifPt = GISFunctions.getAgentGeometry(geography, objectInFront).getCentroid().getCoordinate();
 
 			// Acceleration is negative since in order to have caught up to car in front
 			// will have been travelling faster
@@ -419,7 +419,7 @@ public class Vehicle extends MobileAgent {
 	@Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate vL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    	Coordinate vL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	DecimalFormat newFormat = new DecimalFormat("#.#######");
     	vL.x = Double.valueOf(newFormat.format(vL.x));
     	vL.y = Double.valueOf(newFormat.format(vL.y));

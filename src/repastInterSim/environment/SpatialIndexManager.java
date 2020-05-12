@@ -188,7 +188,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 		List<T> intersectingObjects = new ArrayList<T>();
 		for (Geometry g: intersectingGeoms) {
 			for (T object: geog.getObjectsWithin(g.getEnvelopeInternal())) {
-				if (SpaceBuilder.getAgentGeometry(geog, object).equals(g)) {
+				if (GISFunctions.getAgentGeometry(geog, object).equals(g)) {
 					intersectingObjects.add(object);
 				}
 			}
@@ -248,7 +248,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 		List<T> intersectingObjects = new ArrayList<T>();
 		for (Geometry g: intersectingGeoms) {
 			for (T object: geog.getObjectsWithin(g.getEnvelopeInternal())) {
-				if (SpaceBuilder.getAgentGeometry(geog, object).equals(g)) {
+				if (GISFunctions.getAgentGeometry(geog, object).equals(g)) {
 					intersectingObjects.add(object);
 				}
 			}

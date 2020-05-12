@@ -241,7 +241,7 @@ public class Ped extends MobileAgent {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = SpaceBuilder.getAgentGeometry(geography, this);
+    	Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
         Context<Object> context = ContextUtils.getContext(this);
     	
     	
@@ -251,7 +251,7 @@ public class Ped extends MobileAgent {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
+               	Geometry agentG = GISFunctions.getAgentGeometry(geography, P);
                	if (agentG.intersects((thisGeom))) {
                		double[] pCA = pedestrianContactAcceleration(this, P, agentG);
                		cATotal = Vector.sumV(cATotal, pCA);
@@ -351,7 +351,7 @@ public class Ped extends MobileAgent {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = SpaceBuilder.getAgentGeometry(geography, P);
+               	Geometry agentG = GISFunctions.getAgentGeometry(geography, P);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -676,7 +676,7 @@ public class Ped extends MobileAgent {
     @Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate pL = SpaceBuilder.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    	Coordinate pL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.maLoc = pL;
     }
     

@@ -515,19 +515,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return V;
     }
 	
-	/*
-	 * Return the geometry associated to an agent.
-	 * 
-	 * @param geography
-	 * 			The geography the agent belongs to
-	 * @param agent
-	 * 			The agent to get the associated geography of
-	 */
-	public static <T> Geometry getAgentGeometry(Geography<T> geography, Object agent) {
-		Geometry geom = geography.getGeometry(agent);
-		return geom;
-	}
-	
+
 	/*
 	 * Move an agent to the input geometry in the input geography.
 	 * 

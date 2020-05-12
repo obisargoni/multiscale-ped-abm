@@ -332,8 +332,22 @@ public class GISFunctions {
 		}
 		for (T obj : context.getObjects(cl)) {
 			// Warning of unchecked type cast below should be ok since only objects of this type were selected from the context
-			(obj).setGeom(SpaceBuilder.getAgentGeometry(geography, obj));
+			Geometry geom = getAgentGeometry(geography, obj);
+			(obj).setGeom(geom);
 		}
+	}
+	
+	/*
+	 * Return the geometry associated to an agent.
+	 * 
+	 * @param geography
+	 * 			The geography the agent belongs to
+	 * @param agent
+	 * 			The agent to get the associated geography of
+	 */
+	public static <T> Geometry getAgentGeometry(Geography<T> geography, Object agent) {
+		Geometry geom = geography.getGeometry(agent);
+		return geom;
 	}
 	
 	/**
