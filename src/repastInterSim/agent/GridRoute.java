@@ -140,6 +140,9 @@ public class GridRoute extends Route {
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
 		super(geography, mA, destination);
+		this.geography = geography;
+		this.mA = mA;
+		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
 	}
@@ -161,6 +164,9 @@ public class GridRoute extends Route {
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
 		super(geography, mA, destination);
+		this.geography = geography;
+		this.mA = mA;
+		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
 		this.partialFF = partial;
@@ -185,6 +191,10 @@ public class GridRoute extends Route {
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
 		super(geography, mA, origin, destination);
+		this.geography = geography;
+		this.mA = mA;
+		this.origin = origin;
+		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
 		this.partialFF = partial;
