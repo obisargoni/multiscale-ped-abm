@@ -45,7 +45,7 @@ public class RoadNetworkRouteTest {
     public void setUp() throws Exception {
 		
 	    // Load agents from shapefiles
-		String TestDataDir = ".//data//test//";
+		String TestDataDir = ".//data//test_gis_data//";
 		
 		roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
