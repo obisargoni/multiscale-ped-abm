@@ -993,6 +993,37 @@ public class GridRoute extends Route {
 		this.primaryRouteX.remove(0);
 	}
 	
+	/**
+	 * Convenience function that can be used to add details to the route. This should be used rather than updating
+	 * individual lists because it makes sure that all lists stay in sync
+	 * 
+	 * @param coord
+	 *            The coordinate to add to the route
+	 * @param nullRoad
+	 *            The road that the coordinate is part of
+	 * @param speed
+	 *            The speed that the road can be travelled along
+	 * @param description
+	 *            A description of why the coordinate has been added
+	 */
+	protected void addToRoute(Coordinate coord, RoadLink nullRoad, double speed, String description) {
+		this.routeX.add(coord);
+		this.roadsX.add(nullRoad);
+		this.routeSpeedsX.add(speed);
+		this.routeDescriptionX.add(description);
+	}
+	
+	protected void removeNextFromRoute() {
+		removeFromRoute(0);
+	}
+	
+	protected void removeFromRoute(int index) {
+		this.routeX.remove(index);
+		this.roadsX.remove(index);
+		this.routeSpeedsX.remove(index);
+		this.routeDescriptionX.remove(index);
+	}
+	
 	public Coordinate getNextRouteCrossingCoord() {
 		Coordinate crossingC = null;
 		for (int i = 0; i< this.routeDescriptionX.size(); i++) {
