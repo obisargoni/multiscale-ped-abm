@@ -42,7 +42,7 @@ import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
-public class GridRoute extends Route {
+public class GridRoute {
 	
 	protected Geography<Object> geography;
 	
@@ -139,7 +139,6 @@ public class GridRoute extends Route {
 	 * 		The destination coordinate of the route
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
-		super(geography, mA, destination);
 		this.geography = geography;
 		this.mA = mA;
 		this.destination = destination;
@@ -163,7 +162,6 @@ public class GridRoute extends Route {
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
-		super(geography, mA, destination);
 		this.geography = geography;
 		this.mA = mA;
 		this.destination = destination;
@@ -190,7 +188,6 @@ public class GridRoute extends Route {
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
 	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
-		super(geography, mA, origin, destination);
 		this.geography = geography;
 		this.mA = mA;
 		this.origin = origin;
