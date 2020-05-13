@@ -99,8 +99,9 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
-		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
-		this.route = new GridRoute(geography, this, this.gridSummandPriorityMap, dCoord);
+		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate();
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+		this.route = new GridRoute(grid, this, this.gridSummandPriorityMap, dCoord);
 		
     }
     
@@ -532,7 +533,8 @@ public class Ped extends MobileAgent {
     	
     	// Create new Route object, that produces route over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
-    	GridRoute partialRoute = new GridRoute(this.geography, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
+		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
+    	GridRoute partialRoute = new GridRoute(grid, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
     	
     	// Get updated set of route coords to follow to next road link coordinate
     	partialRoute.setGroupedGridPath();

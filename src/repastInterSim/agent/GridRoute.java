@@ -44,7 +44,7 @@ import repastInterSim.main.SpaceBuilder;
 
 public class GridRoute {
 	
-	protected Geography<Object> geography;
+	protected GridCoverage2D grid;
 	
 	protected MobileAgent mA;
 
@@ -101,8 +101,8 @@ public class GridRoute {
 	/**
 	 * Create a new route object
 	 * 
-	 * @param geography
-	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param grid
+	 * 		The grid coverage to use for path finding
 	 * @param mA
 	 * 		The mobile agent this route belongs to
 	 * @param gSPM
@@ -111,8 +111,8 @@ public class GridRoute {
 	 * @param destination
 	 * 		The destination coordinate of the route
 	 */
-	public GridRoute(Geography<Object> geography, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
-		this.geography = geography;
+	public GridRoute(GridCoverage2D grd, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
+		this.grid = grd;
 		this.mA = mA;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
@@ -122,8 +122,8 @@ public class GridRoute {
 	/**
 	 * Create a new route object
 	 * 
-	 * @param geography
-	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param grid
+	 * 		The grid coverage to use for path finding
 	 * @param mA
 	 * 		The mobile agent this route belongs to
 	 * @param gSPM
@@ -134,8 +134,8 @@ public class GridRoute {
 	 * @param
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
-	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
-		this.geography = geography;
+	public GridRoute(GridCoverage2D grd, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
+		this.grid = grd;
 		this.mA = mA;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
@@ -146,8 +146,8 @@ public class GridRoute {
 	/**
 	 * Create a new route object
 	 * 
-	 * @param geography
-	 * 		The geography projection that the mobile agent this route belongs to is in
+	 * @param grid
+	 * 		The grid coverage to use for path finding
 	 * @param mA
 	 * 		The mobile agent this route belongs to
 	 * @param gSPM
@@ -160,8 +160,8 @@ public class GridRoute {
 	 * @param
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
-	public GridRoute(Geography<Object> geography, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
-		this.geography = geography;
+	public GridRoute(GridCoverage2D grd, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
+		this.grid = grd;
 		this.mA = mA;
 		this.origin = origin;
 		this.destination = destination;
@@ -184,15 +184,13 @@ public class GridRoute {
 		this.primaryRouteX = new Vector<Coordinate>();
 		this.routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
 		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
-		
-		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		
+				
 		if (this.origin == null) {
 			this.origin = this.mA.getLoc();
 		}
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
-		this.gridPath = getDijkstraGridPath(grid, this.origin, this.destination);
+		this.gridPath = getDijkstraGridPath(this.grid, this.origin, this.destination);
 				
 		// First grid cell coordinate is agent's first coordinate along that road link, so use to index first group of coordinates
 		GridCoordinates2D primaryRouteCell = null;
@@ -253,8 +251,6 @@ public class GridRoute {
 		
 		Set<Integer> routeIndices = new HashSet<Integer>();
 		Map<Integer, String> descriptionMap = new HashMap<Integer, String>();
-				
-		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		
 		int[] cellValue = new int[1];
 		
