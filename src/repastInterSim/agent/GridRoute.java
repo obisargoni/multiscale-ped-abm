@@ -71,33 +71,6 @@ public class GridRoute {
 	// Record which function has added each coord, useful for debugging
 	protected List<String> routeDescriptionX;
 	
-
-	/*
-	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
-	 * of, useful for the agent's awareness space (see getRoadFromCoordCache()).
-	 */
-	private static volatile Map<Coordinate, List<RoadLink>> coordCache;
-	/*
-	 * Cache the nearest road Coordinate to every building for efficiency (agents usually/always need to get from the
-	 * centroids of houses to/from the nearest road).
-	 */
-	private static volatile NearestRoadCoordCache nearestRoadCoordCache;
-	/*
-	 * Store which road every building is closest to. This is used to efficiently add buildings to the agent's awareness
-	 * space
-	 */
-	//private static volatile BuildingsOnRoadCache buildingsOnRoadCache;
-	// To stop threads competing for the cache:
-	private static Object buildingsOnRoadCacheLock = new Object();
-
-	/*
-	 * Store a route once it has been created, might be used later (note that the same object acts as key and value).
-	 */
-	// TODO Re-think route caching, would be better to cache the whole Route object
-	// private static volatile Map<CachedRoute, CachedRoute> routeCache;
-	// /** Store a route distance once it has been created */
-	// private static volatile Map<CachedRouteDistance, Double> routeDistanceCache;
-	
 	//private static Logger LOGGER = Logger.getLogger(GridRoute.class.getName());
 	
 	// Used to get grid cell summand value when running flood fill algorithm for routing. Single agent can produce routes from different costs, reflecting agent's changing perceptions of costs.
