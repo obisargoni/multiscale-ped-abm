@@ -537,7 +537,7 @@ public class Ped extends MobileAgent {
     	GridRoute partialRoute = new GridRoute(grid, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
     	
     	// Get updated set of route coords to follow to next road link coordinate
-    	partialRoute.setGroupedGridPath();
+    	partialRoute.setGroupedGridPath(this.maLoc);
     	
     	// Update the next section of the pedestrian's route with the path produced by this partial route (which only goes up to the end of the current road link)
     	updateGroupedGridPath(partialRoute, thisRoadLinkCoord);

@@ -174,7 +174,7 @@ public class GridRoute {
 	 * This method produces a path of grid cells from the agents current position to the destination set when creating a GridRoute instance. 
 	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
 	 */
-	public void setGroupedGridPath() {
+	public void setGroupedGridPath(Coordinate o) {
 		this.routeX = new Vector<Coordinate>();
 		this.roadsX = new Vector<RoadLink>();
 		this.routeDescriptionX = new Vector<String>();
@@ -186,7 +186,7 @@ public class GridRoute {
 		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
 				
 		if (this.origin == null) {
-			this.origin = this.mA.getLoc();
+			this.origin = o;
 		}
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
