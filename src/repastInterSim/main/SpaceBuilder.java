@@ -477,7 +477,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		newPed.setLoc();
 		
 		// Once pedestrian location has been set, can set the coordinates to travel along
-		newPed.getRoute().setGroupedGridPath();
+		newPed.getRoute().setGroupedGridPath(newPed.getLoc());
 		newPed.setPedPrimaryRoute(newPed.getRoute().getPrimaryRouteX()); // Set the ped attribute primary route to be the primary route before it is updated as ped progresses
 		newPed.updateRouteCoord();
 
