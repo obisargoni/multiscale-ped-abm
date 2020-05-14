@@ -117,5 +117,17 @@ public class PedPathFinder {
 	public Coordinate getNextCrossingCoord() {
 		return nextCrossingCoord;
 	}
+	
+	public void setNextCrossingCoord(Coordinate c) {
+		this.nextCrossingCoord = c;
+	}
+	
+	public OD getOrigin() {
+		return origin;
+	}
+
+	public void setOrigin(OD origin) {
+		this.origin = origin;
+	}
 
 }
