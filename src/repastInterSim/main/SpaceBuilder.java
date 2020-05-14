@@ -476,14 +476,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Set the location attribute of the pedestrian agent to be its current location. Simplifies future calculations
 		newPed.setLoc();
 		
-		// Once pedestrian location has been set, can set the coordinates to travel along
-		newPed.getRoute().setGroupedGridPath(newPed.getLoc());
-		newPed.setPedPrimaryRoute(newPed.getRoute().getPrimaryRouteX()); // Set the ped attribute primary route to be the primary route before it is updated as ped progresses
-		newPed.updateRouteCoord();
-
-		double ang = newPed.setBearingToDestinationCoord(newPed.getRouteCoord());
-		newPed.setPedestrianBearing(ang);
-		//IO.exportPedGridRouteData(newPed, "initial_", false);
         return newPed;
     }
 
