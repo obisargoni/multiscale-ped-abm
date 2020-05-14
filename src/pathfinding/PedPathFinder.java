@@ -26,11 +26,13 @@ public class PedPathFinder {
 	private Coordinate nextTacticalPathCoord;
 
 	private Coordinate nextCrossingCoord;
-	
+
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
 		this.geography = g;
 		this.origin = o;
 		this.destination = d;
+		
+		planStrategicPath();
 	}
 	
 	/**
