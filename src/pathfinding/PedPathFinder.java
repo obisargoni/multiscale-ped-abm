@@ -84,8 +84,8 @@ public class PedPathFinder {
 		Coordinate d = roadCoords[roadCoords.length-1];
 		
 		// Need to find the road polygon corresponding to the next road link
-		HashMap<Integer, Double> updatedGridSummandPriorityMap = p.getLocalGridSummandPriorityMap(roadFID);
 		String roadFID = this.currentRoadLink.getFID();
+		HashMap<Integer, Double> updatedGridSummandPriorityMap = p.calculateDynamicGridSummandPriorityMap(roadFID);
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		GridRoute tP = new GridRoute(grid, updatedGridSummandPriorityMap, o, d, true);

@@ -482,7 +482,7 @@ public class Ped extends MobileAgent {
     	}
     }
         
-    public HashMap<Integer, Double> getLocalGridSummandPriorityMap(String roadLinkID) {
+    public HashMap<Integer, Double> calculateDynamicGridSummandPriorityMap(String roadLinkID) {
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(roadLinkID);
     	double gridCellCostParam = params.getDouble("cellCostUpdate");
