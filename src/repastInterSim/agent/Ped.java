@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Random;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
-import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -16,6 +15,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 
+import pathfinding.PedPathFinder;
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -25,13 +25,12 @@ import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.Vector;
-import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
 public class Ped extends MobileAgent {    
-    private GridRoute route;
+    private PedPathFinder pathFinder;
     
     private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
     
@@ -98,10 +97,7 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
-		// Get the destination coordinate, initialise new route and generate a pedestrian route
-		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate();
-		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		this.route = new GridRoute(grid, this.gridSummandPriorityMap, dCoord);
+		this.pathFinder = new PedPathFinder(geography, o, d);
 		
     }
     
