@@ -520,16 +520,9 @@ public class Ped extends MobileAgent {
 			e.printStackTrace();
 		}
     	
-    	// perceive the space taken up by vehicles on the road links that pass by/though this road
-    	double vehicleRoadSpace = estimateVehicleRoadSpace(thisRoad);
-    	double gridCellCostParam = params.getDouble("cellCostUpdate");
-    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio + gridCellCostParam * vehicleRoadSpace;
-    	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
-    	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
+    	HashMap<Integer, Double> updatedGridSummandPriorityMap = getLocalGridSummandPriorityMap(thisRoad.getRoadLinkID());
     	
     	// Create new Route object, that produces route over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
@@ -541,6 +534,21 @@ public class Ped extends MobileAgent {
     	
     	// Update the next section of the pedestrian's route with the path produced by this partial route (which only goes up to the end of the current road link)
     	updateGroupedGridPath(partialRoute, thisRoadLinkCoord);
+    }
+    
+    public HashMap<Integer, Double> getLocalGridSummandPriorityMap(String roadLinkID) {
+    	// perceive the space taken up by vehicles on the road links that pass by/though this road
+    	double vehicleRoadSpace = estimateVehicleRoadSpace(roadLinkID);
+    	double gridCellCostParam = params.getDouble("cellCostUpdate");
+    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio + gridCellCostParam * vehicleRoadSpace;
+    	
+    	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
+    	// Use this updated perception of costs when calculating updated Route
+    	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
+    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
+    	
+    	return updatedGridSummandPriorityMap;
     }
     
 	// Consider moving to ped, confusing to be in route - a bit meta
@@ -559,7 +567,15 @@ public class Ped extends MobileAgent {
 	}
 	
     
-    private double estimateVehicleRoadSpace(Road r) {
+    private double estimateVehicleRoadSpace(String roadLinkID) {
+    	
+    	// Find the road with the corresponding road link id
+    	Road r = null;
+    	for (Road ri: SpaceBuilder.roadGeography.getAllObjects()) {
+    		if (ri.getRoadLinkID().contentEquals(roadLinkID)){
+    			r = ri;
+    		}
+    	}
     	int vehicleNumber = r.getRoadLinksVehicleCount();
     	int nRoadLinks = r.getRoadLinks().size();
     	double roadLinkLength = r.getRoadLinks().get(0).getGeom().getLength();
