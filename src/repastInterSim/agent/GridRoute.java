@@ -95,49 +95,7 @@ public class GridRoute {
 	
 	// Sets whether to run flood fill on full grid or just a partial section of it
 	private boolean partialFF = false;
-	
-	/**
-	 * Create a new route object
-	 * 
-	 * @param grid
-	 * 		The grid coverage to use for path finding
-	 * @param mA
-	 * 		The mobile agent this route belongs to
-	 * @param gSPM
-	 * 		The map from integers used to indicate the road user priority of grid cells to the agents perceived cost of moving through those grid cells. 
-	 * Used for routing on a grid.
-	 * @param destination
-	 * 		The destination coordinate of the route
-	 */
-	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate destination) {
-		this.grid = grd;
-		this.destination = destination;
-		// TODO Auto-generated constructor stub
-		this.gridSummandPriorityMap = gSPM;
-	}
-	
-	/**
-	 * Create a new route object
-	 * 
-	 * @param grid
-	 * 		The grid coverage to use for path finding
-	 * @param mA
-	 * 		The mobile agent this route belongs to
-	 * @param gSPM
-	 * 		The map from integers used to indicate the road user priority of grid cells to the agents perceived cost of moving through those grid cells. 
-	 * Used for routing on a grid.
-	 * @param destination
-	 * 		The destination coordinate of the route
-	 * @param
-	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
-	 */
-	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
-		this.grid = grd;
-		this.destination = destination;
-		// TODO Auto-generated constructor stub
-		this.gridSummandPriorityMap = gSPM;
-		this.partialFF = partial;
-	}
+
 	
 	/**
 	 * Create a new route object
