@@ -534,7 +534,7 @@ public class Ped extends MobileAgent {
     	// Create new Route object, that produces route over a partial section of the grid
     	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-    	GridRoute partialRoute = new GridRoute(grid, this, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
+    	GridRoute partialRoute = new GridRoute(grid, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
     	
     	// Get updated set of route coords to follow to next road link coordinate
     	partialRoute.setGroupedGridPath(this.maLoc);
