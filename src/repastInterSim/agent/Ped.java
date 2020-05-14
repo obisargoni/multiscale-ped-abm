@@ -140,26 +140,6 @@ public class Ped extends MobileAgent {
     	}
     }
     
-    public void updateRouteCoord() {		
-		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
-		if(this.route.getRouteX().size() == 0) {
-			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
-			updateNextRouteSection();
-			this.nextPathSection = this.route.getNextGroupedGridPathSection();
-			this.route.setNextRouteSection();
-		}
-		
-    	// If crossing coord is null, check the route for upcoming crossing coord
-		// Importantly, do this before any coords are removed from the route
-    	if(this.crossingCoord == null) {
-    		this.crossingCoord = this.route.getNextRouteCrossingCoord();
-    	}
-    	
-		this.routeCoord = this.route.getRouteX().get(0);
-		this.routeCoordDescription = this.route.routeDescriptionX.get(0);
-		this.route.removeNextFromRoute();
-    }
-    
     public void walk(Coordinate dLoc) {
     	
     	// Update pedestrians knowledge of which direction the current destination is
@@ -503,35 +483,7 @@ public class Ped extends MobileAgent {
     		this.enteringCrossing = false;
     	}
     }
-    
-    private void updateNextRouteSection() {
-    	
-    	Road thisRoad = null;
-    	Coordinate thisRoadLinkCoord = this.route.getPrimaryRouteX().get(0);
-    	Coordinate nextRoadLinkCoord = this.route.getPrimaryRouteX().get(1);
-		try {
-			thisRoad = GISFunctions.getCoordinateRoad(thisRoadLinkCoord);
-		} catch (RoutingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
-    	// Use this updated perception of costs when calculating updated Route
-    	HashMap<Integer, Double> updatedGridSummandPriorityMap = getLocalGridSummandPriorityMap(thisRoad.getRoadLinkID());
-    	
-    	// Create new Route object, that produces route over a partial section of the grid
-    	// Origin - agents current primary route coord. Destination - coordinate where the road changes as the destination
-		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-    	GridRoute partialRoute = new GridRoute(grid, updatedGridSummandPriorityMap, thisRoadLinkCoord, nextRoadLinkCoord, true);
-    	
-    	// Get updated set of route coords to follow to next road link coordinate
-    	partialRoute.setGroupedGridPath(this.maLoc);
-    	
-    	// Update the next section of the pedestrian's route with the path produced by this partial route (which only goes up to the end of the current road link)
-    	updateGroupedGridPath(partialRoute, thisRoadLinkCoord);
-    }
-    
+        
     public HashMap<Integer, Double> getLocalGridSummandPriorityMap(String roadLinkID) {
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(roadLinkID);
@@ -546,21 +498,6 @@ public class Ped extends MobileAgent {
     	
     	return updatedGridSummandPriorityMap;
     }
-    
-	// Consider moving to ped, confusing to be in route - a bit meta
-	private void updateGroupedGridPath(GridRoute updatedRoute, Coordinate routeSectionCoord) {
-		GridCoordinates2D routeSectionCell = this.route.getRouteCoordMap().get(routeSectionCoord);
-		
-		// Iterate over the route section cells in the partial route to find the one that matches the one we are replacing
-		List<GridCoordinates2D> updatedPathSection = null;
-		for (GridCoordinates2D cell: updatedRoute.getGroupedGridPath().keySet()) {
-			if(cell.equals(routeSectionCell)) {
-				updatedPathSection = updatedRoute.getGroupedGridPath().get(cell);
-				break;
-			}
-		}
-		this.route.getGroupedGridPath().replace(routeSectionCell, updatedPathSection);
-	}
 	
     
     private double estimateVehicleRoadSpace(String roadLinkID) {
@@ -706,15 +643,6 @@ public class Ped extends MobileAgent {
     }
     
     
-    /*
-     * Getter for the route
-     * 
-     * @returns Route of the pedestrian
-     * 
-     */
-    public GridRoute getRoute() {
-    	return this.route;
-    }
     
     public Coordinate getRouteCoord() {
     	return this.routeCoord;
@@ -729,27 +657,9 @@ public class Ped extends MobileAgent {
     	return this.geography;
     }
     
-    public void setRouteCoord(Coordinate rC) {
-    	this.routeCoord = rC;
-    }
-    
     public String getPrimaryRouteCoordinatesString() {    	
     	String coordString = IO.getCoordinateListString(this.pedPrimaryRoute);
     	return coordString;
-    }
-    
-    public void setPedPrimaryRoute(List<Coordinate> pPR) {
-    	this.pedPrimaryRoute = new ArrayList<Coordinate>(pPR);
-    	setInitialGridPathCoordinates();
-    }
-    
-    public void setInitialGridPathCoordinates() {
-    	this.pedInitialRoute = new ArrayList<Coordinate>();
-		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-    	for (GridCoordinates2D cell : this.route.getGridPath()) {
-    		Coordinate c = GISFunctions.gridCellToCoordinate(grid, cell);
-    		this.pedInitialRoute.add(c);
-    	}
     }
     
     public String getInitialRouteCoordinatesString() {
