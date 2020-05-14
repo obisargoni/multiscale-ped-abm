@@ -101,7 +101,7 @@ public class Ped extends MobileAgent {
 		// Get the destination coordinate, initialise new route and generate a pedestrian route
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate();
 		GridCoverage2D grid = geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		this.route = new GridRoute(grid, this, this.gridSummandPriorityMap, dCoord);
+		this.route = new GridRoute(grid, this.gridSummandPriorityMap, dCoord);
 		
     }
     
