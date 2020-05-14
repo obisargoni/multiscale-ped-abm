@@ -1031,4 +1031,8 @@ public class GridRoute {
 	public Map<Coordinate, GridCoordinates2D> getRouteCoordMap() {
 		return routeCoordMap;
 	}
+
+	public List<Coordinate> getRouteX() {
+		return routeX;
+	}
 }
