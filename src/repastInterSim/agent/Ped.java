@@ -24,6 +24,7 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
@@ -59,6 +60,8 @@ public class Ped extends MobileAgent {
     private String initialRouteCoordString = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
+    private HashMap<Integer, Double> dynamicSummandPriorityMap = new HashMap<Integer, Double>();
+    
     private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
     
     private int yieldTime = 0;
@@ -110,6 +113,15 @@ public class Ped extends MobileAgent {
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
    		//decideYield(); 
+    	
+    	// Update perception of vehicle priority space cost
+    	// triggered by reaching end of tactical path, same trigger that causes new tactical path to be planned
+    	// This means that new tactical path always uses newly calculated costs of vehicle priority space
+    	if (pathFinder.getTacticalPath().getRouteX().size() == 0) {
+    		RoadLink currentRoadLink = pathFinder.getCurrentRoadLink();
+    		
+    		this.dynamicSummandPriorityMap = calculateDynamicGridSummandPriorityMap(currentRoadLink.getFID());
+    	}
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
