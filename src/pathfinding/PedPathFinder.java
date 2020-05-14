@@ -26,6 +26,7 @@ public class PedPathFinder {
 	private Coordinate nextTacticalPathCoord;
 
 	private Coordinate nextCrossingCoord;
+	private RoadLink currentRoadLink;
 
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
 		this.geography = g;
@@ -75,16 +76,16 @@ public class PedPathFinder {
 	
 	public void planTacticaPath(Ped p) {	
 		
-		RoadLink currentRoadLink = this.strategicPath.get(0);
+		this.currentRoadLink = this.strategicPath.get(0);
 		
 		// Depends on the orientation of the road - also will be replaced by more sophisticated choice of road link ed points
-		Coordinate[] roadCoords = currentRoadLink.getGeom().getCoordinates();
+		Coordinate[] roadCoords = this.currentRoadLink.getGeom().getCoordinates();
 		Coordinate o = roadCoords[0];
 		Coordinate d = roadCoords[roadCoords.length-1];
 		
 		// Need to find the road polygon corresponding to the next road link
-		String roadFID = currentRoadLink.getFID();
 		HashMap<Integer, Double> updatedGridSummandPriorityMap = p.getLocalGridSummandPriorityMap(roadFID);
+		String roadFID = this.currentRoadLink.getFID();
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		GridRoute tP = new GridRoute(grid, updatedGridSummandPriorityMap, o, d, true);
@@ -128,6 +129,10 @@ public class PedPathFinder {
 
 	public void setOrigin(OD origin) {
 		this.origin = origin;
+	}
+	
+	public RoadLink getCurrentRoadLink() {
+		return this.currentRoadLink;
 	}
 
 }
