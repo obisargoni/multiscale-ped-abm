@@ -643,13 +643,12 @@ public class Ped extends MobileAgent {
     }
     
     
-    
-    public Coordinate getRouteCoord() {
-    	return this.routeCoord;
+    public PedPathFinder getPathFinder() {
+    	return this.pathFinder;
     }
     
     public String getRouteCoordString() {
-    	return this.routeCoord.toString();
+    	return this.pathFinder.getNextTacticalPathCoord().toString();
     }
     
     @Override
