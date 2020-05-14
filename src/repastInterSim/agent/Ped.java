@@ -47,9 +47,7 @@ public class Ped extends MobileAgent {
     private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres
-    private Coordinate routeCoord; // The next coordiante of the agent's route
-	private String routeCoordDescription;
-    private Coordinate crossingCoord; // The next crossing coordinate in agents route
+
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<Coordinate> pedInitialRoute; // The coordinates of the grid path produced when the ped first computes their path to their destination.
     private List<GridCoordinates2D> nextPathSection;
