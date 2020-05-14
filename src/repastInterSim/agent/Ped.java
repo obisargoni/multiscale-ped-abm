@@ -490,11 +490,11 @@ public class Ped extends MobileAgent {
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
     	// Use this updated perception of costs when calculating updated Route
-    	HashMap<Integer, Double> updatedGridSummandPriorityMap = this.gridSummandPriorityMap;
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
-    	updatedGridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
+    	HashMap<Integer, Double> dGSPM = this.gridSummandPriorityMap;
+    	dGSPM.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
+    	dGSPM.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
     	
-    	return updatedGridSummandPriorityMap;
+    	return dGSPM;
     }
 	
     
