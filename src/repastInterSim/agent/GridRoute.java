@@ -973,7 +973,7 @@ public class GridRoute {
 		this.routeDescriptionX.add(description);
 	}
 	
-	protected void removeNextFromRoute() {
+	public void removeNextFromRoute() {
 		removeFromRoute(0);
 	}
 	
