@@ -90,7 +90,7 @@ public class PedPathFinder {
 		GridRoute tP = new GridRoute(grid, updatedGridSummandPriorityMap, o, d, true);
 		
     	// Get updated set of route coords to follow to next road link coordinate
-		tP.setGroupedGridPath(o);
+		tP.setGroupedGridPath();
     	
     	// Adds coordinates to route from next section of grid path
 		tP.setNextRouteSection();
