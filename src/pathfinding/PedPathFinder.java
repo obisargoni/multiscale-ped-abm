@@ -75,15 +75,15 @@ public class PedPathFinder {
 	
 	public void planTacticaPath(Ped p) {	
 		
-		RoadLink nextRoadLink = this.strategicPath.get(0);
+		RoadLink currentRoadLink = this.strategicPath.get(0);
 		
 		// Depends on the orientation of the road - also will be replaced by more sophisticated choice of road link ed points
-		Coordinate[] roadCoords = nextRoadLink.getGeom().getCoordinates();
+		Coordinate[] roadCoords = currentRoadLink.getGeom().getCoordinates();
 		Coordinate o = roadCoords[0];
 		Coordinate d = roadCoords[roadCoords.length-1];
 		
 		// Need to find the road polygon corresponding to the next road link
-		String roadFID = nextRoadLink.getFID();
+		String roadFID = currentRoadLink.getFID();
 		HashMap<Integer, Double> updatedGridSummandPriorityMap = p.getLocalGridSummandPriorityMap(roadFID);
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
