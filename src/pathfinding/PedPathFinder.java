@@ -16,16 +16,42 @@ import repastInterSim.main.GlobalVars;
 
 public class PedPathFinder {
 	
-	private RoadNetworkRoute strategicPath;
-	
 	private OD origin;
 	private OD destination;
+	private Geography<Object> geography;
 	
-	public PedPathFinder(OD o, OD d) {
+	private List<RoadLink> strategicPath;
+	private GridRoute tacticalPath;
+	
+	private Coordinate nextTacticalPathCoord;
+
+	private Coordinate nextCrossingCoord;
+	
+	public PedPathFinder(Geography<Object> g, OD o, OD d) {
+		this.geography = g;
 		this.origin = o;
 		this.destination = d;
+	}
+	
+	/**
+	 * Initialise a new road link routing object that can be used to find a path along a topological road network.
+	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
+	 * 
+	 */
+	public void planStrategicPath() {
+		// Initialise road network route - needs to ne non-directed for pedestrians! fix this
+		RoadNetworkRoute rnr = new RoadNetworkRoute(origin.getGeom().getCoordinate(), destination.getGeom().getCoordinate());
 		
-		this.strategicPath = new RoadNetworkRoute(origin.getGeom().getCoordinate(), destination.getGeom().getCoordinate());
+		// Find shortest path using road network route
+		try {
+			rnr.setRoadLinkRoute();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Get path of road links and set this as the strategic path
+		this.strategicPath = rnr.getRoadsX();
 	}
 	
 	public RoadNetworkRoute getStrategicPath() {
