@@ -54,6 +54,23 @@ public class PedPathFinder {
 		this.strategicPath = rnr.getRoadsX();
 	}
 	
+	public void updateTacticalPathCoordinate(Ped p) {	
+		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
+		if(this.tacticalPath.getRouteX().size() == 0) {
+			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
+			planTacticaPath(p);
+		}
+		
+    	// If crossing coord is null, check the route for upcoming crossing coord
+		// Importantly, do this before any coords are removed from the route
+    	if(this.nextCrossingCoord == null) {
+    		this.nextCrossingCoord = this.tacticalPath.getNextRouteCrossingCoord();
+    	}
+    	
+		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
+		this.tacticalPath.removeNextFromRoute();
+    }
+	
 	public void planTacticaPath(Ped p) {	
 		
 		RoadLink nextRoadLink = this.strategicPath.get(0);
@@ -81,23 +98,6 @@ public class PedPathFinder {
 		// Remove this road link from the strategic path, no longer the next road link
 		this.strategicPath.remove(0);
 	}
-	
-	public void setNextTacticalPathCoordinate(Ped p) {	
-		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
-		if(this.tacticalPath.getRouteX().size() == 0) {
-			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
-			planTacticaPath(p);
-		}
-		
-    	// If crossing coord is null, check the route for upcoming crossing coord
-		// Importantly, do this before any coords are removed from the route
-    	if(this.nextCrossingCoord == null) {
-    		this.nextCrossingCoord = this.tacticalPath.getNextRouteCrossingCoord();
-    	}
-    	
-		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
-		this.tacticalPath.removeNextFromRoute();
-    }
 	
 	
 	public List<RoadLink> getStrategicPath() {
