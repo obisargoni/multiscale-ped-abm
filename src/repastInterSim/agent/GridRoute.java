@@ -45,8 +45,6 @@ import repastInterSim.main.SpaceBuilder;
 public class GridRoute {
 	
 	protected GridCoverage2D grid;
-	
-	protected MobileAgent mA;
 
 	protected Coordinate origin;
 	protected Coordinate destination;
@@ -111,9 +109,8 @@ public class GridRoute {
 	 * @param destination
 	 * 		The destination coordinate of the route
 	 */
-	public GridRoute(GridCoverage2D grd, MobileAgent mA,  HashMap<Integer, Double> gSPM, Coordinate destination) {
+	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate destination) {
 		this.grid = grd;
-		this.mA = mA;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
@@ -134,9 +131,8 @@ public class GridRoute {
 	 * @param
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
-	public GridRoute(GridCoverage2D grd, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
+	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate destination, boolean partial) {
 		this.grid = grd;
-		this.mA = mA;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
@@ -160,9 +156,8 @@ public class GridRoute {
 	 * @param
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
-	public GridRoute(GridCoverage2D grd, MobileAgent mA, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
+	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
 		this.grid = grd;
-		this.mA = mA;
 		this.origin = origin;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
@@ -537,8 +532,7 @@ public class GridRoute {
 					"n greedy neighbours: " + String.valueOf(greedyNeighbours.size()) + "\n\r" +
 					"n neighbourghs: " + String.valueOf(neighbours.size()) + "\n\r" +
 					"origin coord: " + this.origin.toString() + "\n\r" +
-					"destination coord: " + this.destination.toString() + "\n\r" +
-					"ped id: " + String.valueOf(this.mA.id) + "\n\r";
+					"destination coord: " + this.destination.toString() + "\n\r";
 			//LOGGER.log(Level.SEVERE,msg);
 			System.out.print(msg);
 			throw e;
