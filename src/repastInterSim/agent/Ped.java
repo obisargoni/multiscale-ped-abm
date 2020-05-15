@@ -15,7 +15,6 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 
-import pathfinding.PedPathFinder;
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -29,6 +28,7 @@ import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
+import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {    
     private PedPathFinder pathFinder;

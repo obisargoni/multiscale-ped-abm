@@ -1,4 +1,4 @@
-package pathfinding;
+package repastInterSim.pathfinding;
 
 import java.util.HashMap;
 import java.util.List;
@@ -80,9 +80,8 @@ public class PedPathFinder {
 		
 		this.currentRoadLink = this.strategicPath.get(0);
 				
-		// Depends on the orientation of the road - also will be replaced by more sophisticated choice of road link ed points
-		Coordinate[] roadCoords = this.currentRoadLink.getGeom().getCoordinates();
-		Coordinate d = roadCoords[roadCoords.length-1];
+		// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
+		Coordinate d = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		GridRoute tP = new GridRoute(grid, gSPM, o, d, true);
