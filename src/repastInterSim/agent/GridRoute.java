@@ -95,6 +95,14 @@ public class GridRoute {
 	
 	// Sets whether to run flood fill on full grid or just a partial section of it
 	private boolean partialFF = false;
+	
+	/**
+	 * Create a blank grid route object
+	 *
+	 */
+	public GridRoute() {
+		
+	}
 
 	
 	/**
