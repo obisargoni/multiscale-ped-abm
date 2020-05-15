@@ -178,10 +178,9 @@ public class RoadNetworkRouteTest {
 			e.printStackTrace();
 		}
 				
-		// Check route is made up on single expected road link when start and end points are the same
-		assert shortestRoute.size() == 1;
-		NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(0);
-		assert e.getRoadLink().getFID().contentEquals("osgb4000000030238946");
+		// Route is empty when start and end points are the same
+		assert shortestRoute.isEmpty() == true;
+
 	}
 	
 	@Test
