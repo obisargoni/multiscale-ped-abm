@@ -129,5 +129,58 @@ public class RoadNetworkRouteTest {
 		}
 		
 	}
+	
+	@Test
+	public void testGetShortestRoutePedOD1() throws MalformedURLException, FileNotFoundException {
+		
+		// Initialise OD context and geography
+		Context<OD> testODContext = new VehicleDestinationContext();
+		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
+		Geography<OD> testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
+		testODGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		// Load vehicle origins and destinations
+		String vehicleDestinationsFile = TestDataDir + "OD_pedestrian_nodes.shp";
+		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
+		
+		// Select pedestrian origins and destinations to test
+		Coordinate o = testODContext.getObjects(OD.class).get(0).getGeom().getCoordinate();
+		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
+
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
+		
+		// Define my starting and ending junctions to test
+		List<Junction> currentJunctions = new ArrayList<Junction>();
+		List<Junction> destJunctions = new ArrayList<Junction>();
+		String currentJunctionFID = "osgb4000000029970684";
+		String destJunctionFID = "osgb4000000029970684";
+		for(Junction j: junctionContext.getObjects(Junction.class)) {
+			
+			// Set the test current junctions 
+			if (j.getFID().contentEquals(currentJunctionFID)) {
+				currentJunctions.add(j);
+			}
+			
+			// Set the test destination junctions
+			if (j.getFID().contentEquals(destJunctionFID)) {
+				destJunctions.add(j);
+			}
+		}
+		
+		Junction[] routeEndpoints = new Junction[2];
+		
+		// Get shortest Route according to the Route class
+		List<RepastEdge<Junction>> shortestRoute = null;
+		try {
+			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				
+		// Route is empty when start and end points are the same
+		assert shortestRoute.isEmpty() == true;
+
+	}
 
 }
