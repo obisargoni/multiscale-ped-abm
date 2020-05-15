@@ -105,7 +105,9 @@ public class PedPathFinder {
 		this.tacticalPath= tP;
 		
 		// Remove this road link from the strategic path, no longer the next road link
-		this.strategicPath.remove(0);
+		if (this.strategicPath.isEmpty() == false) {
+			this.strategicPath.remove(0);
+		}
 	}
 	
 	
