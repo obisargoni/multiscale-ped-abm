@@ -48,7 +48,7 @@ public abstract class GlobalVars {
 	public static String geographyCRSString = "EPSG:27700";
 	
 	/* These are strings that match entries in the repastcity.properties file.*/
-	public static final String GISDataDirectory = "GISDataDirectory";
+	public static final String GISDataDirectory = "GISDataDir";
 	public static final String BuildingShapefile = "BuildingShapefile";
 	public static final String RoadShapefile = "RoadShapefile";
 	public static final String BuildingsRoadsCoordsCache = "BuildingsRoadsCoordsCache";
