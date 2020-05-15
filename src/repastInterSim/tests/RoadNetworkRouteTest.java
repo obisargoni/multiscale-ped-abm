@@ -1,5 +1,7 @@
-package tests;
+package repastInterSim.tests;
 
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import pathfinding.RoadNetworkRoute;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
@@ -27,16 +28,18 @@ import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class RoadNetworkRouteTest {
 	
-	private RoadNetworkRoute rnr;
-	
+	private String TestDataDir = ".//data//test_gis_data//";
+		
 	private Boolean isDirected = true;
 	
 	private Context<RoadLink> roadLinkContext;
 	
 	private Context<OD> testODContext;
+	private Geography<OD> testODGeography;
 	
 	private Context<Junction> junctionContext;
 	private Network<Junction> roadNetwork;
@@ -44,9 +47,7 @@ public class RoadNetworkRouteTest {
 	@BeforeEach
     public void setUp() throws Exception {
 		
-	    // Load agents from shapefiles
-		String TestDataDir = ".//data//test_gis_data//";
-		
+	    // Initialise contexts and geographies used by all tests	
 		roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
 		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
@@ -59,35 +60,36 @@ public class RoadNetworkRouteTest {
 		
 		testODContext = new VehicleDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		Geography<OD> testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
+		testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
 		testODGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		
-		// 1. Load the road links
+		// 1. Load road network data
 		String roadLinkFile = TestDataDir + "mastermap-itn RoadLink Intersect Within with orientation.shp";
 		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
-		String vehicleDestinationsFile = TestDataDir + "OD_vehicle_nodes_intersect_within.shp";
-		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
-		
-		// 2. roadNetwork
+		// 2. Build road network
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		roadNetwork = builder.buildNetwork();
 		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 		
+    }
+
+	
+	@Test
+	public void testGetShortestRoute() throws MalformedURLException, FileNotFoundException {
+		
+		// Load vehicle origins and destinations
+		String vehicleDestinationsFile = TestDataDir + "OD_vehicle_nodes_intersect_within.shp";
+		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
 		
 		// Initialise the road network route
 		Coordinate o = testODContext.getObjects(OD.class).get(10).getGeom().getCoordinate();
 		Coordinate d = testODContext.getObjects(OD.class).get(6).getGeom().getCoordinate();
 
-		rnr = new RoadNetworkRoute(o , d);
-    }
-
-	
-	@Test
-	public void testGetShortestRoute() {
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
 		
 		// Define my starting and ending junctions to test
 		List<Junction> currentJunctions = new ArrayList<Junction>();
