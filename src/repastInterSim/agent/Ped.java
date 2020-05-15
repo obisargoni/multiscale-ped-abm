@@ -692,13 +692,6 @@ public class Ped extends MobileAgent {
     	return coordString;
     }
     
-    public String getInitialRouteCoordinatesString() {
-    	if (initialRouteCoordString == null) {
-    		initialRouteCoordString = IO.getCoordinateListString(this.pedInitialRoute);
-    	}
-    	return initialRouteCoordString;
-    }
-    
     public List<GridCoordinates2D> getNextPathSection(){
     	return this.nextPathSection;
     }
