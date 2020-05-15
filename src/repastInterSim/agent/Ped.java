@@ -135,9 +135,15 @@ public class Ped extends MobileAgent {
     		this.dynamicSummandPriorityMap = calculateDynamicGridSummandPriorityMap(currentRoadLinkID);
     	}
     	
+    	Boolean tacticalPathUpdaterequired = false;
+    	Coordinate nextTacticalPathCoord = this.pathFinder.getNextTacticalPathCoord();
+    	if(nextTacticalPathCoord == null | this.maLoc.distance(nextTacticalPathCoord) < 0.5) {
+    		tacticalPathUpdaterequired = true;
+    	}
+    	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
-        	if (this.maLoc.distance(pathFinder.getNextTacticalPathCoord()) < 0.5) {
+        	if (tacticalPathUpdaterequired) {
         		pathFinder.updateTacticalPathCoordinate(this.dynamicSummandPriorityMap, this.maLoc);
         	}
         	walk(pathFinder.getNextTacticalPathCoord());
@@ -150,7 +156,7 @@ public class Ped extends MobileAgent {
     		double distanceToCrossing = this.maLoc.distance(pathFinder.getNextCrossingCoord());
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
-            	if (this.maLoc.distance(pathFinder.getNextTacticalPathCoord()) < 0.5) {
+            	if (tacticalPathUpdaterequired) {
             		pathFinder.updateTacticalPathCoordinate(this.dynamicSummandPriorityMap, this.maLoc);
             	}
             	walk(pathFinder.getNextTacticalPathCoord());
