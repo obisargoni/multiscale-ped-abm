@@ -128,15 +128,8 @@ public class GridRoute {
 	 * The grid path is grouped into sections according to the road link the grid cells belong to. 
 	 */
 	public void setGroupedGridPath() {
-		this.routeX = new Vector<Coordinate>();
-		this.roadsX = new Vector<RoadLink>();
-		this.routeDescriptionX = new Vector<String>();
-		this.routeSpeedsX = new Vector<Double>();
-		this.gridPathCrossings = new Vector<GridCoordinates2D>();
-		this.prunedGridPath = new Vector<GridCoordinates2D>();
-		this.primaryRouteX = new Vector<Coordinate>();
-		this.routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
-		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
+		
+		this.initialiseRouteVectors();
 		
 		// sequence of grid cell coordinates leading from agent' current position to end destination
 		this.gridPath = getDijkstraGridPath(this.grid, this.origin, this.destination);
@@ -905,6 +898,20 @@ public class GridRoute {
 		
 		// Remove the current road link coord since this section of the path has been added to the route
 		this.primaryRouteX.remove(0);
+	}
+	
+	private void initialiseRouteVectors() {
+		
+		this.routeX = new Vector<Coordinate>();
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+		this.gridPathCrossings = new Vector<GridCoordinates2D>();
+		this.prunedGridPath = new Vector<GridCoordinates2D>();
+		this.primaryRouteX = new Vector<Coordinate>();
+		this.routeCoordMap = new HashMap<Coordinate, GridCoordinates2D>();
+		this.groupedGridPath = new HashMap<GridCoordinates2D, List<GridCoordinates2D>>();
+		
 	}
 	
 	/**
