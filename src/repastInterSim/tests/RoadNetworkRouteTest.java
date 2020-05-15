@@ -38,9 +38,6 @@ public class RoadNetworkRouteTest {
 	
 	private Context<RoadLink> roadLinkContext;
 	
-	private Context<OD> testODContext;
-	private Geography<OD> testODGeography;
-	
 	private Context<Junction> junctionContext;
 	private Network<Junction> roadNetwork;
 	
@@ -56,13 +53,7 @@ public class RoadNetworkRouteTest {
 		junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		testODContext = new VehicleDestinationContext();
-		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
-		testODGeography.setCRS(GlobalVars.geographyCRSString);
-		
+		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 1. Load road network data
 		String roadLinkFile = TestDataDir + "mastermap-itn RoadLink Intersect Within with orientation.shp";
@@ -81,17 +72,25 @@ public class RoadNetworkRouteTest {
 	@Test
 	public void testGetShortestRoute() throws MalformedURLException, FileNotFoundException {
 		
+		// Initialise OD context and geography
+		Context<OD> testODContext = new VehicleDestinationContext();
+		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
+		Geography<OD> testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
+		testODGeography.setCRS(GlobalVars.geographyCRSString);
+		
 		// Load vehicle origins and destinations
 		String vehicleDestinationsFile = TestDataDir + "OD_vehicle_nodes_intersect_within.shp";
 		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
 		
-		// Initialise the road network route
+		// Select vehicle origins and destinations to test
 		Coordinate o = testODContext.getObjects(OD.class).get(10).getGeom().getCoordinate();
 		Coordinate d = testODContext.getObjects(OD.class).get(6).getGeom().getCoordinate();
 
 		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
 		
 		// Define my starting and ending junctions to test
+		// Need to to this because although the origin and destination were selected above, this was just to initialise RoadNetworkRoute with
+		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
 		for(Junction j: junctionContext.getObjects(Junction.class)) {
