@@ -59,11 +59,11 @@ public class PedPathFinder {
 
 	}
 	
-	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM) {	
+	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM, Coordinate o) {	
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
 			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
-			planTacticaPath(gSPM);
+			planTacticaPath(gSPM, o);
 		}
 		
     	// If crossing coord is null, check the route for upcoming crossing coord
@@ -76,13 +76,12 @@ public class PedPathFinder {
 		this.tacticalPath.removeNextFromRoute();
     }
 	
-	public void planTacticaPath(HashMap<Integer, Double> gSPM) {	
+	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate o) {	
 		
 		this.currentRoadLink = this.strategicPath.get(0);
-		
+				
 		// Depends on the orientation of the road - also will be replaced by more sophisticated choice of road link ed points
 		Coordinate[] roadCoords = this.currentRoadLink.getGeom().getCoordinates();
-		Coordinate o = roadCoords[0];
 		Coordinate d = roadCoords[roadCoords.length-1];
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
