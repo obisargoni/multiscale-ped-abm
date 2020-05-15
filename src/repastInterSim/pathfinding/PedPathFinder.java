@@ -80,15 +80,21 @@ public class PedPathFinder {
 		this.tacticalPath.removeNextFromRoute();
     }
 	
-	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate o) {	
+	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate o) {
 		
-		this.currentRoadLink = this.strategicPath.get(0);
-				
-		// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
-		Coordinate d = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
+		Coordinate tacticalDestCoord;
+		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
+			tacticalDestCoord = this.destination.getGeom().getCoordinate();
+		}
+		else {
+			this.currentRoadLink = this.strategicPath.get(0);
+			
+			// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
+			tacticalDestCoord = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
+		}
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		GridRoute tP = new GridRoute(grid, gSPM, o, d, true);
+		GridRoute tP = new GridRoute(grid, gSPM, o, tacticalDestCoord, true);
 		
     	// Get updated set of route coords to follow to next road link coordinate
 		tP.setGroupedGridPath();
