@@ -101,7 +101,7 @@ public class GridRoute {
 	 *
 	 */
 	public GridRoute() {
-		
+		this.initialiseRouteVectors();
 	}
 
 	
@@ -123,12 +123,16 @@ public class GridRoute {
 	 * 		A boolean value indicating whether to consider only a partial area of the grid when producing the route.
 	 */
 	public GridRoute(GridCoverage2D grd, HashMap<Integer, Double> gSPM, Coordinate origin, Coordinate destination, boolean partial) {
+
 		this.grid = grd;
 		this.origin = origin;
 		this.destination = destination;
 		// TODO Auto-generated constructor stub
 		this.gridSummandPriorityMap = gSPM;
 		this.partialFF = partial;
+		
+		this.initialiseRouteVectors();
+
 	}
 	
 	/**
