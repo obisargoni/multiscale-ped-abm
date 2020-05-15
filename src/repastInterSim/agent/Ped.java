@@ -137,7 +137,10 @@ public class Ped extends MobileAgent {
     	
     	Boolean tacticalPathUpdaterequired = false;
     	Coordinate nextTacticalPathCoord = this.pathFinder.getNextTacticalPathCoord();
-    	if(nextTacticalPathCoord == null | this.maLoc.distance(nextTacticalPathCoord) < 0.5) {
+    	if(nextTacticalPathCoord == null) {
+    		tacticalPathUpdaterequired = true;
+    	}
+    	else if (this.maLoc.distance(nextTacticalPathCoord) < 0.5) {
     		tacticalPathUpdaterequired = true;
     	}
     	
