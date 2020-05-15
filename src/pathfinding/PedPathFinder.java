@@ -21,7 +21,7 @@ public class PedPathFinder {
 	private Geography<Object> geography;
 	
 	private List<RoadLink> strategicPath;
-	private GridRoute tacticalPath;
+	private GridRoute tacticalPath = new GridRoute();
 	
 	private Coordinate nextTacticalPathCoord;
 
