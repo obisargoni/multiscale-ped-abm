@@ -110,7 +110,8 @@ gdfITNLink = gdfITNLink.loc[ (gdfITNLink.geometry.intersects(SelectPolygon)) | (
 gdfITNNode = gpd.sjoin(gdfITNNode, gdfITNLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
 
 # Clean up
-gdfITNNode.drop(['fid_line'], axis = 1, inplace=True)
+gdfITNNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
+gdfITNNode.drop_duplicates(inplace = True)
 gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
 # Could do some cleaning here - multipart to singlepart
