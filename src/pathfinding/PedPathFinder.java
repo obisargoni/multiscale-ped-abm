@@ -55,6 +55,8 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
+		this.currentRoadLink = this.strategicPath.get(0);
+
 	}
 	
 	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM) {	
