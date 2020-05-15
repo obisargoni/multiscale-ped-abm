@@ -106,7 +106,7 @@ public class GridRoute {
 
 	
 	/**
-	 * Create a new route object
+	 * Create a new grid route object
 	 * 
 	 * @param grid
 	 * 		The grid coverage to use for path finding
