@@ -55,7 +55,11 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
-		this.currentRoadLink = this.strategicPath.get(0);
+		
+		// The strategic path can be empty when origin and destination are very close
+		if(this.strategicPath.isEmpty() == false) {
+			this.currentRoadLink = this.strategicPath.get(0);
+		}
 
 	}
 	
