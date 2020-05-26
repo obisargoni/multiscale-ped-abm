@@ -25,6 +25,7 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.JunctionContext;
+import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
@@ -236,6 +237,42 @@ public class RoadNetworkRouteTest {
 		NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(0);
 		assert e.getRoadLink().getFID().contentEquals("osgb4000000030238946");
 
+	}
+	
+	@Test
+	public void testCalculateRouteParity() throws MalformedURLException, FileNotFoundException {
+		// Initialise OD context and geography
+		Context<OD> testODContext = new PedestrianDestinationContext();
+		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
+		Geography<OD> testODGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", testODContext, GeoParamsOD);
+		testODGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		// Load vehicle origins and destinations
+		String testODFile = TestDataDir + "parity_test_OD.shp";
+		GISFunctions.readShapefile(OD.class, testODFile, testODGeography, testODContext);
+		
+		// Select pedestrian origins and destinations to test
+		Coordinate o = testODContext.getObjects(OD.class).get(0).getGeom().getCoordinate();
+		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
+		
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);		
+		
+		// Initialise test road link geography and context
+		roadLinkContext = new RoadLinkContext();
+		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		String roadLinkFile = TestDataDir + "parity_test_lines3.shp";
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+		
+		List<RoadLink> roads = new ArrayList<RoadLink>();
+		roadLinkGeography.getAllObjects().forEach(roads::add);
+		
+		// Now perform parity calculation
+		int p = rnr.calculateRouteParity(o, d, roads);
+		assert p == 1;
 	}
 
 }
