@@ -170,6 +170,7 @@ public class IO {
 		IO.gridCoverageCoordinatesToCSV(grid, griCoordinatesFile);
 	}
     
+    /*
     public static void exportPedGridRouteData(Ped p, String filePrefix, Boolean idSuffix) {
     	if (filePrefix == null) {
     		filePrefix = "";
@@ -198,6 +199,7 @@ public class IO {
 		IO.gridCoordiantesIterableToCSV(prunedGridPath, prunedGridPathFile);
 		IO.gridCoordiantesIterableToCSV(gridPathCrossings, gridPathCrossingsFile);
 	}
+	*/
     
 	/*
 	 * Read CSV data into List of String arrays. Catch exceptions.
