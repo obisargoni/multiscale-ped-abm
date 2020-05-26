@@ -94,6 +94,8 @@ public class RoadNetworkRoute implements Cacheable {
 	// Record which function has added each coord, useful for debugging
 	protected List<String> routeDescriptionX;
 	
+	// Records whether origin and destination lie on opposite sides of the road network route
+	private int routeParity;
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -229,6 +231,8 @@ public class RoadNetworkRoute implements Cacheable {
 
 			// Check that a route has actually been created
 			checkListSizes();
+			
+			setRouteParity();
 
 		} catch (RoutingException e) {
 			/*
@@ -674,6 +678,17 @@ public class RoadNetworkRoute implements Cacheable {
 	
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
+	}
+
+
+	public int getRouteParity() {
+		return routeParity;
+	}
+
+
+	public void setRouteParity() {
+		int p = calculateRouteParity(this.origin, this.destination, this.roadsX);
+		this.routeParity = p;
 	}
 
 	/**
