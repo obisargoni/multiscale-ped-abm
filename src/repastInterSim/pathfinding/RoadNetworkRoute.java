@@ -440,6 +440,37 @@ public class RoadNetworkRoute implements Cacheable {
 			return shortestPath;
 		} // synchronized
 	}
+	
+	/*
+	 * Method to calculate the route parity. The parity relates to the topology of the road network route in
+	 * relation to the start and end points. Considering the road network route as a path that divides the space,
+	 * even parity means the origin and destination are in the same region, odd parity means they are in different regions.
+	 * 
+	 * This is calculated by counting the number of times a straight line from the origin to the destination intersects the road
+	 * network path.
+	 */
+	public int calculateRouteParity(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {
+		int p;
+		
+		// Create linestring connecting origin to destination
+		Coordinate[] odCoords = {o, d};
+		LineString ODLine = GISFunctions.lineStringGeometryFromCoordinates(odCoords);
+		Geometry[] ODLineGeom = {ODLine};
+
+		
+		// Loop through road links in the rout and count number of times the ODLine intersects
+		Geometry[] rlGeoms = new Geometry[roadLinkRoute.size()];
+		for (int i = 0; i< roadLinkRoute.size(); i++) {
+			RoadLink rl = roadLinkRoute.get(i);
+			rlGeoms[i] = rl.getGeom();
+		}
+				
+		// Count number of intersections
+		int nIntersections = GISFunctions.calculateNIntersectionCoords(ODLineGeom, rlGeoms);
+
+		p = nIntersections % 2;
+		return p;
+	}
 
 	private static void checkNotNull(Object... args) throws RoutingException {
 		for (Object o : args) {
