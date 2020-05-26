@@ -28,6 +28,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
@@ -639,6 +640,17 @@ public class GISFunctions {
 	    return pt;
 	}
 	
+	/*
+	 * Method to create linestring geometry from iterable of coordinates
+	 */
+	public static LineString lineStringGeometryFromCoordinates(Coordinate[] coords) {
+		
+		// Create coordinate sequence and create linestring from this
+	    GeometryFactory fac = new GeometryFactory();
+	    CoordinateSequence cs = fac.getCoordinateSequenceFactory().create(coords);
+		LineString l = new LineString(cs, fac);
+		return l;
+	}
     /**
      *  Gets list of roads the input polygon intersects with.
      *  
