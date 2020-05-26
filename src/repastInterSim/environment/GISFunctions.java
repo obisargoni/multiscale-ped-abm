@@ -670,6 +670,22 @@ public class GISFunctions {
 		return interGeoms;
 	}
 	
+	
+	/*
+	 * Calculate number of coordinates of intersection between two groups of geometries
+	 */
+	public static int calculateNIntersectionCoords(Geometry[] geoms1, Geometry[] geoms2) {
+		ArrayList<Geometry> intersections = GISFunctions.getIntersectionGeometries(geoms1, geoms2);
+		
+		// Count number of intersections
+		int nIntersections = 0;
+		for (Geometry g: intersections) {
+			nIntersections+=g.getCoordinates().length;
+		}
+		
+		return nIntersections;
+	}
+	
     /**
      *  Gets list of roads the input polygon intersects with.
      *  
