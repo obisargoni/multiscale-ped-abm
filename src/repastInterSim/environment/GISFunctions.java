@@ -641,7 +641,7 @@ public class GISFunctions {
 	}
 	
 	/*
-	 * Method to create linestring geometry from iterable of coordinates
+	 * Method to create linestring geometry from array of coordinates
 	 */
 	public static LineString lineStringGeometryFromCoordinates(Coordinate[] coords) {
 		
