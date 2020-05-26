@@ -651,6 +651,25 @@ public class GISFunctions {
 		LineString l = new LineString(cs, fac);
 		return l;
 	}
+	
+	/** */
+	public static ArrayList<Geometry> getIntersectionGeometries (Geometry[] geoms1, Geometry[] geoms2) {
+		
+		// Initialise output array of geometries
+		ArrayList<Geometry> interGeoms = new ArrayList<Geometry>();
+		
+		Geometry g1;
+		Geometry g2;
+		for (int i = 0; i<geoms1.length; i++) {
+			g1 = geoms1[i];
+			for (int j = 0; j<geoms2.length; j++) {
+				g2 = geoms2[j];
+				interGeoms.add(g1.intersection(g2));
+			}
+		}
+		return interGeoms;
+	}
+	
     /**
      *  Gets list of roads the input polygon intersects with.
      *  
