@@ -22,7 +22,7 @@ public class Road implements FixedGeography {
 	private String priority = ""; // Priority information comes from GIS data
 	
 	// Allows road agents to be joined with a particular RoadLink agent
-	private List<RoadLink> roadLinks = new ArrayList<RoadLink>();
+	private List<RoadLink> roadLinks = null;
 	
 	
 	/*
@@ -37,7 +37,7 @@ public class Road implements FixedGeography {
 	
 	public int getRoadLinksVehicleCount() {
 		int count = 0;
-		for(RoadLink rl:this.roadLinks) {
+		for(RoadLink rl:getRoadLinks()) {
 			count += rl.getVehicleCount();
 		}
 		return count;
@@ -51,7 +51,7 @@ public class Road implements FixedGeography {
 	 */
 	public int getNumberLeadVehicles() {
 		int leaderCount = 0;
-		for(RoadLink rl: this.roadLinks) {
+		for(RoadLink rl: getRoadLinks()) {
 			if(rl.getVehicleCount() > 0) {
 				leaderCount++;
 			}
@@ -60,6 +60,10 @@ public class Road implements FixedGeography {
 	}
 	
 	public List<RoadLink> getRoadLinks() {
+		
+		if (this.roadLinks == null) {
+			setRoadLinks();
+		}
 		return this.roadLinks;
 	}
 	
@@ -81,9 +85,6 @@ public class Road implements FixedGeography {
 	
 	public void setRoadLinkID(String rlFID) {
 		this.roadLinkID = rlFID;
-		
-		// Once road link FID is set, can set the Road Link object
-		setRoadLinks();
 	}
 	
 	public String getRoadLinkID() {
@@ -95,6 +96,7 @@ public class Road implements FixedGeography {
 	 * that this Road object is associated, allow for multiple RoadLink objects to be associated.
 	 */
 	public void setRoadLinks() {
+		this.roadLinks = new ArrayList<RoadLink>();
 		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
 			if (rl.getFID().contentEquals(this.roadLinkID)) {
 				this.roadLinks.add(rl);
