@@ -63,11 +63,23 @@ public class PedPathFinder {
 
 	}
 	
-	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord) {	
+	/*
+	 * Set the next tactical coordinate. If there are no coordinates in the tactical path, plan a new tactical path. Otherwise get the next coordinate
+	 * in the tactical path.
+	 * 
+	 * @param gSPM
+	 * 			The map from integers used to indicate the road user priority of grid cells to the perceived cost of moving through those grid cells. Used for routing on a grid.
+	 * @param tacticalOriginCoord
+	 * 			The start coordinate of the tactical route.
+	 */
+	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord) {
+		
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
+			Coordinate tacticalDestCoord = tacticalDestinationCoordinate();
+
 			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
-			planTacticaPath(gSPM, tacticalOriginCoord);
+			planTacticaPath(gSPM, tacticalOriginCoord, tacticalDestCoord);
 		}
 		
     	// If crossing coord is null, check the route for upcoming crossing coord
@@ -80,18 +92,18 @@ public class PedPathFinder {
 		this.tacticalPath.removeNextFromRoute();
     }
 	
-	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord) {
-		
-		Coordinate tacticalDestCoord;
-		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
-			tacticalDestCoord = this.destination.getGeom().getCoordinate();
-		}
-		else {
-			this.currentRoadLink = this.strategicPath.get(0);
-			
-			// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
-			tacticalDestCoord = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
-		}
+	/*
+	 * Plan a tactical level path from an origin coordinate to a destination coordinate. The tactical path is planned using the
+	 * GridRoute class.
+	 * 
+	 * @param gSPM
+	 * 			The map from integers used to indicate the road user priority of grid cells to the perceived cost of moving through those grid cells. Used for routing on a grid.
+	 * @param tacticalOriginCoord
+	 * 			The start coordinate of the tactical route.
+	 * @param tacticalDestCoord
+	 * 			The end coordinate of the tactical route.
+	 */
+	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord, Coordinate tacticalDestCoord) {
 		
 		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
 		GridRoute tP = new GridRoute(grid, gSPM, tacticalOriginCoord, tacticalDestCoord, true);
