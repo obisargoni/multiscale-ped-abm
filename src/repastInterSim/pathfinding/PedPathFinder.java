@@ -110,6 +110,25 @@ public class PedPathFinder {
 		}
 	}
 	
+	/*
+	 * Identify the destination coordinate for the tactical path. This is currently defined as the coordinate of the end junction of the
+	 * current road link in the road link path, if the agent has reached the final road link in the path, the final destination.
+	 */
+	private Coordinate tacticalDestinationCoordinate() {
+		Coordinate tacticalDestCoord;
+		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
+			tacticalDestCoord = this.destination.getGeom().getCoordinate();
+		}
+		else {
+			this.currentRoadLink = this.strategicPath.get(0);
+			
+			// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
+			tacticalDestCoord = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
+		}
+		
+		return tacticalDestCoord;
+	}
+	
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
