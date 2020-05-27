@@ -5,6 +5,7 @@
 
 package repastInterSim.environment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +16,9 @@ import repastInterSim.main.SpaceBuilder;
 /*
  * Not sure what attributes and methods are needed for the road object.
  */
-public class Road implements FixedGeography {
+public class Road implements FixedGeography, Serializable {
 	
+	private static final long serialVersionUID = 1L;
 	private String roadLinkID; // The id of the road link this road object should be linked with
 	private Geometry geom;	
 	private String priority = ""; // Priority information comes from GIS data
