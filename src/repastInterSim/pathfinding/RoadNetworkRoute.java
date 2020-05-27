@@ -389,6 +389,17 @@ public class RoadNetworkRoute implements Cacheable {
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
 	}
+	/*
+	 * Wrapper function for initialising road link coord and getting roads. This allow the initialisation to be tested in test cass.
+	 */
+	public static synchronized List<Road> getRoadLinkRoads(Geography<Road> g, File vRF, File pRF, File sL, String roadLinkID) throws Exception {
+		
+		RoadLinkRoadsCache roadLinkRoadsCache = RoadLinkRoadsCache.getInstance(g, vRF, pRF, sL);
+
+		List<Road> roads = roadLinkRoadsCache.get(roadLinkID);
+		
+		return roads;
+	}
 
 	/**
 	 * Finds the shortest route between multiple origin and destination junctions. Will return the shortest path and
