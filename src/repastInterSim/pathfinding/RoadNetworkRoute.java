@@ -941,6 +941,175 @@ class NearestRoadCoordCache implements Serializable {
 }
 
 
+/**
+ * Caches the road objects associated to a road link ID. Usful when wanting the pedestrian or vehicle spaces connected to a particular road link.
+ * <p>
+ * This class can be serialised so that if the GIS data doesn't change it doesn't have to be re-calculated each time.
+ * 
+ * @author Obi Thompson Sargoni (original code by Nick Malleson)
+ */
+class RoadLinkRoadsCache implements Serializable {
+
+	private static Logger LOGGER = Logger.getLogger(RoadLinkRoadsCache.class.getName());
+
+	private static final long serialVersionUID = 1L;
+	private Hashtable<String, List<Road>> theCache; // The actual cache
+	// Check that the road/building data hasn't been changed since the cache was
+	// last created
+	private File vehicleRoadsFile;
+	private File pedestrianRoadsFile;
+	// The location that the serialised object might be found.
+	private File serialisedLoc;
+	// The time that this cache was created, can be used to check data hasn't
+	// changed since
+	private long createdTime;
+
+	private RoadLinkRoadsCache(Geography<Road> roadGeography, File vehicleRoadsFile, File pedestrianRoadsFile, File serialisedLoc)
+			throws Exception {
+
+		this.vehicleRoadsFile = vehicleRoadsFile;
+		this.pedestrianRoadsFile = pedestrianRoadsFile;
+		this.serialisedLoc = serialisedLoc;
+		this.theCache = new Hashtable<String, List<Road>>();
+
+		LOGGER.log(Level.FINE, "RoadLinkRoadsCache() creating new cache with data (and modification date):\n\t"
+				+ this.vehicleRoadsFile.getAbsolutePath() + " (" + new Date(this.vehicleRoadsFile.lastModified()) + "):\n\t"
+				+ this.pedestrianRoadsFile.getAbsolutePath() + " (" + new Date(this.pedestrianRoadsFile.lastModified()) + "):\n\t"
+				+ this.serialisedLoc.getAbsolutePath());
+		
+		// Don't populate the cache for now
+		populateCache(roadGeography);
+		this.createdTime = new Date().getTime();
+		serialise();
+	}
+
+	public void clear() {
+		this.theCache.clear();
+	}
+
+	
+	private void populateCache(Geography<Road> roadGeography)
+			throws Exception {
+		double time = System.nanoTime();
+		theCache = new Hashtable<String, List<Road>>();
+		// Iterate over every road object and group them by their road link IDs
+		for (Road r : roadGeography.getAllObjects()) {
+			String rlID = r.getRoadLinkID();
+			
+			// Check if cache doesn't contain this id, create new list and add to the cache
+			if(!theCache.containsKey(rlID)) {
+				List<Road> roads = new ArrayList<Road>();
+				theCache.put(rlID, roads);
+			}
+			
+			// Add the road to the list of roads under this ID
+			theCache.get(rlID).add(r);
+		}// for Buildings
+		LOGGER.log(Level.FINER, "Finished caching nearest roads (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
+	} // if nearestRoadCoordCache = null;
+
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Road> get(String rlID) throws Exception {
+		if (rlID == null) {
+			throw new Exception("RoadNetworkRoute.RoadLinkRoadsCache.get() error: the given coordinate is null.");
+		}
+		double time = System.nanoTime();
+		List<Road> roads = this.theCache.get(rlID);
+		if (roads != null) {
+			LOGGER.log(Level.FINER, "RoadLinkRoadsCache.get() (using cache) - ("
+					+ (0.000001 * (System.nanoTime() - time)) + "ms)");
+			return roads;
+		}
+		
+		/* IF HERE THEN ERROR, PRINT DEBUGGING INFO */
+		StringBuilder debugIntro = new StringBuilder(); // Some extra info for debugging
+		debugIntro.append("Route.RoadLinkRoadsCache.get() error: couldn't find a list of roads to return.\n");
+		throw new Exception(debugIntro.toString());
+
+	}
+
+	private void serialise() throws IOException {
+		double time = System.nanoTime();
+		FileOutputStream fos = null;
+		ObjectOutputStream out = null;
+		try {
+			if (!this.serialisedLoc.exists())
+				this.serialisedLoc.createNewFile();
+			fos = new FileOutputStream(this.serialisedLoc);
+			out = new ObjectOutputStream(fos);
+			out.writeObject(this);
+			out.close();
+		} catch (IOException ex) {
+			if (serialisedLoc.exists()) {
+				// delete to stop problems loading incomplete file next time
+				serialisedLoc.delete();
+			}
+			throw ex;
+		}
+		LOGGER.log(Level.FINE, "... serialised NearestRoadCoordCache to " + this.serialisedLoc.getAbsolutePath()
+				+ " in (" + 0.000001 * (System.nanoTime() - time) + "ms)");
+	}
+
+	/**
+	 * Used to create a new BuildingsOnRoadCache object. This function is used instead of the constructor directly so
+	 * that the class can check if there is a serialised version on disk already. If not then a new one is created and
+	 * returned.
+	 * 
+	 * @param roadGeography
+	 * @param vehicleRoadsFile
+	 * @param pedestrianRoadsFile
+	 * @param serialisedLoc
+	 * @return
+	 * @throws Exception
+	 */
+	public synchronized static RoadLinkRoadsCache getInstance(Geography<Road> roadGeography, File vehicleRoadsFile, File pedestrianRoadsFile, File serialisedLoc) throws Exception {
+		double time = System.nanoTime();
+		// See if there is a cache object on disk.
+		if (serialisedLoc.exists()) {
+			FileInputStream fis = null;
+			ObjectInputStream in = null;
+			RoadLinkRoadsCache rlr = null;
+			try {
+
+				fis = new FileInputStream(serialisedLoc);
+				in = new ObjectInputStream(fis);
+				rlr = (RoadLinkRoadsCache) in.readObject();
+				in.close();
+
+				// Check that the cache is representing the correct data and the
+				// modification dates are ok
+				if (!vehicleRoadsFile.getAbsolutePath().equals(rlr.vehicleRoadsFile.getAbsolutePath())
+						|| !pedestrianRoadsFile.getAbsolutePath().equals(rlr.pedestrianRoadsFile.getAbsolutePath())
+						|| vehicleRoadsFile.lastModified() > rlr.createdTime || pedestrianRoadsFile.lastModified() > rlr.createdTime) {
+					LOGGER.log(Level.FINE, "BuildingsOnRoadCache, found serialised object but it doesn't match the "
+							+ "data (or could have different modification dates), will create a new cache.");
+				} else {
+					LOGGER.log(Level.FINER, "RoadLinkRoadsCache, found serialised cache, returning it (in "
+							+ 0.000001 * (System.nanoTime() - time) + "ms)");
+					return rlr;
+				}
+			} catch (IOException ex) {
+				if (serialisedLoc.exists())
+					serialisedLoc.delete(); // delete to stop problems loading incomplete file next tinme
+				throw ex;
+			} catch (ClassNotFoundException ex) {
+				if (serialisedLoc.exists())
+					serialisedLoc.delete();
+				throw ex;
+			}
+
+		}
+
+		// No serialised object, or got an error when opening it, just create a new one
+		return new RoadLinkRoadsCache(roadGeography, vehicleRoadsFile, pedestrianRoadsFile, serialisedLoc);
+	}
+
+}
 
 
 /**
