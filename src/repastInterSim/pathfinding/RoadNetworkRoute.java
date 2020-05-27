@@ -51,6 +51,7 @@ import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.Cacheable;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
