@@ -1,5 +1,6 @@
 package repastInterSim.tests;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -22,13 +23,16 @@ import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
+import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class RoadNetworkRouteTest {
@@ -273,6 +277,37 @@ public class RoadNetworkRouteTest {
 		// Now perform parity calculation
 		int p = rnr.calculateRouteParity(o, d, roads);
 		assert p == 1;
+	}
+	
+	@Test
+	public void testGetRoadLinkRoadCacheInstance() throws Exception {
+		
+		String testGISDir = ".//data//test_gis_data//";
+		File vehcileRoadsFile = new File(testGISDir + "topographicAreaVehicle.shp");
+		File pedestrianRoadsFile = new File(testGISDir + "topographicAreaPedestrian.shp");
+		File serialisedLoc = new File(testGISDir + "road_link_rodas_cache.serialised");
+		
+		String roadLinkID = "osgb4000000030343774";
+		
+		// Get road geography
+		Context<Road> testRoadContext = new RoadContext();
+		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
+		Geography<Road> testRoadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		testRoadGeography.setCRS(GlobalVars.geographyCRSString);		
+		
+		// Load vehicle origins and destinations
+		try {
+			GISFunctions.readShapefile(Road.class, testGISDir + "topographicAreaVehicle.shp", testRoadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, testGISDir + "topographicAreaPedestrian.shp", testRoadGeography, testRoadContext);
+		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Check the expected number of roads have been returned		
+		assert roads.size() == 7;
 	}
 
 }
