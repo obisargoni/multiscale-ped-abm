@@ -389,6 +389,40 @@ public class RoadNetworkRoute implements Cacheable {
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
 	}
+	
+	
+	/*
+	 * Get the Road objects linked to a given Road Link ID. These are the vehicle and pedestrian polygons that for the street segment
+	 * corresponding to the road link ID.
+	 * 
+	 * @param roadLinkID
+	 * 			The ID of the road link to get the Road objects for.
+	 * 
+	 */
+	public synchronized List<Road> getRoadLinkRoads(String roadLinkID) throws Exception {
+		// double time = System.nanoTime();
+		
+		// Don't bother with the cache for now
+		synchronized (roadLinkRoadsCacheLock) {
+			if (roadLinkRoadsCache == null) {
+				/*
+				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
+						+ "creating cache of all roads and the buildings which are on them ...");
+						*/
+				// Create a new cache object, this will be read from disk if
+				// possible (which is why the getInstance() method is used
+				// instead of the constructor.
+				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
+				File vehcileRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleRoadShapefile));
+				File pedestrianRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianRoadShapefile));
+				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkRoadsCache));
+
+				roadLinkRoadsCache = RoadLinkRoadsCache.getInstance(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc);
+			} // if not cached
+		} // synchronized
+		return roadLinkRoadsCache.get(roadLinkID);
+	}
+	
 	/*
 	 * Wrapper function for initialising road link coord and getting roads. This allow the initialisation to be tested in test cass.
 	 */
