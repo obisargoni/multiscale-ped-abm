@@ -49,11 +49,23 @@ public abstract class GlobalVars {
 	
 	/* These are strings that match entries in the repastcity.properties file.*/
 	public static final String GISDataDirectory = "GISDataDir";
+	public static final String TestDataDir = "TestDataDir";
+	public static final String VehicleRoadShapefile = "VehicleRoadShapefile";
+	public static final String PedestrianRoadShapefile = "PedestrianRoadShapefile";
+	public static final String RoadLinkShapefile = "RoadLinkShapefile";
+	public static final String PedestrianObstructionShapefile = "PedestrianObstructionShapefile";
+	public static final String VehicleDestinationsFile = "VehicleDestinationsFile";
+	public static final String PedestrianDestinationsFile = "PedestrianDestinationsFile";
+	public static final String vehicleODFlowsFile = "vehicleODFlowsFile";
+	public static final String pedestrianODFlowsFile = "pedestrianODFlowsFile";
+	
 	public static final String BuildingShapefile = "BuildingShapefile";
 	public static final String RoadShapefile = "RoadShapefile";
+	
 	public static final String BuildingsRoadsCoordsCache = "BuildingsRoadsCoordsCache";
 	public static final String BuildingsRoadsCache = "BuildingsRoadsCache";
-	
+	public static final String RoadLinkRoadsCache = "RoadLinkRoadsCache";
+			
 	public static double spaceScale = 1;
 	public static double stepToTimeRatio = 1;
 	public static double[] north = {0,1}; // Defines north, against which bearings are taken
