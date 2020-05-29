@@ -113,7 +113,7 @@ class PedPathFinderTest {
 	}
 	
 	@Test
-	void testPedestrianRoadDestinationCoordinate() throws Exception {
+	void testFarthestUnobstructedRoadCoordinate() throws Exception {
 		
 		setUpRoads();
 		setUpODs();
@@ -140,7 +140,7 @@ class PedPathFinderTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = PedPathFinder.pedestrianRoadDestinationCoordinate(o, r.getGeom(), pedObstructGeography);
+			destCoord = PedPathFinder.farthestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);
 			if(i==1) {
 				assert destCoord==expectedCoords[i];
 				continue;

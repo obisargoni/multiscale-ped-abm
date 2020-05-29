@@ -19,6 +19,7 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
 public class PedPathFinder {
 	
@@ -82,7 +83,7 @@ public class PedPathFinder {
 		
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
-			Coordinate tacticalDestCoord = tacticalDestinationCoordinate();
+			Coordinate tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord);
 
 			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
 			planTacticaPath(gSPM, tacticalOriginCoord, tacticalDestCoord);
@@ -156,7 +157,7 @@ public class PedPathFinder {
 		
 		for(Road r: cPR) {
 			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = pedestrianRoadDestinationCoordinate(oC, r.getGeom(), obstructGeography);
+			Coordinate c = farthestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography);
 			
 			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
 			if (c==null) {
@@ -183,7 +184,7 @@ public class PedPathFinder {
 	 * Currently simply using the centroid of that geometry. Need to change this to find destination a pedestrian would walk toward to
 	 * reach end of pavement, eg the edge of the polygon in the direction of travel.
 	 */
-	public static <T> Coordinate pedestrianRoadDestinationCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {
+	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {
 		
 		Coordinate destCoord = null;
 		Double destDist = 0.0;
