@@ -260,9 +260,7 @@ public class RoadNetworkRouteTest {
 		// Select pedestrian origins and destinations to test
 		Coordinate o = testODContext.getObjects(OD.class).get(0).getGeom().getCoordinate();
 		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
-		
-		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);		
-		
+				
 		// Initialise test road link geography and context
 		roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
@@ -277,7 +275,7 @@ public class RoadNetworkRouteTest {
 		roadLinkGeography.getAllObjects().forEach(roads::add);
 		
 		// Now perform parity calculation
-		int p = rnr.calculateRouteParity(o, d, roads);
+		int p = RoadNetworkRoute.calculateRouteParity(o, d, roads);
 		assert p == 1;
 	}
 	
