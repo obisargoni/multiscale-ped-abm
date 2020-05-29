@@ -147,7 +147,7 @@ public class PedPathFinder {
 		return tacticalDestCoord;
 	}
 
-	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> cPR, List<RoadLink> sPS){
+	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> cPR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography){
 		
 		// Find which road involved crossing the road link
 		HashMap<String, List<Coordinate>> tacticalDestinationOptions = new HashMap<String, List<Coordinate>>();
@@ -156,8 +156,12 @@ public class PedPathFinder {
 		
 		for(Road r: cPR) {
 			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = pedestrianRoadDestinationCoordinate(oC, r.getGeom());
+			Coordinate c = pedestrianRoadDestinationCoordinate(oC, r.getGeom(), obstructGeography);
 			
+			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
+			if (c==null) {
+				continue;
+			}
 			// Check parity - number of times road link is intersected travelling from origin to centroid of polygon.
 			// Tells us whether primary crossing is needed to reach polygon
 			int parity = RoadNetworkRoute.calculateRouteParity(oC, c, sPS);
