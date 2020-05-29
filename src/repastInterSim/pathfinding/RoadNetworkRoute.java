@@ -424,6 +424,27 @@ public class RoadNetworkRoute implements Cacheable {
 	}
 	
 	/*
+	 * Wrapper method that returns only the pedestrian priority roads associated to a particular road link.
+	 * 
+	 * @param roadLinkID
+	 * 			The String ID of the road link to get pedestrian priority roads for.
+	 *
+	 * @return
+	 * 		List of Roads
+	 */
+	public static synchronized List<Road> getRoadLinkPedestrianRoads(String roadLinkID) throws Exception {
+		List<Road> roads = getRoadLinkRoads(roadLinkID);
+		
+		// Remove non pedestrian roads
+		for (int i = 0; i< roads.size(); i++) {
+			if (!roads.get(i).getPriority().contentEquals("pedestrian")) {
+				roads.remove(i);
+			}
+		}
+		return roads;
+	}
+	
+	/*
 	 * Wrapper function for initialising road link coord and getting roads. This allow the initialisation to be tested in test cass.
 	 */
 	public static synchronized List<Road> getRoadLinkRoads(Geography<Road> g, File vRF, File pRF, File sL, String roadLinkID) throws Exception {
@@ -432,6 +453,23 @@ public class RoadNetworkRoute implements Cacheable {
 
 		List<Road> roads = roadLinkRoadsCache.get(roadLinkID);
 		
+		return roads;
+	}
+	
+	/*
+	 * Wrapper method that returns only the pedestrian priority roads associated to a particular road link. 
+	 * Different set of arguments allow the method to be tested because references to SpaceBuilder are not required.
+	 * 
+	 */
+	public static synchronized List<Road> getRoadLinkPedestrianRoads(Geography<Road> g, File vRF, File pRF, File sL, String roadLinkID) throws Exception {
+		List<Road> roads = getRoadLinkRoads(g, vRF, pRF, sL, roadLinkID);
+		
+		// Remove non pedestrian roads
+		for (int i = 0; i< roads.size(); i++) {
+			if (!roads.get(i).getPriority().contentEquals("pedestrian")) {
+				roads.remove(i);
+			}
+		}
 		return roads;
 	}
 
@@ -507,7 +545,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * This is calculated by counting the number of times a straight line from the origin to the destination intersects the road
 	 * network path.
 	 */
-	public int calculateRouteParity(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {
+	public static int calculateRouteParity(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {
 		int p;
 		
 		// Create linestring connecting origin to destination
