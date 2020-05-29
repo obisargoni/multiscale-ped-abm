@@ -774,5 +774,28 @@ public class GISFunctions {
 		
 		return c;
 	}
+	
+	/*
+	 * Method to check whether the line connecting two coordinates intersects with any objects in a geography
+	 * 
+	 * @param geom
+	 * 		The geometry to check for intersections
+	 * @param g
+	 * 		The geography containing objects to check for intersections with
+	 * 
+	 * @return
+	 * 		bool indicating whether any objects were intersected
+	 */
+	public static <T> Boolean doesIntersectGeographyObjects(Geometry geom, Geography<T> g) {		
+		// Check if line passes through a ped obstruction
+		// If it does add the previous index to the pruned path list
+		List<T> intersectingObs = SpatialIndexManager.findIntersectingObjects(g, geom);
+		if (intersectingObs.size() > 0){
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
 
 }
