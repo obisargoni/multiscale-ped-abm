@@ -46,6 +46,8 @@ public class RoadNetworkRouteTest {
 	private Context<Junction> junctionContext;
 	private Network<Junction> roadNetwork;
 	
+	private Geography<Road> testRoadGeography = null;
+	
 	@BeforeEach
     public void setUp() throws Exception {
 		
@@ -279,30 +281,37 @@ public class RoadNetworkRouteTest {
 		assert p == 1;
 	}
 	
-	@Test
-	public void testGetRoadLinkRoadCacheInstance() throws Exception {
+	void setUpRoads() {
 		
-		String testGISDir = ".//data//test_gis_data//";
-		File vehcileRoadsFile = new File(testGISDir + "topographicAreaVehicle.shp");
-		File pedestrianRoadsFile = new File(testGISDir + "topographicAreaPedestrian.shp");
-		File serialisedLoc = new File(testGISDir + "road_link_rodas_cache.serialised");
-		
-		String roadLinkID = "osgb4000000030343774";
+		TestDataDir = ".//data//test_gis_data//";
 		
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		Geography<Road> testRoadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		testRoadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
 		testRoadGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, testGISDir + "topographicAreaVehicle.shp", testRoadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, testGISDir + "topographicAreaPedestrian.shp", testRoadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaVehicle.shp", testRoadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaPedestrian.shp", testRoadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+	}
+	
+	@Test
+	public void testGetRoadLinkRoadCacheInstance() throws Exception {
+		
+		setUpRoads();
+		
+		File vehcileRoadsFile = new File(TestDataDir + "topographicAreaVehicle.shp");
+		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
+		File serialisedLoc = new File(TestDataDir + "road_link_rodas_cache.serialised");
+		
+		String roadLinkID = "osgb4000000030343774";
 		
 		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
