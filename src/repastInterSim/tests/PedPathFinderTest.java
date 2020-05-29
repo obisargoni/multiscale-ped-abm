@@ -93,4 +93,46 @@ class PedPathFinderTest {
 		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
 		
 	}
+
+	@Test
+	void testGetTacticalDestinationCoodinateOptions() throws Exception {
+		setUpRoads();
+		setUpRoadLinks();
+		setUpODs();
+		
+		File vehcileRoadsFile = new File(vehicleRoadsPath);
+		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
+		File serialisedLoc = new File(serialisedLookupPath);
+		
+		// Select pedestrian origins and destinations to test
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.get(2).getGeom().getCoordinate();
+		
+		// Select section of road link network we are testing
+		String roadLinkID = "osgb4000000030238946";
+		List<RoadLink> rls = new ArrayList<RoadLink>();
+		for (RoadLink rl: roadLinkGeography.getAllObjects()) {
+			if (rl.getFID().contentEquals(roadLinkID)) {
+				rls.add(rl);
+			}
+		}
+		
+		// Select pedestrian roads used in testing
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Get the tactical desinations for the origin coord and this road link
+		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls);
+		
+		// Check that two keys and two coordinates returned
+		Set<String> expectedKeys = new HashSet<String>();
+		expectedKeys.add("cross");
+		expectedKeys.add("nocross");
+		assert destOptions.keySet().containsAll(expectedKeys);
+		
+		// Check the coorrdinates are as expected
+		assert destOptions.get("cross").size() == 2;
+		assert destOptions.get("nocross").size() == 2;
+	}
+
 }
