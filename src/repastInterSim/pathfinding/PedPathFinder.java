@@ -179,15 +179,30 @@ public class PedPathFinder {
 	}
 	
 	/*
-	 * Given a starting position and the geometry to traverse find the destination point on that geometry.
+	 *Method for finding either the nearest or farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
 	 * 
-	 * Currently simply using the centroid of that geometry. Need to change this to find destination a pedestrian would walk toward to
-	 * reach end of pavement, eg the edge of the polygon in the direction of travel.
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 * @param String nearOrFar
 	 */
-	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {
-		
+	public static <T> Coordinate xestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography, String nearOrFar) {
 		Coordinate destCoord = null;
-		Double destDist = 0.0;
+		Double destDist = null;
+		int compVal = 0;
+		if (nearOrFar.contentEquals("near")) {
+			destDist = Double.MAX_VALUE;
+			compVal = -1;
+		}
+		else if (nearOrFar.contentEquals("far")){
+			destDist = 0.0;
+			compVal = +1;
+		}
+		else {
+			return destCoord;
+		}
+		
 		
 		// Loop through coordinates of road geometry
 		// Find the farthest coordinate not blocked by a pedestrian obstruction
@@ -202,12 +217,26 @@ public class PedPathFinder {
 			Boolean isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, obstructionGeography);
 			if(!isObstructingObjects) {
 				Double cDist = c.distance(originCoord);
-				if (cDist>destDist) {
+				int comp = Integer.signum(cDist.compareTo(destDist));
+				if (comp == compVal) {
 					destDist = cDist;
 					destCoord = c;
 				}
 			}
 		}
+		return destCoord;
+	}
+	
+	/*
+	 *Method for finding the farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 */
+	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, "far");
 		return destCoord;
 	}
 	
