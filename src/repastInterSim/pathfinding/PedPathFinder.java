@@ -1,16 +1,21 @@
 package repastInterSim.pathfinding;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.GridRoute;
 import repastInterSim.agent.Ped;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
 
@@ -139,6 +144,16 @@ public class PedPathFinder {
 		}
 		
 		return tacticalDestCoord;
+	}
+	/*
+	 * Given a starting position and the geometry to traverse find the destination point on that geometry.
+	 * 
+	 * Currently simply using the centroid of that geometry. Need to change this to find destination a pedestrian would walk toward to
+	 * reach end of pavement, eg the edge of the polygon in the direction of travel.
+	 */
+	public static Coordinate pedestrianRoadDestinationCoordinate(Coordinate originCoord, Geometry rGeom) {
+		Coordinate cen = rGeom.getCentroid().getCoordinate();
+		return cen;
 	}
 	
 	
