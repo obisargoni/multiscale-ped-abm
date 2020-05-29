@@ -399,7 +399,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * 			The ID of the road link to get the Road objects for.
 	 * 
 	 */
-	public synchronized List<Road> getRoadLinkRoads(String roadLinkID) throws Exception {
+	public static synchronized List<Road> getRoadLinkRoads(String roadLinkID) throws Exception {
 		// double time = System.nanoTime();
 		
 		// Don't bother with the cache for now
