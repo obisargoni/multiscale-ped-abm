@@ -89,8 +89,10 @@ class PedPathFinderTest {
 		odGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
-		String testODFile = testGISDir + "OD_pedestrian_nodes.shp";
+		String testODFile = testGISDir + "test_ped_OD1.shp";
 		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
+		SpatialIndexManager.createIndex(odGeography, OD.class);
+	}
 		
 	}
 
@@ -107,7 +109,7 @@ class PedPathFinderTest {
 		// Select pedestrian origins and destinations to test
 		List<OD> ods = new ArrayList<OD>();
 		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
-		Coordinate o = ods.get(2).getGeom().getCoordinate();
+		Coordinate o = ods.get(0).getGeom().getCoordinate();
 		
 		// Select section of road link network we are testing
 		String roadLinkID = "osgb4000000030238946";
