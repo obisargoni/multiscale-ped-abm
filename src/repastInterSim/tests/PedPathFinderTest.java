@@ -111,7 +111,42 @@ class PedPathFinderTest {
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
 		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
 	}
+	
+	@Test
+	void testPedestrianRoadDestinationCoordinate() throws Exception {
 		
+		setUpRoads();
+		setUpODs();
+		setUpPedObstructions();
+		
+		File vehcileRoadsFile = new File(vehicleRoadsPath);
+		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
+		File serialisedLoc = new File(serialisedLookupPath);
+		
+		// Select origin coordinate and pedestrian road geometry
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.get(0).getGeom().getCoordinate();
+		
+		String roadLinkID = "osgb4000000030238946";
+		
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Expected coords
+		Coordinate c1 = new Coordinate(530507.95, 180893.35);
+		Coordinate c3 = new Coordinate(530468.0087569832, 180871.8784368495);
+		Coordinate c4 = new Coordinate(530482.8182132206, 180870.19519803385);
+		Coordinate[] expectedCoords = {c1,null,c3,c4};
+		Coordinate destCoord = null;
+		for (int i=0;i<currentPedRoads.size(); i++) {
+			Road r = currentPedRoads.get(i);
+			destCoord = PedPathFinder.pedestrianRoadDestinationCoordinate(o, r.getGeom(), pedObstructGeography);
+			if(i==1) {
+				assert destCoord==expectedCoords[i];
+				continue;
+			}
+			assert destCoord.equals2D(expectedCoords[i]);
+		}
 	}
 
 	@Test
