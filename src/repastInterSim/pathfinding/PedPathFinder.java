@@ -145,6 +145,33 @@ public class PedPathFinder {
 		
 		return tacticalDestCoord;
 	}
+
+	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> cPR, List<RoadLink> sPS){
+		
+		// Find which road involved crossing the road link
+		HashMap<String, List<Coordinate>> tacticalDestinationOptions = new HashMap<String, List<Coordinate>>();
+		tacticalDestinationOptions.put("cross", new ArrayList<Coordinate>());
+		tacticalDestinationOptions.put("nocross", new ArrayList<Coordinate>());
+		
+		for(Road r: cPR) {
+			// Get candidate destination coordiante from pedestrian road
+			Coordinate c = pedestrianRoadDestinationCoordinate(oC, r.getGeom());
+			
+			// Check parity - number of times road link is intersected travelling from origin to centroid of polygon.
+			// Tells us whether primary crossing is needed to reach polygon
+			int parity = RoadNetworkRoute.calculateRouteParity(oC, c, sPS);
+			
+			if (parity ==1) {
+				tacticalDestinationOptions.get("cross").add(c);
+			}
+			else {
+				tacticalDestinationOptions.get("nocross").add(c);
+			}
+		}
+		
+		return tacticalDestinationOptions;
+	}
+	
 	/*
 	 * Given a starting position and the geometry to traverse find the destination point on that geometry.
 	 * 
