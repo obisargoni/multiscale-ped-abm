@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -22,9 +23,11 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
@@ -37,6 +40,7 @@ class PedPathFinderTest {
 	Geography<Road> roadGeography = null;
 	Geography<RoadLink> roadLinkGeography = null;
 	Geography<OD> odGeography = null;
+	Geography<PedObstruction> pedObstructGeography = null;
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
@@ -92,6 +96,20 @@ class PedPathFinderTest {
 		String testODFile = testGISDir + "test_ped_OD1.shp";
 		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
 		SpatialIndexManager.createIndex(odGeography, OD.class);
+	}
+	
+	void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
+		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
+		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
+		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
+		pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
+		pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		
+		// Load ped obstructions data
+		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
+		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
+		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
 	}
 		
 	}
