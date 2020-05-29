@@ -300,15 +300,13 @@ public class GridRoute {
 		boolean isObstructingObjects = false;
 		
 		Coordinate[] lineCoords = {startCoord, endCoord};
-		LineString pathLine = new GeometryFactory().createLineString(lineCoords);
+		LineString pathLine = GISFunctions.lineStringGeometryFromCoordinates(lineCoords);
+
 		
 		// Check if line passes through a ped obstruction
-		// If it does add the previous index to the pruned path list
-		List<PedObstruction> intersectingObs = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, pathLine);
-		if (intersectingObs.size() > 0){
-			isObstructingObjects = true;
-		}
+		isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, SpaceBuilder.pedObstructGeography);
 		
+		// check if line passes through two different priority road objects
 		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
 		if (intersectingRoads.size()>0) {
 			String priority = intersectingRoads.get(0).getPriority();
