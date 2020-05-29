@@ -15,6 +15,7 @@ import repastInterSim.agent.GridRoute;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -178,9 +179,31 @@ public class PedPathFinder {
 	 * Currently simply using the centroid of that geometry. Need to change this to find destination a pedestrian would walk toward to
 	 * reach end of pavement, eg the edge of the polygon in the direction of travel.
 	 */
-	public static Coordinate pedestrianRoadDestinationCoordinate(Coordinate originCoord, Geometry rGeom) {
-		Coordinate cen = rGeom.getCentroid().getCoordinate();
-		return cen;
+	public static <T> Coordinate pedestrianRoadDestinationCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {
+		
+		Coordinate destCoord = null;
+		Double destDist = 0.0;
+		
+		// Loop through coordinates of road geometry
+		// Find the farthest coordinate not blocked by a pedestrian obstruction
+		Coordinate[] rGeomCoords = rGeom.getCoordinates();
+		for(Coordinate c: rGeomCoords) {
+			
+			// Check for obstructions
+			Coordinate[] lineCoords = {originCoord, c};
+			LineString pathLine = GISFunctions.lineStringGeometryFromCoordinates(lineCoords);
+
+			// Check if line passes through a ped obstruction
+			Boolean isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, obstructionGeography);
+			if(!isObstructingObjects) {
+				Double cDist = c.distance(originCoord);
+				if (cDist>destDist) {
+					destDist = cDist;
+					destCoord = c;
+				}
+			}
+		}
+		return destCoord;
 	}
 	
 	
