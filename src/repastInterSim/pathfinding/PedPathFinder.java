@@ -240,6 +240,19 @@ public class PedPathFinder {
 		return destCoord;
 	}
 	
+	/*
+	 *Method for finding the farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 */
+	public static <T> Coordinate nearestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, "near");
+		return destCoord;
+	}
+	
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
