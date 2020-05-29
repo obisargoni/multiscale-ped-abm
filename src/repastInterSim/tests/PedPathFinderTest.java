@@ -154,6 +154,7 @@ class PedPathFinderTest {
 		setUpRoads();
 		setUpRoadLinks();
 		setUpODs();
+		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
 		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
@@ -177,7 +178,7 @@ class PedPathFinderTest {
 		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Get the tactical desinations for the origin coord and this road link
-		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls);
+		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls, pedObstructGeography);
 		
 		// Check that two keys and two coordinates returned
 		Set<String> expectedKeys = new HashSet<String>();
@@ -186,7 +187,7 @@ class PedPathFinderTest {
 		assert destOptions.keySet().containsAll(expectedKeys);
 		
 		// Check the coorrdinates are as expected
-		assert destOptions.get("cross").size() == 2;
+		assert destOptions.get("cross").size() == 1;
 		assert destOptions.get("nocross").size() == 2;
 	}
 
