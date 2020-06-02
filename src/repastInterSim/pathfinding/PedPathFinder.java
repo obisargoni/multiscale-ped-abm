@@ -147,15 +147,30 @@ public class PedPathFinder {
 		
 		return tacticalDestCoord;
 	}
-
-	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> cPR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography){
+	
+	/*
+	 * Given a starting coordinate, ie the current position of the agent, the pedestrian roads the agent is considering as destinations, the road link associated to these
+	 * pedestrian roads and the geography projection of pedestrian obstructions.
+	 * 
+	 * @param Coordinate oC
+	 * 		The origin coordinate
+	 * @param List<Road> pR
+	 * 		The pedestrian roads
+	 * @param List<RoadLink> sPS
+	 * 		A segment of the strategic path that consists of the link associated to the pedestrian roads
+	 * @param Geography<PedObstruction> obstructGeography
+	 * 		The geography projection containing obstructions to pedestrian movement
+	 * 
+	 * @return HashMap<String, List<Coordinate>>
+	 */
+	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> pR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography){
 		
 		// Find which road involved crossing the road link
 		HashMap<String, List<Coordinate>> tacticalDestinationOptions = new HashMap<String, List<Coordinate>>();
 		tacticalDestinationOptions.put("cross", new ArrayList<Coordinate>());
 		tacticalDestinationOptions.put("nocross", new ArrayList<Coordinate>());
 		
-		for(Road r: cPR) {
+		for(Road r: pR) {
 			// Get candidate destination coordiante from pedestrian road
 			Coordinate c = farthestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography);
 			
