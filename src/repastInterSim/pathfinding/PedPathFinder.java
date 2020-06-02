@@ -241,7 +241,7 @@ public class PedPathFinder {
 	}
 	
 	/*
-	 *Method for finding the farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *Method for finding the nearest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
 	 *geography
 	 * 
 	 * @param Coordinate originCoord
