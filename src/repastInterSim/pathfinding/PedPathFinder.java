@@ -203,7 +203,7 @@ public class PedPathFinder {
 	 * 
 	 * @return HashMap<String, List<Coordinate>>
 	 */
-	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> pR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography){
+	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> pR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography, Boolean far){
 		
 		// Find which road involved crossing the road link
 		HashMap<String, List<Coordinate>> tacticalDestinationOptions = new HashMap<String, List<Coordinate>>();
@@ -212,7 +212,7 @@ public class PedPathFinder {
 		
 		for(Road r: pR) {
 			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = farthestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography);
+			Coordinate c = xestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography, far);
 			
 			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
 			if (c==null) {
