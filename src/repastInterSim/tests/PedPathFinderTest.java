@@ -150,6 +150,41 @@ class PedPathFinderTest {
 			assert expectedCoords.contains(destCoord);
 		}
 	}
+	
+	@Test
+	void testNearestUnobstructedRoadCoordinate() throws Exception {
+		
+		setUpRoads();
+		setUpODs();
+		setUpPedObstructions();
+		
+		File vehcileRoadsFile = new File(vehicleRoadsPath);
+		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
+		File serialisedLoc = new File(serialisedLookupPath);
+		
+		// Select origin coordinate and pedestrian road geometry
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.get(0).getGeom().getCoordinate();
+		
+		String roadLinkID = "osgb4000000030238946";
+		
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Expected coords
+		Coordinate c1 = new Coordinate(530506.8,180891.45);
+		Coordinate c2 = new Coordinate(530512.5,180907.6);
+		Coordinate c4 = new Coordinate(530521.6192518127,180903.04127475937);
+		Coordinate[] carray = {c1,c2,null,c4};
+		
+		List<Coordinate> expectedCoords = new ArrayList<Coordinate>(Arrays.asList(carray));
+		
+		
+		Coordinate destCoord = null;
+		for (int i=0;i<currentPedRoads.size(); i++) {
+			Road r = currentPedRoads.get(i);
+			destCoord = PedPathFinder.nearestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);
+			assert expectedCoords.contains(destCoord);
 		}
 	}
 
