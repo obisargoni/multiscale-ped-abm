@@ -59,7 +59,8 @@ class PedPathFinderTest {
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
 		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		roadGeography.setCRS(GlobalVars.geographyCRSString);		
+		roadGeography.setCRS(GlobalVars.geographyCRSString);
+
 		
 		// Load vehicle origins and destinations
 		try {
@@ -69,6 +70,8 @@ class PedPathFinderTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		SpatialIndexManager.createIndex(roadGeography, Road.class);
+
 	}
 	
 	void setUpRoadLinks() throws Exception {
@@ -228,6 +231,31 @@ class PedPathFinderTest {
 		// Check the coorrdinates are as expected
 		assert destOptions.get("cross").size() == 1;
 		assert destOptions.get("nocross").size() == 2;
+	}
+	
+	@Test
+	void testCheckCoordinateIntersectingRoads() throws Exception {
+		setUpRoads();
+		
+		Coordinate c = new Coordinate(530506.8,180891.45);
+		String currentRoadLinkID = "osgb4000000030238946";
+		String nextRoadLinkID = "osgb4000000030238838";
+		
+		Coordinate midpoly = new Coordinate(530496.982,180882.880);
+		List<Road> inters = SpatialIndexManager.findIntersectingObjects(this.roadGeography, midpoly);
+		
+		String coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, currentRoadLinkID, nextRoadLinkID);
+		assert coordType.contentEquals("not_at_end");
+		
+		c = new Coordinate(530468.0087569832,180871.8784368495);
+		
+		coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, currentRoadLinkID, nextRoadLinkID);
+		assert coordType.contentEquals("intersects_next");
+		
+		c = new Coordinate(530482.8182132206, 180870.19519803385);
+		
+		coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, currentRoadLinkID, nextRoadLinkID);
+		assert coordType.contentEquals("not_intersects_next");
 	}
 
 }
