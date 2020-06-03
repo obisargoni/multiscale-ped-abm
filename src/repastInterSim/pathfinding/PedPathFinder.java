@@ -125,10 +125,47 @@ public class PedPathFinder {
 		tP.setNextRouteSection();
 		
 		this.tacticalPath= tP;
+	
+	/*
+	 * When agent reaches a tactical destination coordinate they must identify the next tactical destination coordinate. This involves interaction between
+	 * the strategic and tactical pathfinding levels as an agents needs to identify whether it has reached the end of one road link.
+	 * 
+	 * To do this, the tactical destination coordinate needs to be categorised in terms of whether it is at the end of a road link and at the stat of the next road link,
+	 * at the end of a road link and not yet at the start of the next road link, or not yet at the end of a road link.
+	 * 
+	 * Ideally also want to be able to tell if at the start of a road link but not sure how to do this now.
+	 * 
+	 * @param Coordinate c
+	 * 		The coordinate to get information on
+	 * @param Geography<Road>
+	 * 		The projection containing road objects
+	 * @param String cRL
+	 * 		The ID of the current road link
+	 * @param String nRL
+	 * 		The ID of the next road link in the strategic path.
+	 *  
+	 * @return String
+	 * 		Indicates the location of coordinate in reference to the strategic path
+	 */
+	public static String checkCoordinateIntersectingRoads(Coordinate c, Geography<Road> roadGeography, String cRL, String nRL) {
+				
+		// Get the intersecting road objects
+		List<Road> roads = SpatialIndexManager.findIntersectingObjects(roadGeography, c);
 		
-		// Remove this road link from the strategic path, no longer the next road link
-		if (this.strategicPath.isEmpty() == false) {
-			this.strategicPath.remove(0);
+		// If all roads have the ID of the current road link then coordinate is not at the end of the road link
+		Boolean notAtEnd = roads.stream().allMatch(r -> r.getRoadLinkID().contentEquals(cRL));
+		if(notAtEnd) {
+			return "not_at_end";
+		}
+		
+		// Check if intersecting roads include the next link in the strategic path
+		Boolean intersectsNext = roads.stream().anyMatch(r -> r.getRoadLinkID().contentEquals(nRL));
+		
+		if (intersectsNext) {
+			return "intersects_next";
+		}
+		else {
+			return "not_intersects_next";
 		}
 	}
 	
