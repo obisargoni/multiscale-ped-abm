@@ -242,15 +242,15 @@ public class PedPathFinder {
 	 * @param Geography<T> obstructionGeography
 	 * @param String nearOrFar
 	 */
-	public static <T> Coordinate xestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography, String nearOrFar) {
+	public static <T> Coordinate xestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography, Boolean far) {
 		Coordinate destCoord = null;
 		Double destDist = null;
 		int compVal = 0;
-		if (nearOrFar.contentEquals("near")) {
+		if (far == false) {
 			destDist = Double.MAX_VALUE;
 			compVal = -1;
 		}
-		else if (nearOrFar.contentEquals("far")){
+		else if (far == true){
 			destDist = 0.0;
 			compVal = +1;
 		}
@@ -291,7 +291,7 @@ public class PedPathFinder {
 	 * @param Geography<T> obstructionGeography
 	 */
 	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
-		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, "far");
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, true);
 		return destCoord;
 	}
 	
@@ -304,7 +304,7 @@ public class PedPathFinder {
 	 * @param Geography<T> obstructionGeography
 	 */
 	public static <T> Coordinate nearestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
-		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, "near");
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, false);
 		return destCoord;
 	}
 	
