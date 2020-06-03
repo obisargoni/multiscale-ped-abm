@@ -3,6 +3,8 @@ package repastInterSim.pathfinding;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 
@@ -18,6 +20,7 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
+import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 

@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -136,16 +138,18 @@ class PedPathFinderTest {
 		Coordinate c1 = new Coordinate(530507.95, 180893.35);
 		Coordinate c3 = new Coordinate(530468.0087569832, 180871.8784368495);
 		Coordinate c4 = new Coordinate(530482.8182132206, 180870.19519803385);
-		Coordinate[] expectedCoords = {c1,null,c3,c4};
+		Coordinate[] carray = {c1,null,c3,c4};
+		
+		List<Coordinate> expectedCoords = new ArrayList<Coordinate>(Arrays.asList(carray));
+		
+		
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = PedPathFinder.farthestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);
-			if(i==1) {
-				assert destCoord==expectedCoords[i];
-				continue;
-			}
-			assert destCoord.equals2D(expectedCoords[i]);
+			destCoord = PedPathFinder.farthestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);			
+			assert expectedCoords.contains(destCoord);
+		}
+	}
 		}
 	}
 
