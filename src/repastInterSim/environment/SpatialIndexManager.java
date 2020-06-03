@@ -196,6 +196,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 		}
 		return intersectingObjects;
 	}
+
 	
 	/**
 	 * Find the intersecting objects in the given geography to the given geometry.
@@ -288,6 +289,27 @@ public abstract class SpatialIndexManager implements Cacheable {
 		}
 		return objects;
 	}
+	
+	/**
+	 * Search for objects located at the given coordinate. This uses the <code>query()</code> function of the
+	 * underlying spatial index so might return objects that are close two, but do not interesect, the coordinate. 
+	 * 
+	 * @param <T> The type of object that will be returned.
+	 * @param x
+	 *            The coordinate to search around
+	 * @param geography
+	 *            The given geography to look through
+	 * @return The objects that intersect the coordinate (or are close to it) or an empty list if none could be found. 
+	 * @throws NoSuchElementException
+	 *             If there is no spatial index for the given geography.
+	 * @see STRtree
+	 */
+	@SuppressWarnings("unchecked")
+	public static synchronized <T> List<T> search(Geography<T> geog, Coordinate x) throws NoSuchElementException {
+		Point p = new GeometryFactory().createPoint(x);
+		return search(geog, p);
+	}
+	
 	
 	/**
 	 * Find out whether or not this <code>SpatialIndexManager</code> has an index for the
