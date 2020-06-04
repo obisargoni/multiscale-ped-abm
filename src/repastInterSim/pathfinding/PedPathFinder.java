@@ -228,6 +228,10 @@ public class PedPathFinder {
 			}
 		}
 		
+		// Sort lists by distance, nearest to origin coordinate first
+		Collections.sort(tacticalDestinationOptions.get("cross"), (c1,c2) -> ((Double) c1.distance(oC)).compareTo(c2.distance(oC)));
+		Collections.sort(tacticalDestinationOptions.get("nocross"), (c1,c2) -> ((Double) c1.distance(oC)).compareTo(c2.distance(oC)));
+		
 		return tacticalDestinationOptions;
 	}
 	
