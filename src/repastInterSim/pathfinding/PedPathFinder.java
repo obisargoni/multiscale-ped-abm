@@ -1,10 +1,9 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 
@@ -14,7 +13,6 @@ import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.GridRoute;
-import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
