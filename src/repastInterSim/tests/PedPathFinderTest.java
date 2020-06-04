@@ -231,6 +231,11 @@ class PedPathFinderTest {
 		// Check the coorrdinates are as expected
 		assert destOptions.get("cross").size() == 1;
 		assert destOptions.get("nocross").size() == 2;
+		
+		assert destOptions.get("cross").get(0).equals(new Coordinate(530468.0087569832,180871.8784368495));
+		
+		assert destOptions.get("nocross").get(0).equals(new Coordinate(530507.95,180893.35)); // nearest
+		assert destOptions.get("nocross").get(1).equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
 	}
 	
 	@Test
@@ -273,6 +278,11 @@ class PedPathFinderTest {
 		// Check the coorrdinates are as expected
 		assert destOptions.get("cross").size() == 1;
 		assert destOptions.get("nocross").size() == 2;
+		
+		assert destOptions.get("cross").get(0).equals(new Coordinate(530512.5,180907.6));
+		
+		assert destOptions.get("nocross").get(0).equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
+		assert destOptions.get("nocross").get(1).equals(new Coordinate(530506.8,180891.45)); // farthest
 	}
 	
 	@Test
