@@ -262,7 +262,7 @@ class PedPathFinderTest {
 		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Get the tactical desinations for the origin coord and this road link
-		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls, pedObstructGeography, true);
+		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls, pedObstructGeography, false);
 		
 		// Check that two keys and two coordinates returned
 		Set<String> expectedKeys = new HashSet<String>();
