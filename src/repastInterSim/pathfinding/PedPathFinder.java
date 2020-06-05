@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.GridRoute;
+import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
@@ -23,6 +24,8 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class PedPathFinder {
+	
+	private Ped ped;
 	
 	private OD origin;
 	private OD destination;
@@ -40,6 +43,15 @@ public class PedPathFinder {
 		this.geography = g;
 		this.origin = o;
 		this.destination = d;
+		
+		planStrategicPath();
+	}
+	
+	public PedPathFinder(Ped p) {
+		this.ped = p;
+		this.geography = p.getGeography();
+		this.origin = p.getOrigin();
+		this.destination = p.getDestination();
 		
 		planStrategicPath();
 	}
