@@ -101,7 +101,8 @@ public class PedPathFinder {
 			}
 			
 			// Update pedestrians perceptions of road link
-    		String currentRoadLinkID = this.getCurrentRoadLinkID(this.ped.getLoc());
+    		String currentRoadLinkID = getCurrentRoadLinkID(this.ped.getLoc());
+    		String nextRoadLinkID = getNextRoadLinkID();
     		
         	// Update perception of vehicle priority space cost
         	// triggered by reaching end of tactical path so that new tactical path always uses newly calculated costs of vehicle priority space
@@ -112,11 +113,10 @@ public class PedPathFinder {
 			if (prevCoordType.contentEquals("not_intersects_next")) {
 				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, true);
 				prevCoordType = "start_next";
-				
 			}
 			else {
 				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, false);
-				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, this.strategicPath.get(1).getFID());
+				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
 			// Get path to that coordinate
@@ -395,6 +395,15 @@ public class PedPathFinder {
 		}
 		
 		return currentRoadLinkID;
+	}
+	
+	private String getNextRoadLinkID() {
+		if(this.strategicPath.isEmpty()) {
+			return null;
+		}
+		else {
+			return this.strategicPath.get(1).getFID();
+		}
 	}
 
 }
