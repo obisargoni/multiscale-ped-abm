@@ -87,7 +87,7 @@ public class PedPathFinder {
 	 * @param tacticalOriginCoord
 	 * 			The start coordinate of the tactical route.
 	 */
-	public void updateTacticalPathCoordinate(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord) {
+	public void updateTacticalPathCoordinate(Coordinate tacticalOriginCoord) {
 		
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
@@ -102,6 +102,10 @@ public class PedPathFinder {
 			
 			// Update pedestrians perceptions of road link
     		String currentRoadLinkID = this.getCurrentRoadLinkID(this.ped.getLoc());
+    		
+        	// Update perception of vehicle priority space cost
+        	// triggered by reaching end of tactical path so that new tactical path always uses newly calculated costs of vehicle priority space
+    		HashMap<Integer, Double> gSPM = this.ped.calculateDynamicGridSummandPriorityMap(currentRoadLinkID);
 			
 			// Identify new tactical destination coordinate
 			Coordinate tacticalDestCoord = null;
