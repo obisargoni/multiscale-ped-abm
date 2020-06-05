@@ -398,8 +398,8 @@ public class PedPathFinder {
 	}
 	
 	private String getNextRoadLinkID() {
-		if(this.strategicPath.isEmpty()) {
-			return null;
+		if(this.strategicPath.isEmpty() | this.strategicPath.size()<2) {
+			return "";
 		}
 		else {
 			return this.strategicPath.get(1).getFID();
