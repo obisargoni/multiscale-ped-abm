@@ -37,8 +37,8 @@ public class PedPathFinder {
 	
 	private Coordinate nextTacticalPathCoord;
 
-	private Coordinate nextCrossingCoord;
-	private RoadLink currentRoadLink;
+	private Coordinate nextCrossingCoord;	
+	private String prevCoordType;
 
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
 		this.geography = g;
@@ -91,9 +91,31 @@ public class PedPathFinder {
 		
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
-			Coordinate tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord);
-
-			// Both use the roadLinkCoordX[0] to set, consider passing in as parameter?
+			
+			// if previous destination coordinate reached the end of a link, remove the old link from the strategic path
+			if (prevCoordType.contentEquals("not_intersects_next") | prevCoordType.contentEquals("intersects_next")) {
+				// Remove this road link from the strategic path, no longer the next road link
+				if (this.strategicPath.isEmpty() == false) {
+					this.strategicPath.remove(0);
+				}
+			}
+			
+			// Update pedestrians perceptions of road link
+    		String currentRoadLinkID = this.getCurrentRoadLinkID(this.ped.getLoc());
+			
+			// Identify new tactical destination coordinate
+			Coordinate tacticalDestCoord = null;
+			if (prevCoordType.contentEquals("not_intersects_next")) {
+				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, true);
+				prevCoordType = "start_next";
+				
+			}
+			else {
+				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, false);
+				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, this.strategicPath.get(1).getFID());
+			}
+			
+			// Get path to that coordinate
 			planTacticaPath(gSPM, tacticalOriginCoord, tacticalDestCoord);
 		}
 		
@@ -130,6 +152,8 @@ public class PedPathFinder {
 		tP.setNextRouteSection();
 		
 		this.tacticalPath= tP;
+	}
+	
 	
 	/*
 	 * When agent reaches a tactical destination coordinate they must identify the next tactical destination coordinate. This involves interaction between
