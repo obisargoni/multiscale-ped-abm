@@ -87,7 +87,9 @@ public class PedPathFinder {
 	 * @param tacticalOriginCoord
 	 * 			The start coordinate of the tactical route.
 	 */
-	public void updateTacticalPathCoordinate(Coordinate tacticalOriginCoord) {
+	public void updateTacticalPathCoordinate() {
+		
+		Coordinate tacticalOriginCoord = this.ped.getLoc();
 		
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
@@ -136,7 +138,7 @@ public class PedPathFinder {
 		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
 		this.tacticalPath.removeNextFromRoute();
     }
-	
+
 	/*
 	 * Plan a tactical level path from an origin coordinate to a destination coordinate. The tactical path is planned using the
 	 * GridRoute class.
