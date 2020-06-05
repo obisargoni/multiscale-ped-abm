@@ -308,6 +308,10 @@ class PedPathFinderTest {
 		
 		coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, currentRoadLinkID, nextRoadLinkID);
 		assert coordType.contentEquals("not_intersects_next");
+		
+		// Check for null road link entries
+		coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, "", "");
+		assert coordType.contentEquals("not_intersects_next");
 	}
 
 }
