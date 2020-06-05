@@ -345,8 +345,27 @@ public class PedPathFinder {
 		this.origin = origin;
 	}
 	
-	public RoadLink getCurrentRoadLink() {
-		return this.currentRoadLink;
+	public String getCurrentRoadLinkID(Coordinate c) {
+		
+		String currentRoadLinkID = null;
+		
+		// For pedestrian ODs that are close to one another on the same road link the currentRoadLink is null
+		// In this case pedestrian identifies the road link to estimate vehicle priority costs by using their current location
+		if (this.strategicPath.isEmpty()) {
+			Road currentRoad;
+			try {
+				currentRoad = GISFunctions.getCoordinateRoad(c);
+	    		currentRoadLinkID = currentRoad.getRoadLinkID();
+			} catch (RoutingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		else {
+			currentRoadLinkID = this.strategicPath.get(0).getFID();
+		}
+		
+		return currentRoadLinkID;
 	}
 
 }
