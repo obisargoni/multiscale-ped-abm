@@ -99,7 +99,6 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
 		this.pathFinder = new PedPathFinder(geography, o, d);
-		
     }
     
     
@@ -112,28 +111,7 @@ public class Ped extends MobileAgent {
     	
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
-   		//decideYield(); 
-    	
-    	// Update perception of vehicle priority space cost
-    	// triggered by reaching end of tactical path, same trigger that causes new tactical path to be planned
-    	// This means that new tactical path always uses newly calculated costs of vehicle priority space
-    	if (pathFinder.getTacticalPath().getRouteX().size() == 0) {
-    		
-    		String currentRoadLinkID;
-			RoadLink currentRoadLink = pathFinder.getCurrentRoadLink();
-
-    		// For pedestrian ODs that are close to one another on the same road link the currentRoadLink is null
-    		// In this case pedestrian identifies the road link to estimate vehicle priority costs by using their current location
-    		if(currentRoadLink == null) {
-    			Road currentRoad = GISFunctions.getCoordinateRoad(maLoc);
-        		currentRoadLinkID = currentRoad.getRoadLinkID();
-    		}
-    		else {
-    			currentRoadLinkID = currentRoadLink.getFID();
-    		}
-    		
-    		this.dynamicSummandPriorityMap = calculateDynamicGridSummandPriorityMap(currentRoadLinkID);
-    	}
+   		//decideYield();
     	
     	Boolean tacticalPathUpdaterequired = false;
     	Coordinate nextTacticalPathCoord = this.pathFinder.getNextTacticalPathCoord();
