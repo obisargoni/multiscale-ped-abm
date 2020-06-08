@@ -116,12 +116,12 @@ public class PedPathFinder {
 			// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
 			// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
 			if (prevCoordType.contentEquals("not_intersects_next")) {
-				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, true);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, true);
 				prevCoordType = "start_next";
 			}
 			// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
 			else {
-				tacticalDestCoord = tacticalDestinationCoordinate(tacticalOriginCoord, false);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, false);
 				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
@@ -218,7 +218,7 @@ public class PedPathFinder {
 	 * 		A string indicating the type of destination coordinate the last tactical destination was. This is used to determine how next
 	 * destination options are identified.
 	 */
-	private Coordinate tacticalDestinationCoordinate(Coordinate originCoord, Boolean secondaryCrossing) {
+	private Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Boolean secondaryCrossing) {
 		
 		Coordinate tacticalDestCoord = null;
 		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
