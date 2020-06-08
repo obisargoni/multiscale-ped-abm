@@ -310,6 +310,55 @@ public class PedPathFinder {
 		return tacticalDestinationOptions;
 	}
 	
+	
+	/*
+	 * Given a starting coordinate, ie the current position of the agent, the pedestrian roads the agent is considering as destinations, the road link associated to these
+	 * pedestrian roads and the geography projection of pedestrian obstructions.
+	 * 
+	 * @param Coordinate oC
+	 * 		The origin coordinate
+	 * @param List<Road> pR
+	 * 		The pedestrian roads
+	 * @param List<RoadLink> sPS
+	 * 		A segment of the strategic path that consists of the link associated to the pedestrian roads
+	 * @param Geography<PedObstruction> obstructGeography
+	 * 		The geography projection containing obstructions to pedestrian movement
+	 * 
+	 * @return HashMap<String, List<Coordinate>>
+	 */
+	public static ArrayList<TacticalAlternative> getTacticalDestinationAlternatives(Coordinate oC, List<Road> pR, List<RoadLink> sP, Coordinate d, int pH, Geography<PedObstruction> obstructGeography, Boolean far){
+		
+		ArrayList<TacticalAlternative> alternatives = new ArrayList<TacticalAlternative>();
+		
+		for(Road r: pR) {
+			// Get candidate destination coordiante from pedestrian road
+			Coordinate c = xestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography, far);
+			
+			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
+			if (c==null) {
+				continue;
+			}
+			
+			// Create new alternative
+			TacticalAlternative tc = new TacticalAlternative(c);
+			
+			// Find parity of coordinate at tactical scale
+			// Tells us whether primary crossing is needed to reach coordinate
+			tc.parityT = RoadNetworkRoute.calculateRouteParity(oC, c, sP.subList(0, 1));
+			
+			// Find distance to tactical coordinate
+			tc.costT = c.distance(oC);
+			
+			// Find parity at strategic level - identifies whether primary crossing required to get from tactical alternative to destination
+			// Takes into account bounded rationality
+			tc.parityS = RoadNetworkRoute.boundedRouteParity(c, d, sP, pH);
+			
+			// Add to collection of choice alternatives
+			alternatives.add(tc);
+		}
+		return alternatives;
+	}
+	
 	/*
 	 *Method for finding either the nearest or farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
 	 *geography
