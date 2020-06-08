@@ -97,7 +97,7 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
-		this.pathFinder = new PedPathFinder(geography, o, d);
+		this.pathFinder = new PedPathFinder(this);
     }
     
     
