@@ -7,17 +7,15 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -29,6 +27,7 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.TacticalAlternative;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
@@ -239,6 +238,48 @@ class PedPathFinderTest {
 	}
 	
 	@Test
+	void testGetTacticalDestinationAlternativesFar() throws Exception {
+		setUpRoads();
+		setUpRoadLinks();
+		setUpODs();
+		setUpPedObstructions();
+		
+		File vehcileRoadsFile = new File(vehicleRoadsPath);
+		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
+		File serialisedLoc = new File(serialisedLookupPath);
+		
+		// Select pedestrian origins and destinations to test
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.get(0).getGeom().getCoordinate();
+		
+		Coordinate d = new Coordinate();
+		
+		// Select section of road link network we are testing
+		String roadLinkID = "osgb4000000030238946";
+		List<RoadLink> rls = new ArrayList<RoadLink>();
+		for (RoadLink rl: roadLinkGeography.getAllObjects()) {
+			if (rl.getFID().contentEquals(roadLinkID)) {
+				rls.add(rl);
+			}
+		}
+		
+		// Select pedestrian roads used in testing
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Get the tactical desinations for the origin coord and this road link
+		int pH = 3;
+		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, true);
+		
+		assert alternatives.stream().filter(ta -> ta.parityT == 1).count()==1;
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).count()==2;
+		
+		assert alternatives.stream().filter(ta -> ta.parityT == 1).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530468.0087569832,180871.8784368495));
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530507.95,180893.35)); // nearest
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(1).c.equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
+	}
+	
+	@Test
 	void testGetTacticalDestinationCoodinateOptionsNear() throws Exception {
 		setUpRoads();
 		setUpRoadLinks();
@@ -283,6 +324,50 @@ class PedPathFinderTest {
 		
 		assert destOptions.get("nocross").get(0).equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
 		assert destOptions.get("nocross").get(1).equals(new Coordinate(530506.8,180891.45)); // farthest
+	}
+	
+	@Test
+	void testGetTacticalDestinationAlternativesNear() throws Exception {
+		setUpRoads();
+		setUpRoadLinks();
+		setUpODs();
+		setUpPedObstructions();
+		
+		File vehcileRoadsFile = new File(vehicleRoadsPath);
+		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
+		File serialisedLoc = new File(serialisedLookupPath);
+		
+		// Select pedestrian origins and destinations to test
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.get(0).getGeom().getCoordinate();
+		
+		Coordinate d = new Coordinate();
+		
+		// Select section of road link network we are testing
+		String roadLinkID = "osgb4000000030238946";
+		List<RoadLink> rls = new ArrayList<RoadLink>();
+		for (RoadLink rl: roadLinkGeography.getAllObjects()) {
+			if (rl.getFID().contentEquals(roadLinkID)) {
+				rls.add(rl);
+			}
+		}
+		
+		// Select pedestrian roads used in testing
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		
+		// Get the tactical desinations for the origin coord and this road link
+		int pH = 3;
+		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, false);
+		
+		// Check the coorrdinates are as expected
+		assert alternatives.stream().filter(ta -> ta.parityT == 1).count()==1;
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).count()==2;
+		
+		assert alternatives.stream().filter(ta -> ta.parityT == 1).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530512.5,180907.6));
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
+		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(1).c.equals(new Coordinate(530506.8,180891.45)); // farthest
+		
 	}
 	
 	@Test
