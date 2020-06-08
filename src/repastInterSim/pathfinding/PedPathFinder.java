@@ -35,10 +35,10 @@ public class PedPathFinder {
 	private List<RoadLink> strategicPath;
 	private GridRoute tacticalPath = new GridRoute();
 	
-	private Coordinate nextTacticalPathCoord;
+	private Coordinate nextTacticalPathCoord = null;
 
 	private Coordinate nextCrossingCoord;	
-	private String prevCoordType;
+	private String prevCoordType = "";
 
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
 		this.geography = g;
