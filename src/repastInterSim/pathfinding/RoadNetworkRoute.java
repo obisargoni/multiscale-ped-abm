@@ -567,6 +567,34 @@ public class RoadNetworkRoute implements Cacheable {
 		p = nIntersections % 2;
 		return p;
 	}
+	
+	/*
+	 * Identify whether the final destination lies within the agent's planning horizon. If it does return the 
+	 * parity of the straight line connecting current location to destination, indicating whether a primary crossing is required.
+	 * Otherwise return null
+	 * 
+	 * @param Coordinate o
+	 * 		The start coordinate for parity calculation
+	 * @param Coordinate d
+	 * 		The end coordinate for parity calculation
+	 * @param List<RoadLink> sP
+	 * 		The strategic path
+	 * @param int pH
+	 * 		The planning horizon of the agent. Indicates how many links of the strategic path the agent is able to plan into the future.
+	 */
+	public static int boundedRouteParity(Coordinate o, Coordinate d, List<RoadLink> sP, int pH) {
+		Integer parity = null;
+		
+		// Destination lies within planning horizon
+		if (sP.size() <= pH) {
+			parity = calculateRouteParity(o, d, sP);
+		}
+		else {
+			parity = null;
+		}
+		
+		return parity;
+	}
 
 	private static void checkNotNull(Object... args) throws RoutingException {
 		for (Object o : args) {
