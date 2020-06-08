@@ -211,17 +211,51 @@ public class PedPathFinder {
 	/*
 	 * Identify the destination coordinate for the tactical path. This is currently defined as the coordinate of the end junction of the
 	 * current road link in the road link path, if the agent has reached the final road link in the path, the final destination.
+	 * 
+	 * @param Coordinate originCoord
+	 * 		The starting coordinate
+	 * @param String prevDestType
+	 * 		A string indicating the type of destination coordinate the last tactical destination was. This is used to determine how next
+	 * destination options are identified.
 	 */
-	private Coordinate tacticalDestinationCoordinate() {
-		Coordinate tacticalDestCoord;
+	private Coordinate tacticalDestinationCoordinate(Coordinate originCoord, Boolean secondaryCrossing) {
+		
+		Coordinate tacticalDestCoord = null;
 		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
 			tacticalDestCoord = this.destination.getGeom().getCoordinate();
 		}
-		else {
-			this.currentRoadLink = this.strategicPath.get(0);
+		else {			
+			List<RoadLink> strategicPathSection = this.strategicPath.subList(0, 0);
 			
-			// Need to use the network edge associated to the road link to make sure the end of the road link is used as the destination
-			tacticalDestCoord = this.currentRoadLink.getEdge().getTarget().getGeom().getCoordinate();
+			// Get the ID of the road link in the strategic path section passed into this method
+			String roadLinkID = strategicPathSection.get(0).getFID();
+			
+			// Get pedestrian roads linked to this road link
+			List<Road> pedRoads = null;
+			try {
+				pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// If not at a secondary crossing, destination coordinate options are the farthest coordinates on the ped roads associated to the road link
+			if (secondaryCrossing==false) {
+				// Get tactical destination options
+				HashMap<String, List<Coordinate>> destCoordOptions = getTacticalDestinationCoodinateOptions(originCoord, pedRoads, this.strategicPath.subList(0, 0), SpaceBuilder.pedObstructGeography, true);
+				
+				// Here make decision over which destination to use - choose farthest non cross option for now
+				tacticalDestCoord = destCoordOptions.get("nocross").get(destCoordOptions.get("nocross").size()-1);
+			}
+			
+			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
+			else if (secondaryCrossing==true) {
+				// Get tactical destination options
+				HashMap<String, List<Coordinate>> destCoordOptions = getTacticalDestinationCoodinateOptions(originCoord, pedRoads, this.strategicPath.subList(0, 0), SpaceBuilder.pedObstructGeography, false);
+				
+				// Always select only the nearest no cross option
+				tacticalDestCoord = destCoordOptions.get("nocross").get(0);
+			}
 		}
 		
 		return tacticalDestCoord;
