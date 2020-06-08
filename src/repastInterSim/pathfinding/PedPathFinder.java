@@ -88,11 +88,11 @@ public class PedPathFinder {
 	 * 			The start coordinate of the tactical route.
 	 */
 	public void updateTacticalPathCoordinate() {
-		
-		Coordinate tacticalOriginCoord = this.ped.getLoc();
-		
+				
 		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
 		if(this.tacticalPath.getRouteX().size() == 0) {
+			
+			Coordinate tacticalOriginCoord = this.ped.getLoc();
 			
 			// if previous destination coordinate reached the end of a link, remove the old link from the strategic path
 			if (prevCoordType.contentEquals("not_intersects_next") | prevCoordType.contentEquals("intersects_next")) {
