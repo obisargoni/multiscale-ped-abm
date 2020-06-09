@@ -87,21 +87,7 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 	}
-	
-	void setUpODs() throws MalformedURLException, FileNotFoundException {
 		
-		// Initialise OD context and geography
-		Context<OD> ODContext = new PedestrianDestinationContext();
-		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		odGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
-		odGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		// Load vehicle origins and destinations
-		String testODFile = testGISDir + "test_ped_OD1.shp";
-		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
-		SpatialIndexManager.createIndex(odGeography, OD.class);
-	}
-	
 	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
 		
 		// Initialise OD context and geography
