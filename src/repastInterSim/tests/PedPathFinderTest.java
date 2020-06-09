@@ -102,6 +102,20 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(odGeography, OD.class);
 	}
 	
+	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
+		
+		// Initialise OD context and geography
+		Context<OD> ODContext = new PedestrianDestinationContext();
+		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
+		odGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
+		odGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		// Load vehicle origins and destinations
+		String testODFile = testGISDir + odFile;
+		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
+		SpatialIndexManager.createIndex(odGeography, OD.class);
+	}
+	
 	void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
@@ -120,7 +134,7 @@ class PedPathFinderTest {
 	void testFarthestUnobstructedRoadCoordinate() throws Exception {
 		
 		setUpRoads();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
@@ -157,7 +171,7 @@ class PedPathFinderTest {
 	void testNearestUnobstructedRoadCoordinate() throws Exception {
 		
 		setUpRoads();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
@@ -194,7 +208,7 @@ class PedPathFinderTest {
 	void testGetTacticalDestinationCoodinateOptionsFar() throws Exception {
 		setUpRoads();
 		setUpRoadLinks();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
@@ -241,7 +255,7 @@ class PedPathFinderTest {
 	void testGetTacticalDestinationAlternativesFar() throws Exception {
 		setUpRoads();
 		setUpRoadLinks();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
@@ -283,7 +297,7 @@ class PedPathFinderTest {
 	void testGetTacticalDestinationCoodinateOptionsNear() throws Exception {
 		setUpRoads();
 		setUpRoadLinks();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
@@ -330,7 +344,7 @@ class PedPathFinderTest {
 	void testGetTacticalDestinationAlternativesNear() throws Exception {
 		setUpRoads();
 		setUpRoadLinks();
-		setUpODs();
+		setUpODs("test_ped_OD1.shp");
 		setUpPedObstructions();
 		
 		File vehcileRoadsFile = new File(vehicleRoadsPath);
