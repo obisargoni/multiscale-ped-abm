@@ -119,12 +119,12 @@ public class PedPathFinder {
 			// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
 			// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
 			if (prevCoordType.contentEquals("not_intersects_next")) {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, true);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.ped.getpHorizon(), this.strategicPath, true);
 				prevCoordType = "start_next";
 			}
 			// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
 			else {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, false);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.ped.getpHorizon(), this.strategicPath, false);
 				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
@@ -221,19 +221,17 @@ public class PedPathFinder {
 	 * 		A string indicating the type of destination coordinate the last tactical destination was. This is used to determine how next
 	 * destination options are identified.
 	 */
-	private Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Boolean secondaryCrossing) {
+	private Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Coordinate destCoord, Geography<Road> roadGeography, Geography<PedObstruction> pedObstructGeography, int pH, List<RoadLink> sP, Boolean secondaryCrossing) {
 		
 		Coordinate tacticalDestCoord = null;
 		
 		// If reached end of strategic path tactical destination is final route destination
-		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
-			tacticalDestCoord = this.destination.getGeom().getCoordinate();
+		if (sP.isEmpty() | sP.size() == 1) {
+			tacticalDestCoord = destCoord;
 		}
 		else {			
-			List<RoadLink> strategicPathSection = this.strategicPath.subList(0, 0);
-			
 			// Get the ID of the current road link
-			String roadLinkID = strategicPathSection.get(0).getFID();
+			String roadLinkID = sP.get(0).getFID();
 			
 			// Get pedestrian roads linked to this road link
 			List<Road> pedRoads = null;
@@ -247,7 +245,7 @@ public class PedPathFinder {
 			// If not at a secondary crossing, destination coordinate options are the farthest coordinates on the ped roads associated to the road link
 			if (secondaryCrossing==false) {
 				// Get tactical destination options
-				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, this.strategicPath, this.destination.getGeom().getCoordinate(), this.ped.getpHorizon(), SpaceBuilder.pedObstructGeography, true);
+				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, true);
 				
 				// Write a comparator that sorts on multiple attributes of alternative
 				Comparator<TacticalAlternative> comparator = Comparator.comparing(ta -> ta.parityS);
@@ -261,7 +259,7 @@ public class PedPathFinder {
 			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
 			else if (secondaryCrossing==true) {
 				// Get tactical destination options
-				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, this.strategicPath, this.destination.getGeom().getCoordinate(), this.ped.getpHorizon(), SpaceBuilder.pedObstructGeography, false);
+				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, false);
 				
 				// Always select only the nearest no cross option
 				tacticalDestCoord = alternatives.stream().filter(ta -> ta.parityT == 0).sorted((ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c;
