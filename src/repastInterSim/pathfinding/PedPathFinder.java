@@ -2,8 +2,10 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoverage2D;
 
@@ -20,6 +22,7 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.TacticalAlternative;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -221,13 +224,15 @@ public class PedPathFinder {
 	private Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Boolean secondaryCrossing) {
 		
 		Coordinate tacticalDestCoord = null;
+		
+		// If reached end of strategic path tactical destination is final route destination
 		if (this.strategicPath.isEmpty() | this.strategicPath.size() == 1) {
 			tacticalDestCoord = this.destination.getGeom().getCoordinate();
 		}
 		else {			
 			List<RoadLink> strategicPathSection = this.strategicPath.subList(0, 0);
 			
-			// Get the ID of the road link in the strategic path section passed into this method
+			// Get the ID of the current road link
 			String roadLinkID = strategicPathSection.get(0).getFID();
 			
 			// Get pedestrian roads linked to this road link
@@ -242,19 +247,24 @@ public class PedPathFinder {
 			// If not at a secondary crossing, destination coordinate options are the farthest coordinates on the ped roads associated to the road link
 			if (secondaryCrossing==false) {
 				// Get tactical destination options
-				HashMap<String, List<Coordinate>> destCoordOptions = getTacticalDestinationCoodinateOptions(originCoord, pedRoads, this.strategicPath.subList(0, 0), SpaceBuilder.pedObstructGeography, true);
+				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, this.strategicPath, this.destination.getGeom().getCoordinate(), this.ped.getpHorizon(), SpaceBuilder.pedObstructGeography, true);
 				
-				// Here make decision over which destination to use - choose farthest non cross option for now
-				tacticalDestCoord = destCoordOptions.get("nocross").get(destCoordOptions.get("nocross").size()-1);
+				// Write a comparator that sorts on multiple attributes of alternative
+				Comparator<TacticalAlternative> comparator = Comparator.comparing(ta -> ta.parityS);
+				comparator.thenComparing(ta -> ta.parityT);
+				
+				// Now sort the tactical alternatives and choose appropriate one
+				List<TacticalAlternative> sortedAlternatives = alternatives.stream().sorted(comparator).collect(Collectors.toList());
+				tacticalDestCoord = sortedAlternatives.get(sortedAlternatives.size()-1).c;
 			}
 			
 			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
 			else if (secondaryCrossing==true) {
 				// Get tactical destination options
-				HashMap<String, List<Coordinate>> destCoordOptions = getTacticalDestinationCoodinateOptions(originCoord, pedRoads, this.strategicPath.subList(0, 0), SpaceBuilder.pedObstructGeography, false);
+				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, this.strategicPath, this.destination.getGeom().getCoordinate(), this.ped.getpHorizon(), SpaceBuilder.pedObstructGeography, false);
 				
 				// Always select only the nearest no cross option
-				tacticalDestCoord = destCoordOptions.get("nocross").get(0);
+				tacticalDestCoord = alternatives.stream().filter(ta -> ta.parityT == 0).sorted((ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c;
 			}
 		}
 		
