@@ -238,7 +238,7 @@ public class PedPathFinder {
 			// Get pedestrian roads linked to this road link
 			List<Road> pedRoads = null;
 			try {
-				pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID);
+				pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID, roadGeography);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

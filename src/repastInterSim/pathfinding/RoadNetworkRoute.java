@@ -399,7 +399,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * 			The ID of the road link to get the Road objects for.
 	 * 
 	 */
-	public static synchronized List<Road> getRoadLinkRoads(String roadLinkID) throws Exception {
+	public static synchronized List<Road> getRoadLinkRoads(String roadLinkID, Geography<Road> roadGeography) throws Exception {
 		// double time = System.nanoTime();
 		
 		// Don't bother with the cache for now
@@ -417,7 +417,7 @@ public class RoadNetworkRoute implements Cacheable {
 				File pedestrianRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianRoadShapefile));
 				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkRoadsCache));
 
-				roadLinkRoadsCache = RoadLinkRoadsCache.getInstance(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc);
+				roadLinkRoadsCache = RoadLinkRoadsCache.getInstance(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc);
 			} // if not cached
 		} // synchronized
 		return roadLinkRoadsCache.get(roadLinkID);
@@ -432,8 +432,8 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return
 	 * 		List of Roads
 	 */
-	public static synchronized List<Road> getRoadLinkPedestrianRoads(String roadLinkID) throws Exception {
-		List<Road> roads = getRoadLinkRoads(roadLinkID);
+	public static synchronized List<Road> getRoadLinkPedestrianRoads(String roadLinkID, Geography<Road> roadGeography) throws Exception {
+		List<Road> roads = getRoadLinkRoads(roadLinkID, roadGeography);
 		
 		// Remove non pedestrian roads
 		for (int i = 0; i< roads.size(); i++) {
