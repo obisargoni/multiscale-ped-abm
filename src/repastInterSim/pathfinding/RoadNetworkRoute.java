@@ -582,7 +582,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @param int pH
 	 * 		The planning horizon of the agent. Indicates how many links of the strategic path the agent is able to plan into the future.
 	 */
-	public static int boundedRouteParity(Coordinate o, Coordinate d, List<RoadLink> sP, int pH) {
+	public static Integer boundedRouteParity(Coordinate o, Coordinate d, List<RoadLink> sP, int pH) {
 		Integer parity = null;
 		
 		// Destination lies within planning horizon
