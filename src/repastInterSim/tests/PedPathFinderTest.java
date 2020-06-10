@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,20 +20,28 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
+import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.TacticalAlternative;
+import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
@@ -42,13 +51,19 @@ class PedPathFinderTest {
 	Geography<RoadLink> roadLinkGeography = null;
 	Geography<OD> odGeography = null;
 	Geography<PedObstruction> pedObstructGeography = null;
+	Network<Junction> roadNetwork = null;
+	Geography<Junction> junctionGeography = null;
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
 	String vehicleRoadsPath = null;
 	String roadLinkPath = null;
 	String serialisedLookupPath = null;
-
+	
+	void setUpProperties() throws IOException {
+		IO.readProperties();
+	}
+	
 	void setUpRoads() throws Exception {
 		pedestrianRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 		vehicleRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
@@ -114,6 +129,62 @@ class PedPathFinderTest {
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
 		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+	}
+	
+	void setUpRoadNetwork() {
+		Context<Junction> junctionContext = new JunctionContext();
+		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
+		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
+		
+		// 2. Build road network
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
+		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+		roadNetwork = builder.buildNetwork();
+		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+	}
+	
+	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d){
+		
+		// Plan the strategic path
+		List<RoadLink> sP = new ArrayList<RoadLink>();		
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
+		
+		// Define my starting and ending junctions to test
+		// Need to to this because although the origin and destination were selected above, this was just to initialise RoadNetworkRoute with
+		// The route is actually calculated using junctions. 
+		List<Junction> currentJunctions = new ArrayList<Junction>();
+		List<Junction> destJunctions = new ArrayList<Junction>();
+		for(Junction j: junctionGeography.getAllObjects()) {
+			
+			// Set the test current junctions 
+			if (j.getFID().contentEquals("osgb4000000029970684")) {
+				currentJunctions.add(j);
+			}
+			
+			// Set the test destination junctions
+			if (j.getFID().contentEquals("osgb4000000029970446")) {
+				destJunctions.add(j);
+			}
+		}
+		
+		Junction[] routeEndpoints = new Junction[2];
+		
+		// Get shortest Route according to the Route class
+		List<RepastEdge<Junction>> shortestRoute = null;
+		try {
+			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for(int i=0; i< shortestRoute.size(); i++) {
+			NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(i);
+			sP.add(e.getRoadLink());
+		}
+		
+		return sP;
 	}
 	
 	@Test
@@ -397,6 +468,57 @@ class PedPathFinderTest {
 		// Check for null road link entries
 		coordType = PedPathFinder.checkCoordinateIntersectingRoads(c, this.roadGeography, "", "");
 		assert coordType.contentEquals("not_intersects_next");
+	}
+	
+	@Test
+	void testChooseTacticalDestinationCoordinate1() throws Exception {
+		
+		// Set up GIS data
+		setUpProperties();
+		setUpRoads();
+		setUpRoadLinks();
+		setUpPedObstructions();
+		setUpODs("OD_pedestrian_nodes.shp");
+		setUpRoadNetwork();
+		
+		// Setup origin and destination coordinates
+		List<OD> ods = new ArrayList<OD>();
+		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		Coordinate o = ods.stream().filter(od -> od.getId() == 1).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
+		Coordinate d = ods.stream().filter(od -> od.getId() == 3).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
+		
+		List<RoadLink> sP = planStrategicPath(o,d);
+		
+		// Now set the planning horizon and whether secondary crossing is being performed or not and test the tactical destination coordinate returned
+		int pH = 1;
+		Boolean secondaryCrossing = false;
+		Coordinate tacticalDestCoord = PedPathFinder.chooseTacticalDestinationCoordinate(o, d, this.roadGeography, this.pedObstructGeography, pH, sP, secondaryCrossing);
+		
+		// od parity = 1 and d beyond planning horizon. Therefore chooses to not cross
+		assert tacticalDestCoord.equals(new Coordinate(530482.8182132206, 180870.19519803385));
+		
+		pH = 3;
+		tacticalDestCoord = PedPathFinder.chooseTacticalDestinationCoordinate(o, d, this.roadGeography, this.pedObstructGeography, pH, sP, secondaryCrossing);
+		
+		// Now destination within planning horizon. Choose to cross because realise crossing is required
+		assert tacticalDestCoord.equals(new Coordinate(530468.0087569832,180871.8784368495));
+		
+		
+		// Now test a different od (origin the same but destination different)
+		// This time no primary crossing required to reach destination
+		o = ods.get(0).getGeom().getCoordinate();
+		d = ods.get(3).getGeom().getCoordinate();
+		sP = planStrategicPath(o,d);
+		
+		// tactical dest coord should be the same as pH=1 case above since agent doesn't have knowledge of where destination is
+		pH = 1;
+		tacticalDestCoord = PedPathFinder.chooseTacticalDestinationCoordinate(o, d, this.roadGeography, this.pedObstructGeography, pH, sP, secondaryCrossing);
+		assert tacticalDestCoord.equals(new Coordinate(530482.8182132206, 180870.19519803385));
+		
+		// This time still no crossing since no primary crossing required to reach end destination
+		pH=3;
+		tacticalDestCoord = PedPathFinder.chooseTacticalDestinationCoordinate(o, d, this.roadGeography, this.pedObstructGeography, pH, sP, secondaryCrossing);
+		assert tacticalDestCoord.equals(new Coordinate(530482.8182132206, 180870.19519803385));
 	}
 
 }
