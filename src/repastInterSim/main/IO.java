@@ -7,10 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
@@ -19,12 +17,9 @@ import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.WritableGridCoverage2D;
-import repast.simphony.util.collections.IndexedIterable;
-import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 
 public class IO {
@@ -222,10 +217,8 @@ public class IO {
 		try {
 			csvData = reader.readAll();
 			reader.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CsvException e) {
 			e.printStackTrace();
 		}
 		return csvData;
