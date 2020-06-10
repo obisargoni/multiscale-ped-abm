@@ -221,7 +221,7 @@ public class PedPathFinder {
 	 * 		A string indicating the type of destination coordinate the last tactical destination was. This is used to determine how next
 	 * destination options are identified.
 	 */
-	private Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Coordinate destCoord, Geography<Road> roadGeography, Geography<PedObstruction> pedObstructGeography, int pH, List<RoadLink> sP, Boolean secondaryCrossing) {
+	public static Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Coordinate destCoord, Geography<Road> roadGeography, Geography<PedObstruction> pedObstructGeography, int pH, List<RoadLink> sP, Boolean secondaryCrossing) {
 		
 		Coordinate tacticalDestCoord = null;
 		
@@ -248,12 +248,13 @@ public class PedPathFinder {
 				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, true);
 				
 				// Write a comparator that sorts on multiple attributes of alternative
-				Comparator<TacticalAlternative> comparator = Comparator.comparing(ta -> ta.parityS);
-				comparator.thenComparing(ta -> ta.parityT);
+				Comparator<TacticalAlternative> comparator = Comparator.comparing(TacticalAlternative::getParityS,Comparator.nullsLast(Comparator.naturalOrder()))
+																		.thenComparing(TacticalAlternative::getParityT, Comparator.nullsLast(Comparator.naturalOrder()))
+																		.thenComparing(TacticalAlternative::getCostT, Comparator.reverseOrder());
 				
 				// Now sort the tactical alternatives and choose appropriate one
 				List<TacticalAlternative> sortedAlternatives = alternatives.stream().sorted(comparator).collect(Collectors.toList());
-				tacticalDestCoord = sortedAlternatives.get(sortedAlternatives.size()-1).c;
+				tacticalDestCoord = sortedAlternatives.get(0).getC();
 			}
 			
 			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
