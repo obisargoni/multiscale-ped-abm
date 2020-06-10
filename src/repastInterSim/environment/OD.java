@@ -20,6 +20,7 @@ public class OD implements FixedGeography{
 	private Geography<Object> geography;
 	private Geography<OD> destinationGeography;
 	private Geometry geom;
+	private Long id;
 	private double arrivalDist = GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance; // Distance from destination at which agents are removed from the simulation
 		
 	public OD() {
@@ -74,4 +75,11 @@ public class OD implements FixedGeography{
 		this.context = C;
 	}
 
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
 }
