@@ -270,55 +270,6 @@ public class PedPathFinder {
 		return tacticalDestCoord;
 	}
 	
-	/*
-	 * Given a starting coordinate, ie the current position of the agent, the pedestrian roads the agent is considering as destinations, the road link associated to these
-	 * pedestrian roads and the geography projection of pedestrian obstructions.
-	 * 
-	 * @param Coordinate oC
-	 * 		The origin coordinate
-	 * @param List<Road> pR
-	 * 		The pedestrian roads
-	 * @param List<RoadLink> sPS
-	 * 		A segment of the strategic path that consists of the link associated to the pedestrian roads
-	 * @param Geography<PedObstruction> obstructGeography
-	 * 		The geography projection containing obstructions to pedestrian movement
-	 * 
-	 * @return HashMap<String, List<Coordinate>>
-	 */
-	public static HashMap<String, List<Coordinate>> getTacticalDestinationCoodinateOptions(Coordinate oC, List<Road> pR, List<RoadLink> sPS, Geography<PedObstruction> obstructGeography, Boolean far){
-		
-		// Find which road involved crossing the road link
-		HashMap<String, List<Coordinate>> tacticalDestinationOptions = new HashMap<String, List<Coordinate>>();
-		tacticalDestinationOptions.put("cross", new ArrayList<Coordinate>());
-		tacticalDestinationOptions.put("nocross", new ArrayList<Coordinate>());
-		
-		for(Road r: pR) {
-			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = xestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography, far);
-			
-			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
-			if (c==null) {
-				continue;
-			}
-			// Check parity - number of times road link is intersected travelling from origin to centroid of polygon.
-			// Tells us whether primary crossing is needed to reach polygon
-			int parity = RoadNetworkRoute.calculateRouteParity(oC, c, sPS);
-			
-			if (parity ==1) {
-				tacticalDestinationOptions.get("cross").add(c);
-			}
-			else {
-				tacticalDestinationOptions.get("nocross").add(c);
-			}
-		}
-		
-		// Sort lists by distance, nearest to origin coordinate first
-		Collections.sort(tacticalDestinationOptions.get("cross"), (c1,c2) -> ((Double) c1.distance(oC)).compareTo(c2.distance(oC)));
-		Collections.sort(tacticalDestinationOptions.get("nocross"), (c1,c2) -> ((Double) c1.distance(oC)).compareTo(c2.distance(oC)));
-		
-		return tacticalDestinationOptions;
-	}
-	
 	
 	/*
 	 * Given a starting coordinate, ie the current position of the agent, the pedestrian roads the agent is considering as destinations, the road link associated to these

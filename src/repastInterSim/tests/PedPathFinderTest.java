@@ -260,53 +260,6 @@ class PedPathFinderTest {
 			assert expectedCoords.contains(destCoord);
 		}
 	}
-
-	@Test
-	void testGetTacticalDestinationCoodinateOptionsFar() throws Exception {
-		setUpRoads();
-		setUpRoadLinks();
-		setUpODs("test_ped_OD1.shp");
-		setUpPedObstructions();
-		
-		File vehcileRoadsFile = new File(vehicleRoadsPath);
-		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
-		File serialisedLoc = new File(serialisedLookupPath);
-		
-		// Select pedestrian origins and destinations to test
-		List<OD> ods = new ArrayList<OD>();
-		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
-		Coordinate o = ods.get(0).getGeom().getCoordinate();
-		
-		// Select section of road link network we are testing
-		String roadLinkID = "osgb4000000030238946";
-		List<RoadLink> rls = new ArrayList<RoadLink>();
-		for (RoadLink rl: roadLinkGeography.getAllObjects()) {
-			if (rl.getFID().contentEquals(roadLinkID)) {
-				rls.add(rl);
-			}
-		}
-		
-		// Select pedestrian roads used in testing
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
-		
-		// Get the tactical desinations for the origin coord and this road link
-		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls, pedObstructGeography, true);
-		
-		// Check that two keys and two coordinates returned
-		Set<String> expectedKeys = new HashSet<String>();
-		expectedKeys.add("cross");
-		expectedKeys.add("nocross");
-		assert destOptions.keySet().containsAll(expectedKeys);
-		
-		// Check the coorrdinates are as expected
-		assert destOptions.get("cross").size() == 1;
-		assert destOptions.get("nocross").size() == 2;
-		
-		assert destOptions.get("cross").get(0).equals(new Coordinate(530468.0087569832,180871.8784368495));
-		
-		assert destOptions.get("nocross").get(0).equals(new Coordinate(530507.95,180893.35)); // nearest
-		assert destOptions.get("nocross").get(1).equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
-	}
 	
 	@Test
 	void testGetTacticalDestinationAlternativesFar() throws Exception {
@@ -350,52 +303,6 @@ class PedPathFinderTest {
 		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted( (ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(1).getC().equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
 	}
 	
-	@Test
-	void testGetTacticalDestinationCoodinateOptionsNear() throws Exception {
-		setUpRoads();
-		setUpRoadLinks();
-		setUpODs("test_ped_OD1.shp");
-		setUpPedObstructions();
-		
-		File vehcileRoadsFile = new File(vehicleRoadsPath);
-		File pedestrianRoadsFile = new File(pedestrianRoadsPath);
-		File serialisedLoc = new File(serialisedLookupPath);
-		
-		// Select pedestrian origins and destinations to test
-		List<OD> ods = new ArrayList<OD>();
-		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
-		Coordinate o = ods.get(0).getGeom().getCoordinate();
-		
-		// Select section of road link network we are testing
-		String roadLinkID = "osgb4000000030238946";
-		List<RoadLink> rls = new ArrayList<RoadLink>();
-		for (RoadLink rl: roadLinkGeography.getAllObjects()) {
-			if (rl.getFID().contentEquals(roadLinkID)) {
-				rls.add(rl);
-			}
-		}
-		
-		// Select pedestrian roads used in testing
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
-		
-		// Get the tactical desinations for the origin coord and this road link
-		HashMap<String, List<Coordinate>> destOptions = PedPathFinder.getTacticalDestinationCoodinateOptions(o, currentPedRoads, rls, pedObstructGeography, false);
-		
-		// Check that two keys and two coordinates returned
-		Set<String> expectedKeys = new HashSet<String>();
-		expectedKeys.add("cross");
-		expectedKeys.add("nocross");
-		assert destOptions.keySet().containsAll(expectedKeys);
-		
-		// Check the coorrdinates are as expected
-		assert destOptions.get("cross").size() == 1;
-		assert destOptions.get("nocross").size() == 2;
-		
-		assert destOptions.get("cross").get(0).equals(new Coordinate(530512.5,180907.6));
-		
-		assert destOptions.get("nocross").get(0).equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
-		assert destOptions.get("nocross").get(1).equals(new Coordinate(530506.8,180891.45)); // farthest
-	}
 	
 	@Test
 	void testGetTacticalDestinationAlternativesNear() throws Exception {
