@@ -506,8 +506,8 @@ class PedPathFinderTest {
 		
 		// Now test a different od (origin the same but destination different)
 		// This time no primary crossing required to reach destination
-		o = ods.get(0).getGeom().getCoordinate();
-		d = ods.get(3).getGeom().getCoordinate();
+		o = ods.stream().filter(od -> od.getId() == 1).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
+		d = ods.stream().filter(od -> od.getId() == 4).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
 		sP = planStrategicPath(o,d);
 		
 		// tactical dest coord should be the same as pH=1 case above since agent doesn't have knowledge of where destination is
