@@ -271,12 +271,12 @@ class PedPathFinderTest {
 		int pH = 3;
 		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, true);
 		
-		assert alternatives.stream().filter(ta -> ta.parityT == 1).count()==1;
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).count()==2;
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).count()==1;
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).count()==2;
 		
-		assert alternatives.stream().filter(ta -> ta.parityT == 1).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530468.0087569832,180871.8784368495));
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530507.95,180893.35)); // nearest
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(1).c.equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).collect(Collectors.toList()).get(0).getC().equals(new Coordinate(530468.0087569832,180871.8784368495));
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted( (ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(0).getC().equals(new Coordinate(530507.95,180893.35)); // nearest
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted( (ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(1).getC().equals(new Coordinate(530482.8182132206, 180870.19519803385)); // farthest
 	}
 	
 	@Test
@@ -361,12 +361,12 @@ class PedPathFinderTest {
 		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, false);
 		
 		// Check the coorrdinates are as expected
-		assert alternatives.stream().filter(ta -> ta.parityT == 1).count()==1;
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).count()==2;
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).count()==1;
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).count()==2;
 		
-		assert alternatives.stream().filter(ta -> ta.parityT == 1).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530512.5,180907.6));
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c.equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
-		assert alternatives.stream().filter(ta -> ta.parityT == 0).sorted( (ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(1).c.equals(new Coordinate(530506.8,180891.45)); // farthest
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).collect(Collectors.toList()).get(0).getC().equals(new Coordinate(530512.5,180907.6));
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted( (ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(0).getC().equals(new Coordinate(530521.6192518127,180903.04127475937)); // nearest
+		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted( (ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(1).getC().equals(new Coordinate(530506.8,180891.45)); // farthest
 		
 	}
 	

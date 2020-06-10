@@ -262,7 +262,7 @@ public class PedPathFinder {
 				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, false);
 				
 				// Always select only the nearest no cross option
-				tacticalDestCoord = alternatives.stream().filter(ta -> ta.parityT == 0).sorted((ta1,ta2) -> ta1.costT.compareTo(ta2.costT)).collect(Collectors.toList()).get(0).c;
+				tacticalDestCoord = alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted((ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(0).getC();
 			}
 		}
 		
@@ -352,14 +352,14 @@ public class PedPathFinder {
 			
 			// Find parity of coordinate at tactical scale
 			// Tells us whether primary crossing is needed to reach coordinate
-			tc.parityT = RoadNetworkRoute.calculateRouteParity(oC, c, sP.subList(0, 1));
+			tc.setParityT(RoadNetworkRoute.calculateRouteParity(oC, c, sP.subList(0, 1)));
 			
 			// Find distance to tactical coordinate
-			tc.costT = c.distance(oC);
+			tc.setCostT(c.distance(oC));
 			
 			// Find parity at strategic level - identifies whether primary crossing required to get from tactical alternative to destination
 			// Takes into account bounded rationality
-			tc.parityS = RoadNetworkRoute.boundedRouteParity(c, d, sP, pH);
+			tc.setParityS(RoadNetworkRoute.boundedRouteParity(c, d, sP, pH));
 			
 			// Add to collection of choice alternatives
 			alternatives.add(tc);
