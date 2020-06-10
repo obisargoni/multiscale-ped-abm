@@ -32,7 +32,6 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
-import repastInterSim.main.IO;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class RoadNetworkRouteTest {
