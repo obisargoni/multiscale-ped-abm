@@ -12,7 +12,7 @@ Given a polygon covering the study area, this extracts the road links and nodes,
 
 It also processes and cleans this data, for example linking road links with vehicle and pedestrian space.
 
-3. editITN.py
+3. makeITNdirectional.py
 
 This uses the direction information extracted with the first script and edits the portion of the road network selected in the section so that it represents a directed road network.
 
