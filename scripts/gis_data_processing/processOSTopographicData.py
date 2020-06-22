@@ -1,4 +1,5 @@
 import os
+import json
 import geopandas as gpd
 import pandas as pd
 import networkx as nx
@@ -10,6 +11,9 @@ from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLine
 # Initalise data directories and file names
 #
 ###############################
+
+with open("config.json") as f:
+    config = json.load(f)
 
 gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
 topographic_area_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
@@ -31,7 +35,7 @@ if os.path.isdir(output_directory) == False:
     os.mkdir(output_directory)
 
 
-selection_layer_file = os.path.join(gis_data_dir, "JunctClip.shp")
+selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
 
 topographic_area_file = os.path.join(topographic_area_dir, 'mastermap TopographicArea.shp')
 topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_2903032_0 TopographicLine.shp')
