@@ -24,6 +24,10 @@ itn_directory = os.path.join(gis_data_dir, "mastermap-itn_2903030")
 itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap-itn 2903030_0 RoadLink.shp")
 itn_node_file = os.path.join(itn_directory, "mastermap-itn RoadNode", "mastermap-itn RoadNode.shp")
 
+open_roads_directory = os.path.join(gis_data_dir, "OS Open Roads\\open-roads_subsection")
+or_link_file = os.path.join(open_roads_directory, "RoadLink.shp")
+or_node_file = os.path.join(open_roads_directory, "RoadNode.shp")
+
 qgis_workings_dir = os.path.join(gis_data_dir, "qgis_workings")
 
 if os.path.isdir(qgis_workings_dir) == False:
@@ -46,6 +50,9 @@ output_line_file = os.path.join(output_directory, "boundaryPedestrianVehicleArea
 
 output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
 output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
+
+output_or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within.shp")
+output_or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within.shp")
 
 
 projectCRS = {'init' :'epsg:27700'}
@@ -95,6 +102,13 @@ gdfITNLink.crs = projectCRS
 gdfITNNode = gpd.read_file(itn_node_file)
 gdfITNNode.crs = projectCRS
 
+# OS Open Road - for ped road network
+gdfORLink = gpd.read_file(or_link_file)
+gdfORLink.crs = projectCRS
+
+gdfORNode = gpd.read_file(or_node_file)
+gdfORNode.crs = projectCRS
+
 # Study area polygon - to select data within the study area
 gdfSelect = gpd.read_file(selection_layer_file)
 gdfSelect.crs = projectCRS
@@ -118,9 +132,25 @@ gdfITNNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
 gdfITNNode.drop_duplicates(inplace = True)
 gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
-# Could do some cleaning here - multipart to singlepart
+
+##############################
+#
+# Select the OS Open Road data that lies in the study area
+#
+# OS Open Road Data is used for pedestrian routing. Less detail on lanes and roundabouts so more suitable for peds
+#
+##############################
 
 
+gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
+gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['identifier','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+
+# Clean up
+gdfORNode.drop(['identifier_line', 'index_line'], axis = 1, inplace=True)
+gdfORNode.drop_duplicates(inplace = True)
+gdfORNode.rename(columns = {'identifier_node':'identifier'}, inplace = True)
+
+# Clean data to ensure minimum angular deviation along road link
 
 ################################
 #
@@ -446,6 +476,10 @@ gdfPerimiter.to_file(output_line_file)
 # Save the selected ITN geometries
 gdfITNLink.to_file(output_itn_link_file)
 gdfITNNode.to_file(output_itn_node_file)
+
+# Save the selected Open Roads geometries
+gdfORLink.to_file(output_or_link_file)
+gdfORNode.to_file(output_or_node_file)
 
 '''
 # Now densify the clipped linestrings
