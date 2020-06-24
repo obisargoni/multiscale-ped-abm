@@ -159,6 +159,35 @@ public class RoadNetworkRoute implements Cacheable {
 		this.destination = destination;
 	}
 	
+	/**
+	 * Create a new route object
+	 * 
+	 * @param origin
+	 * 		The origin coordinate of the route
+	 * @param destination
+	 * 		The destination coordinate of the route
+	 */
+	public RoadNetworkRoute(Coordinate origin, Coordinate destination, Context<RoadLink> rlC, Geography<RoadLink> rlG, Network<Junction> rN, Geography<OD> dG) {
+		
+		// Assert that origin and destination coordinates are not null
+		try {
+			checkNotNull(origin, destination);
+		} catch (RoutingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		
+		this.roadLinkContext = rlC;
+		this.roadLinkGeography = rlG;
+		this.roadNetwork = rN;
+		this.destinationGeography = dG;
+		
+		
+		this.origin = origin;
+		this.destination = destination;
+	}
+	
 
 	/**
 	 * Find a route from the origin to the destination. A route is a list of Coordinates which describe the route to a
