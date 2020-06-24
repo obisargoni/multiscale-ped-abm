@@ -14,26 +14,6 @@ import geopandas as gpd
 import os
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 
-
-######################
-#
-#
-# Initialise variables and paths to data inputs and outputs
-#
-#
-#####################
-project_crs = "epsg:27700"
-
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
-
-link_shapefile = "open-roads RoadLink Intersect Within.shp"
-node_shapefile = "open-roads RoadNode Intersect Within.shp"
-
-output_dir = gis_data_dir
-output_link_shapefile = os.path.join(output_dir, "open_roads RoadLink Intersect Within simplify angles.shp")
-output_node_shapefile = os.path.join(output_dir, "open_roads RoadNode Intersect Within simplify angles.shp")
-
-
 ######################
 #
 #
@@ -136,6 +116,25 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
                 multdf.loc[i, new_id_col] = multdf.loc[i, id_col] + "_{}".format(i)
             outdf = outdf.append(multdf,ignore_index=True)
     return outdf
+
+
+######################
+#
+#
+# Initialise variables and paths to data inputs and outputs
+#
+#
+#####################
+project_crs = "epsg:27700"
+
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
+
+link_shapefile = "open-roads RoadLink Intersect Within.shp"
+node_shapefile = "open-roads RoadNode Intersect Within.shp"
+
+output_dir = gis_data_dir
+output_link_shapefile = os.path.join(output_dir, "open_roads RoadLink Intersect Within simplify angles.shp")
+output_node_shapefile = os.path.join(output_dir, "open_roads RoadNode Intersect Within simplify angles.shp")
 
 
 ###########################
