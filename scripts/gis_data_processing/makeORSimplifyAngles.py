@@ -154,10 +154,6 @@ gdfORLink.crs = project_crs
 assert gdfORLink['geometry'].type.unique().size == 1
 assert gdfORLink['identifier'].unique().size == gdfORLink.shape[0]
 
-# Check that each link has id of plus and minus nodes
-assert gdfORLink['startNode'].isnull().any() == False
-assert gdfORLink['endNode'].isnull().any() == False
-
 '''
 # Load the node gis data
 gdfORNode = gpd.read_file(os.path.join(gis_data_dir, node_shapefile))
