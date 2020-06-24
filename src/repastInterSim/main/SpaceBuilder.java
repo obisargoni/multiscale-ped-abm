@@ -57,7 +57,7 @@ import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
-	private static Boolean isDirected = true; // Indicates whether the road network is directed ot not. 
+	private static Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. 
 	
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
