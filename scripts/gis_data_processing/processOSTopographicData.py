@@ -313,15 +313,15 @@ print(gdfPerimiter['type'].value_counts())
 
 # Buffer road node
 node_buffer_dist = 1
-gdfITNNodeBuffer = gdfITNNode.copy()
-gdfITNNodeBuffer['geometry'] = gdfITNNode.buffer(node_buffer_dist)
+gdfORNodeBuffer = gdfORNode.copy()
+gdfORNodeBuffer['geometry'] = gdfORNode.buffer(node_buffer_dist)
 
 # Clip road links to exclude the junctions
-gdfITNLinkClipped = gpd.overlay(gdfITNLink, gdfITNNodeBuffer, how = 'difference')
+gdfORLinkClipped = gpd.overlay(gdfORLink, gdfORNodeBuffer, how = 'difference')
 
 # Save to file so can be read into QGIS layer
-output_itn_link_clipped_file = os.path.join(qgis_workings_dir, "itn_link_clipped.shp")
-gdfITNLinkClipped.to_file(output_itn_link_clipped_file)
+output_or_link_clipped_file = os.path.join(qgis_workings_dir, "or_link_clipped.shp")
+gdfORLinkClipped.to_file(output_or_link_clipped_file)
 
 
 # Initialise QGIS API
@@ -348,20 +348,20 @@ QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
 
 
 
-itn_links_clipped = QgsVectorLayer(output_itn_link_clipped_file, "itn_links_clipped", "ogr")
+or_links_clipped = QgsVectorLayer(output_or_link_clipped_file, "or_links_clipped", "ogr")
 
 '''
 # Loop through features and densify
 densify_distance = 5 # Points separated by 5m
-for f in itn_links_clipped.getFeatures():
+for f in or_links_clipped.getFeatures():
     g = f.geometry()
     newG = g.densifyByDistance(1)
     f.setGeometry(newG)
 '''
 
 # Extract points
-points_path = os.path.join(qgis_workings_dir, "itn_links_dense_clipped_points.shp")
-fields = itn_links_clipped.fields()
+points_path = os.path.join(qgis_workings_dir, "or_links_dense_clipped_points.shp")
+fields = or_links_clipped.fields()
 fields.append(QgsField("point_id",  QVariant.Int))
 writer = QgsVectorFileWriter(points_path, "UTF-8", fields, QgsWkbTypes.Point, driverName="ESRI Shapefile")
 
@@ -370,7 +370,7 @@ if writer.hasError() != QgsVectorFileWriter.NoError:
 
 # Loop through the densified cliped linestrings and extract the points
 point_id = 0
-for f in itn_links_clipped.getFeatures():
+for f in or_links_clipped.getFeatures():
     g = f.geometry()
     gD = g.densifyByDistance(1)
     for p in gD.vertices():
@@ -382,11 +382,11 @@ for f in itn_links_clipped.getFeatures():
         writer.addFeature(output_feature)
 del writer
 
-itn_links_dense_clipped_points = QgsVectorLayer(points_path, "itn_links_dense_clipped_points", "ogr")
+or_links_dense_clipped_points = QgsVectorLayer(points_path, "or_links_dense_clipped_points", "ogr")
 
 # Now get voronoi polygons from these points
-outpath = os.path.join(qgis_workings_dir, "itn_links_voronoi.shp")
-result = processing.run("qgis:voronoipolygons", {"INPUT":itn_links_dense_clipped_points, "OUTPUT":outpath})
+outpath = os.path.join(qgis_workings_dir, "or_links_voronoi.shp")
+result = processing.run("qgis:voronoipolygons", {"INPUT":or_links_dense_clipped_points, "OUTPUT":outpath})
 
 # Read in voronoi polygons as geodataframe
 gdfLinksVoronoi = gpd.read_file(outpath)
@@ -395,29 +395,29 @@ gdfLinksVoronoi.crs = projectCRS
 # Disolve by road link fid to get road link voroni regions
 gdfLinksVoronoi = gdfLinksVoronoi.dissolve(by = 'fid')
 gdfLinksVoronoi.reset_index(inplace=True)
-gdfLinksVoronoi.to_file(os.path.join(qgis_workings_dir, "itn_links_voronoi_dissolve.shp"))
+gdfLinksVoronoi.to_file(os.path.join(qgis_workings_dir, "or_links_voronoi_dissolve.shp"))
 
 
 # Intersect pedestrian and vehicle priority polygons with links voronoi and disolve by road link fid
 gdfPedestrianLinks = gpd.overlay(gdfPedestrian, gdfLinksVoronoi, how = 'intersection')
 
 # Duplicate columns result in suffixes, edit these to make more sense
-rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfPedestrianLinks.columns}
+rename_dict = {i:i.replace('_1','_topo').replace('_2','_or') for i in gdfPedestrianLinks.columns}
 gdfPedestrianLinks.rename(columns = rename_dict, inplace = True)
-gdfPedestrianLinks = gdfPedestrianLinks.dissolve(by = 'fid_itn').reset_index()
+gdfPedestrianLinks = gdfPedestrianLinks.dissolve(by = 'fid_or').reset_index()
 gdfPedestrianLinks = explode(gdfPedestrianLinks)
 gdfPedestrianLinks.crs = gdfPedestrian.crs
 
 gdfVehicleLinks = gpd.overlay(gdfVehicle, gdfLinksVoronoi, how = 'intersection')
-rename_dict = {i:i.replace('_1','_topo').replace('_2','_itn') for i in gdfVehicleLinks.columns}
+rename_dict = {i:i.replace('_1','_topo').replace('_2','_or') for i in gdfVehicleLinks.columns}
 gdfVehicleLinks.rename(columns = rename_dict, inplace = True)
-gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_itn').reset_index()
+gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_or').reset_index()
 gdfVehicleLinks = explode(gdfVehicleLinks)
 gdfVehicleLinks.crs = gdfVehicle.crs
 
 # Rename the ITN Road Link FID column to match the name expected by the Repast Model
-gdfVehicleLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
-gdfPedestrianLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
+gdfVehicleLinks.rename(columns = {"fid_or":"roadLinkID"}, inplace = True)
+gdfPedestrianLinks.rename(columns = {"fid_or":"roadLinkID"}, inplace = True)
 
 ###########################
 #
