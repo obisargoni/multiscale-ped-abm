@@ -266,7 +266,7 @@ gdfORLink_simplified['startCoord'] = gdfORLink_simplified['geometry'].map(lambda
 gdfORLink_simplified['endCoord'] = gdfORLink_simplified['geometry'].map(lambda x: Point(x.coords[-1]))
 
 # Collect all start and end nodes
-coords = pd.concat([gdfORLink_simplified['startCoord'], gdfORLink_simplified['endCoord']])
+coords = pd.concat([gdfORLink_simplified['startCoord'], gdfORLink_simplified['endCoord']]).drop_duplicates()
 gdfORNode_simplified = gpd.GeoDataFrame({'geometry':coords})
 gdfORNode_simplified['node_fid'] = ["node_id_{}".format(i) for i in gdfORNode_simplified.index]
 
@@ -294,6 +294,7 @@ gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axi
 
 # Rename fid columns
 gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid"})
+assert gdfORLink_simplified['fid'].duplicated().any() == False
 
 
 gdfORLink_simplified.crs = projectCRS
