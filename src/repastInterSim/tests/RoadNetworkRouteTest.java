@@ -313,7 +313,7 @@ public class RoadNetworkRouteTest {
 		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
-		assert roads.size() == 7;
+		assert roads.size() == 3;
 	}
 	
 	@Test
@@ -331,7 +331,7 @@ public class RoadNetworkRouteTest {
 		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
-		assert pedRoads.size() == 6;
+		assert pedRoads.size() == 2;
 	}
 
 }
