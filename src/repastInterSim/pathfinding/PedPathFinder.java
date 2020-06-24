@@ -13,10 +13,13 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 
+import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
 import repastInterSim.agent.GridRoute;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
@@ -35,6 +38,14 @@ public class PedPathFinder {
 	private OD destination;
 	private Geography<Object> geography;
 	
+	private Context<RoadLink> rlContext;
+	private Geography<RoadLink> rlGeography;
+	private Network<Junction> rlNetwork;
+	private Geography<PedObstruction> obstructGeography;
+	private Geography<Road> rGeography;
+	private Geography<OD> destGeography;
+	
+	
 	private List<RoadLink> strategicPath;
 	private GridRoute tacticalPath = new GridRoute();
 	
@@ -48,6 +59,14 @@ public class PedPathFinder {
 		this.origin = o;
 		this.destination = d;
 		
+		// Set which road links to use for path finding - use the pedestrian road network and destinations.
+		this.rlContext = SpaceBuilder.pedRoadLinkContext;
+		this.rlGeography = SpaceBuilder.pedRoadLinkGeography;
+		this.rlNetwork = SpaceBuilder.pedRoadNetwork;
+		this.obstructGeography = SpaceBuilder.pedObstructGeography;
+		this.rGeography = SpaceBuilder.roadGeography;
+		this.destGeography = SpaceBuilder.pedestrianDestinationGeography;
+		
 		planStrategicPath();
 	}
 	
@@ -56,6 +75,12 @@ public class PedPathFinder {
 		this.geography = p.getGeography();
 		this.origin = p.getOrigin();
 		this.destination = p.getDestination();
+		
+		// Set which road links to use for path finding
+		this.rlContext = SpaceBuilder.pedRoadLinkContext;
+		this.rlGeography = SpaceBuilder.pedRoadLinkGeography;
+		this.rlNetwork = SpaceBuilder.pedRoadNetwork;
+		this.obstructGeography = SpaceBuilder.pedObstructGeography;
 		
 		planStrategicPath();
 	}
@@ -67,7 +92,7 @@ public class PedPathFinder {
 	 */
 	public void planStrategicPath() {
 		// Initialise road network route - needs to ne non-directed for pedestrians! fix this
-		RoadNetworkRoute rnr = new RoadNetworkRoute(origin.getGeom().getCoordinate(), destination.getGeom().getCoordinate());
+		RoadNetworkRoute rnr = new RoadNetworkRoute(origin.getGeom().getCoordinate(), destination.getGeom().getCoordinate(), this.rlContext, this.rlGeography, this.rlNetwork, this.destGeography);
 		
 		// Find shortest path using road network route
 		try {
@@ -119,13 +144,13 @@ public class PedPathFinder {
 			// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
 			// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
 			if (prevCoordType.contentEquals("not_intersects_next")) {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.ped.getpHorizon(), this.strategicPath, true);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, this.ped.getpHorizon(), this.strategicPath, true);
 				prevCoordType = "start_next";
 			}
 			// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
 			else {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.ped.getpHorizon(), this.strategicPath, false);
-				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, SpaceBuilder.roadGeography, currentRoadLinkID, nextRoadLinkID);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, this.ped.getpHorizon(), this.strategicPath, false);
+				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
 			// Get path to that coordinate
