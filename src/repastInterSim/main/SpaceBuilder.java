@@ -49,9 +49,7 @@ import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.JunctionContext;
-import repastInterSim.environment.contexts.PedJunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
-import repastInterSim.environment.contexts.PedRoadLinkContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
@@ -151,7 +149,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(roadLinkContext);
 		fixedGeographies.add(roadLinkGeography);
 		
-		pedRoadLinkContext = new PedRoadLinkContext();
+		pedRoadLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.PED_ROAD_LINK_CONTEXT);
 		pedRoadLinkGeography = createTypedGeography(RoadLink.class, pedRoadLinkContext, GlobalVars.CONTEXT_NAMES.PED_ROAD_LINK_GEOGRAPHY);
 		context.addSubContext(pedRoadLinkContext);
 		fixedGeographies.add(pedRoadLinkGeography);
@@ -162,7 +160,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(junctionContext);
 		fixedGeographies.add(junctionGeography);
 		
-		pedJunctionContext = new PedJunctionContext();
+		pedJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
 		pedJunctionGeography = createTypedGeography(Junction.class, pedJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
 		context.addSubContext(pedJunctionContext);
 		fixedGeographies.add(pedJunctionGeography);

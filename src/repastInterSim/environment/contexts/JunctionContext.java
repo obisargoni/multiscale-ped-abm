@@ -27,5 +27,9 @@ public class JunctionContext extends DefaultContext<Junction> {
 	public JunctionContext() {
 		super(GlobalVars.CONTEXT_NAMES.JUNCTION_CONTEXT);
 	}
+	
+	public JunctionContext(String name) {
+		super(name);
+	}
 
 }

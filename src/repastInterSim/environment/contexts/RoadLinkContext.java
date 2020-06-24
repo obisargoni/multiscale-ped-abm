@@ -28,5 +28,9 @@ public class RoadLinkContext extends DefaultContext<RoadLink> {
 	public RoadLinkContext() {
 		super(GlobalVars.CONTEXT_NAMES.ROAD_LINK_CONTEXT);
 	}
+	
+	public RoadLinkContext(String name) {
+		super(name);
+	}
 
 }
