@@ -209,19 +209,23 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 #
 ##############################
 
+# Rename identifier to fid to match the id col used in the ITN
+gdfORLink = gdfORLink.rename(columns = {"identifier": "fid"})
+gdfORNode = gdfORNode.rename(columns = {"identifier": "fid"})
+
 
 gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
-gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['identifier','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
 
 # Clean up
-gdfORNode.drop(['identifier_line', 'index_line'], axis = 1, inplace=True)
+gdfORNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
 gdfORNode.drop_duplicates(inplace = True)
-gdfORNode.rename(columns = {'identifier_node':'identifier'}, inplace = True)
+gdfORNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
 # Clean data to ensure minimum angular deviation along road link
 
 assert gdfORLink['geometry'].type.unique().size == 1
-assert gdfORLink['identifier'].unique().size == gdfORLink.shape[0]
+assert gdfORLink['fid'].unique().size == gdfORLink.shape[0]
 
 '''
 # Load the node gis data
@@ -254,9 +258,9 @@ gdfORLink.rename(columns={'_merge':'_merge_minus_node'}, inplace=True)
 # add these coords as new nodes
 #
 ####################################
-gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "identifier", "new_identifier")
+gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "fid", "new_fid")
 
-assert gdfORLink_simplified['new_identifier'].duplicated().any() == False 
+assert gdfORLink_simplified['new_fid'].duplicated().any() == False
 
 gdfORLink_simplified['startCoord'] = gdfORLink_simplified['geometry'].map(lambda x: Point(x.coords[0]))
 gdfORLink_simplified['endCoord'] = gdfORLink_simplified['geometry'].map(lambda x: Point(x.coords[-1]))
@@ -264,7 +268,7 @@ gdfORLink_simplified['endCoord'] = gdfORLink_simplified['geometry'].map(lambda x
 # Collect all start and end nodes
 coords = pd.concat([gdfORLink_simplified['startCoord'], gdfORLink_simplified['endCoord']])
 gdfORNode_simplified = gpd.GeoDataFrame({'geometry':coords})
-gdfORNode_simplified['node_identifier'] = ["node_id_{}".format(i) for i in gdfORNode_simplified.index]
+gdfORNode_simplified['node_fid'] = ["node_id_{}".format(i) for i in gdfORNode_simplified.index]
 
 
 # Drop the old node identifierd and merge to nodes df to get new identifiers/ids
@@ -273,24 +277,27 @@ gdfORLink_simplified = gdfORLink_simplified.drop(['startNode','endNode'], axis =
 # Merge the nodes with the links
 gdfORLink_simplified = gdfORLink_simplified.set_geometry("startCoord")
 gdfORLink_simplified = gpd.geopandas.sjoin(gdfORLink_simplified, gdfORNode_simplified, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-assert gdfORLink_simplified['node_identifier'].isnull().any() == False
-gdfORLink_simplified.rename(columns={'node_identifier':'startNode'}, inplace=True)
+assert gdfORLink_simplified['node_fid'].isnull().any() == False
+gdfORLink_simplified.rename(columns={'node_fid':'startNode'}, inplace=True)
 gdfORLink_simplified = gdfORLink_simplified.drop(['index_right'], axis = 1)
 
 
 gdfORLink_simplified = gdfORLink_simplified.set_geometry("endCoord")
 gdfORLink_simplified = gpd.geopandas.sjoin(gdfORLink_simplified, gdfORNode_simplified, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-assert gdfORLink_simplified['node_identifier'].isnull().any() == False 
-gdfORLink_simplified.rename(columns={'node_identifier':'endNode'}, inplace=True)
+assert gdfORLink_simplified['node_fid'].isnull().any() == False 
+gdfORLink_simplified.rename(columns={'node_fid':'endNode'}, inplace=True)
 gdfORLink_simplified = gdfORLink_simplified.drop(['index_right'], axis = 1)
 
 gdfORLink_simplified = gdfORLink_simplified.set_geometry("geometry")
 # Clean up and save data
 gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axis = 1)
 
+# Rename fid columns
+gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid"})
+
+
 gdfORLink_simplified.crs = projectCRS
 gdfORNode_simplified.crs = projectCRS
-
 
 
 #############################
