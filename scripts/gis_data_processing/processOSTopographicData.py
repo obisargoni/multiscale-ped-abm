@@ -16,17 +16,6 @@ with open("config.json") as f:
     config = json.load(f)
 
 gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
-topographic_area_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
-topographic_line_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicLine")
-
-
-itn_directory = os.path.join(gis_data_dir, "mastermap-itn_2903030")
-itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap-itn 2903030_0 RoadLink.shp")
-itn_node_file = os.path.join(itn_directory, "mastermap-itn RoadNode", "mastermap-itn RoadNode.shp")
-
-open_roads_directory = os.path.join(gis_data_dir, "OS Open Roads\\open-roads_subsection")
-or_link_file = os.path.join(open_roads_directory, "RoadLink.shp")
-or_node_file = os.path.join(open_roads_directory, "RoadNode.shp")
 
 qgis_workings_dir = os.path.join(gis_data_dir, "qgis_workings")
 
@@ -39,6 +28,16 @@ if os.path.isdir(output_directory) == False:
     os.mkdir(output_directory)
 
 
+topographic_area_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
+topographic_line_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicLine")
+
+itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
+itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
+
+or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within simplify angles.shp")
+or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within simplify angles.shp")
+
+
 selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
 
 topographic_area_file = os.path.join(topographic_area_dir, 'mastermap TopographicArea.shp')
@@ -47,13 +46,6 @@ topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_29030
 output_vehicle_file = os.path.join(output_directory, "topographicAreaVehicle.shp")
 output_pedestrian_file = os.path.join(output_directory, "topographicAreaPedestrian.shp")
 output_line_file = os.path.join(output_directory, "boundaryPedestrianVehicleArea.shp")
-
-output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
-output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
-
-output_or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within.shp")
-output_or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within.shp")
-
 
 projectCRS = {'init' :'epsg:27700'}
 
@@ -115,42 +107,6 @@ gdfSelect.crs = projectCRS
 
 # Get the area to filter geometries by
 SelectPolygon = gdfSelect.loc[0,'geometry']
-
-
-################################
-#
-# Select the ITN Road Network that lies in the study area
-#
-################################
-
-# Select only the polygons that intersect or lie within the junc clip area
-gdfITNLink = gdfITNLink.loc[ (gdfITNLink.geometry.intersects(SelectPolygon)) | (gdfITNLink.geometry.within(SelectPolygon))]
-gdfITNNode = gpd.sjoin(gdfITNNode, gdfITNLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
-
-# Clean up
-gdfITNNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
-gdfITNNode.drop_duplicates(inplace = True)
-gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
-
-
-##############################
-#
-# Select the OS Open Road data that lies in the study area
-#
-# OS Open Road Data is used for pedestrian routing. Less detail on lanes and roundabouts so more suitable for peds
-#
-##############################
-
-
-gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
-gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['identifier','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
-
-# Clean up
-gdfORNode.drop(['identifier_line', 'index_line'], axis = 1, inplace=True)
-gdfORNode.drop_duplicates(inplace = True)
-gdfORNode.rename(columns = {'identifier_node':'identifier'}, inplace = True)
-
-# Clean data to ensure minimum angular deviation along road link
 
 ################################
 #
@@ -472,14 +428,6 @@ gdfPedestrianLinks.rename(columns = {"fid_itn":"roadLinkID"}, inplace = True)
 gdfPedestrianLinks.to_file(output_pedestrian_file)
 gdfVehicleLinks.to_file( output_vehicle_file)
 gdfPerimiter.to_file(output_line_file)
-
-# Save the selected ITN geometries
-gdfITNLink.to_file(output_itn_link_file)
-gdfITNNode.to_file(output_itn_node_file)
-
-# Save the selected Open Roads geometries
-gdfORLink.to_file(output_or_link_file)
-gdfORNode.to_file(output_or_node_file)
 
 '''
 # Now densify the clipped linestrings

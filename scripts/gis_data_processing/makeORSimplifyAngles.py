@@ -7,7 +7,7 @@ Purpose of this script is to use the extracted orientation information from the 
 two way road are duplicated with one linestring orientated in one direction and the other orientated in another direction.
 '''
 
-
+import json
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -125,16 +125,33 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
 #
 #
 #####################
-project_crs = "epsg:27700"
+projectCRS = "epsg:27700"
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
+with open("config.json") as f:
+    config = json.load(f)
 
-link_shapefile = "open-roads RoadLink Intersect Within.shp"
-node_shapefile = "open-roads RoadNode Intersect Within.shp"
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
 
-output_dir = gis_data_dir
-output_link_shapefile = os.path.join(output_dir, "open_roads RoadLink Intersect Within simplify angles.shp")
-output_node_shapefile = os.path.join(output_dir, "open_roads RoadNode Intersect Within simplify angles.shp")
+itn_directory = os.path.join(gis_data_dir, "mastermap-itn_2903030")
+itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap-itn 2903030_0 RoadLink.shp")
+itn_node_file = os.path.join(itn_directory, "mastermap-itn RoadNode", "mastermap-itn RoadNode.shp")
+
+open_roads_directory = os.path.join(gis_data_dir, "OS Open Roads\\open-roads_subsection")
+or_link_file = os.path.join(open_roads_directory, "RoadLink.shp")
+or_node_file = os.path.join(open_roads_directory, "RoadNode.shp")
+
+output_directory = os.path.join(gis_data_dir, "processed_gis_data")
+
+if os.path.isdir(output_directory) == False:
+    os.mkdir(output_directory)
+
+selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
+
+output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
+output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
+
+output_or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within simplify angles.shp")
+output_or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within simplify angles.shp")
 
 
 ###########################
@@ -142,13 +159,66 @@ output_node_shapefile = os.path.join(output_dir, "open_roads RoadNode Intersect 
 #
 # Load Data
 # 
-# merge with nodes on ids
 #
 ##########################
 
-# Read in data. Check geometry types. Check fields
-gdfORLink = gpd.read_file(os.path.join(gis_data_dir, link_shapefile))
-gdfORLink.crs = project_crs
+# Mastermap ITN data - for road network
+gdfITNLink = gpd.read_file(itn_link_file)
+gdfITNLink.crs = projectCRS
+
+gdfITNNode = gpd.read_file(itn_node_file)
+gdfITNNode.crs = projectCRS
+
+# OS Open Road - for ped road network
+gdfORLink = gpd.read_file(or_link_file)
+gdfORLink.crs = projectCRS
+
+gdfORNode = gpd.read_file(or_node_file)
+gdfORNode.crs = projectCRS
+
+# Study area polygon - to select data within the study area
+gdfSelect = gpd.read_file(selection_layer_file)
+gdfSelect.crs = projectCRS
+
+# Get the area to filter geometries by
+SelectPolygon = gdfSelect.loc[0,'geometry']
+
+
+
+################################
+#
+# Select the ITN Road Network that lies in the study area
+#
+################################
+
+# Select only the polygons that intersect or lie within the junc clip area
+gdfITNLink = gdfITNLink.loc[ (gdfITNLink.geometry.intersects(SelectPolygon)) | (gdfITNLink.geometry.within(SelectPolygon))]
+gdfITNNode = gpd.sjoin(gdfITNNode, gdfITNLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+
+# Clean up
+gdfITNNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
+gdfITNNode.drop_duplicates(inplace = True)
+gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
+
+
+##############################
+#
+# Select the OS Open Road data that lies in the study area
+#
+# OS Open Road Data is used for pedestrian routing. Less detail on lanes and roundabouts so more suitable for peds
+#
+##############################
+
+
+gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
+gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['identifier','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+
+# Clean up
+gdfORNode.drop(['identifier_line', 'index_line'], axis = 1, inplace=True)
+gdfORNode.drop_duplicates(inplace = True)
+gdfORNode.rename(columns = {'identifier_node':'identifier'}, inplace = True)
+
+# Clean data to ensure minimum angular deviation along road link
 
 assert gdfORLink['geometry'].type.unique().size == 1
 assert gdfORLink['identifier'].unique().size == gdfORLink.shape[0]
@@ -156,7 +226,7 @@ assert gdfORLink['identifier'].unique().size == gdfORLink.shape[0]
 '''
 # Load the node gis data
 gdfORNode = gpd.read_file(os.path.join(gis_data_dir, node_shapefile))
-gdfORNode.crs = project_crs
+gdfORNode.crs = projectCRS
 gdfORNode = gdfORNode.reindex(columns=['identifier','geometry'])
 
 # Merge the nodes with the links
@@ -218,8 +288,21 @@ gdfORLink_simplified = gdfORLink_simplified.set_geometry("geometry")
 # Clean up and save data
 gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axis = 1)
 
-gdfORLink_simplified.crs = project_crs
-gdfORNode_simplified.crs = project_crs
+gdfORLink_simplified.crs = projectCRS
+gdfORNode_simplified.crs = projectCRS
 
-gdfORLink_simplified.to_file(output_link_shapefile)
-gdfORNode_simplified.to_file(output_node_shapefile)
+
+
+#############################
+#
+#
+# Save the processed data
+#
+#
+#############################
+
+gdfITNLink.to_file(output_itn_link_file)
+gdfITNNode.to_file(output_itn_node_file)
+
+gdfORLink_simplified.to_file(output_or_link_file)
+gdfORNode_simplified.to_file(output_or_node_file)
