@@ -44,6 +44,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import cern.colt.Arrays;
+import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
@@ -81,6 +82,12 @@ public class RoadNetworkRoute implements Cacheable {
 	static {
 		// Route.routeCache = new Hashtable<CachedRoute, CachedRoute>();
 	}
+	
+	private Geography<RoadLink> roadLinkGeography;
+	private Context<RoadLink> roadLinkContext;
+	private Network<Junction> roadNetwork;
+	private Geography<OD> destinationGeography;
+	
 
 	protected Coordinate origin;
 	protected Coordinate destination;
@@ -140,7 +147,13 @@ public class RoadNetworkRoute implements Cacheable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
-		} 
+		}
+		
+		this.roadLinkContext = SpaceBuilder.roadLinkContext;
+		this.roadLinkGeography = SpaceBuilder.roadLinkGeography;
+		this.roadNetwork = SpaceBuilder.roadNetwork;
+		this.destinationGeography = SpaceBuilder.vehicleDestinationGeography;
+		
 		
 		this.origin = origin;
 		this.destination = destination;
@@ -198,7 +211,7 @@ public class RoadNetworkRoute implements Cacheable {
 
 
 			// Find the road link the agent is currently on
-			List<RoadLink> currItersectingRoads = findIntersectingObjects(currentCoord, SpaceBuilder.roadLinkGeography);
+			List<RoadLink> currItersectingRoads = findIntersectingObjects(currentCoord, this.roadLinkGeography);
 
 			// For each of the road links the agent intersects, find which junctions can be accessed. ie is the target junction.
 			// These are the junctions to input into the shortest path function
@@ -209,7 +222,7 @@ public class RoadNetworkRoute implements Cacheable {
 			}
 			
 			// Find the road link the agent is currently on
-			List<RoadLink> destIntersectingRoads = findIntersectingObjects(destCoord, SpaceBuilder.roadLinkGeography);
+			List<RoadLink> destIntersectingRoads = findIntersectingObjects(destCoord, this.roadLinkGeography);
 
 			// For each of the road links the agent intersects, find which junctions the destCoord can be accessed from. ie is the source junction.
 			// These are the junctions to input into the shortest path function
@@ -225,7 +238,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			Junction[] routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(SpaceBuilder.roadNetwork, currentAccessMap.keySet(), destAccessMap.keySet(), routeEndpoints);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentAccessMap.keySet(), destAccessMap.keySet(), routeEndpoints);
 
 			Junction currentJunction = routeEndpoints[0];
 			Junction destJunction = routeEndpoints[1];
@@ -383,8 +396,8 @@ public class RoadNetworkRoute implements Cacheable {
 				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadShapefile));
 				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
 
-				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.vehicleDestinationGeography,
-						buildingsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
+				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(this.destinationGeography,
+						buildingsFile, this.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
@@ -595,6 +608,12 @@ public class RoadNetworkRoute implements Cacheable {
 		
 		return parity;
 	}
+	
+	/*
+	 * Calculate the interior angle between the geometries of two road links
+	 * 
+	 * 
+	 */
 
 	private static void checkNotNull(Object... args) throws RoutingException {
 		for (Object o : args) {
@@ -715,7 +734,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	private List<RoadLink> getRoadFromCoordCache(Coordinate coord) {
 
-		populateCoordCache(); // Check the cache has been populated
+		populateCoordCache(this.roadLinkContext); // Check the cache has been populated
 		return coordCache.get(coord);
 	}
 
@@ -727,11 +746,11 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return True if the coordinate is part of a road segment
 	 */
 	private boolean coordOnRoad(Coordinate coord) {
-		populateCoordCache(); // check the cache has been populated
+		populateCoordCache(this.roadLinkContext); // check the cache has been populated
 		return coordCache.containsKey(coord);
 	}
 
-	private synchronized static void populateCoordCache() {
+	private synchronized static void populateCoordCache(Context<RoadLink> roadLinkContext) {
 
 		double time = System.nanoTime();
 		if (coordCache == null) { // Fist check cache has been created
@@ -747,7 +766,7 @@ public class RoadNetworkRoute implements Cacheable {
 			LOGGER.log(Level.FINER, "Route.populateCoordCache: is empty, creating new cache of all Road coordinates.");
 			*/
 
-			for (RoadLink r : SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
+			for (RoadLink r : roadLinkContext.getObjects(RoadLink.class)) {
 				for (Coordinate c : r.getGeom().getCoordinates()) {
 					if (coordCache.containsKey(c)) {
 						coordCache.get(c).add(r);
@@ -850,6 +869,8 @@ class NearestRoadCoordCache implements Serializable {
 	// The time that this cache was created, can be used to check data hasn't
 	// changed since
 	private long createdTime;
+	
+	private Geography<RoadLink> roadLinkEnvironment;
 
 	private GeometryFactory geomFac;
 
@@ -862,6 +883,7 @@ class NearestRoadCoordCache implements Serializable {
 		this.serialisedLoc = serialisedLoc;
 		this.theCache = new Hashtable<Coordinate, Coordinate>();
 		this.geomFac = geomFac;
+		this.roadLinkEnvironment = roadLinkEnvironment;
 
 		LOGGER.log(Level.FINE, "NearestRoadCoordCache() creating new cache with data (and modification date):\n\t"
 				+ this.buildingsFile.getAbsolutePath() + " (" + new Date(this.buildingsFile.lastModified()) + ") \n\t"
@@ -936,9 +958,9 @@ class NearestRoadCoordCache implements Serializable {
 		Envelope searchEnvelope = coordGeom.buffer(bufferDist * bufferMultiplier).getEnvelopeInternal();
 		StringBuilder debug = new StringBuilder(); // incase the operation fails
 
-		for (RoadLink r : SpaceBuilder.roadLinkGeography.getObjectsWithin(searchEnvelope)) {
+		for (RoadLink r : this.roadLinkEnvironment.getObjectsWithin(searchEnvelope)) {
 
-			DistanceOp distOp = new DistanceOp(coordGeom, SpaceBuilder.roadLinkGeography.getGeometry(r));
+			DistanceOp distOp = new DistanceOp(coordGeom, this.roadLinkEnvironment.getGeometry(r));
 			double thisDist = distOp.distance();
 			// BUG?: if an agent is on a really long road, the long road will not be found by getObjectsWithin because
 			// it is not within the buffer
@@ -968,7 +990,7 @@ class NearestRoadCoordCache implements Serializable {
 		/* IF HERE THEN ERROR, PRINT DEBUGGING INFO */
 		StringBuilder debugIntro = new StringBuilder(); // Some extra info for debugging
 		debugIntro.append("Route.NearestRoadCoordCache.get() error: couldn't find a coordinate to return.\n");
-		Iterable<RoadLink> roads = SpaceBuilder.roadLinkGeography.getObjectsWithin(searchEnvelope);
+		Iterable<RoadLink> roads = this.roadLinkEnvironment.getObjectsWithin(searchEnvelope);
 		debugIntro.append("Looking for nearest road coordinate around ").append(c.toString()).append(".\n");
 		debugIntro.append("roadLinkEnvironment.getObjectsWithin() returned ").append(
 				SpaceBuilder.sizeOfIterable(roads) + " roads, printing debugging info:\n");
