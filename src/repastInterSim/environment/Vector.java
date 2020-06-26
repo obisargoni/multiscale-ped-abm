@@ -126,5 +126,20 @@ public class Vector {
     	
     	return dist;
     }
+
+	public static double angleBetweenTwoVectors(double[] v1, double[] v2) {
+		// Convert to unit vectors
+		double cos_ = dotProd(v1,v2)/ mag(v1) / mag(v2);
+		double a = Math.acos(cos_);
+		
+		return a;
+	}
+	
+	public static double angleBetweenTwoVectorsDegree(double[] v1, double[] v2) {
+		
+		double a = angleBetweenTwoVectors(v1, v2);
+		a = Math.toDegrees(a);
+		return a;
+	}
     
 }
