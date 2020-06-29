@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -430,6 +431,94 @@ class PedPathFinderTest {
 		pH=3;
 		tacticalDestCoord = PedPathFinder.chooseTacticalDestinationCoordinate(o, d, this.roadGeography, this.pedObstructGeography, pH, sP, secondaryCrossing);
 		assert tacticalDestCoord.equals(new Coordinate(530482.8182132206, 180870.19519803385));
+	}
+	
+	@Test
+	void testGetLinksWithinAngularDistance() throws Exception {
+		
+		// Load links
+		setUpRoadLinks("test_strategic_path1.shp");
+		
+		List<RoadLink> sP = new ArrayList<RoadLink>();
+		roadLinkGeography.getAllObjects().forEach(sP::add);
+		//Collections.reverse(sP);
+		
+		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
+		
+		// Initialise list to contain the links that are within an angular dstance threshold
+		List<RoadLink> linksInRange = new ArrayList<RoadLink>();
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 0.0);
+		
+		assert linksInRange.size() == 1;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 10.0);
+		
+		assert linksInRange.size() == 2;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 50.0);
+		
+		assert linksInRange.size() == 5;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 90.0);
+		
+		assert linksInRange.size() == 6;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 250.0);
+		
+		assert linksInRange.size() == 7;
+		
+	}
+	
+	@Test
+	void testGetLinksWithinAngularDistance2() throws Exception {
+		
+		// Load links
+		setUpRoadLinks("test_strategic_path2.shp");
+		
+		List<RoadLink> sP = new ArrayList<RoadLink>();
+		roadLinkGeography.getAllObjects().forEach(sP::add);
+		//Collections.reverse(sP);
+		
+		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
+		
+		// Initialise list to contain the links that are within an angular dstance threshold
+		List<RoadLink> linksInRange = new ArrayList<RoadLink>();
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 0.0);
+		
+		assert linksInRange.size() == 1;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 90.0);
+		
+		assert linksInRange.size() == 3;
+	}
+	
+	@Test
+	void testGetLinksWithinAngularDistance3() throws Exception {
+		// Difference between "test_strategic_path3.shp" and "test_strategic_path2.shp"
+		// is that "test_strategic_path3.shp" reverses the order of coords for one of the line strings 
+		// compared to the others. This tests that angle is still correctly calculated.
+		
+		// Load links
+		setUpRoadLinks("test_strategic_path3.shp");
+		
+		List<RoadLink> sP = new ArrayList<RoadLink>();
+		roadLinkGeography.getAllObjects().forEach(sP::add);
+		//Collections.reverse(sP);
+		
+		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
+		
+		// Initialise list to contain the links that are within an angular dstance threshold
+		List<RoadLink> linksInRange = new ArrayList<RoadLink>();
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 0.0);
+		
+		assert linksInRange.size() == 1;
+		
+		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 90.0);
+		
+		assert linksInRange.size() == 3;
 	}
 
 }

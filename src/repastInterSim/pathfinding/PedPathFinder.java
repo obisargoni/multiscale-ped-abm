@@ -419,6 +419,34 @@ public class PedPathFinder {
 		return destCoord;
 	}
 	
+	public static List<RoadLink> getLinksWithinAngularDistance(List<RoadLink> sP, double angDistThreshold){
+		List<RoadLink> sPHorizon = new ArrayList<RoadLink>();
+		
+		double angDist = 0.0;
+		
+		// Add first link to planning horizon
+		sPHorizon.add(sP.get(0));
+		
+		// Loop through road links in strategic path adding up the angular distance between each one
+		for (int i = 0; i < sP.size() - 1; i++) {
+			RoadLink rl1 = sP.get(i);
+			RoadLink rl2 = sP.get(i+1);
+			
+			// Calculate angular distance to next road link
+			angDist += GISFunctions.angleBetweenConnectedLineStrings((LineString) rl1.getGeom(), (LineString) rl2.getGeom());
+			
+			// If distance within threshold, add next link to horizon
+			if (angDist > angDistThreshold) {
+				break;
+			}
+			
+			// If angular distance threshold not exceeded add link to horizon
+			sPHorizon.add(rl2);
+
+		}
+		return sPHorizon;
+	}
+	
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
