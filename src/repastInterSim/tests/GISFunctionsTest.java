@@ -1,6 +1,8 @@
 package repastInterSim.tests;
 
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -11,6 +13,7 @@ import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.RoadLink;
@@ -95,6 +98,49 @@ class GISFunctionsTest {
 		assert nIntersections1 == 1;
 		assert nIntersections2 == 2;
 		assert nIntersections3 == 3;
+	}
+	
+	@Test
+	void testAngleBetweenConnectedLineStrings() throws Exception {
+		LineString l1 = null;
+		LineString l2 = null;
+		
+		setUp("parity_test_lines1.shp");
+		
+		IndexedIterable<RoadLink> lines = roadLinkContext.getObjects(RoadLink.class);
+		
+		l1 = (LineString) lines.get(0).getGeom();
+		l2 = (LineString) lines.get(1).getGeom();
+		
+		Double ang = GISFunctions.angleBetweenConnectedLineStrings(l1, l2);
+		
+		assert ang == 0.0;
+		
+		Coordinate c1 = new Coordinate(0,0);
+		Coordinate c2 = new Coordinate(0,1);
+		Coordinate c3 = new Coordinate(1,2);
+		Coordinate c4 = new Coordinate(-1,0);
+		
+		Coordinate[] l1Coords = {c1,c2};
+		Coordinate[] l2Coords = {c2,c3};
+		l1 = GISFunctions.lineStringGeometryFromCoordinates(l1Coords);
+		l2 = GISFunctions.lineStringGeometryFromCoordinates(l2Coords);
+		
+		ang = GISFunctions.angleBetweenConnectedLineStrings(l1, l2);
+		assert Math.round(ang) == 45.0;
+		
+		l2Coords[1] = c4;
+		l2 = GISFunctions.lineStringGeometryFromCoordinates(l2Coords);
+		
+		ang = GISFunctions.angleBetweenConnectedLineStrings(l1, l2);
+		assert Math.round(ang) == 135.0;
+		
+		l1Coords[0] = c2;
+		l1Coords[1] = c1;
+		l1 = GISFunctions.lineStringGeometryFromCoordinates(l1Coords);
+		
+		ang = GISFunctions.angleBetweenConnectedLineStrings(l1, l2);
+		assert Math.round(ang) == 135.0;		
 	}
 
 }

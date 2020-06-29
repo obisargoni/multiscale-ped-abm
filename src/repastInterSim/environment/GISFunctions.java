@@ -798,4 +798,43 @@ public class GISFunctions {
 		}
 	}
 
+	public static Double angleBetweenConnectedLineStrings(LineString l1, LineString l2) {
+		
+		// Method assumes that linestring data has been cleaned such that only two coordiantes per linestring
+		assert l1.getCoordinates().length == 2;
+		assert l2.getCoordinates().length == 2;
+		
+		// Check that linestrings are connected and find intersecting point
+		assert l1.touches(l2);
+		
+		Coordinate intersection = l1.intersection(l2).getCoordinate();
+		
+		// Identify which direction line string l1 goes in such that the coordinate that intersects l2 is the end coord
+		// This ensures the correct angle is calculated
+		Integer l1StartIndex = 0;
+		Integer l1EndIndex = 1;
+		Integer l2StartIndex = 0;
+		Integer l2EndIndex = 1;
+		
+		if (l1.getCoordinateN(0).equals2D(intersection)) {
+			l1StartIndex = 1;
+			l1EndIndex = 0;
+		}
+		
+		if (l2.getCoordinateN(1).equals2D(intersection)) {
+			l2StartIndex = 1;
+			l2EndIndex = 0;
+		}
+		
+		
+		double[] v1 = {l1.getCoordinates()[l1EndIndex].x - l1.getCoordinates()[l1StartIndex].x,l1.getCoordinates()[l1EndIndex].y - l1.getCoordinates()[l1StartIndex].y};
+		double[] v2 = {l2.getCoordinates()[l2EndIndex].x - l2.getCoordinates()[l2StartIndex].x,l2.getCoordinates()[l2EndIndex].y - l2.getCoordinates()[l2StartIndex].y};
+		
+		Double ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
+		
+		// Take mod of angle in range 0-180 deg
+		ang = Math.abs(ang);
+		return ang;
+	}
+
 }
