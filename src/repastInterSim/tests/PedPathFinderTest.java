@@ -89,8 +89,12 @@ class PedPathFinderTest {
 	}
 	
 	void setUpRoadLinks() throws Exception {
+		setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+	}
+	
+	void setUpRoadLinks(String roadLinkFile) throws Exception {
 		
-		roadLinkPath = testGISDir + "mastermap-itn RoadLink Intersect Within with orientation.shp";
+		roadLinkPath = testGISDir + roadLinkFile;
 		
 		// Initialise test road link geography and context
 		Context<RoadLink> roadLinkContext = new RoadLinkContext();
