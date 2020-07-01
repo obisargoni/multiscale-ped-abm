@@ -31,11 +31,11 @@ if os.path.isdir(output_directory) == False:
 topographic_area_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
 topographic_line_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicLine")
 
-itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
-itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
+itn_link_file = os.path.join(output_directory, config["mastermap_link_processed_file"])
+itn_node_file = os.path.join(output_directory, config["mastermap_node_processed_file"])
 
-or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within simplify angles.shp")
-or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within simplify angles.shp")
+or_link_file = os.path.join(output_directory, config["openroads_link_processed_file"])
+or_node_file = os.path.join(output_directory, config["openroads_node_processed_file"])
 
 
 selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
@@ -43,9 +43,9 @@ selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
 topographic_area_file = os.path.join(topographic_area_dir, 'mastermap TopographicArea.shp')
 topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_2903032_0 TopographicLine.shp')
 
-output_vehicle_file = os.path.join(output_directory, "topographicAreaVehicle.shp")
-output_pedestrian_file = os.path.join(output_directory, "topographicAreaPedestrian.shp")
-output_line_file = os.path.join(output_directory, "boundaryPedestrianVehicleArea.shp")
+output_vehicle_file = os.path.join(output_directory, config["topo_vehicle_processed_file"])
+output_pedestrian_file = os.path.join(output_directory, config["topo_pedestrian_processed_file"])
+output_line_file = os.path.join(output_directory, config["topo_boundary_processed_file"])
 
 projectCRS = {'init' :'epsg:27700'}
 

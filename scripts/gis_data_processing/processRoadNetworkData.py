@@ -147,11 +147,11 @@ if os.path.isdir(output_directory) == False:
 
 selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
 
-output_itn_link_file = os.path.join(output_directory, "mastermap-itn RoadLink Intersect Within.shp")
-output_itn_node_file = os.path.join(output_directory, "mastermap-itn RoadNode Intersect Within.shp")
+output_itn_link_file = os.path.join(output_directory, config["mastermap_link_processed_file"])
+output_itn_node_file = os.path.join(output_directory, config["mastermap_node_processed_file"])
 
-output_or_link_file = os.path.join(output_directory, "open-roads RoadLink Intersect Within simplify angles.shp")
-output_or_node_file = os.path.join(output_directory, "open-roads RoadNode Intersect Within simplify angles.shp")
+output_or_link_file = os.path.join(output_directory, config["openroads_link_processed_file"])
+output_or_node_file = os.path.join(output_directory, config["openroads_node_processed_file"])
 
 
 ###########################
