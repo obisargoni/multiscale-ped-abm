@@ -411,15 +411,29 @@ gdfPedestrianLinks = gpd.overlay(gdfPedestrian, gdfLinksVoronoi, how = 'intersec
 # Duplicate columns result in suffixes, edit these to make more sense
 rename_dict = {i:i.replace('_1','_topo').replace('_2','_or') for i in gdfPedestrianLinks.columns}
 gdfPedestrianLinks.rename(columns = rename_dict, inplace = True)
+
+# Dissolve and explode so only single non intersecting polygons per road link
 gdfPedestrianLinks = gdfPedestrianLinks.dissolve(by = 'fid_or').reset_index()
 gdfPedestrianLinks = explode(gdfPedestrianLinks)
+
+# Create new ped poly id and drop old fid field which is now not a useable id
+gdfPedestrianLinks = gdfPedestrianLinks.drop(['fid_topo'], axis = 1)
+gdfPedestrianLinks['polyID'] = ["poly_id_{}".format(i) for i in gdfPedestrianLinks.index]
+assert gdfPedestrianLinks['polyID'].duplicated().any()  == False
 gdfPedestrianLinks.crs = gdfPedestrian.crs
 
+
+# Do the same for vehicle polys
 gdfVehicleLinks = gpd.overlay(gdfVehicle, gdfLinksVoronoi, how = 'intersection')
 rename_dict = {i:i.replace('_1','_topo').replace('_2','_or') for i in gdfVehicleLinks.columns}
 gdfVehicleLinks.rename(columns = rename_dict, inplace = True)
 gdfVehicleLinks = gdfVehicleLinks.dissolve(by = 'fid_or').reset_index()
 gdfVehicleLinks = explode(gdfVehicleLinks)
+
+# Create new ped poly id and drop old fid field which is now not a useable id
+gdfVehicleLinks = gdfVehicleLinks.drop(['fid_topo'], axis = 1)
+gdfVehicleLinks['polyID'] = ["poly_id_{}".format(i) for i in gdfVehicleLinks.index]
+assert gdfVehicleLinks['polyID'].duplicated().any()  == False
 gdfVehicleLinks.crs = gdfVehicle.crs
 
 # Rename the ITN Road Link FID column to match the name expected by the Repast Model
