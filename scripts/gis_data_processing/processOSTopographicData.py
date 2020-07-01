@@ -148,6 +148,9 @@ gdfPedestrian = pd.concat([gdfPedestrianA, gdfPedestrianB]).drop_duplicates()
 
 gdfPedestrianA = gdfPedestrianB = None
 
+# Some pedestrian polygons get included in the vehicle polygon gdf because they intersect road links. Remove these
+gdfVehicle = gdfVehicle.loc[ ~gdfVehicle['fid'].isin(gdfPedestrian['fid'])]
+
 # Add in priority field
 gdfPedestrian[priority_column] = "pedestrian"
 gdfVehicle[priority_column] = "vehicle"
@@ -250,6 +253,10 @@ gdfPedestrian = gdfVehicle = None
 
 gdfPedestrian = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'pedestrian']
 gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
+
+
+# Check that no polygons appear in both ped and veh dataframes
+assert len(set(gdfPedestrian['fid']).intersection(set(gdfVehicle['fid']))) == 0
 
 
 ##################################
