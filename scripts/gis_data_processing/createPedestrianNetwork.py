@@ -43,13 +43,6 @@ gdfTopoVeh.crs = projectCRS
 gdfTopoPed.crs = projectCRS
 
 
-# Create nx network frrom road link data
-G = nx.Graph()
-gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
-edges = gdfORLink.loc[:,['startNode','endNode', 'fid_dict']].to_records(index=False)
-G.add_edges_from(edges)
-
-
 #################################
 #
 #
@@ -173,6 +166,38 @@ def find_multiple_road_node_pedestrian_nodes(graph, road_node_ids, gdfVehPolys, 
 
 	return gdfPedNodes
 
+
+######################################
+#
+#
+# Create nx network frrom road link data
+#
+# Graph is not an exact representation of the road link data.
+# Some road links do not have any pedestrian polygons associated to them.
+# These links should not form part of this network as they will not be traversed by the pedestrians,
+# although they represent important geographic information.
+#
+# To exclude these from the network the output node of these links is replaced by the input node for all
+# edges.
+#
+# Then, network better represents decisions pedestrian agent must make. Need to use this version of the network in pedestrian
+# strategic route.
+#
+#######################################
+G = nx.Graph()
+gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
+edges = gdfORLink.loc[:,['startNode','endNode', 'fid_dict']].to_records(index=False)
+G.add_edges_from(edges)
+
+# Get fids of links which don't have any pedestrian polygons.
+fids_no_ped_polys = gdfORLink.loc[~gdfORLink['fid'].isin(gdfTopoPed['roadLinkID']), 'fid'].values
+
+# Don't remove those that are of a *significant* length - raise assertion error if this is going to happen
+gdfORLink['length'] = gdfORLink['geometry'].length
+assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['length'] > 25)].shape[0] == 0
+
+
+G_clean = remove_multiple_edges(G, 'fid', fids_no_ped_polys)
 
 
 #################################
