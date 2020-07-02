@@ -213,14 +213,22 @@ G_clean = remove_multiple_edges(G, 'fid', fids_no_ped_polys)
 ##################################
 
 # Nodes with degree > 2 are junctions. Get these
-node_degrees = G.degree()
+node_degrees = G_clean.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
 nodes_twopl = df_node_degree.loc[df_node_degree['nodeDegree'] > 2, 'nodeID']
 gdfORNodeJuncs = gdfORNode.loc[gdfORNode['node_fid'].isin(nodes_twopl)]
 
+# Get pedestrian nodes for single road node
+'''
 junc_node = nodes_twopl.values[0]
-
-gdfPedNodes1 = find_junction_pedestrian_nodes(junc_node, gdfTopoVeh, gdfTopoPed)
+gdfPedNodes1 = find_single_road_node_pedestrian_nodes(junc_node, gdfTopoVeh, gdfTopoPed)
 gdfPedNodes1.crs = projectCRS
 gdfPedNodes1.to_file("pedNodes1.shp")
+'''
+
+gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
+
+# Remove the multipoints - seems like these are traffic islands - might want to think about including in future
+gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
+gdfPedNodes.to_file("pedNodes.shp")
