@@ -65,20 +65,20 @@ def intersection_of_multiple_geometries(geoms):
 		i = i.intersection(g)
 	return i
 
-def find_junction_pedestrian_nodes(node_id, gdfVehPolys, gdfPedPolys):
+def find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdfPedPolys):
 
 	# Method for getting ped nodes for a single junctions
-	edges = G.edges(node_id)
+	edges = graph.edges(road_node_id)
 
 	# Get the road link IDs connected to this junction node
-	rl_fids = [G.get_edge_data(*e)['fid'] for e in edges]
+	rl_fids = [graph.get_edge_data(*e)['fid'] for e in edges]
 
 	gdfPedNodes = gpd.GeoDataFrame()
 
 	# Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
 	for fid_pair in itertools.combinations(rl_fids, 2):
 		# Initialise data to go into the geodataframe
-		row = {"junc_node":node_id}
+		row = {"junc_node":road_node_id}
 
 		veh_polys_indices = gdfVehPolys.loc[ gdfVehPolys['roadLinkID'].isin(fid_pair)].index
 		ped_polys1_indices = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == fid_pair[0]].index
@@ -86,8 +86,8 @@ def find_junction_pedestrian_nodes(node_id, gdfVehPolys, gdfPedPolys):
 
 
 		# Then form pairs of vehicle polygons and ped polygons
-		veh_pairs = itertools.combinations(veh_polys_indices, 2)
-		ped_pairs = itertools.product(ped_polys1_indices, ped_polys2_indices)
+		veh_pairs = list(itertools.combinations(veh_polys_indices, 2))
+		ped_pairs = list(itertools.product(ped_polys1_indices, ped_polys2_indices))
 
 		# loop through all combinations of these pairs and find intersection between all 4 polygons. This gives a node in the pedestrian network.
 		intersections = []
@@ -112,9 +112,27 @@ def find_junction_pedestrian_nodes(node_id, gdfVehPolys, gdfPedPolys):
 				p2_g = gdfPedPolys.loc[ip2, 'geometry']
 
 				i = intersection_of_multiple_geometries([v1_g,v2_g,p1_g,p2_g])
-				row['geometry'] = i
-				gdfPedNodes = gdfPedNodes.append(row, ignore_index = True)
+				if i.is_empty == False:
+					row['geometry'] = i
+					gdfPedNodes = gdfPedNodes.append(row, ignore_index = True)
+
+	# Filter dataframe to exclude empty geometries
 	return gdfPedNodes
+
+def find_multiple_road_node_pedestrian_nodes(graph, road_node_ids, gdfVehPolys, gdfPedPolys):
+	gdfPedNodes = gpd.GeoDataFrame()
+
+	for road_node_id in road_node_ids:
+		gdf = find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdfPedPolys)
+		gdfPedNodes = pd.concat([gdfPedNodes, gdf])
+		'''
+		except Exception as err:
+			print(road_node_id)
+			print(err)
+		'''
+
+	return gdfPedNodes
+
 
 
 #################################
