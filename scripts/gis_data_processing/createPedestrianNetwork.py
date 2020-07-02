@@ -57,6 +57,46 @@ G.add_edges_from(edges)
 #
 #
 #################################
+def find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value):
+	edge_to_remove = None
+	for u,v,d in graph.edges(data=True):
+		if d[edge_attribute] == edge_value:
+			edge_to_remove = (u,v)
+			break
+	return remove_edge_connect_ends(graph, edge_to_remove)
+
+def remove_edge_connect_ends(graph, edge):
+	'''
+	'''
+	edges_to_add = []
+
+	u = edge[0]
+	v = edge[1]
+
+	## Find nodes linked to the 'from' node of this edge
+	## Create new edges that link these directly to the 'to' node
+	for node in graph[v]:
+		if node != u:
+			data = graph.get_edge_data(v, node)
+			edges_to_add.append((u, node, data)) # id now no longer matches geographic representation of link
+	
+	# Add these edges to the graph
+	graph.add_edges_from(edges_to_add)
+
+	# Remove the from node, which removes all edges connected to it, no longer needed
+	graph.remove_node(v)
+	return graph
+
+def remove_multiple_edges(graph, edge_attribute, edge_values):
+	for edge_value in edge_values:
+		graph = find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value)
+	return graph
+
+def save_geometries(*geoms, path):
+	gdf = gpd.GeoDataFrame({'geometry':geoms})
+	gdf.to_file(path)
+	return gdf
+
 def intersection_of_multiple_geometries(geoms):
 	'''Finds intersection between multiple geometries
 	'''
