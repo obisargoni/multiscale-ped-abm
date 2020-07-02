@@ -418,7 +418,7 @@ gdfPedestrianLinks = explode(gdfPedestrianLinks)
 
 # Create new ped poly id and drop old fid field which is now not a useable id
 gdfPedestrianLinks = gdfPedestrianLinks.drop(['fid_topo'], axis = 1)
-gdfPedestrianLinks['polyID'] = ["poly_id_{}".format(i) for i in gdfPedestrianLinks.index]
+gdfPedestrianLinks['polyID'] = ["ped_poly_id_{}".format(i) for i in gdfPedestrianLinks.index]
 assert gdfPedestrianLinks['polyID'].duplicated().any()  == False
 gdfPedestrianLinks.crs = gdfPedestrian.crs
 
@@ -432,7 +432,7 @@ gdfVehicleLinks = explode(gdfVehicleLinks)
 
 # Create new ped poly id and drop old fid field which is now not a useable id
 gdfVehicleLinks = gdfVehicleLinks.drop(['fid_topo'], axis = 1)
-gdfVehicleLinks['polyID'] = ["poly_id_{}".format(i) for i in gdfVehicleLinks.index]
+gdfVehicleLinks['polyID'] = ["veh_poly_id_{}".format(i) for i in gdfVehicleLinks.index]
 assert gdfVehicleLinks['polyID'].duplicated().any()  == False
 gdfVehicleLinks.crs = gdfVehicle.crs
 
