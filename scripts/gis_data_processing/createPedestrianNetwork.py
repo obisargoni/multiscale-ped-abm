@@ -8,6 +8,7 @@ import networkx as nx
 import os
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 import itertools
+import re
 
 
 ################################
@@ -163,7 +164,7 @@ def find_multiple_road_node_pedestrian_nodes(graph, road_node_ids, gdfVehPolys, 
 			print(road_node_id)
 			print(err)
 		'''
-
+	gdfPedNodes.index = np.arange(gdfPedNodes.shape[0])
 	return gdfPedNodes
 
 
@@ -231,4 +232,136 @@ gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['
 
 # Remove the multipoints - seems like these are traffic islands - might want to think about including in future
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
+
+# Create id for each ped node
+gdfPedNodes['ped_node_id'] = ['ped_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.to_file("pedNodes.shp")
+
+
+
+##############################
+#
+#
+# Create network by connecting nodes
+#
+#
+##############################
+
+# Need to join to self on ped poly 1 and ped poly 2
+
+# Different approach - use joins
+ped_poly_edges1 = pd.merge(gdfPedNodes, gdfPedNodes, on = 'p1_polyID', how = 'inner', suffixes = ('_to', '_from'))
+ped_poly_edges1['ped_poly'] = ped_poly_edges1['p1_polyID']
+
+ped_poly_edges2 = pd.merge(gdfPedNodes, gdfPedNodes, left_on = 'p1_polyID', right_on = 'p2_polyID', how = 'inner', suffixes = ('_to', '_from'))
+ped_poly_edges2['ped_poly'] = ped_poly_edges2['p1_polyID_to']
+
+ped_poly_edges3 = pd.merge(gdfPedNodes, gdfPedNodes, on = 'p2_polyID', how = 'inner', suffixes = ('_to', '_from'))
+ped_poly_edges3['ped_poly'] = ped_poly_edges3['p2_polyID']
+
+# Concat together and create edge tuple
+ped_poly_edges = pd.concat([ped_poly_edges1,ped_poly_edges2,ped_poly_edges3])
+
+# Remove self edges
+ped_poly_edges = ped_poly_edges.loc[ ped_poly_edges['ped_node_id_to'] != ped_poly_edges['ped_node_id_from']]
+
+ped_poly_edges['edge_data'] = ped_poly_edges.apply(lambda row: {"road_link":None,"ped_poly":row["ped_poly"]}, axis=1)
+ped_poly_edges['edge'] = ped_poly_edges.apply(lambda row: (row['ped_node_id_from'], row['ped_node_id_to'], row['edge_data']), axis=1)
+
+
+# Now when networkx graph is created duplicated edges will be ignored (since not a MultiGraph)
+G_ped_poly = nx.Graph()
+G_ped_poly.add_edges_from(ped_poly_edges['edge'].values)
+
+
+#############################
+#
+# Connect ped nodes across road links
+#
+#############################
+
+# Geoup by junctions node id
+grouped = gdfPedNodes.groupby('junc_node')
+group_names = list(grouped.groups.keys())
+group_sizes = grouped.apply(lambda df: df.shape[0])
+group_sizes = grouped.transform(lambda df: df.shape[0])
+
+
+# Write process for connecting nodes in a group
+# join ped nodes that have the same road link id
+pcol_re = re.compile(r'p\d_polyID.*')
+
+def check_ped_poly_id_repreated(row, ped_poly_col_regex = pcol_re):
+	ped_poly_cols = [i for i in row.index if pcol_re.search(i) is not None]
+	return row[ped_poly_cols].dropna().duplicated().any()
+
+def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
+	junc_edges1 = pd.merge(df, df, on = v1_poly_col, how = 'inner', suffixes = ('_to', '_from'))
+	junc_edges1['road_link'] = junc_edges1[v1_poly_col]
+
+	junc_edges2 = pd.merge(df, df, left_on = v1_poly_col, right_on = v2_poly_col, how = 'inner', suffixes = ('_to', '_from'))
+	junc_edges2['road_link'] = junc_edges2[v1_poly_col+'_to']
+
+	junc_edges3 = pd.merge(df, df, on = v2_poly_col, how = 'inner', suffixes = ('_to', '_from'))
+	junc_edges3['road_link'] = junc_edges3[v2_poly_col]
+
+	junc_edges = pd.concat([junc_edges1, junc_edges2, junc_edges3])
+
+	junc_edges['edge_data'] = junc_edges.apply(lambda row: {"road_link":row["road_link"],"ped_poly":None}, axis=1)
+	junc_edges['edge'] = junc_edges.apply(lambda row: (row[ped_node_col+'_from'], row[ped_node_col+'_to'], row['edge_data']), axis=1)
+
+	return junc_edges
+
+junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'ped_node_id','v1_roadLinkID', 'v2_roadLinkID')
+# Exclude connections between nodes with the same ped poly ids
+junc_edges['share_ped_poly'] = junc_edges.apply(check_ped_poly_id_repreated, axis = 1)
+junc_edges = junc_edges.loc[junc_edges['share_ped_poly'] == False]
+
+# Also need to ermove edges between nodes where nodes have both the same road links - means that link doesn't provide access to new road link so not of interest
+# Think I have to just exclude traffic islands from the analysis
+# Could identify from connected components of the ped poly network - nodes on islands will forms small connected components of ~2-4 nodes. Use this to drop these nodes from the network
+#
+# This wont work because I need a different way of connecting ped poly nodes. Current method doesn't work for ped polys not toucing another ped poly.
+# Instead  need to join ped nodes with nearest neighbours with same road link ID where link doesn't intersect road link (parity = 0).
+#
+# Alternative method for getting rid of island nodes: identify island polygons as polygons that don't intersect boundary. Exclude from analysis.
+#
+#
+
+# Add these edges to the network
+G_junc = nx.Graph()
+G_junc.add_edges_from(junc_edges['edge'].values)
+G_ped_poly.add_edges_from(junc_edges['edge'].values)
+
+
+###################################
+#
+#
+# LineString gdf of ped network
+#
+#
+####################################
+edge_data = []
+for u,v,data in list(G_ped_poly.edges(data=True)):
+	row = {'from_node':u, 'to_node':v,'road_link':data['road_link'], 'ped_poly':data['ped_poly']}
+	edge_data.append(row)
+dfPedNetwork = pd.DataFrame(edge_data)
+
+# Now join with node coordinates
+dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['ped_node_id','geometry']), left_on = 'from_node', right_on = 'ped_node_id', how = 'left', indicator = True)
+assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
+dfPedNetwork.drop(['_merge','ped_node_id'], axis = 1, inplace = True)
+dfPedNetwork.rename(columns = {'geometry':'geometry_from'}, inplace = True)
+
+dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['ped_node_id','geometry']), left_on = 'to_node', right_on = 'ped_node_id', how = 'left', suffixes = ('','_to'), indicator = True)
+assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
+dfPedNetwork.drop(['_merge','ped_node_id'], axis = 1, inplace = True)
+dfPedNetwork.rename(columns = {'geometry':'geometry_to'}, inplace = True)
+
+# Create LineString connecting edge nodes
+dfPedNetwork['geometry'] = dfPedNetwork.apply(lambda row: LineString([row['geometry_from'], row['geometry_to']]), axis = 1)
+dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link','ped_poly','geometry'])
+
+gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
+gdfPedNetwork.crs = projectCRS
+gdfPedNetwork.to_file("pedNetwork.shp")
