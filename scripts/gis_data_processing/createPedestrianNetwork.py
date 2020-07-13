@@ -43,6 +43,9 @@ gdfTopoPed = gpd.read_file(os.path.join(output_directory, config["topo_pedestria
 gdfTopoVeh.crs = projectCRS
 gdfTopoPed.crs = projectCRS
 
+# Load boundary data - used to identify traffic island pedestrian polygons
+gdfBoundary = gpd.read_file(os.path.join(output_directory, config["boundary_file"]))
+gdfBoundary.crs = projectCRS
 
 #################################
 #
