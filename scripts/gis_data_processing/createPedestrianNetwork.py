@@ -395,20 +395,24 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 	return junc_edges
 
 junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'ped_node_id','v1_roadLinkID', 'v2_roadLinkID')
-# Exclude connections between nodes with the same ped poly ids
-junc_edges['share_ped_poly'] = junc_edges.apply(check_ped_poly_id_repreated, axis = 1)
-junc_edges = junc_edges.loc[junc_edges['share_ped_poly'] == False]
 
-# Also need to ermove edges between nodes where nodes have both the same road links - means that link doesn't provide access to new road link so not of interest
-# Think I have to just exclude traffic islands from the analysis
-# Could identify from connected components of the ped poly network - nodes on islands will forms small connected components of ~2-4 nodes. Use this to drop these nodes from the network
-#
-# This wont work because I need a different way of connecting ped poly nodes. Current method doesn't work for ped polys not toucing another ped poly.
-# Instead  need to join ped nodes with nearest neighbours with same road link ID where link doesn't intersect road link (parity = 0).
-#
-# Alternative method for getting rid of island nodes: identify island polygons as polygons that don't intersect boundary. Exclude from analysis.
-#
-#
+# Drop duplicates and recreate index
+junc_edges.drop_duplicates(subset=['ped_node_id_from','ped_node_id_to'], inplace = True)
+junc_edges.index = np.arange(len(junc_edges))
+
+# Where the link connects nodes on the same ped poly, remove reference to road link as in these cases link does not cross road link
+junc_edges['share_ped_poly'] = junc_edges.apply(check_ped_poly_id_repreated, axis = 1)
+
+# Commented out because I realised that it might cross the link at one end of the ped polygon, even if it doesn't cross at another end.
+'''
+for i in junc_edges.loc[ junc_edges['share_ped_poly'] == True].index:
+	row = junc_edges.loc[i]
+	row['edge_data'] = {'road_link':None, 'ped_poly':None}
+	junc_edges.loc[i] = row
+'''
+
+junc_edges['edge'] = junc_edges.apply(lambda row: (row['ped_node_id_from'], row['ped_node_id_to'], row['edge_data']), axis=1)
+
 
 # Add these edges to the network
 G_junc = nx.Graph()
