@@ -47,6 +47,9 @@ gdfTopoPed.crs = projectCRS
 gdfBoundary = gpd.read_file(os.path.join(output_directory, config["boundary_file"]))
 gdfBoundary.crs = projectCRS
 
+output_ped_nodes_file = os.path.join(output_directory, "pedNetworkNodes.shp")
+output_ped_links_file = os.path.join(output_directory, "pedNetworkLinks.shp")
+
 #################################
 #
 #
@@ -297,7 +300,7 @@ for cc in ccs:
 		island_poly_ids += list(cc)
 
 island_polys = gdfTopoPed.loc[ gdfTopoPed['polyID'].isin(island_poly_ids)]
-island_polys.to_file("island_ped_polys.shp")
+#island_polys.to_file("island_ped_polys.shp")
 
 # Exclude island polys from the ped network
 gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
@@ -308,7 +311,8 @@ gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
 # Create id for each ped node
 gdfPedNodes['ped_node_id'] = ['ped_node_{}'.format(i) for i in gdfPedNodes.index]
-gdfPedNodes.to_file("pedNodes.shp")
+gdfPedNodes.crs = projectCRS
+gdfPedNodes.to_file(output_ped_nodes_file)
 
 
 
@@ -449,7 +453,7 @@ dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link'
 
 gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
 gdfPedNetwork.crs = projectCRS
-gdfPedNetwork.to_file("pedNetwork.shp")
+gdfPedNetwork.to_file(output_ped_links_file)
 
 
 # Also select those edges that connect ped nodes that share a polygon from junc edges
@@ -461,4 +465,4 @@ junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['ped_node_id_to'],row['p
 # Check those edges that connect nodes around a junction that are on the same ped poly - just for checking
 share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgeb'].values)
 gdfPedNetSharePoly = gdfPedNetwork.loc[ gdfPedNetwork['edge'].isin(share_poly_edges)]
-gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")
+#gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")
