@@ -198,7 +198,7 @@ gdfORLink['length'] = gdfORLink['geometry'].length
 assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['length'] > 25)].shape[0] == 0
 
 
-G_clean = remove_multiple_edges(G, 'fid', fids_no_ped_polys)
+G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
 
 
 #################################
@@ -244,12 +244,66 @@ gdfPedNodes.to_file("pedNodes.shp")
 #
 # Create network by connecting nodes
 #
+# First connect pedestrian nodes that are on the same side of the road.
+# - for each road link get ped nodes
+# - make pairwise connections if link does not intersect road link (or section of road network +- 1 links from road link
+# - handle cases where connection made between nearests this side ped nodes and farther away this side ped node by checking for multiple paths between node pairs.
+#
 #
 ##############################
 
-# Need to join to self on ped poly 1 and ped poly 2
+def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 
-# Different approach - use joins
+	ped_node_edges = []
+
+	for rl_id in gdfLink['fid'].values:
+
+		# Get start and end node for this road link
+		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['startNode','endNode']].to_dict(orient='records')
+		assert len(node_records) == 1
+		u = node_records[0]['startNode']
+		v = node_records[0]['endNode']
+
+		# Get small section of road network connected to this road link
+		neighbour_links = [edge_data['fid'] for e, edge_data in road_graph[u].items()]
+		neighbour_links += [edge_data['fid'] for e, edge_data in road_graph[v].items()]
+
+		# Get the geometries for these road links
+		gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
+
+		# Get pairs of ped nodes
+		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1_roadLinkID']==rl_id) | (gdfPN['v2_roadLinkID']==rl_id)]
+		ped_node_pairs = itertools.combinations(gdfPedNodesSub['ped_node_id'].values, 2)
+
+		for ped_u, ped_v in ped_node_pairs:
+			# Create linestring to join ped nodes
+			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_u, 'geometry'].values[0]
+			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_v, 'geometry'].values[0]
+
+			#print(ped_u, ped_v)
+
+			l = LineString([g_u, g_v])
+
+			# Now check if linestring intersects any of the road link geometries
+			if gdfLinkSub['geometry'].map(lambda g: g.intersects(l)).any():
+				continue
+			else:
+				edge_data = {'road_link':None, 'ped_poly':None}
+
+				# Need to identify which pedestrian polygon(s) this edge corresponds to
+				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
+				ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
+				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
+
+				ped_node_edges.append((ped_u, ped_v, edge_data))
+
+	return ped_node_edges
+
+
+ped_poly_edges = connect_pavement_ped_nodes(gdfPedNodes, gdfTopoPed, gdfORLink, G)
+
+# Need to join to self on ped poly 1 and ped poly 2
+'''
 ped_poly_edges1 = pd.merge(gdfPedNodes, gdfPedNodes, on = 'p1_polyID', how = 'inner', suffixes = ('_to', '_from'))
 ped_poly_edges1['ped_poly'] = ped_poly_edges1['p1_polyID']
 
@@ -268,10 +322,10 @@ ped_poly_edges = ped_poly_edges.loc[ ped_poly_edges['ped_node_id_to'] != ped_pol
 ped_poly_edges['edge_data'] = ped_poly_edges.apply(lambda row: {"road_link":None,"ped_poly":row["ped_poly"]}, axis=1)
 ped_poly_edges['edge'] = ped_poly_edges.apply(lambda row: (row['ped_node_id_from'], row['ped_node_id_to'], row['edge_data']), axis=1)
 
-
+'''
 # Now when networkx graph is created duplicated edges will be ignored (since not a MultiGraph)
 G_ped_poly = nx.Graph()
-G_ped_poly.add_edges_from(ped_poly_edges['edge'].values)
+G_ped_poly.add_edges_from(ped_poly_edges)
 
 
 #############################
