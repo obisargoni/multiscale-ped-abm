@@ -449,7 +449,7 @@ dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link'
 
 gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
 gdfPedNetwork.crs = projectCRS
-gdfPedNetwork.to_file("pedNetwork.shp")gdfPedNetwork.to_file("pedNetwork.shp")
+gdfPedNetwork.to_file("pedNetwork.shp")
 
 
 # Also select those edges that connect ped nodes that share a polygon from junc edges
