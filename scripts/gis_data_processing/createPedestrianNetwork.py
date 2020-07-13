@@ -167,6 +167,52 @@ def find_multiple_road_node_pedestrian_nodes(graph, road_node_ids, gdfVehPolys, 
 	gdfPedNodes.index = np.arange(gdfPedNodes.shape[0])
 	return gdfPedNodes
 
+def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
+
+	ped_node_edges = []
+
+	for rl_id in gdfLink['fid'].values:
+
+		# Get start and end node for this road link
+		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['startNode','endNode']].to_dict(orient='records')
+		assert len(node_records) == 1
+		u = node_records[0]['startNode']
+		v = node_records[0]['endNode']
+
+		# Get small section of road network connected to this road link
+		neighbour_links = [edge_data['fid'] for e, edge_data in road_graph[u].items()]
+		neighbour_links += [edge_data['fid'] for e, edge_data in road_graph[v].items()]
+
+		# Get the geometries for these road links
+		gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
+
+		# Get pairs of ped nodes
+		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1_roadLinkID']==rl_id) | (gdfPN['v2_roadLinkID']==rl_id)]
+		ped_node_pairs = itertools.combinations(gdfPedNodesSub['ped_node_id'].values, 2)
+
+		for ped_u, ped_v in ped_node_pairs:
+			# Create linestring to join ped nodes
+			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_u, 'geometry'].values[0]
+			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_v, 'geometry'].values[0]
+
+			l = LineString([g_u, g_v])
+
+			# Now check if linestring intersects any of the road link geometries
+			if gdfLinkSub['geometry'].map(lambda g: g.intersects(l)).any():
+				continue
+			else:
+				edge_data = {'road_link':None, 'ped_poly':None}
+
+				# Need to identify which pedestrian polygon(s) this edge corresponds to
+				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
+				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
+				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
+				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
+
+				ped_node_edges.append((ped_u, ped_v, edge_data))
+
+	return ped_node_edges
+
 
 ######################################
 #
@@ -251,54 +297,6 @@ gdfPedNodes.to_file("pedNodes.shp")
 #
 #
 ##############################
-
-def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
-
-	ped_node_edges = []
-
-	for rl_id in gdfLink['fid'].values:
-
-		# Get start and end node for this road link
-		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['startNode','endNode']].to_dict(orient='records')
-		assert len(node_records) == 1
-		u = node_records[0]['startNode']
-		v = node_records[0]['endNode']
-
-		# Get small section of road network connected to this road link
-		neighbour_links = [edge_data['fid'] for e, edge_data in road_graph[u].items()]
-		neighbour_links += [edge_data['fid'] for e, edge_data in road_graph[v].items()]
-
-		# Get the geometries for these road links
-		gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
-
-		# Get pairs of ped nodes
-		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1_roadLinkID']==rl_id) | (gdfPN['v2_roadLinkID']==rl_id)]
-		ped_node_pairs = itertools.combinations(gdfPedNodesSub['ped_node_id'].values, 2)
-
-		for ped_u, ped_v in ped_node_pairs:
-			# Create linestring to join ped nodes
-			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_u, 'geometry'].values[0]
-			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_v, 'geometry'].values[0]
-
-			#print(ped_u, ped_v)
-
-			l = LineString([g_u, g_v])
-
-			# Now check if linestring intersects any of the road link geometries
-			if gdfLinkSub['geometry'].map(lambda g: g.intersects(l)).any():
-				continue
-			else:
-				edge_data = {'road_link':None, 'ped_poly':None}
-
-				# Need to identify which pedestrian polygon(s) this edge corresponds to
-				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
-				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
-				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
-
-				ped_node_edges.append((ped_u, ped_v, edge_data))
-
-	return ped_node_edges
 
 
 ped_poly_edges = connect_pavement_ped_nodes(gdfPedNodes, gdfTopoPed, gdfORLink, G)
