@@ -332,27 +332,6 @@ gdfPedNodes.to_file(output_ped_nodes_file)
 
 ped_poly_edges = connect_pavement_ped_nodes(gdfPedNodes, gdfTopoPed, gdfORLink, G)
 
-# Need to join to self on ped poly 1 and ped poly 2
-'''
-ped_poly_edges1 = pd.merge(gdfPedNodes, gdfPedNodes, on = 'p1_polyID', how = 'inner', suffixes = ('_to', '_from'))
-ped_poly_edges1['ped_poly'] = ped_poly_edges1['p1_polyID']
-
-ped_poly_edges2 = pd.merge(gdfPedNodes, gdfPedNodes, left_on = 'p1_polyID', right_on = 'p2_polyID', how = 'inner', suffixes = ('_to', '_from'))
-ped_poly_edges2['ped_poly'] = ped_poly_edges2['p1_polyID_to']
-
-ped_poly_edges3 = pd.merge(gdfPedNodes, gdfPedNodes, on = 'p2_polyID', how = 'inner', suffixes = ('_to', '_from'))
-ped_poly_edges3['ped_poly'] = ped_poly_edges3['p2_polyID']
-
-# Concat together and create edge tuple
-ped_poly_edges = pd.concat([ped_poly_edges1,ped_poly_edges2,ped_poly_edges3])
-
-# Remove self edges
-ped_poly_edges = ped_poly_edges.loc[ ped_poly_edges['ped_node_id_to'] != ped_poly_edges['ped_node_id_from']]
-
-ped_poly_edges['edge_data'] = ped_poly_edges.apply(lambda row: {"road_link":None,"ped_poly":row["ped_poly"]}, axis=1)
-ped_poly_edges['edge'] = ped_poly_edges.apply(lambda row: (row['ped_node_id_from'], row['ped_node_id_to'], row['edge_data']), axis=1)
-
-'''
 # Now when networkx graph is created duplicated edges will be ignored (since not a MultiGraph)
 G_ped_poly = nx.Graph()
 G_ped_poly.add_edges_from(ped_poly_edges)
