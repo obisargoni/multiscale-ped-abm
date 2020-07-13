@@ -243,7 +243,7 @@ fids_no_ped_polys = gdfORLink.loc[~gdfORLink['fid'].isin(gdfTopoPed['roadLinkID'
 gdfORLink['length'] = gdfORLink['geometry'].length
 assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['length'] > 25)].shape[0] == 0
 
-
+# Sinplify road network such that edges that don't have ped polygons associated to them are removed, and connecting nodes directly linked to source node
 G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
 
 
