@@ -449,4 +449,16 @@ dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link'
 
 gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
 gdfPedNetwork.crs = projectCRS
-gdfPedNetwork.to_file("pedNetwork.shp")
+gdfPedNetwork.to_file("pedNetwork.shp")gdfPedNetwork.to_file("pedNetwork.shp")
+
+
+# Also select those edges that connect ped nodes that share a polygon from junc edges
+gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['from_node'],row['to_node']), axis=1)
+junc_edges['edgea'] = junc_edges.apply(lambda row: (row['ped_node_id_from'],row['ped_node_id_to']), axis=1)
+junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['ped_node_id_to'],row['ped_node_id_from']), axis=1)
+
+
+# Check those edges that connect nodes around a junction that are on the same ped poly - just for checking
+share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgeb'].values)
+gdfPedNetSharePoly = gdfPedNetwork.loc[ gdfPedNetwork['edge'].isin(share_poly_edges)]
+gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")
