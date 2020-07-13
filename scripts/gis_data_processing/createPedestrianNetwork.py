@@ -292,7 +292,8 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 
 				# Need to identify which pedestrian polygon(s) this edge corresponds to
 				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-				ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
+				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
+				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
 				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
 
 				ped_node_edges.append((ped_u, ped_v, edge_data))
