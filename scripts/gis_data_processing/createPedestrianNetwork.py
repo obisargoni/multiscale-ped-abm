@@ -266,17 +266,41 @@ G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
 node_degrees = G_clean.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
-nodes_twopl = df_node_degree.loc[df_node_degree['nodeDegree'] > 2, 'nodeID']
-gdfORNodeJuncs = gdfORNode.loc[gdfORNode['node_fid'].isin(nodes_twopl)]
 
-# Get pedestrian nodes for single road node
-'''
-junc_node = nodes_twopl.values[0]
-gdfPedNodes1 = find_single_road_node_pedestrian_nodes(junc_node, gdfTopoVeh, gdfTopoPed)
-gdfPedNodes1.crs = projectCRS
-gdfPedNodes1.to_file("pedNodes1.shp")
-'''
+# Identify traffic island pedestrian polygons, want to exclude these nodes from the network
+gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
+non_boundary_ped_polys = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))]
 
+island_poly_ids = []
+
+# Find the connected clusters that correspond to connected clusters
+# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify clusters
+dfPedNeighbours = pd.DataFrame()
+for index, row in gdfTopoPed.iterrows():
+    # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
+    neighborFIDs = gdfTopoPed[gdfTopoPed.geometry.touches(row['geometry'])]['polyID'].tolist()
+
+    # Polygons without neighbours need to be attached to themselves so they can be identified as a cluster of one
+    if len(neighborFIDs) == 0:
+    	neighborFIDs.append(row['polyID'])
+    #neighborFIDs = neighborFIDs.remove(row['fid']) polygons don't touch them selves because they intersect
+    df = pd.DataFrame({'neighbourid':neighborFIDs})
+    df['polyID'] = row['polyID']
+    dfPedNeighbours = pd.concat([dfPedNeighbours, df])
+
+g = nx.from_pandas_edgelist(dfPedNeighbours, source='polyID', target = 'neighbourid')
+ccs = list(nx.connected_components(g))
+
+# If nodes of connected component all do not intersect a bounday identify these nodes as belonging to a traffic island
+for cc in ccs:
+	if np.isin(np.array(list(cc)), non_boundary_ped_polys['polyID'].unique()).all():
+		island_poly_ids += list(cc)
+
+island_polys = gdfTopoPed.loc[ gdfTopoPed['polyID'].isin(island_poly_ids)]
+island_polys.to_file("island_ped_polys.shp")
+
+# Exclude island polys from the ped network
+gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
 gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
 
 # Remove the multipoints - seems like these are traffic islands - might want to think about including in future
@@ -352,6 +376,8 @@ def check_ped_poly_id_repreated(row, ped_poly_col_regex = pcol_re):
 	return row[ped_poly_cols].dropna().duplicated().any()
 
 def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
+
+	# Connect nodes 
 	junc_edges1 = pd.merge(df, df, on = v1_poly_col, how = 'inner', suffixes = ('_to', '_from'))
 	junc_edges1['road_link'] = junc_edges1[v1_poly_col]
 
