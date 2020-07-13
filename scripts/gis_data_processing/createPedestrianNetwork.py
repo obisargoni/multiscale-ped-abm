@@ -390,7 +390,6 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 	junc_edges = pd.concat([junc_edges1, junc_edges2, junc_edges3])
 
 	junc_edges['edge_data'] = junc_edges.apply(lambda row: {"road_link":row["road_link"],"ped_poly":None}, axis=1)
-	junc_edges['edge'] = junc_edges.apply(lambda row: (row[ped_node_col+'_from'], row[ped_node_col+'_to'], row['edge_data']), axis=1)
 
 	return junc_edges
 
