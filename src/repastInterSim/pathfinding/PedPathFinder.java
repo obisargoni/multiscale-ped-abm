@@ -410,13 +410,12 @@ public class PedPathFinder {
 		return destCoord;
 	}
 	
-	public static List<RoadLink> getLinksWithinAngularDistance(List<RoadLink> sP, double angDistThreshold){
-		List<RoadLink> sPHorizon = new ArrayList<RoadLink>();
+	public static int getNLinksWithinAngularDistance(List<RoadLink> sP, double angDistThreshold) {
+		// Initialise number of links in planning horizon as one (current link always in planning horizon)
+		int nLinks = 1;
 		
+		// Initialise ang dist
 		double angDist = 0.0;
-		
-		// Add first link to planning horizon
-		sPHorizon.add(sP.get(0));
 		
 		// Loop through road links in strategic path adding up the angular distance between each one
 		for (int i = 0; i < sP.size() - 1; i++) {
@@ -431,11 +430,19 @@ public class PedPathFinder {
 				break;
 			}
 			
-			// If angular distance threshold not exceeded add link to horizon
-			sPHorizon.add(rl2);
+			// If angular distance threshold not exceeded add 1 to number of links within horizon
+			nLinks++;
 
 		}
-		return sPHorizon;
+		return nLinks;
+	}
+	
+	public static List<RoadLink> getLinksWithinAngularDistance(List<RoadLink> sP, double angDistThreshold){		
+		// Calculate number of links that are within planning horizon
+		int nLinks = getNLinksWithinAngularDistance(sP, angDistThreshold);
+		
+		// use this to get get planning horizon as list of links
+		return sP.subList(0, nLinks);
 	}
 	
 	
