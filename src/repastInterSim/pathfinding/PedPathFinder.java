@@ -1,7 +1,6 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -59,15 +58,10 @@ public class PedPathFinder {
 		this.origin = o;
 		this.destination = d;
 		
-		// Set which road links to use for path finding - use the pedestrian road network and destinations.
-		this.rlContext = SpaceBuilder.pedRoadLinkContext;
-		this.rlGeography = SpaceBuilder.pedRoadLinkGeography;
-		this.rlNetwork = SpaceBuilder.pedRoadNetwork;
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
 		this.rGeography = SpaceBuilder.roadGeography;
-		this.destGeography = SpaceBuilder.pedestrianDestinationGeography;
 		
-		planStrategicPath();
+		planStrategicPath(this.origin, this.destination, SpaceBuilder.pedRoadLinkContext, SpaceBuilder.roadLinkGeography, SpaceBuilder.pedRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
 	}
 	
 	public PedPathFinder(Ped p) {
@@ -76,13 +70,10 @@ public class PedPathFinder {
 		this.origin = p.getOrigin();
 		this.destination = p.getDestination();
 		
-		// Set which road links to use for path finding
-		this.rlContext = SpaceBuilder.pedRoadLinkContext;
-		this.rlGeography = SpaceBuilder.pedRoadLinkGeography;
-		this.rlNetwork = SpaceBuilder.pedRoadNetwork;
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
+		this.rGeography = SpaceBuilder.roadGeography;
 		
-		planStrategicPath();
+		planStrategicPath(this.origin, this.destination, SpaceBuilder.pedRoadLinkContext, SpaceBuilder.roadLinkGeography, SpaceBuilder.pedRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
 	}
 	
 	/**
@@ -90,9 +81,9 @@ public class PedPathFinder {
 	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
 	 * 
 	 */
-	public void planStrategicPath() {
+	public void planStrategicPath(OD o, OD d, Context<RoadLink> rlC, Geography<RoadLink> rlG, Network<Junction> pedNet, Geography<OD> odG) {
 		// Initialise road network route - needs to ne non-directed for pedestrians! fix this
-		RoadNetworkRoute rnr = new RoadNetworkRoute(origin.getGeom().getCoordinate(), destination.getGeom().getCoordinate(), this.rlContext, this.rlGeography, this.rlNetwork, this.destGeography);
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o.getGeom().getCoordinate(), d.getGeom().getCoordinate(), rlC, rlG, pedNet, odG);
 		
 		// Find shortest path using road network route
 		try {
