@@ -132,15 +132,18 @@ public class PedPathFinder {
 			// Identify new tactical destination coordinate
 			Coordinate tacticalDestCoord = null;
 			
+			// Calculate number of links in planning horizon
+			int nLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
+			
 			// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
 			// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
 			if (prevCoordType.contentEquals("not_intersects_next")) {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, this.ped.getpHorizon(), this.strategicPath, true);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, true);
 				prevCoordType = "start_next";
 			}
 			// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
 			else {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, this.ped.getpHorizon(), this.strategicPath, false);
+				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, false);
 				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
@@ -241,8 +244,9 @@ public class PedPathFinder {
 		
 		Coordinate tacticalDestCoord = null;
 		
-		// If reached end of strategic path tactical destination is final route destination
-		if (sP.isEmpty() | sP.size() == 1) {
+		// If number of links in planning horizon equal to or greater than length of strategic path then destination is within planning horizon.
+		// Set the destination as the tactical destination coordinate
+		if (pH >= sP.size()) {
 			tacticalDestCoord = destCoord;
 		}
 		else {			

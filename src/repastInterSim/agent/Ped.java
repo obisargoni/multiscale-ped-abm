@@ -61,7 +61,7 @@ public class Ped extends MobileAgent {
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     private HashMap<Integer, Double> dynamicSummandPriorityMap = new HashMap<Integer, Double>();
     
-    private Integer pHorizon = 3;
+    private Integer pHorizon = 20; // Tactical planning horizon of ped agent in degrees
     
     private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
     
