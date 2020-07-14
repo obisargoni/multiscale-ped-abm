@@ -272,7 +272,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     plt.savefig(output_path)
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
-rename_dict = {'addVehicleTicks':"Vehicle\nAddition\nFrequency:",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
+rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
 batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Paths Heatmap", map_output_path)
 
 '''
