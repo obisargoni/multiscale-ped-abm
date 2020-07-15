@@ -259,57 +259,6 @@ gdfVehicle = gdfPedVeh.loc[ gdfPedVeh[priority_column] == 'vehicle']
 assert len(set(gdfPedestrian['fid']).intersection(set(gdfVehicle['fid']))) == 0
 
 
-##################################
-#
-# Process topographic line data
-#
-#
-# Have decided to use the perimiter of the pedestrian and vehicle polygons combined. This is less restrictive that the topographic lines
-# that are categorised as obstructing, which in some places wouls unrealistically constrict pedestrian movement.
-#
-##################################
-
-'''
-# Read in the data
-gdfTopoLine = gpd.read_file(topographic_line_file)
-
-# Set the crs
-gdfTopoLine.crs = projectCRS
-
-# Now select just the polygons for pedestran or vehicle movement
-gdfTopoLine = gdfTopoLine.loc[gdfTopoLine['physicalPr'] == "Obstructing"]
-
-# Select only the Obstructing lines that boarder the pedestrian or vehicle areas
-gdfTopoLineSJ = gpd.sjoin(gdfTopoLine, gdfPedVeh, how = 'inner', op='intersects')
-gdfTopoLineSJ.drop_duplicates(inplace=True)
-'''
-
-# Get perimiter(s) of pedestrian and vehicle areas and include this with the obstructing lines (will need to make sure that this perimiter includes all ITN network)
-
-# Disolve pedestrian and vehicle polygons into single polygon and extract perimiter
-gdfPedVeh['dissolve_key'] = 1
-gdfDissolved = gdfPedVeh.dissolve(by = "dissolve_key")
-gdfDissolved = explode(gdfDissolved)
-
-# Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
-gdfPerimiter = gpd.GeoDataFrame(columns = ['type','geometry'])
-gdfPerimiter.crs = gdfDissolved.crs
-for geom in gdfDissolved['geometry']:
-    exterior = LineString(geom.exterior.coords)
-    gdfPerimiter = gdfPerimiter.append({"type":"exterior", "geometry":exterior}, ignore_index = True)
-
-    for i in geom.interiors:
-        interior = LineString(i)
-        gdfPerimiter = gdfPerimiter.append({"type":"interior", "geometry":interior}, ignore_index = True)
-
-gdfPerimiter.crs = projectCRS
-gdfPerimiter[priority_column] = "pedestrian_obstruction"
-
-# Check how many exterior boundaries - ideally want one by can have more than this is largest connected component of ped&veh polys includes a polygon
-# that only touches at one coordinate
-print(gdfPerimiter['type'].value_counts())
-
-
 ###########################
 #
 #
@@ -439,6 +388,44 @@ gdfVehicleLinks.crs = gdfVehicle.crs
 # Rename the ITN Road Link FID column to match the name expected by the Repast Model
 gdfVehicleLinks.rename(columns = {"fid_or":"roadLinkID"}, inplace = True)
 gdfPedestrianLinks.rename(columns = {"fid_or":"roadLinkID"}, inplace = True)
+
+
+##################################
+#
+# Process topographic line data
+#
+#
+# Have decided to use the perimiter of the pedestrian and vehicle polygons combined. This is less restrictive that the topographic lines
+# that are categorised as obstructing, which in some places wouls unrealistically constrict pedestrian movement.
+#
+##################################
+
+# Get perimiter(s) of pedestrian and vehicle areas and include this with the obstructing lines (will need to make sure that this perimiter includes all ITN network)
+gdfPedVehLinks = pd.concat([gdfVehicleLinks, gdfPedestrianLinks])
+
+# Disolve pedestrian and vehicle polygons into single polygon and extract perimiter
+gdfPedVehLinks['dissolve_key'] = 1
+gdfDissolved = gdfPedVehLinks.dissolve(by = "dissolve_key")
+gdfDissolved = explode(gdfDissolved)
+
+# Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
+gdfPerimiter = gpd.GeoDataFrame(columns = ['type','geometry'])
+gdfPerimiter.crs = gdfDissolved.crs
+for geom in gdfDissolved['geometry']:
+    exterior = LineString(geom.exterior.coords)
+    gdfPerimiter = gdfPerimiter.append({"type":"exterior", "geometry":exterior}, ignore_index = True)
+
+    for i in geom.interiors:
+        interior = LineString(i)
+        gdfPerimiter = gdfPerimiter.append({"type":"interior", "geometry":interior}, ignore_index = True)
+
+gdfPerimiter.crs = projectCRS
+gdfPerimiter[priority_column] = "pedestrian_obstruction"
+
+# Check how many exterior boundaries - ideally want one by can have more than this is largest connected component of ped&veh polys includes a polygon
+# that only touches at one coordinate
+print(gdfPerimiter['type'].value_counts())
+
 
 ###########################
 #
