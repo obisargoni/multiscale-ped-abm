@@ -292,8 +292,8 @@ gdfORLink_simplified = gdfORLink_simplified.set_geometry("geometry")
 # Clean up and save data
 gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axis = 1)
 
-# Rename fid columns
-gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid"})
+# Rename fid columns and node columns to match other road network data columns
+gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
 assert gdfORLink_simplified['fid'].duplicated().any() == False
 
 

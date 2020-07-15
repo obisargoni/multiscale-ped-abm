@@ -429,14 +429,16 @@ dfPedNetwork.rename(columns = {'geometry':'geometry_to'}, inplace = True)
 # Create LineString connecting edge nodes
 dfPedNetwork['geometry'] = dfPedNetwork.apply(lambda row: LineString([row['geometry_from'], row['geometry_to']]), axis = 1)
 dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link','ped_poly','geometry'])
-
 gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
+
+# Rename node columns to match other network data columns
+gdfPedNetwork.rename(columns = {"from_node":"MNodeFID", "to_node":"PNodeFID"}, inplace=True)
+
 gdfPedNetwork.crs = projectCRS
 gdfPedNetwork.to_file(output_ped_links_file)
 
-
 # Also select those edges that connect ped nodes that share a polygon from junc edges
-gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['from_node'],row['to_node']), axis=1)
+gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['MNodeFID'],row['PNodeFID']), axis=1)
 junc_edges['edgea'] = junc_edges.apply(lambda row: (row['ped_node_id_from'],row['ped_node_id_to']), axis=1)
 junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['ped_node_id_to'],row['ped_node_id_from']), axis=1)
 
