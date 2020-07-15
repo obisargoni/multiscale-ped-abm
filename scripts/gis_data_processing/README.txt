@@ -29,3 +29,7 @@ Given the road nodes to use as vehicle ODs this procudes random flows between OD
 6. randomOD2.py
 
 Very simple script to generate random flows between pedestrian ODs
+
+7. createPedestrianNetwork.py
+
+Creates a network approximating the paths available to a pedestrian in that separate side of the road have different nodes with links to connect them across junctions
