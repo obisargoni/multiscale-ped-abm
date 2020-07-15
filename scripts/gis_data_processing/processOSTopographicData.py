@@ -268,7 +268,7 @@ assert len(set(gdfPedestrian['fid']).intersection(set(gdfVehicle['fid']))) == 0
 ###########################
 
 # Buffer road node
-node_buffer_dist = 0.1
+node_buffer_dist = 0.01
 gdfORNodeBuffer = gdfORNode.copy()
 gdfORNodeBuffer['geometry'] = gdfORNode.buffer(node_buffer_dist)
 
@@ -328,7 +328,7 @@ if writer.hasError() != QgsVectorFileWriter.NoError:
 point_id = 0
 for f in or_links_clipped.getFeatures():
     g = f.geometry()
-    gD = g.densifyByDistance(1)
+    gD = g.densifyByDistance(0.2)
     for p in gD.vertices():
         output_feature = QgsFeature()
         attrs = f.attributes()
