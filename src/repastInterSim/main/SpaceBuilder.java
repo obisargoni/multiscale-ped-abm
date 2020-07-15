@@ -203,7 +203,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// 2b. pedestrian road network
 			NetworkBuilder<Junction> pedBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PED_ROAD_NETWORK,pedJunctionContext, false);
 			pedBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			pedRoadNetwork = builder.buildNetwork();
+			pedRoadNetwork = pedBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(pedRoadLinkGeography, pedJunctionContext,pedJunctionGeography, pedRoadNetwork);
 			
 			// Build the fixed environment
