@@ -2,6 +2,7 @@ import os
 import json
 import geopandas as gpd
 import pandas as pd
+import numpy as np
 import networkx as nx
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 
@@ -427,6 +428,51 @@ gdfPerimiter[priority_column] = "pedestrian_obstruction"
 print(gdfPerimiter['type'].value_counts())
 
 
+##################################
+#
+#
+# Lookup from ITN road link ID or OR road link ID
+#
+# Ped and vehicle polygons are linked to the open roads links since these are used for pedestrian routing.
+# However, a pedestrian needs to identify number of vehciles on a road. Vehicle counts are aggregated to ITN road link.
+# To find number of vehicles on a road link segment need to add open road ID to ITL road links so they can be identified as belonging to a road section
+# Do this by:
+# - find proportion of itn link that belongs in each vehicle polygon it intersects
+# - assign it the ped road link id of the vehicle poly it most intersects with
+#
+#################################
+
+# Calculate the linestring lengths
+gdfITNLinkInt = gdfITNLink.copy()
+gdfITNLinkInt['tot_length'] = gdfITNLinkInt['geometry'].map(lambda g: g.length)
+
+# Intersect ITN links with vehicle polygons
+gdfITNLinkInt = gpd.overlay(gdfITNLinkInt, gdfVehicleLinks, how = 'intersection')
+
+# Calculate lengths again
+gdfITNLinkInt['length_intersect'] = gdfITNLinkInt['geometry'].length
+gdfITNLinkInt['proportion'] = gdfITNLinkInt['length_intersect'] / gdfITNLinkInt['tot_length']
+
+# Now group by itn link id and calculate percentage length in each bit and assign ped road link id based on max proportion
+gdfITNLinkPedRLID = gdfITNLinkInt.groupby('fid').apply(lambda df: df.sort_values(by = 'proportion', ascending = False).head(1))
+gdfITNLinkPedRLID.index = np.arange(gdfITNLinkPedRLID.shape[0])
+
+# Group by itn link ID and ped road link id to calculate length in 
+gdfITNLinkPedRLID = gdfITNLinkPedRLID.reindex(columns = ['fid', 'roadLinkID', 'proportion'])
+gdfITNLinkPedRLID.rename(columns = {'roadLinkID':'pedRLID'}, inplace = True)
+
+# Check all links still present and proportions reasonably high
+assert gdfITNLinkPedRLID['fid'].duplicated().any() == False
+assert len(gdfITNLinkPedRLID['fid'].unique()) == len(gdfITNLink['fid'].unique())
+assert gdfITNLinkPedRLID['proportion'].max() > 0.9
+
+# Join lookup from fid to ped road link id to original ITN Link Data
+gdfITNLink = gdfITNLink.merge(gdfITNLinkPedRLID, on = 'fid')
+
+# For the OR links the ped Road Link is is given by the fid since these links used to distinguish between road polygons.
+gdfORLink['pedRLID'] = gdfORLink['fid']
+
+
 ###########################
 #
 # Save processed data
@@ -436,6 +482,9 @@ print(gdfPerimiter['type'].value_counts())
 gdfPedestrianLinks.to_file(output_pedestrian_file)
 gdfVehicleLinks.to_file( output_vehicle_file)
 gdfPerimiter.to_file(output_line_file)
+
+gdfITNLink.to_file(itn_link_file)
+gdfORLink.to_file(or_link_file)
 
 '''
 # Now densify the clipped linestrings
