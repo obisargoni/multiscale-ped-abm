@@ -23,11 +23,9 @@ import networkx as nx
 gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
 
 OD_shapefile = "OD_vehicle_nodes_intersect_within.shp"
-itn_link_shapefile = "mastermap-itn RoadLink Intersect Within with orientation.shp" # The shapefile of the road network used in the model
 
 route_info_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\itn_route_info"
-road_route_info_path = os.path.join(route_info_dir, "extracted_RRI.csv")
-road_node_info_path = os.path.join(route_info_dir, "extracted_RLNodes.csv")
+itn_network_edge_data_file = os.path.join(route_info_dir, "itn_edge_list.csv")
 
 output_flows_path = os.path.join(gis_data_dir, "vehicleODFlows.csv")
 
@@ -42,57 +40,10 @@ output_flows_path = os.path.join(gis_data_dir, "vehicleODFlows.csv")
 
 # Load the vehicle OD nodes and the road link data
 gdfOD = gpd.read_file(os.path.join(gis_data_dir, OD_shapefile))
-gdfLink = gpd.read_file(os.path.join(gis_data_dir, itn_link_shapefile))
 
-# Calculate the linestring lengths, to use as network edge weights
-gdfLink['weight'] = gdfLink['geometry'].map(lambda g: g.length)
-
-# No need to join together because the OD nodes file has the fids in
-dfRLNode = pd.read_csv(road_node_info_path)
-dfRRI = pd.read_csv(road_route_info_path)
-
-# Filter the nodes to be just those in the ITN Link data used for the model
-dfRLNode = dfRLNode.loc[ dfRLNode["RoadLinkFID"].isin(gdfLink.fid)]
-
-# Check all road links are present and that thy all have 2 nodes
-assert len(dfRLNode.RoadLinkFID.unique()) == len(gdfLink.fid.unique())
-assert dfRLNode['PlusNodeFID'].isnull().any() == False
-assert dfRLNode['MinusNodeFID'].isnull().any() == False
-
-# Merge with data on which links are directed
-dfRLNode = pd.merge(dfRLNode, dfRRI, left_on = "RoadLinkFID", right_on = "DirectedLinkFID", how = "left", indicator=True)
-print(dfRLNode["_merge"].value_counts())
-dfRLNode.drop("_merge", axis = 1, inplace = True)
-
-# Merge with link weight and id data
-dfRLNode = pd.merge(dfRLNode, gdfLink, left_on = "RoadLinkFID", right_on = "fid", how = "outer", indicator = True)
-
-# Now build the edge list
-dfEdgeList = pd.DataFrame(columns = ['start_node', 'end_node'])
-print(dfRLNode["_merge"].value_counts())
-dfRLNode.drop("_merge", axis = 1, inplace = True)
-
-# df1 are teh links that go from minus node to plus node, orientation = +
-df1 = dfRLNode.loc[dfRLNode['DirectedLinkOrientation'] == "+"].reindex(columns = ['MinusNodeFID','PlusNodeFID', "RoadLinkFID", "weight"])
-# df2 are the nodes that go from plus to minus
-df2 = dfRLNode.loc[dfRLNode['DirectedLinkOrientation'] == "-"].reindex(columns = ['PlusNodeFID','MinusNodeFID', "RoadLinkFID", "weight"])
-# df3 are the non directed link, part 1
-df3 = dfRLNode.loc[dfRLNode['DirectedLinkOrientation'].isnull()].reindex(columns = ['MinusNodeFID','PlusNodeFID', "RoadLinkFID", "weight"])
-# df4 are the non directed links part 2
-df4 = dfRLNode.loc[dfRLNode['DirectedLinkOrientation'].isnull()].reindex(columns = ['PlusNodeFID','MinusNodeFID', "RoadLinkFID", "weight"])
-
-df1.rename(columns = {'MinusNodeFID':'start_node', 'PlusNodeFID':'end_node'}, inplace=True)
-df2.rename(columns = {'PlusNodeFID':'start_node', 'MinusNodeFID':'end_node'}, inplace=True)
-df3.rename(columns = {'PlusNodeFID':'start_node', 'MinusNodeFID':'end_node'}, inplace=True)
-df4.rename(columns = {'MinusNodeFID':'start_node', 'PlusNodeFID':'end_node'}, inplace=True)
-
-dfEdgeList = pd.concat([df1,df2,df3,df4], join = "outer")
-dfEdgeList = dfEdgeList.reindex(columns=['start_node','end_node', 'RoadLinkFID','weight'])
-
-
-# Now create the network
+dfEdgeList = pd.read_csv(itn_network_edge_data_file)
 graphRL = nx.from_pandas_edgelist(dfEdgeList, source='start_node', target = 'end_node', edge_attr = ['RoadLinkFID','weight'], create_using=nx.DiGraph())
-print(graphRL.is_directed())
+assert graphRL.is_directed()
 
 print(gdfOD.head())
 
