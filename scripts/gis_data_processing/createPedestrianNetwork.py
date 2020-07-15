@@ -180,10 +180,10 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 	for rl_id in gdfLink['fid'].values:
 
 		# Get start and end node for this road link
-		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['startNode','endNode']].to_dict(orient='records')
+		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
 		assert len(node_records) == 1
-		u = node_records[0]['startNode']
-		v = node_records[0]['endNode']
+		u = node_records[0]['MNodeFID']
+		v = node_records[0]['PNodeFID']
 
 		# Get small section of road network connected to this road link
 		neighbour_links = [edge_data['fid'] for e, edge_data in road_graph[u].items()]
@@ -239,7 +239,7 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 #######################################
 G = nx.Graph()
 gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
-edges = gdfORLink.loc[:,['startNode','endNode', 'fid_dict']].to_records(index=False)
+edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
 G.add_edges_from(edges)
 
 # Get fids of links which don't have any pedestrian polygons.
