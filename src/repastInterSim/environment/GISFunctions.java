@@ -110,9 +110,17 @@ public class GISFunctions {
 			// Tell the junctions about this roadLink
 			juncFirst.addRoadLink(roadLink);
 			juncLast.addRoadLink(roadLink);
-
-			// Create an edge between the two junctions, assigning a weight equal to it's length
-			String direction = roadLink.getDirection();
+			
+			// Check if network is directed. If it is try to get edge direction from road link, otherwise assign default direction
+			String direction = null;
+			if (roadNetwork.isDirected()) {
+				direction = roadLink.getDirection();
+			}
+			else {
+				direction = "+";
+			}
+			
+			// Create an edge between the two junctions, assigning a weight equal to it's length]
 			NetworkEdge<Junction> edge = null;
 			if (direction.equals("+")) {
 				edge = new NetworkEdge<Junction>(juncFirst, juncLast, true, roadGeom.getLength(), null);
