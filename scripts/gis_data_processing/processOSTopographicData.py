@@ -319,7 +319,7 @@ print(gdfPerimiter['type'].value_counts())
 ###########################
 
 # Buffer road node
-node_buffer_dist = 1
+node_buffer_dist = 0.1
 gdfORNodeBuffer = gdfORNode.copy()
 gdfORNodeBuffer['geometry'] = gdfORNode.buffer(node_buffer_dist)
 
@@ -393,7 +393,7 @@ or_links_dense_clipped_points = QgsVectorLayer(points_path, "or_links_dense_clip
 
 # Now get voronoi polygons from these points
 outpath = os.path.join(qgis_workings_dir, "or_links_voronoi.shp")
-result = processing.run("qgis:voronoipolygons", {"INPUT":or_links_dense_clipped_points, "OUTPUT":outpath})
+result = processing.run("qgis:voronoipolygons", {"INPUT":or_links_dense_clipped_points, "BUFFER":100, "OUTPUT":outpath})
 
 # Read in voronoi polygons as geodataframe
 gdfLinksVoronoi = gpd.read_file(outpath)
