@@ -268,6 +268,7 @@ gdfORLink_simplified['endCoord'] = gdfORLink_simplified['geometry'].map(lambda x
 # Collect all start and end nodes
 coords = pd.concat([gdfORLink_simplified['startCoord'], gdfORLink_simplified['endCoord']]).drop_duplicates()
 gdfORNode_simplified = gpd.GeoDataFrame({'geometry':coords})
+gdfORNode_simplified.index = np.arange(gdfORNode_simplified.shape[0])
 gdfORNode_simplified['node_fid'] = ["node_id_{}".format(i) for i in gdfORNode_simplified.index]
 
 
@@ -294,12 +295,13 @@ gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axi
 
 # Rename fid columns and node columns to match other road network data columns
 gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
+
 assert gdfORLink_simplified['fid'].duplicated().any() == False
+assert gdfORNode_simplified['node_fid'].duplicated().any() == False
 
 
 gdfORLink_simplified.crs = projectCRS
 gdfORNode_simplified.crs = projectCRS
-
 
 #############################
 #
