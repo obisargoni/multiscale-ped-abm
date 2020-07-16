@@ -81,6 +81,28 @@ assert dfRLNodes.isnull().any().any() == False
 assert dfRRI.isnull().any().any() == False
 
 
+########################
+#
+# Road Route Information is a bit more complicated than I first realised
+# RoadLinkIDs appear multiple times under different RoadRouteInformationIDs
+# This duplication is used to encode differences between access for different modes/vehicles
+#
+# For now just drop duplicates. In future will want to extract this access infor and use direction of links suitable for passenger vehicles
+#
+#########################
+
+# Can see effect of duplicates by grouping by road link id and counting number of orientation entries for that link. Would expect mas 2 entries but some links have three
+dfRRI.groupby('DirectedLinkFID')['DirectedLinkOrientation'].transform(lambda df: df.shape[0]).value_counts()
+
+# Now drop duplicated link-orientation combos. In future need to refine this to incorporate differences between vehicles
+dfRRI = dfRRI.drop_duplicates(subset=['DirectedLinkFID','DirectedLinkOrientation'])
+
+# Now check that links only have max of 2 orientation entries
+assert dfRRI.groupby('DirectedLinkFID')['DirectedLinkOrientation'].transform(lambda df: df.shape[0]).max() == 2
+
+
+
+
 #########################
 #
 # Save data
