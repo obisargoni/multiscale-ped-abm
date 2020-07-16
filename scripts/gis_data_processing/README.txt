@@ -14,7 +14,7 @@ Selects the road network data that lies in the study area. Cleans the Open Roads
 
 Given a polygon covering the study area, this extracts the road links and nodes, pedestrian and vehicles topographic space, and lines obstructing pedestrian movement that should be included to model that study area.
 
-It also processes and cleans this data, for example linking road links with vehicle and pedestrian space.
+It also processes and cleans this data, for example linking road links (both open road and ITN) with vehicle and pedestrian space
 
 4. makeITNdirectional.py
 
