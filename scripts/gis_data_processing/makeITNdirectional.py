@@ -56,9 +56,6 @@ output_shapefile = os.path.join(gis_data_dir, "mastermap-itn RoadLink Intersect 
 # Load ITN link data
 gdf_itn_link = gpd.read_file(os.path.join(gis_data_dir, link_shapefile))
 
-# Read in data. Check geometry types. Check fields
-gdf_itn = gpd.read_file(os.path.join(gis_data_dir, link_shapefile))
-
 # Load road routing information
 dfRRI = pd.read_csv(road_route_info_path)
 
@@ -79,8 +76,10 @@ gdfVehicleLinks = gpd.read_file(output_vehicle_file)
 #
 ##########################
 
+gdf_itn = gdf_itn_link.copy()
+
 assert gdf_itn['geometry'].type.unique().size == 1
-assert gdf_itn['fid'].unique().size == gdf_itn.shape[0]
+assert gdf_itn['fid'].duplicated().any() == False
 
 # Join the itn road links with the node info to check that the -,+ nodes correspond to the first/last nodes of the linestring
 gdf_itn = pd.merge(gdf_itn, dfRLNode, left_on="fid", right_on="RoadLinkFID", how = "left", indicator=True)
@@ -117,8 +116,6 @@ assert gdf_itn['first_coords_match_minus_node'].all() == True
 gdf_itn['last_coords_match_plus_node'].all() == True
 
 gdf_itn = None
-
-
 
 ###########################
 #
