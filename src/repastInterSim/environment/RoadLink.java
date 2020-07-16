@@ -16,6 +16,7 @@ public class RoadLink implements FixedGeography {
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
 	private NetworkEdge<Junction> edge;
 	private String fid = null;
+	private String pedRLID = null;
 	private String direction = null;
 	private String MNodeFID = null;
 	private String PNodeFID = null;
@@ -128,6 +129,14 @@ public class RoadLink implements FixedGeography {
 	
 	public void setPriority(String pri) {
 		this.priority = pri;
+	}
+
+	public String getPedRLID() {
+		return pedRLID;
+	}
+
+	public void setPedRLID(String pedRoadLinkID) {
+		this.pedRLID = pedRoadLinkID;
 	}
 
 }
