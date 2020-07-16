@@ -100,7 +100,9 @@ public class Road implements FixedGeography, Serializable {
 	public void setRoadLinks() {
 		this.roadLinks = new ArrayList<RoadLink>();
 		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
-			if (rl.getFID().contentEquals(this.roadLinkID)) {
+			
+			// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+			if (rl.getPedRLID().contentEquals(this.roadLinkID)) {
 				this.roadLinks.add(rl);
 			}
 		}
