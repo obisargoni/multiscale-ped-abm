@@ -66,9 +66,9 @@ class PedPathFinderTest {
 	}
 	
 	void setUpRoads() throws Exception {
-		pedestrianRoadsPath = testGISDir + "topographicAreaVehicle.shp";
-		vehicleRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
-		serialisedLookupPath = testGISDir + "road_link_rodas_cache.serialised";
+		pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
+		vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
+		serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 		
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
