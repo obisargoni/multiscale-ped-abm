@@ -20,14 +20,8 @@ public class CrossingAlternative {
 				
 	}
 	
-	public String getRoadLinkID() {
-		return roadLinkID;
 	}
-
-	public void setRoadLinkID(String roadLinkID) {
-		this.roadLinkID = roadLinkID;
-	}
-
+	
 	public Integer getvFlow(Geography<Road> rG) {
 		// Get the number of vehicles on the road link
 		Road r = null;
@@ -38,6 +32,14 @@ public class CrossingAlternative {
     	}
     	int vehicleNumber = r.getRoadLinksVehicleCount();
 		return vehicleNumber;
+	}
+	
+	public String getRoadLinkID() {
+		return roadLinkID;
+	}
+
+	public void setRoadLinkID(String roadLinkID) {
+		this.roadLinkID = roadLinkID;
 	}
 
 
