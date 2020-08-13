@@ -15,7 +15,6 @@ import com.vividsolutions.jts.geom.LineString;
 import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
-import repastInterSim.agent.GridRoute;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;

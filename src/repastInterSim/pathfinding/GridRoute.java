@@ -1,4 +1,4 @@
-package repastInterSim.agent;
+package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collections;
