@@ -20,6 +20,17 @@ public class CrossingAlternative {
 				
 	}
 	
+	/*
+	 * Calculate the distance to the input coordinate. Distance return is the distance to the nearest
+	 * crossing alternative coordiante
+	 * 
+	 * @param Coordinate loc
+	 * 		The coordinate to calculate the distance from
+	 */
+	public Double distanceTo(Coordinate loc) {
+		double d1 = this.c1.distance(loc);
+		double d2 = this.c2.distance(loc);
+		return Math.min(d1, d2);
 	}
 	
 	public Integer getvFlow(Geography<Road> rG) {
