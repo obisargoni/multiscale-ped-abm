@@ -164,10 +164,7 @@ public class AccumulatorRoute {
 	 * Check for a dominant activation. If one activation is dominant choose that crossing alternative
 	 */
 	
-	public Integer chooseCA() {
-		
-		// initialise variable to record index of chosen crossing alterantive
-		Integer choseni = null;
+	public void chooseCA() {
 		
 		// Sort the activations
 		int nCAs = this.caActivations.length;
@@ -177,6 +174,10 @@ public class AccumulatorRoute {
 		// Compare the largest activation to the second largest
 		double diff = sortedActivations[nCAs-1] - sortedActivations[nCAs-2];  
 		if (diff > this.ped.getEpsilon()) {
+			
+			// initialise variable to record index of chosen crossing alterantive
+			Integer choseni = null;
+			
 			// Choose ca by iterating through activations and finding index of the maximum activation
 			for (int i=0; i< nCAs; i++) {
 				double a = this.caActivations[i];
@@ -184,9 +185,16 @@ public class AccumulatorRoute {
 					choseni = i;
 				}
 			}
+			
+			// With crossing alternative chosen, update the tactical path
+			CrossingAlternative chosenCA = this.cas.get(choseni);
+			
+			this.routeX = new ArrayList<Coordinate>();
+			this.routeX.add(chosenCA.nearestCoord(this.ped.getLoc()));
+			this.routeX.add(chosenCA.farthestCoord(this.ped.getLoc()));
+			this.routeX.add(chosenCA.getDestination());
+			
 		}
-		
-		return choseni;
 	}
 	
 	public List<Coordinate> getRouteX() {
