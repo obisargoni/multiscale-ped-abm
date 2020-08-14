@@ -851,11 +851,11 @@ public class GISFunctions {
 	 *geography
 	 * 
 	 * @param Coordinate originCoord
-	 * @param Geometry rGeom
+	 * @param Geometry geom
 	 * @param Geography<T> obstructionGeography
 	 * @param String nearOrFar
 	 */
-	public static <T> Coordinate xestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography, Boolean far) {
+	public static <T> Coordinate xestUnobstructedGeomCoordinate(Coordinate originCoord, Geometry geom, Geography<T> obstructionGeography, Boolean far) {
 		Coordinate destCoord = null;
 		Double destDist = null;
 		int compVal = 0;
@@ -873,10 +873,10 @@ public class GISFunctions {
 		
 		
 		// Densify geometry so that looping through coordinates maintains good spatial granularity
-		rGeom = Densifier.densify(rGeom, 1);
+		geom = Densifier.densify(geom, 1);
 		
 		// Loop through coordinates of geometry and find nearest/farthest coordinate not blocked by a pedestrian obstruction
-		Coordinate[] rGeomCoords = rGeom.getCoordinates();
+		Coordinate[] rGeomCoords = geom.getCoordinates();
 		for(Coordinate c: rGeomCoords) {
 			
 			// Check for obstructions
@@ -902,11 +902,11 @@ public class GISFunctions {
 	 *geography
 	 * 
 	 * @param Coordinate originCoord
-	 * @param Geometry rGeom
+	 * @param Geometry geom
 	 * @param Geography<T> obstructionGeography
 	 */
-	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
-		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, true);
+	public static <T> Coordinate farthestUnobstructedGeomCoordinate(Coordinate originCoord, Geometry geom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedGeomCoordinate(originCoord, geom, obstructionGeography, true);
 		return destCoord;
 	}
 	
@@ -915,11 +915,11 @@ public class GISFunctions {
 	 *geography
 	 * 
 	 * @param Coordinate originCoord
-	 * @param Geometry rGeom
+	 * @param Geometry geom
 	 * @param Geography<T> obstructionGeography
 	 */
-	public static <T> Coordinate nearestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
-		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, false);
+	public static <T> Coordinate nearestUnobstructedGeomCoordinate(Coordinate originCoord, Geometry geom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedGeomCoordinate(originCoord, geom, obstructionGeography, false);
 		return destCoord;
 	}
 

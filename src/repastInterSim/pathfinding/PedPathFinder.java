@@ -311,7 +311,7 @@ public class PedPathFinder {
 		
 		for(Road r: pR) {
 			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = GISFunctions.xestUnobstructedRoadCoordinate(oC, r.getGeom(), obstructGeography, far);
+			Coordinate c = GISFunctions.xestUnobstructedGeomCoordinate(oC, r.getGeom(), obstructGeography, far);
 			
 			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
 			if (c==null) {

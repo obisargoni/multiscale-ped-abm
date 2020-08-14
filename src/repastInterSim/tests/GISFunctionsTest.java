@@ -292,7 +292,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.farthestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);			
+			destCoord = GISFunctions.farthestUnobstructedGeomCoordinate(o, r.getGeom(), pedObstructGeography);			
 			assert expectedCoords.contains(destCoord);
 		}
 	}
@@ -329,7 +329,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.nearestUnobstructedRoadCoordinate(o, r.getGeom(), pedObstructGeography);
+			destCoord = GISFunctions.nearestUnobstructedGeomCoordinate(o, r.getGeom(), pedObstructGeography);
 			assert expectedCoords.contains(destCoord);
 		}
 	}
