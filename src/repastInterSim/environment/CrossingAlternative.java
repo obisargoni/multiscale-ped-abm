@@ -10,6 +10,9 @@ public class CrossingAlternative {
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
 	
+	// Destination coordinate. This is the destination this crossing alternative leads to
+	private Coordinate destination = null;
+	
 	// Default type is unmarked
 	private String type = "unmarked";
 	
@@ -77,6 +80,13 @@ public class CrossingAlternative {
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
+	public Coordinate getDestination() {
+		return destination;
+	}
+
+	public void setDestination(Coordinate destination) {
+		this.destination = destination;
+	}
 
 }
