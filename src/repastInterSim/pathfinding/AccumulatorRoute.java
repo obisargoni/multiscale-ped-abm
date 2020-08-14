@@ -17,12 +17,15 @@ import repastInterSim.environment.CrossingAlternative;
 
 public class AccumulatorRoute {
 	
+	protected Coordinate destination;
+	
 	private Ped ped;
 	
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
 	
-	public AccumulatorRoute(Ped p) {
+	public AccumulatorRoute(Ped p, Coordinate d) {
+		this.destination = d;
 		this.ped = p;
 		this.cas = new ArrayList<CrossingAlternative>();
 		this.caActivations = new double[this.cas.size()];
