@@ -844,5 +844,80 @@ public class GISFunctions {
 		ang = Math.abs(ang);
 		return ang;
 	}
+	
+	/*
+	 *Method for finding either the nearest or farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 * @param String nearOrFar
+	 */
+	public static <T> Coordinate xestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography, Boolean far) {
+		Coordinate destCoord = null;
+		Double destDist = null;
+		int compVal = 0;
+		if (far == false) {
+			destDist = Double.MAX_VALUE;
+			compVal = -1;
+		}
+		else if (far == true){
+			destDist = 0.0;
+			compVal = +1;
+		}
+		else {
+			return destCoord;
+		}
+		
+		
+		// Loop through coordinates of road geometry
+		// Find the farthest coordinate not blocked by a pedestrian obstruction
+		Coordinate[] rGeomCoords = rGeom.getCoordinates();
+		for(Coordinate c: rGeomCoords) {
+			
+			// Check for obstructions
+			Coordinate[] lineCoords = {originCoord, c};
+			LineString pathLine = GISFunctions.lineStringGeometryFromCoordinates(lineCoords);
+
+			// Check if line passes through a ped obstruction
+			Boolean isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, obstructionGeography);
+			if(!isObstructingObjects) {
+				Double cDist = c.distance(originCoord);
+				int comp = Integer.signum(cDist.compareTo(destDist));
+				if (comp == compVal) {
+					destDist = cDist;
+					destCoord = c;
+				}
+			}
+		}
+		return destCoord;
+	}
+	
+	/*
+	 *Method for finding the farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 */
+	public static <T> Coordinate farthestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, true);
+		return destCoord;
+	}
+	
+	/*
+	 *Method for finding the nearest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
+	 *geography
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry rGeom
+	 * @param Geography<T> obstructionGeography
+	 */
+	public static <T> Coordinate nearestUnobstructedRoadCoordinate(Coordinate originCoord, Geometry rGeom, Geography<T> obstructionGeography) {		
+		Coordinate destCoord = xestUnobstructedRoadCoordinate(originCoord, rGeom, obstructionGeography, false);
+		return destCoord;
+	}
 
 }
