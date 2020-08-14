@@ -58,5 +58,33 @@ public class AccumulatorRoute {
 		
 		return probs;
 	}
+	
+	/*
+	 * Sample a single crossing alternative at random according to the probabilities given by the crossing alterantives'
+	 * salience, defined by their distance to the pedestrian agent.
+	 */
+	public int sampleCA() {
+		
+		int nCAs = this.cas.size();
+		List<Double> probs = caSamplingProbabilities();
+		
+		// sample random number between 0 and 1 and use to sample a CA
+		Double r = new Random().nextDouble();
+		
+		Integer sampledi = null;
+		double sum_prob = 0;
+		for (int i=0; i<nCAs; i++) {
+			sum_prob += probs.get(i);
+			if (sum_prob > r) {
+				sampledi = i;
+			}
+		}
+		
+		// If sampledCA is still null means last CA should have been chosen but wasn't due to double comparisons
+		if (sampledi == null) {
+			sampledi = nCAs-1;
+		}
+		return sampledi;
+	}
 
 }
