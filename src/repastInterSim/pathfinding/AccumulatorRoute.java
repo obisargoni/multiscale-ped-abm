@@ -125,7 +125,7 @@ public class AccumulatorRoute {
 		
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
-		Double dFromCAToDest = ca.distanceTo(this.ped.getDestination().getGeom().getCoordinate());
+		Double dFromCAToDest = ca.distanceTo(ca.getDestination());
 		
 		double walkTime = (dToCA + dFromCAToDest) / this.ped.getSpeed();
 		
