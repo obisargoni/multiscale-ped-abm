@@ -24,6 +24,7 @@ import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
+import com.vividsolutions.jts.densify.Densifier;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
@@ -871,8 +872,10 @@ public class GISFunctions {
 		}
 		
 		
-		// Loop through coordinates of road geometry
-		// Find the farthest coordinate not blocked by a pedestrian obstruction
+		// Densify geometry so that looping through coordinates maintains good spatial granularity
+		rGeom = Densifier.densify(rGeom, 1);
+		
+		// Loop through coordinates of geometry and find nearest/farthest coordinate not blocked by a pedestrian obstruction
 		Coordinate[] rGeomCoords = rGeom.getCoordinates();
 		for(Coordinate c: rGeomCoords) {
 			
