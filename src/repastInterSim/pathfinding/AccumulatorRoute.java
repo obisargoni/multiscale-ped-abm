@@ -135,5 +135,25 @@ public class AccumulatorRoute {
 		double caVE = caVehicleExposureIndicator(ca);
 		return this.ped.getAlpha()*caWT + (1-this.ped.getAlpha())*caVE;
 	}
+	
+	
+	/*
+	 * Method to accumulate activation for crossing alternatives
+	 */
+	public void accumulateCAActivation() {
+		
+		// Get index of sampled crossing alternative
+		int sampledCAi = sampleCA();
+		
+		// Loop through activations, decay all by decay factor and increase sampled CA by its utility
+		for (int i=0; i<this.caActivations.length; i++) {
+			this.caActivations[i] = this.caActivations[i] * this.ped.getGamma();
+			
+			if (i==sampledCAi) {
+				double ui = caUtility(this.cas.get(i));
+				this.caActivations[i] += ui;
+			}
+		}
+	}
 
 }
