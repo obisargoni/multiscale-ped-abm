@@ -25,6 +25,8 @@ public class AccumulatorRoute {
 	
 	private List<Coordinate> routeX; // The list of coordinates that form the pedestrian agent's tactical route
 	
+	private boolean caChosen = false;
+	
 	public AccumulatorRoute(Ped p, Coordinate defD) {
 		this.defaultDestination = defD;
 		this.ped = p;
@@ -194,11 +196,17 @@ public class AccumulatorRoute {
 			this.routeX.add(chosenCA.farthestCoord(this.ped.getLoc()));
 			this.routeX.add(chosenCA.getDestination());
 			
+			// Update bool indicating whether crossing choice has been made or not
+			this.caChosen = true;
 		}
 	}
 	
 	public List<Coordinate> getRouteX() {
 		return routeX;
+	}
+	
+	public boolean isCrossingChosen() {
+		return this.caChosen;
 	}
 	
 
