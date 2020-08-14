@@ -86,5 +86,54 @@ public class AccumulatorRoute {
 		}
 		return sampledi;
 	}
+	
+	/*
+	 * Get the crossing exposure indicator value for the input crossing alternative
+	 * 
+	 * @param CrossingAlternative ca
+	 */
+	public double caVehicleExposureIndicator(CrossingAlternative ca) {
+		
+		// Time required for ped to cross the road
+		double t_cross = ca.getC1().distance(ca.getC2()) / this.ped.getSpeed();
+		
+		// Calculate number of vehicles that will pass through ca during that time
+		// Need to write methods to do this
+		// get speed and position of cars, use to calculate whether they will pass through crossing in allotted time
+		// might be tricky because might require checking cars on multiple links, perhaps within the planning horizon. But what about around corners?
+		
+		// just use constant value for now
+		double vFlow = 2;
+		
+		double avVFlow = 1;
+		
+		return 1 - (vFlow/avVFlow);
+	}
+	
+	/*
+	 * Get the roadside walk time indicator for the input crossing alternative.
+	 * 
+	 * @param CrossingAlternative ca
+	 */
+	public double caRoadsideWalkTimeIndicator(CrossingAlternative ca) {
+		
+		// Get walk time to crossing alternative and from crossing alternative to destination
+		Double dToCA = ca.distanceTo(this.ped.getLoc());
+		Double dFromCAToDest = ca.distanceTo(this.ped.getDestination().getGeom().getCoordinate());
+		
+		double walkTime = (dToCA + dFromCAToDest) / this.ped.getSpeed();
+		
+		// Need characteristic walk time to compare this to
+		double charWT = this.ped.getLoc().distance(this.destination) / this.ped.getSpeed();
+		
+		return 1 - (walkTime / charWT);
+	}
+	
+	double caUtility(CrossingAlternative ca) {
+		
+		double caWT = caRoadsideWalkTimeIndicator(ca);
+		double caVE = caVehicleExposureIndicator(ca);
+		return this.ped.getAlpha()*caWT + (1-this.ped.getAlpha())*caVE;
+	}
 
 }
