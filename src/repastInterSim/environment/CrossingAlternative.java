@@ -1,5 +1,10 @@
 package repastInterSim.environment;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.Geography;
@@ -35,6 +40,22 @@ public class CrossingAlternative {
 		double d2 = this.c2.distance(loc);
 		return Math.min(d1, d2);
 	}
+	
+	public Coordinate nearestCoord(Coordinate loc) {
+		Coordinate[] coords = {this.c1, this.c2};
+		
+		Coordinate cNear = Arrays.stream(coords).min(Comparator.comparing(c->c.distance(loc))).get();
+		
+		return cNear;
+	}
+
+	public Coordinate farthestCoord(Coordinate loc) {
+		Coordinate[] coords = {this.c1, this.c2};
+		
+		Coordinate cFar = Arrays.stream(coords).max(Comparator.comparing(c->c.distance(loc))).get();
+		
+		return cFar;
+	}	
 	
 	public Integer getvFlow(Geography<Road> rG) {
 		// Get the number of vehicles on the road link
