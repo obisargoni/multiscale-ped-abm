@@ -155,5 +155,36 @@ public class AccumulatorRoute {
 			}
 		}
 	}
+	
+	/*
+	 * Check for a dominant activation. If one activation is dominant choose that crossing alternative
+	 */
+	
+	public Integer chooseCA() {
+		
+		// initialise variable to record index of chosen crossing alterantive
+		Integer choseni = null;
+		
+		// Sort the activations
+		int nCAs = this.caActivations.length;
+		double[] sortedActivations = this.caActivations;
+		Arrays.sort(sortedActivations);
+		
+		// Compare the largest activation to the second largest
+		double diff = sortedActivations[nCAs-1] - sortedActivations[nCAs-2];  
+		if (diff > this.ped.getEpsilon()) {
+			// Choose ca by iterating through activations and finding index of the maximum activation
+			for (int i=0; i< nCAs; i++) {
+				double a = this.caActivations[i];
+				if (a == sortedActivations[nCAs-1]) {
+					choseni = i;
+				}
+			}
+		}
+		
+		return choseni;
+	}
+	
+	
 
 }
