@@ -189,6 +189,9 @@ public class AccumulatorRoute {
 		return choseni;
 	}
 	
+	public List<Coordinate> getRouteX() {
+		return routeX;
+	}
 	
 
 }
