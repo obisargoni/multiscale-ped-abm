@@ -17,21 +17,25 @@ import repastInterSim.environment.CrossingAlternative;
 
 public class AccumulatorRoute {
 	
-	protected Coordinate destination;
-	
+	private Coordinate defaultDestination; // The destination pedestrian walks towards while choosing crossing alternative
 	private Ped ped;
 	
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
 	
-	public AccumulatorRoute(Ped p, Coordinate d) {
-		this.destination = d;
+	private List<Coordinate> routeX; // The list of coordinates that form the pedestrian agent's tactical route
+	
+	public AccumulatorRoute(Ped p, Coordinate defD) {
+		this.defaultDestination = defD;
 		this.ped = p;
 		this.cas = new ArrayList<CrossingAlternative>();
 		this.caActivations = new double[this.cas.size()];
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
 		}
+		
+		routeX = new ArrayList<Coordinate>();
+		routeX.add(defaultDestination);
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -124,7 +128,7 @@ public class AccumulatorRoute {
 		double walkTime = (dToCA + dFromCAToDest) / this.ped.getSpeed();
 		
 		// Need characteristic walk time to compare this to
-		double charWT = this.ped.getLoc().distance(this.destination) / this.ped.getSpeed();
+		double charWT = this.ped.getLoc().distance(this.defaultDestination) / this.ped.getSpeed();
 		
 		return 1 - (walkTime / charWT);
 	}
