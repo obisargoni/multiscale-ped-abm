@@ -38,7 +38,7 @@ public class AccumulatorRoute {
 	 * with the argument given by the distance to the crossing alternative from the pedestrian multiplied by the
 	 * pedestrian's lambda factor.
 	 */
-	private List<Double> caSamplingProbabilities(){
+	public List<Double> caSamplingProbabilities(){
 		List<Double> probs = new ArrayList<Double>();
 		
 		double lambda = this.ped.getLambda();
