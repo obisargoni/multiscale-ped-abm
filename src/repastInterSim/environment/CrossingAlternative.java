@@ -36,13 +36,13 @@ public class CrossingAlternative {
 	 * 		The coordinate to calculate the distance from
 	 */
 	public Double distanceTo(Coordinate loc) {
-		double d1 = this.c1.distance(loc);
-		double d2 = this.c2.distance(loc);
+		double d1 = getC1().distance(loc);
+		double d2 = getC2().distance(loc);
 		return Math.min(d1, d2);
 	}
 	
 	public Coordinate nearestCoord(Coordinate loc) {
-		Coordinate[] coords = {this.c1, this.c2};
+		Coordinate[] coords = {getC1(), getC2()};
 		
 		Coordinate cNear = Arrays.stream(coords).min(Comparator.comparing(c->c.distance(loc))).get();
 		
@@ -50,7 +50,7 @@ public class CrossingAlternative {
 	}
 
 	public Coordinate farthestCoord(Coordinate loc) {
-		Coordinate[] coords = {this.c1, this.c2};
+		Coordinate[] coords = {getC1(), getC2()};
 		
 		Coordinate cFar = Arrays.stream(coords).max(Comparator.comparing(c->c.distance(loc))).get();
 		
