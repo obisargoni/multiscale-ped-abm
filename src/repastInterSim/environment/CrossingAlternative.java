@@ -25,6 +25,7 @@ public class CrossingAlternative {
 	private String type = "unmarked";
 	
 	// id of the road link this crossing is located on
+	private String roadLinkID;
 	private RoadLink roadLink;
 	
 	// pedestrian agent perceiving this crossing
@@ -78,8 +79,12 @@ public class CrossingAlternative {
 		return vehicleNumber;
 	}
 	
+	public void setRoadLinkID(String rlID) {
+		this.roadLinkID = rlID;
+	}
+	
 	public String getRoadLinkID() {
-		return this.roadLink.getFID();
+		return this.roadLinkID;
 	}
 	
 	public RoadLink getRoadLink() {
