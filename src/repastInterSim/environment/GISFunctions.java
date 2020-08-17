@@ -847,6 +847,51 @@ public class GISFunctions {
 	}
 	
 	/*
+	 *Method for finding either the nearest or farthest coordinate of a geometry from a starting point
+	 * 
+	 * @param Coordinate originCoord
+	 * @param Geometry geom
+	 * @param String nearOrFar
+	 */
+	public static <T> Coordinate xestGeomCoordinate(Coordinate originCoord, Geometry geom, Boolean far) {
+		Coordinate destCoord = null;
+		Double destDist = null;
+		int compVal = 0;
+		if (far == false) {
+			destDist = Double.MAX_VALUE;
+			compVal = -1;
+		}
+		else if (far == true){
+			destDist = 0.0;
+			compVal = +1;
+		}
+		else {
+			return destCoord;
+		}
+		
+		
+		// Densify geometry so that looping through coordinates maintains good spatial granularity
+		geom = Densifier.densify(geom, 1);
+		
+		// Loop through coordinates of geometry and find nearest/farthest coordinate not blocked by a pedestrian obstruction
+		Coordinate[] rGeomCoords = geom.getCoordinates();
+		for(Coordinate c: rGeomCoords) {
+			
+			// Check for obstructions
+			Coordinate[] lineCoords = {originCoord, c};
+			LineString pathLine = GISFunctions.lineStringGeometryFromCoordinates(lineCoords);
+
+			Double cDist = c.distance(originCoord);
+			int comp = Integer.signum(cDist.compareTo(destDist));
+			if (comp == compVal) {
+				destDist = cDist;
+				destCoord = c;
+			}
+		}
+		return destCoord;
+	}
+	
+	/*
 	 *Method for finding either the nearest or farthest coordinate of a geometry from a starting point, that doesn't obstruct a geometry in the obstruction
 	 *geography
 	 * 
