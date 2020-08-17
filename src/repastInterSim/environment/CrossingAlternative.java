@@ -174,4 +174,20 @@ public class CrossingAlternative {
 		this.destination = destination;
 	}
 
+	public Ped getPed() {
+		return ped;
+	}
+
+	public void setPed(Ped ped) {
+		this.ped = ped;
+	}
+
+	public Geography<Road> getRoadGeography() {
+		return roadGeography;
+	}
+
+	public void setRoadGeography(Geography<Road> roadGeography) {
+		this.roadGeography = roadGeography;
+	}
+
 }
