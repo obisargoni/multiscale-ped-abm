@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.space.gis.Geography;
+import repastInterSim.agent.Ped;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class CrossingAlternative {
@@ -26,6 +27,8 @@ public class CrossingAlternative {
 	// id of the road link this crossing is located on
 	private RoadLink roadLink;
 	
+	// pedestrian agent perceiving this crossing
+	private Ped ped = null;
 	
 	// Road geography containing the pavement and carriageway polygons
 	private Geography<Road> roadGeography = null;
@@ -130,15 +133,25 @@ public class CrossingAlternative {
 	}
 
 	public Coordinate getC1() {
-		return c1;
+		if (c1==null) {
+			return this.ped.getLoc();
+		}
+		else {
+			return c1;
+		}
 	}
 
-	public void setC1(Coordinate c1) {
+	public void setC1(Coordinate c1) {		
 		this.c1 = c1;
 	}
 
 	public Coordinate getC2() {
-		return c2;
+		if(c2==null) {
+			return nearestOppositePedestrianCoord(this.ped.getLoc(), this.roadGeography, this.roadLink);
+		}
+		else {
+			return c2;
+		}
 	}
 
 	public void setC2(Coordinate c2) {
