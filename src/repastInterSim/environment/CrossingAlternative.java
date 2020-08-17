@@ -22,7 +22,8 @@ public class CrossingAlternative {
 	private String type = "unmarked";
 	
 	// id of the road link this crossing is located on
-	private String roadLinkID;
+	private RoadLink roadLink;
+	
 
 	public CrossingAlternative(){
 				
@@ -61,7 +62,7 @@ public class CrossingAlternative {
 		// Get the number of vehicles on the road link
 		Road r = null;
     	for (Road ri: rG.getAllObjects()) {
-    		if (ri.getRoadLinkID().contentEquals(this.roadLinkID)){
+    		if (ri.getRoadLinkID().contentEquals(getRoadLinkID())){
     			r = ri;
     		}
     	}
@@ -70,11 +71,15 @@ public class CrossingAlternative {
 	}
 	
 	public String getRoadLinkID() {
-		return roadLinkID;
+		return this.roadLink.getFID();
+	}
+	
+	public RoadLink getRoadLink() {
+		return this.roadLink;
 	}
 
-	public void setRoadLinkID(String roadLinkID) {
-		this.roadLinkID = roadLinkID;
+	public void setRoadLink(RoadLink rL) {
+		this.roadLink = rL;
 	}
 
 
