@@ -1,13 +1,15 @@
 package repastInterSim.environment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.space.gis.Geography;
+import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class CrossingAlternative {
 	
@@ -24,6 +26,9 @@ public class CrossingAlternative {
 	// id of the road link this crossing is located on
 	private RoadLink roadLink;
 	
+	
+	// Road geography containing the pavement and carriageway polygons
+	private Geography<Road> roadGeography = null;
 
 	public CrossingAlternative(){
 				
@@ -82,6 +87,47 @@ public class CrossingAlternative {
 		this.roadLink = rL;
 	}
 
+	/*
+	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
+	 * Used to identify the end point of unmarked crossing alternatives.
+	 */
+	public Coordinate nearestOppositePedestrianCoord(Coordinate c, Geography<Road> rG, RoadLink rl) {
+		// Initialise a ist containing the road link this crossing alternative is on
+		List<RoadLink> rlList = new ArrayList<RoadLink>();
+		rlList.add(this.roadLink);
+		
+		// Get pedestrian road objects on this road link
+		List<Road> caPedRoads = null;
+		try {
+			caPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(rl.getFID(), rG);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Loop through ped roads and find nearest coordinate on each
+		Double minDist = Double.MAX_VALUE;
+		Coordinate nearestOpCoord = null;
+		for (Road r:caPedRoads) {
+			// Get nearest coord
+			Coordinate nearC = GISFunctions.xestGeomCoordinate(c, r.getGeom(), false);
+			
+			// Check parity to make sure coordinate is on opposite side of the road
+			int p = RoadNetworkRoute.calculateRouteParity(c, nearC, rlList);
+			if (p==0) {
+				continue;
+			}
+			
+			// Check if nearer
+			double d = c.distance(nearC);
+			if (d < minDist) {
+				minDist = d;
+				nearestOpCoord = nearC;
+			}
+		}
+		
+		return nearestOpCoord;
+	}
 
 	public Coordinate getC1() {
 		return c1;
