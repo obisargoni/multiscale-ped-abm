@@ -53,16 +53,15 @@ public abstract class GlobalVars {
 	public static final String VehicleRoadShapefile = "VehicleRoadShapefile";
 	public static final String PedestrianRoadShapefile = "PedestrianRoadShapefile";
 	public static final String RoadLinkShapefile = "RoadLinkShapefile";
+	public static final String ORRoadLinkShapefile = "ORRoadLinkShapefile";
 	public static final String PedestrianObstructionShapefile = "PedestrianObstructionShapefile";
 	public static final String VehicleDestinationsFile = "VehicleDestinationsFile";
 	public static final String PedestrianDestinationsFile = "PedestrianDestinationsFile";
 	public static final String vehicleODFlowsFile = "vehicleODFlowsFile";
 	public static final String pedestrianODFlowsFile = "pedestrianODFlowsFile";
 	
-	public static final String BuildingShapefile = "BuildingShapefile";
-	public static final String RoadShapefile = "RoadShapefile";
-	
-	public static final String BuildingsRoadsCoordsCache = "BuildingsRoadsCoordsCache";
+	public static final String ODRoadLinkCoordsCache = "ODRoadLinkCoordsCache";
+	public static final String ODORRoadLinkCoordsCache = "ODORRoadLinkCoordsCache";
 	public static final String BuildingsRoadsCache = "BuildingsRoadsCache";
 	public static final String RoadLinkRoadsCache = "RoadLinkRoadsCache";
 			
