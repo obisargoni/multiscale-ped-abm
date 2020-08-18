@@ -133,17 +133,17 @@ def find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdf
 		intersections = []
 		for iv1,iv2 in veh_pairs:
 			for ip1,ip2 in ped_pairs:
-				row['v1_polyID'] = gdfVehPolys.loc[iv1, 'polyID']
-				row['v1_roadLinkID'] = gdfVehPolys.loc[iv1, 'roadLinkID']
+				row['v1pID'] = gdfVehPolys.loc[iv1, 'polyID']
+				row['v1rlID'] = gdfVehPolys.loc[iv1, 'roadLinkID']
 
-				row['v2_polyID'] = gdfVehPolys.loc[iv2, 'polyID']
-				row['v2_roadLinkID'] = gdfVehPolys.loc[iv2, 'roadLinkID']
+				row['v2pID'] = gdfVehPolys.loc[iv2, 'polyID']
+				row['v2rlID'] = gdfVehPolys.loc[iv2, 'roadLinkID']
 
-				row['p1_polyID'] = gdfPedPolys.loc[ip1, 'polyID']
-				row['p1_roadLinkID'] = gdfPedPolys.loc[ip1, 'roadLinkID']
+				row['p1pID'] = gdfPedPolys.loc[ip1, 'polyID']
+				row['p1rlID'] = gdfPedPolys.loc[ip1, 'roadLinkID']
 				
-				row['p2_polyID'] = gdfPedPolys.loc[ip2, 'polyID']
-				row['p2_roadLinkID'] = gdfPedPolys.loc[ip2, 'roadLinkID']
+				row['p2pID'] = gdfPedPolys.loc[ip2, 'polyID']
+				row['p2rlID'] = gdfPedPolys.loc[ip2, 'roadLinkID']
 
 				v1_g = gdfVehPolys.loc[iv1, 'geometry']
 				v2_g = gdfVehPolys.loc[iv2, 'geometry']
@@ -193,13 +193,13 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 		gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
 
 		# Get pairs of ped nodes
-		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1_roadLinkID']==rl_id) | (gdfPN['v2_roadLinkID']==rl_id)]
-		ped_node_pairs = itertools.combinations(gdfPedNodesSub['ped_node_id'].values, 2)
+		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
+		ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
 
 		for ped_u, ped_v in ped_node_pairs:
 			# Create linestring to join ped nodes
-			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_u, 'geometry'].values[0]
-			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'] == ped_v, 'geometry'].values[0]
+			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'geometry'].values[0]
+			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'geometry'].values[0]
 
 			l = LineString([g_u, g_v])
 
@@ -211,7 +211,7 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 
 				# Need to identify which pedestrian polygon(s) this edge corresponds to
 				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['ped_node_id'].isin([ped_u, ped_v]), ['p1_polyID','p2_polyID']].to_dict(orient = 'split')['data']
+				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
 				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
 				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
 
@@ -310,7 +310,7 @@ gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
 # Create id for each ped node
-gdfPedNodes['ped_node_id'] = ['ped_node_{}'.format(i) for i in gdfPedNodes.index]
+gdfPedNodes['fid'] = ['ped_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.crs = projectCRS
 gdfPedNodes.to_file(output_ped_nodes_file)
 
@@ -352,7 +352,7 @@ group_sizes = grouped.transform(lambda df: df.shape[0])
 
 # Write process for connecting nodes in a group
 # join ped nodes that have the same road link id
-pcol_re = re.compile(r'p\d_polyID.*')
+pcol_re = re.compile(r'p\dpID.*')
 
 def check_ped_poly_id_repreated(row, ped_poly_col_regex = pcol_re):
 	ped_poly_cols = [i for i in row.index if pcol_re.search(i) is not None]
@@ -376,10 +376,10 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
 	return junc_edges
 
-junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'ped_node_id','v1_roadLinkID', 'v2_roadLinkID')
+junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
 
 # Drop duplicates and recreate index
-junc_edges.drop_duplicates(subset=['ped_node_id_from','ped_node_id_to'], inplace = True)
+junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
 junc_edges.index = np.arange(len(junc_edges))
 
 # Where the link connects nodes on the same ped poly, remove reference to road link as in these cases link does not cross road link
@@ -393,7 +393,7 @@ for i in junc_edges.loc[ junc_edges['share_ped_poly'] == True].index:
 	junc_edges.loc[i] = row
 '''
 
-junc_edges['edge'] = junc_edges.apply(lambda row: (row['ped_node_id_from'], row['ped_node_id_to'], row['edge_data']), axis=1)
+junc_edges['edge'] = junc_edges.apply(lambda row: (row['fid_from'], row['fid_to'], row['edge_data']), axis=1)
 
 
 # Add these edges to the network
@@ -416,14 +416,14 @@ for u,v,data in list(G_ped_poly.edges(data=True)):
 dfPedNetwork = pd.DataFrame(edge_data)
 
 # Now join with node coordinates
-dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['ped_node_id','geometry']), left_on = 'from_node', right_on = 'ped_node_id', how = 'left', indicator = True)
+dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['fid','geometry']), left_on = 'from_node', right_on = 'fid', how = 'left', indicator = True)
 assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
-dfPedNetwork.drop(['_merge','ped_node_id'], axis = 1, inplace = True)
+dfPedNetwork.drop(['_merge','fid'], axis = 1, inplace = True)
 dfPedNetwork.rename(columns = {'geometry':'geometry_from'}, inplace = True)
 
-dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['ped_node_id','geometry']), left_on = 'to_node', right_on = 'ped_node_id', how = 'left', suffixes = ('','_to'), indicator = True)
+dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['fid','geometry']), left_on = 'to_node', right_on = 'fid', how = 'left', suffixes = ('','_to'), indicator = True)
 assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
-dfPedNetwork.drop(['_merge','ped_node_id'], axis = 1, inplace = True)
+dfPedNetwork.drop(['_merge','fid'], axis = 1, inplace = True)
 dfPedNetwork.rename(columns = {'geometry':'geometry_to'}, inplace = True)
 
 # Create LineString connecting edge nodes
@@ -439,11 +439,11 @@ gdfPedNetwork.to_file(output_ped_links_file)
 
 # Also select those edges that connect ped nodes that share a polygon from junc edges
 gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['MNodeFID'],row['PNodeFID']), axis=1)
-junc_edges['edgea'] = junc_edges.apply(lambda row: (row['ped_node_id_from'],row['ped_node_id_to']), axis=1)
-junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['ped_node_id_to'],row['ped_node_id_from']), axis=1)
+junc_edges['edgea'] = junc_edges.apply(lambda row: (row['fid_from'],row['fid_to']), axis=1)
+junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['fid_to'],row['fid_from']), axis=1)
 
 
 # Check those edges that connect nodes around a junction that are on the same ped poly - just for checking
-share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['ped_node_id_from'] != junc_edges['ped_node_id_to']), 'edgeb'].values)
+share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgeb'].values)
 gdfPedNetSharePoly = gdfPedNetwork.loc[ gdfPedNetwork['edge'].isin(share_poly_edges)]
 #gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")
