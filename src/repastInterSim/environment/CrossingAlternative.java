@@ -1,12 +1,12 @@
 package repastInterSim.environment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
