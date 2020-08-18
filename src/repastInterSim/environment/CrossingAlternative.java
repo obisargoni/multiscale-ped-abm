@@ -138,6 +138,25 @@ public class CrossingAlternative implements FixedGeography {
 		
 		return nearestOpCoord;
 	}
+	
+	/*
+	 * For unmarked crossing alternatives that do not have a fixed road link id this method finds the ID of the road link the 
+	 * line from crossing start to crossing end intersects
+	 */
+	public String getIntersectingRLID() {
+		
+		Coordinate[] coords = {this.getC1(), this.getC2()};
+		LineString l = GISFunctions.lineStringGeometryFromCoordinates(coords);
+		
+		// Loop through road links in strategic path sections
+		String fid = null;
+		for (RoadLink rl:this.strategicPathsection) {
+			if (rl.getGeom().intersects(l)) {
+				fid = rl.getFID();
+			}
+		}
+		return fid;
+	}
 
 	public Coordinate getC1() {
 		if (c1==null) {
