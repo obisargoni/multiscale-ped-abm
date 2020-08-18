@@ -601,12 +601,12 @@ public class Route implements Cacheable {
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
 				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
-				File buildingsFile = new File(gisDir + IO.getProperty(GlobalVars.BuildingShapefile));
-				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadShapefile));
-				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
+				File odsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleDestinationsFile));
+				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkShapefile));
+				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
 
 				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.vehicleDestinationGeography,
-						buildingsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
+						odsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
