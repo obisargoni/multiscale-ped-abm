@@ -397,7 +397,7 @@ public class PedPathFinder {
 		
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 		
-		// Loop through road links and crossing alternatives and add any crossign alternatives that match the road link id to the list
+		// Loop through open road sp section road links and crossing alternatives and add any crossing alternatives that match the road link id to the list
 		for (RoadLink rl: sP) {
 			for (CrossingAlternative ca: caG.getAllObjects()) {
 				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
