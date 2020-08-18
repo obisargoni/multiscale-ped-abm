@@ -12,9 +12,10 @@ import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
-public class CrossingAlternative {
+public class CrossingAlternative implements FixedGeography {
 	
 	// Coordinates at which the ca meets pavement
+	private Geometry geom = null;
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
 	
@@ -193,6 +194,20 @@ public class CrossingAlternative {
 
 	public void setRoadGeography(Geography<Road> roadGeography) {
 		this.roadGeography = roadGeography;
+	}
+
+	@Override
+	public Geometry getGeom() {
+		return this.geom;
+	}
+
+	@Override
+	public void setGeom(Geometry g) {
+		this.geom = g;
+		
+		int ncoords = g.getCoordinates().length;
+		this.c1 = g.getCoordinates()[0];
+		this.c2 = g.getCoordinates()[ncoords-1];
 	}
 
 }
