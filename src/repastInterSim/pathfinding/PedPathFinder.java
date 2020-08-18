@@ -407,6 +407,7 @@ public class PedPathFinder {
 					ca.setRoadGeography(rG);
 					ca.setDestination(dest);
 					ca.setStrategicPathSection(sP);
+					ca.setRoad();
 					
 					// Add to list
 					cas.add(ca);
