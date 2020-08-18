@@ -97,6 +97,19 @@ public class CrossingAlternative implements FixedGeography {
 	
 	public RoadLink getRoadLink() {
 		return this.roadLink;
+	/*
+	 * Gets the road object this crossing alternative lies on using the road id assigned to this crossing alternative
+	 */
+	public Road getRoadFromRoadLinkID() {
+		// Loop through road objects to set the road the crossing alternative is on
+		Road caRoad = null;
+		for (Road r: this.roadGeography.getAllObjects()) {
+			if (r.getRoadLinkID().contentEquals(this.getRoadLinkID())) {
+				caRoad = r;
+				break;
+			}
+		}
+		return caRoad;
 	}
 
 	public void setRoadLink(RoadLink rL) {
