@@ -32,6 +32,18 @@ public class Junction implements FixedGeography{
 	private List<RoadLink> roadLinks; // The Roads connected to this Junction, used in GIS road network
 	private String fid = null;
 	
+	// Attributes specific to pedestrian junctions
+	private String p1pID;
+	private String p2pID;
+	private String p1rlID;
+	private String p2rlID;
+	
+	private String v1pID;
+	private String v2pID;
+	private String v1rlID;
+	private String v2rlID;
+	
+	
 	public Junction() {
 		this.id = UniqueID++;
 		this.roadLinks = new ArrayList<RoadLink>();
@@ -100,6 +112,70 @@ public class Junction implements FixedGeography{
 	
 	public String getFID() {
 		return this.fid;
+	}
+
+	public String getP1pID() {
+		return p1pID;
+	}
+
+	public void setP1pID(String p1pID) {
+		this.p1pID = p1pID;
+	}
+
+	public String getP2pID() {
+		return p2pID;
+	}
+
+	public void setP2pID(String p2pID) {
+		this.p2pID = p2pID;
+	}
+
+	public String getP1rlID() {
+		return p1rlID;
+	}
+
+	public void setP1rlID(String p1rlID) {
+		this.p1rlID = p1rlID;
+	}
+
+	public String getP2rlID() {
+		return p2rlID;
+	}
+
+	public void setP2rlID(String p2rlID) {
+		this.p2rlID = p2rlID;
+	}
+
+	public String getV1pID() {
+		return v1pID;
+	}
+
+	public void setV1pID(String v1pID) {
+		this.v1pID = v1pID;
+	}
+
+	public String getV2pID() {
+		return v2pID;
+	}
+
+	public void setV2pID(String v2pID) {
+		this.v2pID = v2pID;
+	}
+
+	public String getV1rlID() {
+		return v1rlID;
+	}
+
+	public void setV1rlID(String v1rlID) {
+		this.v1rlID = v1rlID;
+	}
+
+	public String getV2rlID() {
+		return v2rlID;
+	}
+
+	public void setV2rlID(String v2rlID) {
+		this.v2rlID = v2rlID;
 	}
 	
 }
