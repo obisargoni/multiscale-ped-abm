@@ -57,7 +57,7 @@ public class PedPathFinder {
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
 		this.rGeography = SpaceBuilder.roadGeography;
 		
-		planStrategicPath(this.origin, this.destination, SpaceBuilder.orRoadLinkContext, SpaceBuilder.roadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
+		planStrategicPath(this.origin, this.destination, SpaceBuilder.orRoadLinkContext, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
 	}
 	
 	public PedPathFinder(Ped p) {
@@ -69,7 +69,7 @@ public class PedPathFinder {
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
 		this.rGeography = SpaceBuilder.roadGeography;
 		
-		planStrategicPath(this.origin, this.destination, SpaceBuilder.orRoadLinkContext, SpaceBuilder.roadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
+		planStrategicPath(this.origin, this.destination, SpaceBuilder.orRoadLinkContext, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
 	}
 	
 	/**
