@@ -27,7 +27,7 @@ public class CrossingAlternative implements FixedGeography {
 	
 	// id of the road link this crossing is located on
 	private String roadLinkID;
-	private RoadLink roadLink;
+	private Road road;
 	
 	// pedestrian agent perceiving this crossing
 	private Ped ped = null;
@@ -69,15 +69,9 @@ public class CrossingAlternative implements FixedGeography {
 		return cFar;
 	}	
 	
-	public Integer getvFlow(Geography<Road> rG) {
+	public Integer getvFlow() {
 		// Get the number of vehicles on the road link
-		Road r = null;
-    	for (Road ri: rG.getAllObjects()) {
-    		if (ri.getRoadLinkID().contentEquals(getRoadLinkID())){
-    			r = ri;
-    		}
-    	}
-    	int vehicleNumber = r.getRoadLinksVehicleCount();
+    	int vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
 		return vehicleNumber;
 	}
 	
@@ -93,10 +87,16 @@ public class CrossingAlternative implements FixedGeography {
 			return this.roadLinkID;
 		}
 	}
+	
+	public Road getRoad() {
+		if (this.road == null) {
+			return getRoadFromRoadLinkID();
+		}
+		else {
+			return this.road;
+		}
 	}
 	
-	public RoadLink getRoadLink() {
-		return this.roadLink;
 	/*
 	 * Gets the road object this crossing alternative lies on using the road id assigned to this crossing alternative
 	 */
@@ -112,8 +112,12 @@ public class CrossingAlternative implements FixedGeography {
 		return caRoad;
 	}
 
-	public void setRoadLink(RoadLink rL) {
-		this.roadLink = rL;
+	public void setRoad(Road r) {
+		this.road = r;
+	}
+	
+	public void setRoad() {
+		this.road = getRoadFromRoadLinkID();
 	}
 
 	/*
