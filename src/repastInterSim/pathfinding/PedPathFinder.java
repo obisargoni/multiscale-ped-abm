@@ -37,12 +37,8 @@ public class PedPathFinder {
 	private OD destination;
 	private Geography<Object> geography;
 	
-	private Context<RoadLink> rlContext;
-	private Geography<RoadLink> rlGeography;
-	private Network<Junction> rlNetwork;
 	private Geography<PedObstruction> obstructGeography;
 	private Geography<Road> rGeography;
-	private Geography<OD> destGeography;
 	
 	
 	private List<RoadLink> strategicPath;
