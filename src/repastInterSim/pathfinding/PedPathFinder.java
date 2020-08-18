@@ -338,6 +338,50 @@ public class PedPathFinder {
 		return alternatives;
 	}
 	
+	/*
+	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
+	 * for use in the accumulator choice model.
+	 * 
+	 * @param Geography<CrossingAlternative> caG
+	 * 		The geography containing all crossing alternative objects
+	 * @param List<RoadLink> sP
+	 * 		The road links to identify crossing alternatives along
+	 * @param Ped p
+	 * 		The pedestrian agent perceiving the crossing alternatives
+	 * @param Geography<Road> rG
+	 * 		The Geography containing Road objects
+	 */
+	public static List<CrossingAlternative> getCrossingAlternatives(Geography<CrossingAlternative> caG, List<RoadLink> sP, Ped p, Geography<Road> rG, Coordinate dest){
+		
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		
+		// Loop through road links and crossing alternatives and add any crossign alternatives that match the road link id to the list
+		for (RoadLink rl: sP) {
+			for (CrossingAlternative ca: caG.getAllObjects()) {
+				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
+					
+					// Set up this crossing alternative
+					ca.setPed(p);
+					ca.setRoadGeography(rG);
+					ca.setDestination(dest);
+					
+					// Add to list
+					cas.add(ca);
+				}
+			}
+		}
+		
+		// Add unmarked crossing alternative to lsit
+		CrossingAlternative caU = new CrossingAlternative();
+		caU.setType("unmarked");
+		caU.setPed(p);
+		caU.setRoadGeography(rG);
+		caU.setDestination(dest);
+		cas.add(caU);
+		
+		return cas;		
+	}
+	
 	public static int getNLinksWithinAngularDistance(List<RoadLink> sP, double angDistThreshold) {
 		// Initialise number of links in planning horizon as one (current link always in planning horizon)
 		int nLinks = 1;
