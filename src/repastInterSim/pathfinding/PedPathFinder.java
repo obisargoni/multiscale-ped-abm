@@ -159,6 +159,40 @@ public class PedPathFinder {
 		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
 		this.tacticalPath.removeNextFromRoute();
     }
+	
+	/*
+	 * Method to get the default destination coordinate for a pedestrian agent. Defined
+	 * as the pedestrian network junction at the end of the planning horizon that doesn't
+	 * require a primary road crossing to reach.
+	 */
+	public Coordinate defaultDestinationCoordinate(Geography<Junction> pedJG, List<RoadLink> sP, Coordinate sC) {
+		
+		// Get road link ID of link at end of planning horizon
+		String rlEndID = sP.get(-1).getFID();
+		
+		// Loop through ped network junctions and find coordinate at end of planning horizon that is on same side of road
+		Coordinate defaultCoord = null;
+		double cDist = Double.MIN_VALUE;
+		for (Junction pJ: pedJG.getAllObjects()) {
+			
+			// Check junction lies on end road link
+			if(pJ.getP1rlID().contentEquals(rlEndID) | pJ.getP2rlID().contentEquals(rlEndID) | pJ.getV1rlID().contentEquals(rlEndID) | pJ.getV2rlID().contentEquals(rlEndID)) {
+				
+				// Check it is on same side of road
+				Coordinate candidate = pJ.getGeom().getCoordinate();
+				int parity = RoadNetworkRoute.calculateRouteParity(sC, candidate, sP);
+				if (parity == 0) {
+					// Check that coordinate is farther away
+					double d = sC.distance(candidate);
+					if (d>cDist) {
+						cDist = d;
+						defaultCoord = candidate;
+					}
+				}
+			}
+		}
+		return defaultCoord;
+	}
 
 	/*
 	 * Plan a tactical level path from an origin coordinate to a destination coordinate. The tactical path is planned using the
