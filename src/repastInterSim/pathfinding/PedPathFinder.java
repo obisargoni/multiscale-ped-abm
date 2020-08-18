@@ -143,7 +143,7 @@ public class PedPathFinder {
 				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
-			Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.orJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
+			Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.pedJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
 			
 			// Initialise Accumulator Route that agent will use to navigate along the planning horizon
 			planTacticaAccumulatorPath(SpaceBuilder.caGeography, this.strategicPath.subList(0, nLinks), this.ped, SpaceBuilder.roadGeography, tacticalDestCoord, defaultDest);
