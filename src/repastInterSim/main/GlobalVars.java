@@ -142,6 +142,9 @@ public abstract class GlobalVars {
 		public static final String OR_JUNCTION_CONTEXT = "ORJunctionContext";
 		public static final String OR_JUNCTION_GEOGRAPHY = "ORJunctionGeography";
 		
+		public static final String PED_JUNCTION_CONTEXT = "PedJunctionContext";
+		public static final String PED_JUNCTION_GEOGRAPHY = "PedJunctionGeography";
+		
 		public static final String VEHICLE_DESTINATION_CONTEXT = "DestinationContext";
 		public static final String VEHICLE_DESTINATION_GEOGRAPHY = "DestinationGeography";
 		public static final String PEDESTRIAN_DESTINATION_CONTEXT = "DestinationContext";

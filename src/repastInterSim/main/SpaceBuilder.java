@@ -96,6 +96,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<Junction> orJunctionGeography;
 	public static Network<Junction> orRoadNetwork;
 	
+	public static Context<Junction> pedJunctionContext;
+	public static Geography<Junction> pedJunctionGeography;
+	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
 	public static GeometryFactory fac;
@@ -170,6 +173,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(orJunctionContext);
 		fixedGeographies.add(orJunctionGeography);
 		
+		pedJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
+		pedJunctionGeography = createTypedGeography(Junction.class, pedJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
+		context.addSubContext(pedJunctionContext);
+		fixedGeographies.add(pedJunctionGeography);
+		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
 		vehicleDestinationContext = new VehicleDestinationContext();
 		vehicleDestinationGeography = createTypedGeography(OD.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
@@ -198,10 +206,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 			
 			// 1b. Load the pedestrian road links
-			String pedRoadLinkFile = GISDataDir + IO.getProperty("PedestrianRoadLinkShapefile");
-			GISFunctions.readShapefile(RoadLink.class, pedRoadLinkFile, orRoadLinkGeography, orRoadLinkContext);
+			String orRoadLinkFile = GISDataDir + IO.getProperty("ORRoadLinkShapefile");
+			GISFunctions.readShapefile(RoadLink.class, orRoadLinkFile, orRoadLinkGeography, orRoadLinkContext);
 			SpatialIndexManager.createIndex(orRoadLinkGeography, RoadLink.class);
-
+			
 			
 			// 2a. vehicle roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
@@ -210,9 +218,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 			
 			// 2b. pedestrian road network
-			NetworkBuilder<Junction> pedBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
-			pedBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			orRoadNetwork = pedBuilder.buildNetwork();
+			NetworkBuilder<Junction> orBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
+			orBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+			orRoadNetwork = orBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
 			
 			// Build the fixed environment
@@ -241,6 +249,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
 			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
 			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
+			
+			// 5. Load junctions of pedestrian network (actual network not created)
+			String pedJuncFile = GISDataDir + IO.getProperty("PedJunctions");
+			GISFunctions.readShapefile(Junction.class, pedJuncFile, pedJunctionGeography, pedJunctionContext);
+			SpatialIndexManager.createIndex(pedJunctionGeography, Junction.class);
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
