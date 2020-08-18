@@ -201,6 +201,16 @@ public class AccumulatorRoute {
 		}
 	}
 	
+	/*
+	 *  Update the crossing alternative activations and choose a crossing alternative
+	 */
+	public void step() {
+		this.accumulateCAActivation();
+		
+		// Chooses a crossing alternative if a sufficient level of activation has been reached
+		this.chooseCA();
+	}
+	
 	public List<Coordinate> getRouteX() {
 		return routeX;
 	}
