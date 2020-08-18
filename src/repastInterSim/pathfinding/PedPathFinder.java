@@ -45,7 +45,7 @@ public class PedPathFinder {
 	
 	
 	private List<RoadLink> strategicPath;
-	private GridRoute tacticalPath = new GridRoute();
+	private AccumulatorRoute tacticalPath;
 	
 	private Coordinate nextTacticalPathCoord = null;
 
@@ -216,7 +216,21 @@ public class PedPathFinder {
     	// Adds coordinates to route from next section of grid path
 		tP.setNextRouteSection();
 		
-		this.tacticalPath= tP;
+		//this.tacticalPath= tP;
+	}
+	
+	/*
+	 * Plan a tactical level path using the accumulator crossing choice path finding model.
+	 */
+	public void planTacticaAccumulatorPath(Geography<CrossingAlternative> caG, List<RoadLink> sP, Ped p, Geography<Road> rG, Coordinate tacticalDestCoord, Coordinate defaultDestCoord) {
+		
+		// Get crossing alternatives within planning horizon
+		List<CrossingAlternative> cas = getCrossingAlternatives(caG, sP, p, rG, tacticalDestCoord);
+		
+		// Initialse AccumulatorRoute with strategic path planning horizon and origin and destination coordiantes, crossing alternatives
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, defaultDestCoord, cas);
+		
+		this.tacticalPath = accRoute;
 	}
 	
 	
@@ -456,7 +470,7 @@ public class PedPathFinder {
 		return this.strategicPath;
 	}
 	
-	public GridRoute getTacticalPath() {
+	public AccumulatorRoute getTacticalPath() {
 		return this.tacticalPath;
 	}
 
