@@ -34,6 +34,7 @@ public class CrossingAlternative implements FixedGeography {
 	
 	// Road geography containing the pavement and carriageway polygons
 	private Geography<Road> roadGeography = null;
+	private List<RoadLink> strategicPathsection;
 
 	public CrossingAlternative(){
 				
@@ -208,6 +209,10 @@ public class CrossingAlternative implements FixedGeography {
 		int ncoords = g.getCoordinates().length;
 		this.c1 = g.getCoordinates()[0];
 		this.c2 = g.getCoordinates()[ncoords-1];
+	}
+
+	public void setStrategicPathSection(List<RoadLink> sps) {
+		this.strategicPathsection = sps;		
 	}
 
 }
