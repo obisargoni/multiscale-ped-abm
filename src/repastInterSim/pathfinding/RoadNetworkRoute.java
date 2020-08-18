@@ -891,7 +891,7 @@ class NearestRoadCoordCache implements Serializable {
 	private Hashtable<Coordinate, Coordinate> theCache; // The actual cache
 	// Check that the road/building data hasn't been changed since the cache was
 	// last created
-	private File buildingsFile;
+	private File odsFile;
 	private File roadsFile;
 	// The location that the serialised object might be found.
 	private File serialisedLoc;
@@ -903,11 +903,11 @@ class NearestRoadCoordCache implements Serializable {
 
 	private GeometryFactory geomFac;
 
-	private NearestRoadCoordCache(Geography<OD> buildingEnvironment, File buildingsFile,
+	private NearestRoadCoordCache(Geography<OD> odEnvironment, File odsFile,
 			Geography<RoadLink> roadLinkEnvironment, File roadsFile, File serialisedLoc, GeometryFactory geomFac)
 			throws Exception {
 
-		this.buildingsFile = buildingsFile;
+		this.odsFile = odsFile;
 		this.roadsFile = roadsFile;
 		this.serialisedLoc = serialisedLoc;
 		this.theCache = new Hashtable<Coordinate, Coordinate>();
@@ -915,12 +915,12 @@ class NearestRoadCoordCache implements Serializable {
 		this.roadLinkEnvironment = roadLinkEnvironment;
 
 		LOGGER.log(Level.FINE, "NearestRoadCoordCache() creating new cache with data (and modification date):\n\t"
-				+ this.buildingsFile.getAbsolutePath() + " (" + new Date(this.buildingsFile.lastModified()) + ") \n\t"
+				+ this.odsFile.getAbsolutePath() + " (" + new Date(this.odsFile.lastModified()) + ") \n\t"
 				+ this.roadsFile.getAbsolutePath() + " (" + new Date(this.roadsFile.lastModified()) + "):\n\t"
 				+ this.serialisedLoc.getAbsolutePath());
 		
 		// Don't populate the cache for now
-		populateCache(buildingEnvironment, roadLinkEnvironment);
+		populateCache(odEnvironment, roadLinkEnvironment);
 		this.createdTime = new Date().getTime();
 		serialise();
 	}
@@ -930,30 +930,30 @@ class NearestRoadCoordCache implements Serializable {
 	}
 
 	
-	private void populateCache(Geography<OD> buildingEnvironment, Geography<RoadLink> roadLinkEnvironment)
+	private void populateCache(Geography<OD> odEnvironment, Geography<RoadLink> roadLinkEnvironment)
 			throws Exception {
 		double time = System.nanoTime();
 		theCache = new Hashtable<Coordinate, Coordinate>();
 		// Iterate over every building and find the nearest road point
-		for (OD b : buildingEnvironment.getAllObjects()) {
+		for (OD od : odEnvironment.getAllObjects()) {
 			List<Coordinate> nearestCoords = new ArrayList<Coordinate>();
-			Geometry bGeom = b.getGeom();
-			RoadNetworkRoute.findNearestObject(bGeom.getCoordinate(), roadLinkEnvironment, nearestCoords,
+			Geometry odGeom = od.getGeom();
+			RoadNetworkRoute.findNearestObject(odGeom.getCoordinate(), roadLinkEnvironment, nearestCoords,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Two coordinates returned by closestPoints(), need to find the one
 			// which isn't the building coord
 			Coordinate nearestPoint = null;
 			for (Coordinate c : nearestCoords) {
-				if (!c.equals(bGeom.getCoordinate())) {
+				if (!c.equals(odGeom.getCoordinate())) {
 					nearestPoint = c;
 					break;
 				}
 			} // for nearestCoords
 			if (nearestPoint == null) {
 				throw new Exception("Route.getNearestRoadCoord() error: couldn't find a road coordinate which "
-						+ "is close to building " + b.toString());
+						+ "is close to building " + od.toString());
 			}
-			theCache.put(bGeom.getCoordinate(), nearestPoint);
+			theCache.put(odGeom.getCoordinate(), nearestPoint);
 		}// for Buildings
 		LOGGER.log(Level.FINER, "Finished caching nearest roads (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
 	} // if nearestRoadCoordCache = null;
@@ -1081,7 +1081,7 @@ class NearestRoadCoordCache implements Serializable {
 
 				// Check that the cache is representing the correct data and the
 				// modification dates are ok
-				if (!buildingsFile.getAbsolutePath().equals(ncc.buildingsFile.getAbsolutePath())
+				if (!buildingsFile.getAbsolutePath().equals(ncc.odsFile.getAbsolutePath())
 						|| !roadsFile.getAbsolutePath().equals(ncc.roadsFile.getAbsolutePath())
 						|| buildingsFile.lastModified() > ncc.createdTime || roadsFile.lastModified() > ncc.createdTime) {
 					LOGGER.log(Level.FINE, "BuildingsOnRoadCache, found serialised object but it doesn't match the "
