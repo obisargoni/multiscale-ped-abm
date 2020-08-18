@@ -16,6 +16,7 @@ import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repastInterSim.agent.Ped;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.OD;

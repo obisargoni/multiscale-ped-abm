@@ -27,10 +27,10 @@ public class AccumulatorRoute {
 	
 	private boolean caChosen = false;
 	
-	public AccumulatorRoute(Ped p, Coordinate defD) {
+	public AccumulatorRoute(Ped p, Coordinate defD, List<CrossingAlternative> cas) {
 		this.defaultDestination = defD;
 		this.ped = p;
-		this.cas = new ArrayList<CrossingAlternative>();
+		this.cas = cas;
 		this.caActivations = new double[this.cas.size()];
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
