@@ -86,7 +86,13 @@ public class CrossingAlternative implements FixedGeography {
 	}
 	
 	public String getRoadLinkID() {
-		return this.roadLinkID;
+		if (this.roadLinkID == null) {
+			return this.getIntersectingRLID();
+		}
+		else {
+			return this.roadLinkID;
+		}
+	}
 	}
 	
 	public RoadLink getRoadLink() {
