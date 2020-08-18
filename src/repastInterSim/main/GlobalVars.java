@@ -147,6 +147,9 @@ public abstract class GlobalVars {
 		public static final String PEDESTRIAN_DESTINATION_CONTEXT = "DestinationContext";
 		public static final String PEDESTRIAN_DESTINATION_GEOGRAPHY = "DestinationGeography";
 		
+		public static final String CA_CONTEXT = "CAContext";
+		public static final String CA_GEOGRAPHY = "CAGeography";
+		
 		public static final String ROAD_NETWORK = "RoadNetwork";
 		public static final String PED_ROAD_NETWORK = "PedRoadNetwork";
 		public static final String GRID_NETWORK = "GridNetwork";
@@ -155,6 +158,7 @@ public abstract class GlobalVars {
 		public static final String AGENT_GEOGRAPHY = "AgentGeography";
 		
 		public static final String BASE_COVERAGE = "baseGrid";
+
 	}
 	
 	// Parameters used by transport networks

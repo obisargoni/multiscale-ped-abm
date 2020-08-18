@@ -39,6 +39,7 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
@@ -48,6 +49,7 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
+import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
@@ -86,6 +88,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<RoadLink> pedRoadLinkContext;
 	public static Geography<RoadLink> pedRoadLinkGeography;
+	
+	public static Context<CrossingAlternative> caContext;
+	public static Geography<CrossingAlternative> caGeography;
 	
 	public static Context<Junction> pedJunctionContext;
 	public static Geography<Junction> pedJunctionGeography;
@@ -176,6 +181,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
+		caContext = new CAContext();
+		caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
+		context.addSubContext(caContext);
+		fixedGeographies.add(caGeography);
 		
 	    // Load agents from shapefiles
 		String GISDataDir = IO.getProperty("GISDataDir");
@@ -227,6 +236,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pedObstructionFile = GISDataDir + IO.getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
 			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+			
+			// 4. Load crossing alternatives
+			String caFile = GISDataDir + IO.getProperty("CAShapefile");
+			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
+			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
