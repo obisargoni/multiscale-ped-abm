@@ -133,14 +133,14 @@ public abstract class GlobalVars {
 		public static final String ROAD_LINK_CONTEXT = "RoadLinkContext";
 		public static final String ROAD_LINK_GEOGRAPHY = "RoadLinkGeography";
 		
-		public static final String PED_ROAD_LINK_CONTEXT = "PedRoadLinkContext";
-		public static final String PED_ROAD_LINK_GEOGRAPHY = "PedRoadLinkGeography";
+		public static final String OR_ROAD_LINK_CONTEXT = "ORRoadLinkContext";
+		public static final String OR_ROAD_LINK_GEOGRAPHY = "ORRoadLinkGeography";
 		
 		public static final String JUNCTION_CONTEXT = "JunctionContext";
 		public static final String JUNCTION_GEOGRAPHY = "JunctionGeography";
 		
-		public static final String PED_JUNCTION_CONTEXT = "PedJunctionContext";
-		public static final String PED_JUNCTION_GEOGRAPHY = "PedJunctionGeography";
+		public static final String OR_JUNCTION_CONTEXT = "ORJunctionContext";
+		public static final String OR_JUNCTION_GEOGRAPHY = "ORJunctionGeography";
 		
 		public static final String VEHICLE_DESTINATION_CONTEXT = "DestinationContext";
 		public static final String VEHICLE_DESTINATION_GEOGRAPHY = "DestinationGeography";
@@ -151,7 +151,7 @@ public abstract class GlobalVars {
 		public static final String CA_GEOGRAPHY = "CAGeography";
 		
 		public static final String ROAD_NETWORK = "RoadNetwork";
-		public static final String PED_ROAD_NETWORK = "PedRoadNetwork";
+		public static final String OR_ROAD_NETWORK = "ORRoadNetwork";
 		public static final String GRID_NETWORK = "GridNetwork";
 		
 		public static final String AGENT_CONTEXT = "AgentContext";

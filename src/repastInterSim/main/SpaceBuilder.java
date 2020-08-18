@@ -86,15 +86,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
 	
-	public static Context<RoadLink> pedRoadLinkContext;
-	public static Geography<RoadLink> pedRoadLinkGeography;
+	public static Context<RoadLink> orRoadLinkContext;
+	public static Geography<RoadLink> orRoadLinkGeography;
 	
 	public static Context<CrossingAlternative> caContext;
 	public static Geography<CrossingAlternative> caGeography;
 	
-	public static Context<Junction> pedJunctionContext;
-	public static Geography<Junction> pedJunctionGeography;
-	public static Network<Junction> pedRoadNetwork;
+	public static Context<Junction> orJunctionContext;
+	public static Geography<Junction> orJunctionGeography;
+	public static Network<Junction> orRoadNetwork;
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
@@ -154,10 +154,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(roadLinkContext);
 		fixedGeographies.add(roadLinkGeography);
 		
-		pedRoadLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.PED_ROAD_LINK_CONTEXT);
-		pedRoadLinkGeography = createTypedGeography(RoadLink.class, pedRoadLinkContext, GlobalVars.CONTEXT_NAMES.PED_ROAD_LINK_GEOGRAPHY);
-		context.addSubContext(pedRoadLinkContext);
-		fixedGeographies.add(pedRoadLinkGeography);
+		orRoadLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_CONTEXT);
+		orRoadLinkGeography = createTypedGeography(RoadLink.class, orRoadLinkContext, GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		context.addSubContext(orRoadLinkContext);
+		fixedGeographies.add(orRoadLinkGeography);
 
 		// Junction geography also used to create the road network
 		junctionContext = new JunctionContext();
@@ -165,10 +165,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(junctionContext);
 		fixedGeographies.add(junctionGeography);
 		
-		pedJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
-		pedJunctionGeography = createTypedGeography(Junction.class, pedJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
-		context.addSubContext(pedJunctionContext);
-		fixedGeographies.add(pedJunctionGeography);
+		orJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_CONTEXT);
+		orJunctionGeography = createTypedGeography(Junction.class, orJunctionContext, GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY);
+		context.addSubContext(orJunctionContext);
+		fixedGeographies.add(orJunctionGeography);
 		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
 		vehicleDestinationContext = new VehicleDestinationContext();
@@ -199,8 +199,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 1b. Load the pedestrian road links
 			String pedRoadLinkFile = GISDataDir + IO.getProperty("PedestrianRoadLinkShapefile");
-			GISFunctions.readShapefile(RoadLink.class, pedRoadLinkFile, pedRoadLinkGeography, pedRoadLinkContext);
-			SpatialIndexManager.createIndex(pedRoadLinkGeography, RoadLink.class);
+			GISFunctions.readShapefile(RoadLink.class, pedRoadLinkFile, orRoadLinkGeography, orRoadLinkContext);
+			SpatialIndexManager.createIndex(orRoadLinkGeography, RoadLink.class);
 
 			
 			// 2a. vehicle roadNetwork
@@ -210,10 +210,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 			
 			// 2b. pedestrian road network
-			NetworkBuilder<Junction> pedBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PED_ROAD_NETWORK,pedJunctionContext, false);
+			NetworkBuilder<Junction> pedBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
 			pedBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			pedRoadNetwork = pedBuilder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(pedRoadLinkGeography, pedJunctionContext,pedJunctionGeography, pedRoadNetwork);
+			orRoadNetwork = pedBuilder.buildNetwork();
+			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
 			
 			// Build the fixed environment
 			
