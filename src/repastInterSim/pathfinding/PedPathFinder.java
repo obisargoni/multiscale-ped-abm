@@ -46,7 +46,7 @@ public class PedPathFinder {
 	
 	
 	private List<RoadLink> strategicPath;
-	private AccumulatorRoute tacticalPath;
+	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
 	private Coordinate nextTacticalPathCoord = null;
 
