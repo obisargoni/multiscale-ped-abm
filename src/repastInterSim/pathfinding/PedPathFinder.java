@@ -147,18 +147,11 @@ public class PedPathFinder {
 				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
 			}
 			
-			// Get path to that coordinate
-			planTacticaPath(gSPM, tacticalOriginCoord, tacticalDestCoord);
+			Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.pedJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
+			
+			// Initialise Accumulator Route that agent will use to navigate along the planning horizon
+			planTacticaAccumulatorPath(SpaceBuilder.caGeography, this.strategicPath.subList(0, nLinks), this.ped, SpaceBuilder.roadGeography, tacticalDestCoord, defaultDest);
 		}
-		
-    	// If crossing coord is null, check the route for upcoming crossing coord
-		// Importantly, do this before any coords are removed from the route
-    	if(this.nextCrossingCoord == null) {
-    		this.nextCrossingCoord = this.tacticalPath.getNextRouteCrossingCoord();
-    	}
-    	
-		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
-		this.tacticalPath.removeNextFromRoute();
     }
 	
 	/*
