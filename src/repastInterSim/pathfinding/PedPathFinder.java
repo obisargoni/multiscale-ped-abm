@@ -158,7 +158,8 @@ public class PedPathFinder {
 	public Coordinate defaultDestinationCoordinate(Geography<Junction> pedJG, List<RoadLink> sP, Coordinate sC) {
 		
 		// Get road link ID of link at end of planning horizon
-		String rlEndID = sP.get(-1).getFID();
+		int nlinks = sP.size();
+		String rlEndID = sP.get(nlinks-1).getFID();
 		
 		// Loop through ped network junctions and find coordinate at end of planning horizon that is on same side of road
 		Coordinate defaultCoord = null;
