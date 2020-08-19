@@ -413,11 +413,13 @@ public class PedPathFinder {
 		}
 		
 		// Add unmarked crossing alternative to lsit
+		// Don't set road for unmarked crossings
 		CrossingAlternative caU = new CrossingAlternative();
 		caU.setType("unmarked");
 		caU.setPed(p);
 		caU.setRoadGeography(rG);
 		caU.setDestination(dest);
+		caU.setStrategicPathSection(sP);
 		cas.add(caU);
 		
 		return cas;		
