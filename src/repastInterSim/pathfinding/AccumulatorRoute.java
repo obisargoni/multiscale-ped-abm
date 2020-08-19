@@ -223,5 +223,8 @@ public class AccumulatorRoute {
 		return this.caChosen;
 	}
 	
+	protected void removeFromRoute(int index) {
+		this.routeX.remove(index);
+	}
 
 }
