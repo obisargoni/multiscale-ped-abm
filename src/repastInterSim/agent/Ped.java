@@ -55,17 +55,14 @@ public class Ped extends MobileAgent {
 	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
 
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
-    private List<Coordinate> pedInitialRoute; // The coordinates of the grid path produced when the ped first computes their path to their destination.
     private List<GridCoordinates2D> nextPathSection;
     
     private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     
     private String roadLinkFID = null;
-    private String initialRouteCoordString = null;
 
     private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
-    private HashMap<Integer, Double> dynamicSummandPriorityMap = new HashMap<Integer, Double>();
     
     private Integer pHorizon = 20; // Tactical planning horizon of ped agent in degrees
     
