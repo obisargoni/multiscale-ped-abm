@@ -486,17 +486,53 @@ class PedPathFinderTest {
 			assert pJ.getv2rlID() != null;
 		}
 	}
+	
+	@Test
+	void testDefaultDestinationCoordinate() {
+		try {
+			setUpPedJunctions();
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpODs("OD_pedestrian_nodes.shp");
+			setUpRoadNetwork(false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
-		assert pJ.getp1pID() != null;
-		assert pJ.getp1rlID() != null;
-		assert pJ.getp2pID() != null;
-		assert pJ.getp2rlID() != null;
-
-		assert pJ.getv1pID() != null;
-		assert pJ.getv1rlID() != null;
-		assert pJ.getv2pID() != null;
-		assert pJ.getv2rlID() != null;
+		// Get origin and destination coordinates from ped junctions
+		Coordinate o = null;
+		Coordinate d = null;
+		for (OD od: this.odGeography.getAllObjects()) {
+			if (od.getId() == 3) {
+				o = od.getGeom().getCoordinate();
+			}
+			
+			if (od.getId() == 1) {
+				d = od.getGeom().getCoordinate();
+			}
+		}
+		
+		Coordinate expectedDefaultDest = null;
+		for (Junction pJ: this.pedJunctionGeography.getAllObjects()) {
+			if (pJ.getFID().contentEquals("ped_node_10")) {
+				expectedDefaultDest = pJ.getGeom().getCoordinate();
+			}
+		}
+		
+		// Form road link path byt selecting links
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography);
+		try {
+			rnr.setRoadLinkRoute();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<RoadLink> path = rnr.getRoadsX();
+		
+		// Get default destination coord
+		Coordinate ddc = PedPathFinder.defaultDestinationCoordinate(pedJunctionGeography, path, o);
+		
+		assert ddc.equals(expectedDefaultDest);
 	}
 
 }
