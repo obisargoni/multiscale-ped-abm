@@ -90,7 +90,7 @@ public class CrossingAlternative implements FixedGeography {
 	
 	public Road getRoad() {
 		if (this.road == null) {
-			return getRoadFromRoadLinkID();
+			return getRoadFromC1();
 		}
 		else {
 			return this.road;
@@ -98,16 +98,15 @@ public class CrossingAlternative implements FixedGeography {
 	}
 	
 	/*
-	 * Gets the road object this crossing alternative lies on using the road id assigned to this crossing alternative
+	 * Gets the road object the crossing alternative intersects
 	 */
-	public Road getRoadFromRoadLinkID() {
-		// Loop through road objects to set the road the crossing alternative is on
+	private Road getRoadFromC1() {
 		Road caRoad = null;
-		for (Road r: this.roadGeography.getAllObjects()) {
-			if (r.getRoadLinkID().contentEquals(this.getRoadLinkID())) {
-				caRoad = r;
-				break;
-			}
+		try {
+			caRoad = GISFunctions.getCoordinateRoad(getC1(), this.roadGeography);
+		} catch (RoutingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return caRoad;
 	}
@@ -117,7 +116,7 @@ public class CrossingAlternative implements FixedGeography {
 	}
 	
 	public void setRoad() {
-		this.road = getRoadFromRoadLinkID();
+		this.road = getRoadFromC1();
 	}
 
 	/*
