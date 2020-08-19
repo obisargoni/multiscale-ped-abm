@@ -474,10 +474,18 @@ class PedPathFinderTest {
 		}
 		
 		// Get a ped junction and check its attributes are not null
-		Junction pJ = null;
-		for (Junction j: this.pedJunctionGeography.getAllObjects()) {
-			pJ = j;
-			break;
+		for (Junction pJ: this.pedJunctionGeography.getAllObjects()) {
+			assert pJ.getp1pID() != null;
+			assert pJ.getp1rlID() != null;
+			assert pJ.getp2pID() != null;
+			assert pJ.getp2rlID() != null;
+
+			assert pJ.getv1pID() != null;
+			assert pJ.getv1rlID() != null;
+			assert pJ.getv2pID() != null;
+			assert pJ.getv2rlID() != null;
+		}
+	}
 		}
 		
 		assert pJ.getp1pID() != null;
