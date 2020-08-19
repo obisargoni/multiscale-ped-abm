@@ -84,7 +84,6 @@ public class RoadNetworkRoute implements Cacheable {
 	}
 	
 	private Geography<RoadLink> roadLinkGeography;
-	private Context<RoadLink> roadLinkContext;
 	private Network<Junction> roadNetwork;
 	private Geography<OD> destinationGeography;
 	
@@ -155,7 +154,6 @@ public class RoadNetworkRoute implements Cacheable {
 			return;
 		}
 		
-		this.roadLinkContext = SpaceBuilder.roadLinkContext;
 		this.roadLinkGeography = SpaceBuilder.roadLinkGeography;
 		this.roadNetwork = SpaceBuilder.roadNetwork;
 		this.destinationGeography = SpaceBuilder.vehicleDestinationGeography;
@@ -173,7 +171,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @param destination
 	 * 		The destination coordinate of the route
 	 */
-	public RoadNetworkRoute(Coordinate origin, Coordinate destination, Context<RoadLink> rlC, Geography<RoadLink> rlG, Network<Junction> rN, Geography<OD> dG) {
+	public RoadNetworkRoute(Coordinate origin, Coordinate destination, Geography<RoadLink> rlG, Network<Junction> rN, Geography<OD> dG) {
 		
 		// Assert that origin and destination coordinates are not null
 		try {
@@ -184,7 +182,6 @@ public class RoadNetworkRoute implements Cacheable {
 			return;
 		}
 		
-		this.roadLinkContext = rlC;
 		this.roadLinkGeography = rlG;
 		this.roadNetwork = rN;
 		this.destinationGeography = dG;
@@ -751,7 +748,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	private List<RoadLink> getRoadFromCoordCache(Coordinate coord) {
 
-		populateCoordCache(this.roadLinkContext); // Check the cache has been populated
+		populateCoordCache(this.roadLinkGeography); // Check the cache has been populated
 		return coordCache.get(coord);
 	}
 
@@ -763,11 +760,11 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return True if the coordinate is part of a road segment
 	 */
 	private boolean coordOnRoad(Coordinate coord) {
-		populateCoordCache(this.roadLinkContext); // check the cache has been populated
+		populateCoordCache(this.roadLinkGeography); // check the cache has been populated
 		return coordCache.containsKey(coord);
 	}
 
-	private synchronized static void populateCoordCache(Context<RoadLink> roadLinkContext) {
+	private synchronized static void populateCoordCache(Geography<RoadLink> roadLinkGeography) {
 
 		double time = System.nanoTime();
 		if (coordCache == null) { // Fist check cache has been created
@@ -783,7 +780,7 @@ public class RoadNetworkRoute implements Cacheable {
 			LOGGER.log(Level.FINER, "Route.populateCoordCache: is empty, creating new cache of all Road coordinates.");
 			*/
 
-			for (RoadLink r : roadLinkContext.getObjects(RoadLink.class)) {
+			for (RoadLink r : roadLinkGeography.getAllObjects()) {
 				for (Coordinate c : r.getGeom().getCoordinates()) {
 					if (coordCache.containsKey(c)) {
 						coordCache.get(c).add(r);
