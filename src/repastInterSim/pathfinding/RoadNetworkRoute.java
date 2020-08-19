@@ -228,50 +228,24 @@ public class RoadNetworkRoute implements Cacheable {
 
 		// No route cached, have to create a new one (and cache it at the end).
 		try {
-			/*
-			 * See if the current position and the destination are on road segments. If the destination is not on a road
-			 * segment we have to move to the closest road segment, then onto the destination.
-			 */
-			boolean destinationOnRoad = true;
-			Coordinate finalDestination = null;
-			if (!coordOnRoad(currentCoord)) {
-				/*
-				 * Not on a road so the first coordinate to add to the route is the point on the closest road segment.
-				 */
-				currentCoord = getNearestRoadCoord(currentCoord);
-			}
-			if (!coordOnRoad(destCoord)) {
-				/*
-				 * Not on a road, so need to set the destination to be the closest point on a road, and set the
-				 * destinationOnRoad boolean to false so we know to add the final dest coord at the end of the route
-				 */
-				destinationOnRoad = false;
-				finalDestination = destCoord; // Added to route at end of alg.
-				destCoord = getNearestRoadCoord(destCoord);
-			}
-
-
-			// Find the road link the agent is currently on
-			List<RoadLink> currItersectingRoads = findIntersectingObjects(currentCoord, this.roadLinkGeography);
-
-			// For each of the road links the agent intersects, find which junctions can be accessed. ie is the target junction.
-			// These are the junctions to input into the shortest path function
-			Map<Junction, RoadLink> currentAccessMap = new HashMap<Junction, RoadLink>();
-			for (RoadLink rl: currItersectingRoads) {
-				NetworkEdge<Junction> e = rl.getEdge();
-				currentAccessMap.put(e.getTarget(), rl);
-			}
 			
-			// Find the road link the agent is currently on
-			List<RoadLink> destIntersectingRoads = findIntersectingObjects(destCoord, this.roadLinkGeography);
+			/*
+			 * Find the nearest junctions to our current position (road endpoints)
+			 */
 
-			// For each of the road links the agent intersects, find which junctions the destCoord can be accessed from. ie is the source junction.
-			// These are the junctions to input into the shortest path function
-			Map<Junction, RoadLink> destAccessMap = new HashMap<Junction, RoadLink>();
-			for (RoadLink rl: destIntersectingRoads) {
-				NetworkEdge<Junction> e = rl.getEdge();
-				destAccessMap.put(e.getSource(), rl);
-			}
+			// Start by Finding the road that this coordinate is on
+			RoadLink currentRoad = findNearestObject(currentCoord, this.roadLinkGeography, null,
+					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find which Junction is closest to us on the road.
+			List<Junction> currentJunctions = currentRoad.getJunctions();
+
+			/* Find the nearest Junctions to our destination (road endpoints) */
+
+			// Find the road that this coordinate is on
+			RoadLink destRoad = findNearestObject(destCoord, this.roadLinkGeography, null,
+					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find which Junction connected to the edge is closest to the coordinate.
+			List<Junction> destJunctions = destRoad.getJunctions();
 			
 			
 			/*
@@ -279,10 +253,10 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			Junction[] routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentAccessMap.keySet(), destAccessMap.keySet(), routeEndpoints);
 
 			Junction currentJunction = routeEndpoints[0];
 			Junction destJunction = routeEndpoints[1];
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
