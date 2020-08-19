@@ -253,15 +253,12 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			Junction[] routeEndpoints = new Junction[2];
-
-			Junction currentJunction = routeEndpoints[0];
-			Junction destJunction = routeEndpoints[1];
 			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
 			 */
-			this.addPathToRoute(shortestPath, currentJunction);
+			this.addPathToRoute(shortestPath);
 
 
 			// Check that a route has actually been created
@@ -310,7 +307,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 *            internally).
 	 * @throws RoutingException
 	 */
-	private void addPathToRoute(List<RepastEdge<Junction>> shortestPath, Junction startingJunction)
+	private void addPathToRoute(List<RepastEdge<Junction>> shortestPath)
 			throws RoutingException {
 		double time = System.nanoTime();
 		if (shortestPath.size() < 1) {
