@@ -49,10 +49,10 @@ public class Ped extends MobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     
     // Variables used in accumulator model of crossing choice
-	private double lambda; // Used to control effect of salience distance on contribution of option utility to activation
-	private double alpha; // Controls sensitivity to traffic exposure
-	private double gamma; // Controls the rate at which historic activations decay
-	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
+	private double lambda = 1; // Used to control effect of salience distance on contribution of option utility to activation
+	private double alpha = 0.5; // Controls sensitivity to traffic exposure
+	private double gamma = 0.9; // Controls the rate at which historic activations decay
+	private double epsilon = 4; // Proportion of median activation that ca activation must be to be considered dominant
 
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<GridCoordinates2D> nextPathSection;
