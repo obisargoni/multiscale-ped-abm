@@ -10,6 +10,8 @@ import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
+import repastInterSim.exceptions.RoutingException;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class CrossingAlternative implements FixedGeography {
