@@ -102,7 +102,7 @@ public class CrossingAlternative implements FixedGeography {
 	/*
 	 * Gets the road object the crossing alternative intersects
 	 */
-	private Road getRoadFromC1() {
+	public Road getRoadFromC1() {
 		Road caRoad = null;
 		try {
 			caRoad = GISFunctions.getCoordinateRoad(getC1(), this.roadGeography);
@@ -115,10 +115,6 @@ public class CrossingAlternative implements FixedGeography {
 
 	public void setRoad(Road r) {
 		this.road = r;
-	}
-	
-	public void setRoad() {
-		this.road = getRoadFromC1();
 	}
 
 	/*
