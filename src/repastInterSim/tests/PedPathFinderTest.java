@@ -54,11 +54,14 @@ class PedPathFinderTest {
 	Geography<PedObstruction> pedObstructGeography = null;
 	Network<Junction> roadNetwork = null;
 	Geography<Junction> junctionGeography = null;
+	Geography<Junction> pedJunctionGeography = null;
+	
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
 	String vehicleRoadsPath = null;
 	String roadLinkPath = null;
+	String pedJPath = null;
 	String serialisedLookupPath = null;
 	
 	void setUpProperties() throws IOException {
@@ -147,6 +150,20 @@ class PedPathFinderTest {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		roadNetwork = builder.buildNetwork();
 		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+	}
+	
+	void setUpPedJunctions() throws Exception {
+		setUpProperties();
+		pedJPath = testGISDir + IO.getProperty("PedJunctions");
+		
+		// Initialise test road link geography and context
+		Context<Junction> pedJContext = new JunctionContext();
+		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
+		pedJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedJunctionGeography", pedJContext, GeoParams);
+		pedJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+				
+		GISFunctions.readShapefile(Junction.class, pedJPath, pedJunctionGeography, pedJContext);
+		SpatialIndexManager.createIndex(pedJunctionGeography, Junction.class);
 	}
 	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d){
@@ -445,6 +462,33 @@ class PedPathFinderTest {
 		linksInRange = PedPathFinder.getLinksWithinAngularDistance(sP, 90.0);
 		
 		assert linksInRange.size() == 3;
+	}
+	
+	@Test
+	void testPedestrianNetworkJunctions() {
+		try {
+			setUpPedJunctions();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Get a ped junction and check its attributes are not null
+		Junction pJ = null;
+		for (Junction j: this.pedJunctionGeography.getAllObjects()) {
+			pJ = j;
+			break;
+		}
+		
+		assert pJ.getp1pID() != null;
+		assert pJ.getp1rlID() != null;
+		assert pJ.getp2pID() != null;
+		assert pJ.getp2rlID() != null;
+
+		assert pJ.getv1pID() != null;
+		assert pJ.getv1rlID() != null;
+		assert pJ.getv2pID() != null;
+		assert pJ.getv2rlID() != null;
 	}
 
 }
