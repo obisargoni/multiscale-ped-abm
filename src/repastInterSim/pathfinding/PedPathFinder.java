@@ -155,7 +155,7 @@ public class PedPathFinder {
 	 * as the pedestrian network junction at the end of the planning horizon that doesn't
 	 * require a primary road crossing to reach.
 	 */
-	public Coordinate defaultDestinationCoordinate(Geography<Junction> pedJG, List<RoadLink> sP, Coordinate sC) {
+	public static Coordinate defaultDestinationCoordinate(Geography<Junction> pedJG, List<RoadLink> sP, Coordinate sC) {
 		
 		// Get road link ID of link at end of planning horizon
 		int nlinks = sP.size();
