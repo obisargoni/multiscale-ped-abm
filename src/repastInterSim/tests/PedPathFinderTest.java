@@ -139,14 +139,14 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
 	}
 	
-	void setUpRoadNetwork() {
+	void setUpRoadNetwork(boolean isDirected) {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
 		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 2. Build road network
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		roadNetwork = builder.buildNetwork();
 		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
@@ -334,7 +334,7 @@ class PedPathFinderTest {
 		setUpRoadLinks();
 		setUpPedObstructions();
 		setUpODs("OD_pedestrian_nodes.shp");
-		setUpRoadNetwork();
+		setUpRoadNetwork(true);
 		
 		// Setup origin and destination coordinates
 		List<OD> ods = new ArrayList<OD>();
