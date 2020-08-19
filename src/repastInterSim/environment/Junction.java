@@ -114,67 +114,67 @@ public class Junction implements FixedGeography{
 		return this.fid;
 	}
 
-	public String getP1pID() {
+	public String getp1pID() {
 		return p1pID;
 	}
 
-	public void setP1pID(String p1pID) {
+	public void setp1pID(String p1pID) {
 		this.p1pID = p1pID;
 	}
 
-	public String getP2pID() {
+	public String getp2pID() {
 		return p2pID;
 	}
 
-	public void setP2pID(String p2pID) {
+	public void setp2pID(String p2pID) {
 		this.p2pID = p2pID;
 	}
 
-	public String getP1rlID() {
+	public String getp1rlID() {
 		return p1rlID;
 	}
 
-	public void setP1rlID(String p1rlID) {
+	public void setp1rlID(String p1rlID) {
 		this.p1rlID = p1rlID;
 	}
 
-	public String getP2rlID() {
+	public String getp2rlID() {
 		return p2rlID;
 	}
 
-	public void setP2rlID(String p2rlID) {
+	public void setp2rlID(String p2rlID) {
 		this.p2rlID = p2rlID;
 	}
 
-	public String getV1pID() {
+	public String getv1pID() {
 		return v1pID;
 	}
 
-	public void setV1pID(String v1pID) {
+	public void setv1pID(String v1pID) {
 		this.v1pID = v1pID;
 	}
 
-	public String getV2pID() {
+	public String getv2pID() {
 		return v2pID;
 	}
 
-	public void setV2pID(String v2pID) {
+	public void setv2pID(String v2pID) {
 		this.v2pID = v2pID;
 	}
 
-	public String getV1rlID() {
+	public String getv1rlID() {
 		return v1rlID;
 	}
 
-	public void setV1rlID(String v1rlID) {
+	public void setv1rlID(String v1rlID) {
 		this.v1rlID = v1rlID;
 	}
 
-	public String getV2rlID() {
+	public String getv2rlID() {
 		return v2rlID;
 	}
 
-	public void setV2rlID(String v2rlID) {
+	public void setv2rlID(String v2rlID) {
 		this.v2rlID = v2rlID;
 	}
 	

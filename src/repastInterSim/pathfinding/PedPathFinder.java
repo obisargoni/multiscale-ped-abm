@@ -167,7 +167,7 @@ public class PedPathFinder {
 		for (Junction pJ: pedJG.getAllObjects()) {
 			
 			// Check junction lies on end road link
-			if(pJ.getP1rlID().contentEquals(rlEndID) | pJ.getP2rlID().contentEquals(rlEndID) | pJ.getV1rlID().contentEquals(rlEndID) | pJ.getV2rlID().contentEquals(rlEndID)) {
+			if(pJ.getp1rlID().contentEquals(rlEndID) | pJ.getp2rlID().contentEquals(rlEndID) | pJ.getv1rlID().contentEquals(rlEndID) | pJ.getv2rlID().contentEquals(rlEndID)) {
 				
 				// Check it is on same side of road
 				Coordinate candidate = pJ.getGeom().getCoordinate();
