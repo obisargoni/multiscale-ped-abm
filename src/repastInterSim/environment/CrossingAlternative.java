@@ -125,12 +125,12 @@ public class CrossingAlternative implements FixedGeography {
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
 	 * Used to identify the end point of unmarked crossing alternatives.
 	 */
-	public Coordinate nearestOppositePedestrianCoord(Coordinate c, Road r, Geography<Road> rG, List<RoadLink> sps) {
+	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, List<RoadLink> sps) {
 		
 		// Get pedestrian road objects on this road link
 		List<Road> caPedRoads = null;
 		try {
-			caPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(r.getRoadLinkID(), rG);
+			caPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID, rG);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -194,7 +194,7 @@ public class CrossingAlternative implements FixedGeography {
 
 	public Coordinate getC2() {
 		if(c2==null) {
-			return nearestOppositePedestrianCoord(this.ped.getLoc(), this.road, this.roadGeography, this.strategicPathsection);
+			return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), this.roadGeography, this.strategicPathsection);
 		}
 		else {
 			return c2;
