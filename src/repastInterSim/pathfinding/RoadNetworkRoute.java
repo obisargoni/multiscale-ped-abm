@@ -926,7 +926,6 @@ class NearestRoadCoordCache implements Serializable {
 				+ this.roadsFile.getAbsolutePath() + " (" + new Date(this.roadsFile.lastModified()) + "):\n\t"
 				+ this.serialisedLoc.getAbsolutePath());
 		
-		// Don't populate the cache for now
 		populateCache(odEnvironment, roadLinkEnvironment);
 		this.createdTime = new Date().getTime();
 		serialise();
