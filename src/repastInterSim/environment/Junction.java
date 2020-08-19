@@ -113,6 +113,10 @@ public class Junction implements FixedGeography{
 	public String getFID() {
 		return this.fid;
 	}
+	
+	public void setFID(String fid) {
+		this.fid = fid;
+	}
 
 	public String getp1pID() {
 		return p1pID;
