@@ -1,5 +1,6 @@
 package repastInterSim.environment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +10,12 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
-public class RoadLink implements FixedGeography {
+public class RoadLink implements FixedGeography, Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Geometry geom;
 	private String priority = "";
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network

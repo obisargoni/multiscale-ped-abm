@@ -123,7 +123,7 @@ public class RoadNetworkRoute implements Cacheable {
 	/*
 	 * Cache of road link ID to the road objects that have these IDs. Use to find the pedestrian and vehicle polygons links to a road link
 	 */
-	private static volatile RoadLinkRoadsCache roadLinkRoadsCache;
+	private static volatile RoadLinkRoadsCache roadLinkRoadsCache = null;
 	// To stop threads competing for the cache:
 	private static Object roadLinkRoadsCacheLock = new Object();
 	

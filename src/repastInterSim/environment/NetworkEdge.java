@@ -18,6 +18,7 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 
 package repastInterSim.environment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,10 +34,11 @@ import repast.simphony.space.graph.RepastEdge;
  * @author Nick Malleson
  * @param <T>
  */
-public class NetworkEdge<T> extends RepastEdge<T> {
+public class NetworkEdge<T> extends RepastEdge<T> implements Serializable {
 
 	// private static Logger LOGGER = Logger.getLogger(NetworkEdge.class.getName());
 
+	private static final long serialVersionUID = 1L;
 	private List<String> access = new ArrayList<String>(); // The access methods agents can use to travel along this
 															// edge
 	private boolean majorRoad = false; // If edge represents a major road car drivers can travel very fast

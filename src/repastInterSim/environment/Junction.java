@@ -18,14 +18,19 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 
 package repastInterSim.environment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
-public class Junction implements FixedGeography{
+public class Junction implements FixedGeography, Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static int UniqueID = 0;
 	private int id ;
 	private Geometry geom;

@@ -306,7 +306,7 @@ public class RoadNetworkRouteTest {
 		
 		File vehcileRoadsFile = new File(TestDataDir + "topographicAreaVehicle.shp");
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
-		File serialisedLoc = new File(TestDataDir + "road_link_rodas_cache.serialised");
+		File serialisedLoc = new File(TestDataDir + "road_link_roads_cache.serialised");
 		
 		String roadLinkID = "osgb4000000030343774";
 		
@@ -323,7 +323,7 @@ public class RoadNetworkRouteTest {
 		
 		File vehcileRoadsFile = new File(TestDataDir + "topographicAreaVehicle.shp");
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
-		File serialisedLoc = new File(TestDataDir + "road_link_rodas_cache.serialised");
+		File serialisedLoc = new File(TestDataDir + "road_link_roads_cache.serialised");
 		
 		String roadLinkID = "osgb4000000030343774";
 		
