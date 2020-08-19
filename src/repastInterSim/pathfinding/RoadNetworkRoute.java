@@ -128,6 +128,12 @@ public class RoadNetworkRoute implements Cacheable {
 	private static volatile RoadLinkRoadsCache roadLinkRoadsCache;
 	// To stop threads competing for the cache:
 	private static Object roadLinkRoadsCacheLock = new Object();
+	
+	// File names used for cache
+	private static String gisDir;
+	private static File odsFile;
+	private static File roadsFile;
+	private static File serialisedLoc;
 
 
 	/**
@@ -186,6 +192,12 @@ public class RoadNetworkRoute implements Cacheable {
 		
 		this.origin = origin;
 		this.destination = destination;
+		
+		// File names used for cache
+		gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
+		odsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
+		roadsFile = new File(gisDir + IO.getProperty(GlobalVars.ORRoadLinkShapefile));
+		serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
 	}
 	
 
@@ -420,13 +432,8 @@ public class RoadNetworkRoute implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
-				File buildingsFile = new File(gisDir + IO.getProperty(GlobalVars.BuildingShapefile));
-				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadShapefile));
-				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.BuildingsRoadsCoordsCache));
-
 				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(this.destinationGeography,
-						buildingsFile, this.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
+						odsFile, this.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
