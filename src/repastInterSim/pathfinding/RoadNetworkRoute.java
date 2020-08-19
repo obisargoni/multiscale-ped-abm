@@ -253,7 +253,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			Junction[] routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints, true);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
@@ -508,12 +508,21 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @throws Exception
 	 */
 	public List<RepastEdge<Junction>> getShortestRoute(Network<Junction> net, Iterable<Junction> currentJunctions, Iterable<Junction> destJunctions,
-			Junction[] routeEndpoints) throws Exception {
+			Junction[] routeEndpoints, boolean longestShortest) throws Exception {
 		double time = System.nanoTime();
 		synchronized (GlobalVars.TRANSPORT_PARAMS.currentBurglarLock) {
 			
-			double shortestPathLength = Double.MAX_VALUE;
-			double pathLength = 0;
+			Double comparisonPathLength;
+			int compVal = 0;
+			if (longestShortest) {
+				comparisonPathLength = Double.MIN_VALUE;
+				compVal = +1;
+			}
+			else {
+				comparisonPathLength = Double.MAX_VALUE;
+				compVal = -1;
+			}
+			Double pathLength = 0.0;
 			ShortestPath<Junction> p;
 			List<RepastEdge<Junction>> shortestPath = null;
 			for (Junction o : currentJunctions) {
@@ -527,8 +536,9 @@ public class RoadNetworkRoute implements Cacheable {
 					} else {
 						p = new ShortestPath<Junction>(net);
 						pathLength = p.getPathLength(o,d);
-						if (pathLength < shortestPathLength) {
-							shortestPathLength = pathLength;
+						int comp = Integer.signum(pathLength.compareTo(comparisonPathLength));
+						if (comp == compVal) {
+							comparisonPathLength = pathLength;
 							shortestPath = p.getPath(o,d);
 							routeEndpoints[0] = o;
 							routeEndpoints[1] = d;
