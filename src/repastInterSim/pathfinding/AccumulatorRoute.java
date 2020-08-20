@@ -199,6 +199,7 @@ public class AccumulatorRoute {
 			
 			// Update bool indicating whether crossing choice has been made or not
 			this.caChosen = true;
+			this.ped.setChosenCrossingType(chosenCA.getType());
 		}
 	}
 	

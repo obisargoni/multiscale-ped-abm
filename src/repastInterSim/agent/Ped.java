@@ -72,6 +72,8 @@ public class Ped extends MobileAgent {
     
     private Color col; // Colour of the pedestrian
     
+    private String chosenCrossingType = null;
+    
     
     /*
      * Instance method for the Ped class.
@@ -109,6 +111,8 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
 		this.pathFinder = new PedPathFinder(this);
+		
+		
     }
     
     
@@ -714,6 +718,20 @@ public class Ped extends MobileAgent {
 
 	public double getEpsilon() {
 		return epsilon;
+	}
+
+
+	public String getChosenCrossingType() {
+		return chosenCrossingType;
+	}
+	
+	public String getChosenCrossingTypeString() {
+		return chosenCrossingType.toString();
+	}
+
+
+	public void setChosenCrossingType(String chosenCrossingType) {
+		this.chosenCrossingType = chosenCrossingType;
 	}
 	
 }
