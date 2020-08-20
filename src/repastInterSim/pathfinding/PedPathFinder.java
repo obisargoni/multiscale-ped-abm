@@ -104,53 +104,47 @@ public class PedPathFinder {
 	 */
 	public void updateTacticalPathCoordinate() {
 				
-		// If reached the end of one section of the route, or if route has just been created, need to produce next set of route coordinates.
-		if(this.tacticalPath.getRouteX().size() == 0) {
 			
-			Coordinate tacticalOriginCoord = this.ped.getLoc();
-			
-			// if previous destination coordinate reached the end of a link, remove the old link from the strategic path
-			if (prevCoordType.contentEquals("not_intersects_next") | prevCoordType.contentEquals("intersects_next")) {
-				// Remove this road link from the strategic path, no longer the next road link
-				if (this.strategicPath.isEmpty() == false) {
-					this.strategicPath.remove(0);
-				}
+		Coordinate tacticalOriginCoord = this.ped.getLoc();
+		
+		// if previous destination coordinate reached the end of a link, remove the old link from the strategic path
+		if (prevCoordType.contentEquals("not_intersects_next") | prevCoordType.contentEquals("intersects_next")) {
+			// Remove this road link from the strategic path, no longer the next road link
+			if (this.strategicPath.isEmpty() == false) {
+				this.strategicPath.remove(0);
 			}
-			
-			// Update pedestrians perceptions of road link
-    		String currentRoadLinkID = getCurrentRoadLinkID(this.ped.getLoc());
-    		String nextRoadLinkID = getNextRoadLinkID();
-    		
-        	// Update perception of vehicle priority space cost
-        	// triggered by reaching end of tactical path so that new tactical path always uses newly calculated costs of vehicle priority space
-    		HashMap<Integer, Double> gSPM = this.ped.calculateDynamicGridSummandPriorityMap(currentRoadLinkID);
-			
-			// Identify new tactical destination coordinate
-			Coordinate tacticalDestCoord = null;
-			
-			// Calculate number of links in planning horizon
-			int nLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
-			
-			// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
-			// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
-			if (prevCoordType.contentEquals("not_intersects_next")) {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, true);
-				prevCoordType = "start_next";
-			}
-			// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
-			else {
-				tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, false);
-				prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
-			}
-			
-			Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.pedJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
-			
-			// Initialise Accumulator Route that agent will use to navigate along the planning horizon
-			planTacticaAccumulatorPath(SpaceBuilder.caGeography, this.strategicPath.subList(0, nLinks), this.ped, SpaceBuilder.roadGeography, tacticalDestCoord, defaultDest);
 		}
 		
-		this.nextTacticalPathCoord = this.tacticalPath.getRouteX().get(0);
-		this.tacticalPath.removeFromRoute(0);
+		// Update pedestrians perceptions of road link
+		String currentRoadLinkID = getCurrentRoadLinkID(this.ped.getLoc());
+		String nextRoadLinkID = getNextRoadLinkID();
+		
+    	// Update perception of vehicle priority space cost
+    	// triggered by reaching end of tactical path so that new tactical path always uses newly calculated costs of vehicle priority space
+		HashMap<Integer, Double> gSPM = this.ped.calculateDynamicGridSummandPriorityMap(currentRoadLinkID);
+		
+		// Identify new tactical destination coordinate
+		Coordinate tacticalDestCoord = null;
+		
+		// Calculate number of links in planning horizon
+		int nLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
+		
+		// "not_intersects_next" indicates that the previous tactical destination coord reached the end of one road link but doesn't touch the start of the next road link 
+		// in the strategic path. In this case find the nearest coordinate that touches a ped road on the next strategic path link
+		if (prevCoordType.contentEquals("not_intersects_next")) {
+			tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, true);
+			prevCoordType = "start_next";
+		}
+		// Otherwise either haven't reached end of road link or previous dest coord touches next road link. Find farthest coord along road link
+		else {
+			tacticalDestCoord = chooseTacticalDestinationCoordinate(tacticalOriginCoord, this.destination.getGeom().getCoordinate(), this.rGeography, this.obstructGeography, nLinks, this.strategicPath, false);
+			prevCoordType = checkCoordinateIntersectingRoads(tacticalDestCoord, this.rGeography, currentRoadLinkID, nextRoadLinkID);
+		}
+		
+		Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.pedJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
+		
+		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
+		planTacticaAccumulatorPath(SpaceBuilder.caGeography, this.strategicPath.subList(0, nLinks), this.ped, SpaceBuilder.roadGeography, tacticalDestCoord, defaultDest);
     }
 	
 	/*
@@ -471,10 +465,6 @@ public class PedPathFinder {
 	
 	public AccumulatorRoute getTacticalPath() {
 		return this.tacticalPath;
-	}
-
-	public Coordinate getNextTacticalPathCoord() {
-		return nextTacticalPathCoord;
 	}
 	
 	public Coordinate getNextCrossingCoord() {

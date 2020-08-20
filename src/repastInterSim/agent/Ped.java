@@ -118,12 +118,12 @@ public class Ped extends MobileAgent {
    		//decideYield();
     	
     	Boolean tacticalCoordUpdateRequired = false;
-    	Coordinate nextTacticalPathCoord = this.pathFinder.getNextTacticalPathCoord();
-    	if(nextTacticalPathCoord == null) {
+    	if(this.pathFinder.getTacticalPath().getRouteX().size() == 0) {
     		tacticalCoordUpdateRequired = true;
     	}
-    	else if (this.maLoc.distance(nextTacticalPathCoord) < 0.5) {
-    		tacticalCoordUpdateRequired = true;
+    	else if (this.maLoc.distance(this.pathFinder.getTacticalPath().getRouteX().get(0)) < 0.5) {
+    		// Remove the tactial coordinate the agent has reached
+    		this.pathFinder.getTacticalPath().removeFromRoute(0);
     	}
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
@@ -131,7 +131,7 @@ public class Ped extends MobileAgent {
         	if (tacticalCoordUpdateRequired) {
         		pathFinder.updateTacticalPathCoordinate();
         	}
-        	walk(pathFinder.getNextTacticalPathCoord());
+        	walk(pathFinder.getTacticalPath().getRouteX().get(0));
         	pathFinder.getTacticalPath().step();
     	}
    		
@@ -145,7 +145,7 @@ public class Ped extends MobileAgent {
             	if (tacticalCoordUpdateRequired) {
             		pathFinder.updateTacticalPathCoordinate();
             	}
-            	walk(pathFinder.getNextTacticalPathCoord());
+            	walk(pathFinder.getTacticalPath().getRouteX().get(0));
             	pathFinder.getTacticalPath().step();
 
         	}
@@ -663,7 +663,7 @@ public class Ped extends MobileAgent {
     }
     
     public String getRouteCoordString() {
-    	return this.pathFinder.getNextTacticalPathCoord().toString();
+    	return this.pathFinder.getTacticalPath().getRouteX().get(0).toString();
     }
     
     @Override
