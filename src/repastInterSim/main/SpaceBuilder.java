@@ -331,7 +331,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgent");
 	    
 	    // Stop adding agents to the simulation at 1500 ticks
-	    int endTick = 1500;
+	    int endTick = 1000;
 	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingAgents");
 	    
