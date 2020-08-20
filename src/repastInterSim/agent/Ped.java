@@ -138,7 +138,7 @@ public class Ped extends MobileAgent {
         		pathFinder.updateTacticalPathCoordinate();
         	}
         	walk(pathFinder.getTacticalPath().getRouteX().get(0));
-        	pathFinder.getTacticalPath().step();
+        	pathFinder.step();
     	}
    		
    		// If agent does intend to yield, agent walks as usual until the crossing point is reached
@@ -152,7 +152,7 @@ public class Ped extends MobileAgent {
             		pathFinder.updateTacticalPathCoordinate();
             	}
             	walk(pathFinder.getTacticalPath().getRouteX().get(0));
-            	pathFinder.getTacticalPath().step();
+            	pathFinder.step();
 
         	}
         	else {
