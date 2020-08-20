@@ -9,10 +9,8 @@ import java.util.stream.Collectors;
 import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 
-import repast.simphony.context.Context;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repastInterSim.agent.Ped;
@@ -44,8 +42,6 @@ public class PedPathFinder {
 	private List<RoadLink> strategicPath;
 	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
-	private Coordinate nextTacticalPathCoord = null;
-
 	private Coordinate nextCrossingCoord;	
 	private String prevCoordType = "";
 
