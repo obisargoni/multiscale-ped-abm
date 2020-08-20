@@ -19,6 +19,7 @@ public class MobileAgent {
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
     protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
+    protected Coordinate defaultDestination;
 	protected Parameters params = RunEnvironment.getInstance ().getParameters();
 
     
@@ -28,6 +29,9 @@ public class MobileAgent {
     	this.roadGeography = rG; 
     	this.origin = o;
     	this.destination = d;
+    	
+    	// Initialise default destination as the actual destination
+    	this.defaultDestination = d.getGeom().getCoordinate();
     }
 	
 	public OD getOrigin() {
@@ -100,5 +104,13 @@ public class MobileAgent {
 	
 	public void tidyForRemoval() {
 		;
+	}
+	
+	public Coordinate getDefaultDestination() {
+		return this.defaultDestination;
+	}
+	
+	public void setDefaultDestination(Coordinate c) {
+		this.defaultDestination = c;
 	}
 }
