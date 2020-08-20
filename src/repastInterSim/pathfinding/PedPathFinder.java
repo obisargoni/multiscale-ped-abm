@@ -139,6 +139,9 @@ public class PedPathFinder {
 		
 		Coordinate defaultDest = defaultDestinationCoordinate(SpaceBuilder.pedJunctionGeography, this.strategicPath.subList(0, nLinks), this.ped.getLoc());
 		
+		// Set the pedestrian's default destination
+		this.ped.setDefaultDestination(defaultDest);
+		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
 		planTacticaAccumulatorPath(SpaceBuilder.caGeography, this.strategicPath.subList(0, nLinks), this.ped, SpaceBuilder.roadGeography, tacticalDestCoord, defaultDest);
     }

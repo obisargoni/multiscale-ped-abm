@@ -569,6 +569,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
         	if (dGeom.isWithinDistance(mAGeom, GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance)) {
         		AgentsToRemove.add(mA);
+        		continue;
+        	}
+        	
+        	// Also check whether the mobile agent has reached its default destination
+        	if (mA.getDefaultDestination().distance(mAGeom.getCoordinate()) < GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance) {
+        		AgentsToRemove.add(mA);
+        		continue;
         	}
         }
         // Now iterate over all of the peds to remove and remove them from the context
