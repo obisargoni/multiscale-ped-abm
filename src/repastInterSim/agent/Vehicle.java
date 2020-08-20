@@ -29,7 +29,7 @@ public class Vehicle extends MobileAgent {
 	private Route route;
 
 
-	public Vehicle(Geography<Object> geography, Geography<OD> destinationGeography, int mS, double a, double s, OD o, OD d) {
+	public Vehicle(Geography<Object> geography, int mS, double a, double s, OD o, OD d) {
 		super(geography, o, d);
 		this.maxSpeed = mS;
 		this.acc = a;
