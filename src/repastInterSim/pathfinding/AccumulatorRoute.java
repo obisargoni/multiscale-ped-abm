@@ -87,6 +87,7 @@ public class AccumulatorRoute {
 			sum_prob += probs.get(i);
 			if (sum_prob > r) {
 				sampledi = i;
+				break;
 			}
 		}
 		
