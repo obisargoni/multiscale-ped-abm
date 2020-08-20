@@ -21,13 +21,37 @@
 				<parameter name="vehiclePriorityCostRatio" displayName="Pedestrian ratio of vehicle cell cost to pedestrian cell cost used for inital route" type="double" 
 				defaultValue="1" 
 				isReadOnly="false" 
-				converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+				converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 				<parameter name="cellCostUpdate" displayName="Factor used to get cell cost from vehicle space occupancy" type="double" 
 						defaultValue="1" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+						<parameter name="alpha" displayName="Controls weighting betweem traffic exposure and journey time" type="double" 
+						defaultValue="0.5" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+								<parameter name="lambda" displayName="Controls the effect of salience distance on sampling probability" type="double" 
+						defaultValue="0.1" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+								<parameter name="gamma" displayName="Activation decay factor" type="double" 
+						defaultValue="0.9" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
+								<parameter name="epsilon" displayName="Activation threshold for crossing choice" type="double" 
+						defaultValue="4" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 		</parameters>

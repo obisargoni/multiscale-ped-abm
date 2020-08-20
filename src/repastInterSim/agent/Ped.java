@@ -49,10 +49,10 @@ public class Ped extends MobileAgent {
     private double rad; // Radius of circle representing pedestrian, metres
     
     // Variables used in accumulator model of crossing choice
-	private double lambda = 1; // Used to control effect of salience distance on contribution of option utility to activation
-	private double alpha = 0.5; // Controls sensitivity to traffic exposure
-	private double gamma = 0.9; // Controls the rate at which historic activations decay
-	private double epsilon = 4; // Proportion of median activation that ca activation must be to be considered dominant
+	private double lambda; // Used to control effect of salience distance on contribution of option utility to activation
+	private double alpha; // Controls sensitivity to traffic exposure
+	private double gamma; // Controls the rate at which historic activations decay
+	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
 
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<GridCoordinates2D> nextPathSection;
@@ -94,6 +94,12 @@ public class Ped extends MobileAgent {
         this.angres = (2*Math.PI) / 36; // Equivalent to 10 degrees
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
+        
+        // Set parameters for crossing choice model
+		this.alpha = params.getDouble("alpha");
+		this.lambda = params.getDouble("lambda");
+		this.gamma = params.getDouble("gamma");
+		this.epsilon = params.getDouble("epsilon");
         
 		// Set pedestrian perception of cost of moving in vehicle priority areas. 1 = same cost as pavement. 10 = ten times more costly than pavement
         this.vehiclePriorityCostRatio =  params.getDouble("vehiclePriorityCostRatio"); 
