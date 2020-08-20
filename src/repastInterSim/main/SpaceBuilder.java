@@ -27,6 +27,7 @@ import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
@@ -105,6 +106,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static ISchedulableAction addVehicleAction;
 	private static ISchedulableAction addPedAction;
+	private static ISchedulableAction removeMAgentAction;
 	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
@@ -323,6 +325,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int  addPedTicks = params.getInteger("addPedTicks");
 	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
+	    
+	    // Schedule method that removes agents
+		ScheduleParameters removeMAgentScheduleParameters = ScheduleParameters.createRepeating(1, 1, ScheduleParameters.LAST_PRIORITY);
+		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgent");
 	    
 	    // Stop adding agents to the simulation at 1500 ticks
 	    int endTick = 1500;
@@ -547,6 +553,31 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		V.setLoc();
 		
 		return V;
+    }
+    
+	public void removeAgent() {
+        ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
+        
+        // Iterate over peds and remove them if they have arrived at the destination
+        for (Object o :context.getObjects(MobileAgent.class)) {
+        	MobileAgent mA  = (MobileAgent) o;
+        	
+        	// Get the geometries in the CRS used for spatial calculations
+        	Geometry dGeom =  mA.getDestination().getGeom();
+        	Geometry mAGeom = GISFunctions.getAgentGeometry(this.geography, mA);
+        	
+        	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
+        	if (dGeom.isWithinDistance(mAGeom, GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance)) {
+        		AgentsToRemove.add(mA);
+        		break; // End the iteration, only one pedestrian can be removed at a time
+        	}
+        }
+        // Now iterate over all of the peds to remove and remove them from the context
+        // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
+        for (MobileAgent mA : AgentsToRemove) {
+        	mA.tidyForRemoval();
+        	context.remove(mA);
+        }
     }
 	
 	
