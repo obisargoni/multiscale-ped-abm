@@ -99,29 +99,15 @@ public class CrossingAlternative implements FixedGeography {
 	
 	public Road getRoad() {
 		if (this.road == null) {
-			return getRoadFromC1();
+			return this.ped.getCurrentRoad();
 		}
 		else {
 			return this.road;
 		}
 	}
-	
-	/*
-	 * Gets the road object the crossing alternative intersects
-	 */
-	public Road getRoadFromC1() {
-		Road caRoad = null;
-		try {
-			caRoad = GISFunctions.getCoordinateRoad(getC1(), this.roadGeography);
-		} catch (RoutingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return caRoad;
-	}
 
-	public void setRoad(Road r) {
-		this.road = r;
+	public void setRoad() {
+		this.road = this.ped.getCurrentRoad();
 	}
 
 	/*
