@@ -101,14 +101,14 @@ gdf_loc = gdf_loc.to_crs(wsg_crs)
 #
 #
 ################################
-file_re = get_file_regex("pedestrian_initial_route", suffix = 'batch_param_map')
+file_re = get_file_regex("pedestrian_locations", suffix = 'batch_param_map')
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
-selection_columns = ['vehiclePriorityCostRatio', 'addVehicleTicks', 'cellCostUpdate']
-selction_values = [ [1,100],
-                    [5, 50],
-                    [0, 100]
+selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
+selction_values = [ [0.1,1],
+                    [0.1,0.9],
+                    [5,20]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -125,7 +125,6 @@ for col in selection_columns:
 #
 #
 #################################
-'''
 
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 hex_polys_file = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\hexgrid.shp"
@@ -155,7 +154,6 @@ gdf_hex_counts.crs = gdf_hex.crs
 # Save the data
 gdf_hex_counts.to_file(outpath)
 
-'''
 #################################
 #
 #
@@ -165,8 +163,7 @@ gdf_hex_counts.to_file(outpath)
 ################################
 
 gdf_hex_counts = gpd.read_file(outpath)
-gdf_hex_counts.rename(columns = {"addPedTick":"addPedTicks", "vehiclePri":"vehiclePriorityCostRatio",
-                                    "addVehicle":"addVehicleTicks", "cellCostUp":"cellCostUpdate"}, inplace = True)
+gdf_hex_counts.rename(columns = {"addVehicle":"addVehicleTicks"}, inplace = True)
 print(gdf_hex_counts.columns)
 
 
@@ -186,7 +183,7 @@ import contextily as cx
 
 def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
-    groupby_columns = ['addVehicleTicks','vehiclePriorityCostRatio','cellCostUpdate']
+    groupby_columns = ['addVehicleTicks','alpha','lambda']
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
 
@@ -241,10 +238,10 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
         # Add some explanitory text
         t = ""
-        if group_key[1] == 1.0:
-            t = "Non-compliant"
-        elif group_key[1] == 100:
-            t = "Compliant"
+        if group_key[1] == 0.1:
+            t = "Sensitive to traffic"
+        elif group_key[1] == 0.9:
+            t = "Sensitive to journey time"
         plt.text(0.95,1.2, t, fontsize = 15, transform = ax.transAxes)
 
     for k in range(q*r):
@@ -260,11 +257,11 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
         # Add some explanitory text
         t = ""
-        if group_key[2] == 0:
-            t = "Ignore Traffic"
-        elif group_key[2] == 100:
-            t = "Sensitive to Traffic"
-        plt.text(0.35,-0.2, t, fontsize = 15, transform = ax.transAxes)
+        if group_key[2] == 0.1:
+            t = "Plans ahead"
+        elif group_key[2] == 1:
+            t = "Considers nearby\nalternatives"
+        plt.text(0.35,-0.35, t, fontsize = 15, transform = ax.transAxes)
 
 
     f.suptitle(title, fontsize=16, y = 1)
@@ -272,49 +269,5 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     plt.savefig(output_path)
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
-rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'vehiclePriorityCostRatio':r"$\mathrm{V}$",'cellCostUpdate':r"$\mathrm{\beta}$"}
+rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
 batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Paths Heatmap", map_output_path)
-
-'''
-gdf_hex_run1 = gdf_hex_counts.loc[ ~gdf_hex_counts['loc_count_'].isnull()]
-bb = gdf_hex_run1.total_bounds
-
-
-# In[90]:
-
-im, bounds = cx.bounds2img(*bb, ll = True, source=cx.providers.CartoDB.Positron, zoom = 19)
-
-
-
-# In[91]:
-
-
-f, ax = plt.subplots(1, figsize = (15,15))
-ax.set_axis_off()
-ax.imshow(im, extent = bounds)
-ax = gdf_hex_run1.to_crs(epsg=3857).plot(column='loc_count_',alpha=1, k=7, cmap=plt.cm.viridis, edgecolor='w', linewidth=0.1, ax = ax)
-
-
-# In[92]:
-
-
-# Make a map for each run
-
-f, axs = plt.subplots(2,4, figsize = (20,10), sharex= True, sharey = True)
-cols = [c for c in gdf_hex_counts.columns if 'loc_coun' in c]
-for i in range(len(cols)):
-    r = int(i/4)
-    c = i % 4
-    ax = axs[r,c]
-    ax.set_axis_off()
-    gdf_hex_run = gdf_hex_counts.loc[ ~gdf_hex_counts[cols[i]].isnull()]
-    ax.imshow(im, extent = source)
-    ax = gdf_hex_run.to_crs(epsg=3857).plot(column = cols[i], alpha = 0.7, cmap = plt.cm.viridis, edgecolor = 'none', ax = ax, legend = False)
-
-
-# In[93]:
-
-
-f.savefig("..\\output\\img\\binned_trajectories_w_background.png")
-
-'''
