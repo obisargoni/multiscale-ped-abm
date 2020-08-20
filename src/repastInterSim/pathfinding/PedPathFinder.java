@@ -217,6 +217,15 @@ public class PedPathFinder {
 		this.tacticalPath = accRoute;
 	}
 	
+	public void step() {
+		
+		// Only update the accumulator path if the ped agent is walking along a road linked to the strategic path,
+		// ie not crossing over another road
+		if (pedOnStrategicPathRoadLink()) {
+			this.tacticalPath.step();
+		}
+	}
+	
 	
 	/*
 	 * When agent reaches a tactical destination coordinate they must identify the next tactical destination coordinate. This involves interaction between
