@@ -72,7 +72,7 @@ public class Ped extends MobileAgent {
     
     private Color col; // Colour of the pedestrian
     
-    private String chosenCrossingType = null;
+    private String chosenCrossingType = "none";
     
     
     /*
