@@ -260,7 +260,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         if group_key[2] == 0.1:
             t = "Plans ahead"
         elif group_key[2] == 1:
-            t = "Considers nearby\nalternatives"
+            t = "Considers nearby\nalternatives more"
         plt.text(0.35,-0.35, t, fontsize = 15, transform = ax.transAxes)
 
 
