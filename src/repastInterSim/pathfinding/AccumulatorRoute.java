@@ -56,10 +56,14 @@ public class AccumulatorRoute {
 		// Loop through crossing alternatives and find distance from ped to each one
 		List<Double> distances = new ArrayList<Double>();
 		for (CrossingAlternative ca: this.cas) {
-			Double d = ca.distanceTo(ped.getLoc());
+			Double dTo = ca.distanceTo(ped.getLoc());
+			
+			Double dDefault = this.ped.getLoc().distance(this.defaultDestination);
+			
+			Double dSalience = (dDefault - Math.abs(dTo)) / dDefault;
 			
 			// Multiply distance by ped attribute lambda to control effect of distance on probability
-			distances.add(d*lambda);
+			distances.add(dSalience*lambda);
 		}
 		
 		// Calculate sampling probability using softmax function
