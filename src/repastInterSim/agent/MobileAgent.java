@@ -5,22 +5,27 @@ import com.vividsolutions.jts.geom.Coordinate;
 import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
+import repastInterSim.exceptions.RoutingException;
 
 public class MobileAgent {
     private static int uniqueID = 0;
 
     protected int id;
     protected Geography<Object> geography; // Space the agent exists in
+    protected Geography<Road> roadGeography;
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
     protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
 	protected Parameters params = RunEnvironment.getInstance ().getParameters();
 
     
-    MobileAgent(Geography<Object> geography, OD o, OD d){
+    MobileAgent(Geography<Object> geography, Geography<Road> rG, OD o, OD d){
     	this.id = MobileAgent.uniqueID++;
     	this.geography = geography;
+    	this.roadGeography = rG; 
     	this.origin = o;
     	this.destination = d;
     }
@@ -39,6 +44,17 @@ public class MobileAgent {
 	
 	public Coordinate getLoc() {
 		return this.maLoc;
+	}
+	
+	public Road getCurrentRoad() {
+		Road r = null;
+		try {
+			r = GISFunctions.getCoordinateRoad(this.getLoc(), this.roadGeography);
+		} catch (RoutingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return r;
 	}
 	
     public String getLocString() {

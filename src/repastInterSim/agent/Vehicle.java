@@ -14,6 +14,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -29,8 +30,8 @@ public class Vehicle extends MobileAgent {
 	private Route route;
 
 
-	public Vehicle(Geography<Object> geography, int mS, double a, double s, OD o, OD d) {
-		super(geography, o, d);
+	public Vehicle(Geography<Object> geography, Geography<Road> rG, int mS, double a, double s, OD o, OD d) {
+		super(geography, rG, o, d);
 		this.maxSpeed = mS;
 		this.acc = a;
 		this.speed = s;

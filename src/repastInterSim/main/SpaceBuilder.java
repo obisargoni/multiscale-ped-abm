@@ -515,7 +515,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         
         // Instantiate a new pedestrian agent and add the agent to the context
 
-    	Ped newPed = new Ped(geography, o, d);
+    	Ped newPed = new Ped(geography, this.roadGeography, o, d);
         context.add(newPed);
         
         // Create a new point geometry.
@@ -538,7 +538,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(OD o, OD d) {
-		Vehicle V = new Vehicle(geography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
+		Vehicle V = new Vehicle(geography, this.roadGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
 		context.add(V);
 		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = fac.createPoint(oCoord);
