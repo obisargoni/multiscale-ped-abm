@@ -107,16 +107,8 @@ public class AccumulatorRoute {
 		// Time required for ped to cross the road
 		double t_cross = ca.getC1().distance(ca.getC2()) / this.ped.getSpeed();
 		
-		// Calculate number of vehicles that will pass through ca during that time
-		// Need to write methods to do this
-		// get speed and position of cars, use to calculate whether they will pass through crossing in allotted time
-		// might be tricky because might require checking cars on multiple links, perhaps within the planning horizon. But what about around corners?
-		
-		// just use constant value for now
-		double vFlow = 2;
-		
+		double vFlow = ca.getvFlow();
 		double avVFlow = 1;
-		
 		return 1 - (vFlow/avVFlow);
 	}
 	

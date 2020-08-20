@@ -73,7 +73,14 @@ public class CrossingAlternative implements FixedGeography {
 	
 	public Integer getvFlow() {
 		// Get the number of vehicles on the road link
-    	int vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
+		// Ideally will calculate exactly the number of cars that would pass through the crossing in a given time period
+		int vehicleNumber;
+    	if (this.type.contentEquals("unsignalised")) {
+    		vehicleNumber = 0;
+    	}
+    	else {
+    		vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
+    	}
 		return vehicleNumber;
 	}
 	
