@@ -167,7 +167,7 @@ public class AccumulatorRoute {
 		
 		// Sort the activations
 		int nCAs = this.caActivations.length;
-		double[] sortedActivations = this.caActivations;
+		double[] sortedActivations = this.caActivations.clone();
 		Arrays.sort(sortedActivations);
 		
 		// Compare the largest activation to the second largest
