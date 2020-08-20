@@ -209,7 +209,9 @@ public class AccumulatorRoute {
 		this.accumulateCAActivation();
 		
 		// Chooses a crossing alternative if a sufficient level of activation has been reached
-		this.chooseCA();
+		if (this.caChosen==false) {
+			this.chooseCA();
+		}
 	}
 	
 	public List<Coordinate> getRouteX() {
