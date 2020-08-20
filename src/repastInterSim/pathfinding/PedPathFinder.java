@@ -453,6 +453,24 @@ public class PedPathFinder {
 		return sP.subList(0, nLinks);
 	}
 	
+	/*
+	 * Used to check whether the pedestrian agents is currently walking on a road
+	 * polygon alongside a link in the strategic path or not.
+	 * 
+	 * When a pedestrian agent is making a secondary crossing it is not on a road beside
+	 * a strategic path link.
+	 */
+	public Boolean pedOnStrategicPathRoadLink() {
+		Boolean pedOnSLink = false;
+		Road r = this.ped.getCurrentRoad();
+		for (RoadLink rl: this.strategicPath) {
+			if (rl.getFID().contentEquals(r.getRoadLinkID())) {
+				pedOnSLink = true;
+			}
+		}
+		return pedOnSLink;
+	}
+	
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
