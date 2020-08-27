@@ -27,6 +27,7 @@ hs_err_pid*
 
 /.project
 /.settings/org.eclipse.jdt.groovy.core.prefs
+/batch/model_run_data/*
 /batch/batch_params.xml
 /batch/ReadMe.txt
 /data/ReadMe.txt
@@ -61,7 +62,6 @@ hs_err_pid*
 /data/export/*
 ~/data/README.txt
 /output/*
-/batch/*
 ~/output/README.txt
 ~/output/logs/README.txt
 /debug.log.1
