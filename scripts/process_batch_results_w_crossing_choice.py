@@ -81,7 +81,7 @@ output_data_dir = "..\\output\\processed_data\\"
 
 project_crs = {'init': 'epsg:27700'}
 
-file_datetime_string = "2020.Feb.20.14_58_33"
+file_datetime_string = "2020.Aug.28.10_07_02"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 ####################################
@@ -90,7 +90,7 @@ file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 #
 ####################################
 
-file_re = get_file_regex("pedestrian_locations")
+file_re = get_file_regex("pedestrian_locations", file_datetime = None)
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 
 
@@ -141,7 +141,7 @@ df_cc_count = df_cc_count*10
 #
 ###################################
 
-file_re = get_file_regex("pedestrian_locations", suffix = 'batch_param_map')
+file_re = get_file_regex("pedestrian_locations", file_datetime = None, suffix = 'batch_param_map')
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
@@ -193,9 +193,13 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         # Check have got a single runs data
         assert data[run_col].unique().shape[0] == 1
 
-        # if one of the data columns not present initialise it as 0
-        for c in [i for i in data_columns if i not in data.columns]:
-            data[c] = 0
+        # dont include any data columns not in the data
+        data_columns_filtered = []
+        colours_filtered = []
+        for i, c in enumerate(data_columns):
+            if c in data.columns:
+                data_columns_filtered.append(c)
+                colours_filtered.append(colors[i])
 
         # Get axis
         i,j= np.where(fig_indices == ki)
@@ -203,11 +207,11 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         ax = axs[i[0], j[0]]
 
         # Plot bar chart
-        tick_labels = data_columns
+        tick_labels = data_columns_filtered
         x = range(len(tick_labels))
-        y = data[data_columns].fillna(0).iloc[0].values
+        y = data[data_columns_filtered].fillna(0).iloc[0].values
 
-        ax = ax.bar(x, y, tick_label = tick_labels, color = colors)
+        ax = ax.bar(x, y, tick_label = tick_labels, color = colours_filtered)
 
 
     # Add in row group info to the last axis in the row
@@ -219,8 +223,8 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}:\n{}".format(rename_dict[groupby_columns[0]], group_key[0])
-        plt.text(1.1,0.5, s, fontsize = 15, transform = ax.transAxes)
+        s = "{}={}".format(rename_dict[groupby_columns[0]], group_key[0])
+        plt.text(1.1,0.5, s, fontsize = 11, transform = ax.transAxes)
 
     for j in range(q):
         ki = key_indices[0, j*r]
@@ -230,7 +234,7 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}: {}".format(rename_dict[groupby_columns[1]], group_key[1])
+        s = "{}={}".format(rename_dict[groupby_columns[1]], group_key[1])
         plt.text(1.05,1.1, s, fontsize = 11, transform = ax.transAxes)
 
         # Add some explanitory text
@@ -249,7 +253,7 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}: {}".format(rename_dict[groupby_columns[2]], group_key[2])
+        s = "{}={}".format(rename_dict[groupby_columns[2]], group_key[2])
         plt.text(0.45, -0.15, s, fontsize = 11, transform = ax.transAxes)
 
         # Add some explanitory text
@@ -265,6 +269,6 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
     f.show()
     plt.savefig(output_path)
 
-map_output_path = "..\\output\\img\\crossing_choice_bar.png"
+map_output_path = "..\\output\\img\\beyond_crossing_choice_bar.png"
 rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(df_cc_count, 'run', rename_dict, "Crossing Choices Percentages", map_output_path)
+batch_run_map(df_cc_count, 'run', rename_dict, "Crossing Choices Percentages\nBeyond Configuration", map_output_path)

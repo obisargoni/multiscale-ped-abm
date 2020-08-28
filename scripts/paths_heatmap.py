@@ -11,7 +11,7 @@ import os
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
 
 #from cartoframes.auth import set_default_credentials
 #from cartoframes.viz import Map, Layer, animation_widget, animation_style, basemaps
@@ -72,10 +72,13 @@ def dt_from_file_name(file_name, regex):
 data_dir = "..\\output\\batch\\model_run_data\\"
 outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
+file_datetime_string = "2020.Aug.28.10_07_02"
+file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
+
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-file_re = get_file_regex("pedestrian_locations")
+file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 
 df_ped_loc = pd.read_csv(os.path.join(data_dir, ped_locations_file))
@@ -101,7 +104,7 @@ gdf_loc = gdf_loc.to_crs(wsg_crs)
 #
 #
 ################################
-file_re = get_file_regex("pedestrian_locations", suffix = 'batch_param_map')
+file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime, suffix = 'batch_param_map')
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
@@ -183,6 +186,8 @@ import contextily as cx
 
 def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
+    global tbounds
+
     groupby_columns = ['addVehicleTicks','alpha','lambda']
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
@@ -194,6 +199,21 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
     fig_indices = np.reshape(key_indices, (p,q*r))
     f,axs = plt.subplots(p, q*r,figsize=(20,10), sharey=True, sharex = True)
+
+    # Need to control for differing bounds between figures so first loop through all data groups and find largest bounds
+    largest_bounds = None
+    area = 0
+    for ki in range(len(keys)):
+        group_key = keys[ki]
+        data = grouped.get_group(group_key)
+
+        bounds = data.total_bounds
+        coords = ((bounds[0], bounds[1]), (bounds[0], bounds[3]), (bounds[2], bounds[3]), (bounds[2], bounds[1]), (bounds[0], bounds[1]))
+        a = Polygon(coords).area
+        if a > area:
+            largest_bounds = bounds
+            area = a
+
     for ki in range(len(keys)):
         group_key = keys[ki]
         data = grouped.get_group(group_key)
@@ -206,8 +226,8 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        bb = data.total_bounds
-        im, bounds = cx.bounds2img(*bb, ll = True, source=cx.providers.CartoDB.Positron, zoom = 19)
+        im, bounds = cx.bounds2img(*largest_bounds, ll = True, source=cx.providers.CartoDB.Positron, zoom = 19)
+        tbounds = bounds
 
         ax.set_axis_off()
         ax.imshow(im, extent = bounds)
@@ -223,7 +243,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         ax = axs[i[0], j[0]]
 
         s = "{}:\n{}".format(rename_dict[groupby_columns[0]], group_key[0])
-        plt.text(1.1,0.5, s, fontsize = 15, transform = ax.transAxes)
+        plt.text(1.1,0.5, s, fontsize = 11, transform = ax.transAxes)
 
     for j in range(q):
         ki = key_indices[0, j*r]
@@ -263,11 +283,11 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
             t = "Considers nearby\nalternatives more"
         plt.text(0.35,-0.35, t, fontsize = 15, transform = ax.transAxes)
 
-
-    f.suptitle(title, fontsize=16, y = 1)
+    if title is not None:
+        f.suptitle(title, fontsize=16, y = 1)
     f.show()
     plt.savefig(output_path)
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
 rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Paths Heatmap", map_output_path)
+batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
