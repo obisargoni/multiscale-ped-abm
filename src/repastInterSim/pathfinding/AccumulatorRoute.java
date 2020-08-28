@@ -35,9 +35,10 @@ public class AccumulatorRoute {
 		routeX = new ArrayList<Coordinate>();
 	}
 	
-	public AccumulatorRoute(Ped p, Coordinate defD, List<CrossingAlternative> cas) {
+	public AccumulatorRoute(Ped p, Coordinate defD, List<CrossingAlternative> cas, double rL) {
 		this.defaultDestination = defD;
 		this.ped = p;
+		this.roadLength = rL;
 		this.cas = cas;
 		this.caActivations = new double[this.cas.size()];
 		for (int i=0;i<this.caActivations.length; i++) {
@@ -143,10 +144,10 @@ public class AccumulatorRoute {
 		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
 		Double umDFromCAToDest = umCA.distanceTo(ca.getDestination());
 		
-		// Need characteristic walk time to compare this to
-		double charWT = this.ped.getLoc().distance(this.defaultDestination) / this.ped.getSpeed();
 		double detourWalkTime = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest)) / this.ped.getSpeed();
 				
+		// Need characteristic walk time to compare this to - use the length of the roads in planning horizon
+		double charWT = this.roadLength / this.ped.getSpeed();
 		
 		return 1 - (detourWalkTime / charWT);
 	}

@@ -214,8 +214,14 @@ public class PedPathFinder {
 		// Get crossing alternatives within planning horizon
 		List<CrossingAlternative> cas = getCrossingAlternatives(caG, sP, p, rG, tacticalDestCoord);
 		
+		// Get length of the planning horizon, this is used in the accumulator route
+		double pHLength = 0;
+		for (RoadLink rl: sP) {
+			pHLength += rl.getGeom().getLength();
+		}
+		
 		// Initialse AccumulatorRoute with strategic path planning horizon and origin and destination coordiantes, crossing alternatives
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, defaultDestCoord, cas);
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, defaultDestCoord, cas, pHLength);
 		
 		this.tacticalPath = accRoute;
 	}
