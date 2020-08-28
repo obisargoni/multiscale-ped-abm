@@ -12,14 +12,18 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
 
 public class AccumulatorRoute {
 	
 	private Coordinate defaultDestination; // The destination pedestrian walks towards while choosing crossing alternative
 	private Ped ped;
 	
+	private double roadLength;
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
 	
