@@ -127,13 +127,24 @@ public class AccumulatorRoute {
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
 		Double dFromCAToDest = ca.distanceTo(ca.getDestination());
+				
+		// Get the unmarked crossing alternative and calculate the distance to dest using it
+		CrossingAlternative umCA = null;
+		for (CrossingAlternative ca_: this.cas) {
+			if (ca_.getType().contentEquals("unmarked")) {
+				umCA = ca_;
+			}
+		}
 		
-		double walkTime = (dToCA + dFromCAToDest) / this.ped.getSpeed();
+		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
+		Double umDFromCAToDest = umCA.distanceTo(ca.getDestination());
 		
 		// Need characteristic walk time to compare this to
 		double charWT = this.ped.getLoc().distance(this.defaultDestination) / this.ped.getSpeed();
+		double detourWalkTime = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest)) / this.ped.getSpeed();
+				
 		
-		return 1 - (walkTime / charWT);
+		return 1 - (detourWalkTime / charWT);
 	}
 	
 	double caUtility(CrossingAlternative ca) {
