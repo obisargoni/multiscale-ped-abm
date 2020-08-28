@@ -193,6 +193,10 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
         # Check have got a single runs data
         assert data[run_col].unique().shape[0] == 1
 
+        # if one of the data columns not present initialise it as 0
+        for c in [i for i in data_columns if i not in data.columns]:
+            data[c] = 0
+
         # Get axis
         i,j= np.where(fig_indices == ki)
         assert len(i) == len(j) == 1
