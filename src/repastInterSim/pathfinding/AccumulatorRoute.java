@@ -129,6 +129,11 @@ public class AccumulatorRoute {
 	 */
 	public double caRoadsideWalkTimeIndicator(CrossingAlternative ca) {
 		
+		// If the input crossing alternative is unmarked then return 1, as by definition there is no detour using this alternative
+		if (ca.getType().contentEquals("unmarked")) {
+			return 1;
+		}
+		
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
 		Double dFromCAToDest = ca.distanceTo(ca.getDestination());
