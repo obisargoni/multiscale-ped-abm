@@ -81,7 +81,7 @@ output_data_dir = "..\\output\\processed_data\\"
 
 project_crs = {'init': 'epsg:27700'}
 
-file_datetime_string = "2020.Aug.28.10_07_02"
+file_datetime_string = "2020.Aug.31.13_37_31"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 ####################################
@@ -125,14 +125,21 @@ def get_peds_crossing_choice(series_choices):
 
 df_ped_cc = df_cc.groupby(['run','ID'], group_keys=True)['CrossingChoice'].apply(get_peds_crossing_choice).reset_index()
 
+# Get count of peds each run
+ser_run_ped_counts = df_ped_cc.groupby('run')['ID'].apply(lambda s: s.unique().shape[0])
+df_ped_counts = pd.DataFrame({'run_npeds':ser_run_ped_counts})
 
 # Now group by run to get count of each crossing type
 df_cc_count = df_ped_cc.groupby(['run','CrossingChoice']).count().unstack()
 df_cc_count.columns = [c[1] for c in df_cc_count.columns]
 df_cc_count.rename(columns = {'none':'undecided'}, inplace=True)
 
-# Multiply by 10 so values are percentages
-df_cc_count = df_cc_count*10
+# Join to df of npeds per run and calculate percentages
+df_cc_count = pd.merge(df_cc_count, df_ped_counts, left_index = True, right_index = True)
+
+data_cols = [c for c in ['undecided','unmarked','unsignalised'] if c in df_cc_count.columns]
+for c in data_cols:
+    df_cc_count[c] = (df_cc_count[c] / df_cc_count['run_npeds']) * 100.0
 
 
 ###################################
@@ -148,7 +155,7 @@ df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
 selction_values = [ [0.1,1],
                     [0.1,0.9],
-                    [5,20]
+                    [10,50]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -269,6 +276,6 @@ def batch_run_map(df_data, run_col, rename_dict, title, output_path):
     f.show()
     plt.savefig(output_path)
 
-map_output_path = "..\\output\\img\\beyond_crossing_choice_bar.png"
+map_output_path = "..\\output\\img\\between_crossing_choice_bar.png"
 rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(df_cc_count, 'run', rename_dict, "Crossing Choices Percentages\nBeyond Configuration", map_output_path)
+batch_run_map(df_cc_count, 'run', rename_dict, "Crossing Choices Percentages\nBetween Configuration", map_output_path)

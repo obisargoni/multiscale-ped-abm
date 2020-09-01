@@ -72,7 +72,7 @@ def dt_from_file_name(file_name, regex):
 data_dir = "..\\output\\batch\\model_run_data\\"
 outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
-file_datetime_string = "2020.Aug.28.10_07_02"
+file_datetime_string = "2020.Aug.31.13_37_31"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 project_crs = {'init': 'epsg:27700'}
@@ -111,7 +111,7 @@ df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
 selction_values = [ [0.1,1],
                     [0.1,0.9],
-                    [5,20]
+                    [10,50]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -290,4 +290,4 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
 rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
+batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
