@@ -63,9 +63,7 @@ public class AccumulatorRoute {
 		for (CrossingAlternative ca: this.cas) {
 			Double dTo = ca.distanceTo(ped.getLoc());
 			
-			Double dDefault = this.ped.getLoc().distance(this.defaultDestination);
-			
-			Double dSalience = (dDefault - Math.abs(dTo)) / dDefault;
+			Double dSalience = (this.roadLength - Math.abs(dTo)) / this.roadLength;
 			
 			// Multiply distance by ped attribute lambda to control effect of distance on probability
 			distances.add(dSalience*lambda);
