@@ -382,7 +382,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
-			int iD = vDI % nOD;
+			int iD = 0; //vDI % nOD; For sigspatial paper there is only one active destination. Need to fix this as the destination to generate flows to otherwise end up with large gaps between vehicle addition
 			
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO)[iD]);
@@ -417,8 +417,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
-			
-			int iD = pDI % nOD;
+						
+			int iD = 0; //pDI % nOD; For sigspatial paper there is only one active destination. Need to fix this as the destination to generate flows to otherwise end up with large gaps between pedestrian addition
 			
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO)[iD]);
