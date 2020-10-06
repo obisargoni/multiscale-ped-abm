@@ -78,7 +78,7 @@ file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime)
+file_re = get_file_regex("pedestrian_locations", file_datetime = None)
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 
 df_ped_loc = pd.read_csv(os.path.join(data_dir, ped_locations_file))
@@ -104,7 +104,7 @@ gdf_loc = gdf_loc.to_crs(wsg_crs)
 #
 #
 ################################
-file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime, suffix = 'batch_param_map')
+file_re = get_file_regex("pedestrian_locations", file_datetime = None, suffix = 'batch_param_map')
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
@@ -128,7 +128,7 @@ for col in selection_columns:
 #
 #
 #################################
-
+'''
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 hex_polys_file = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\hexgrid.shp"
 gdf_hex = gpd.read_file(hex_polys_file)
@@ -156,7 +156,7 @@ gdf_hex_counts.crs = gdf_hex.crs
 
 # Save the data
 gdf_hex_counts.to_file(outpath)
-
+'''
 #################################
 #
 #
@@ -200,19 +200,8 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     fig_indices = np.reshape(key_indices, (p,q*r))
     f,axs = plt.subplots(p, q*r,figsize=(20,10), sharey=True, sharex = True)
 
-    # Need to control for differing bounds between figures so first loop through all data groups and find largest bounds
-    largest_bounds = None
-    area = 0
-    for ki in range(len(keys)):
-        group_key = keys[ki]
-        data = grouped.get_group(group_key)
-
-        bounds = data.total_bounds
-        coords = ((bounds[0], bounds[1]), (bounds[0], bounds[3]), (bounds[2], bounds[3]), (bounds[2], bounds[1]), (bounds[0], bounds[1]))
-        a = Polygon(coords).area
-        if a > area:
-            largest_bounds = bounds
-            area = a
+    # Set bounds for map
+    map_bounds = [-0.1223057351372325,51.5111630749215195, -0.1212368380101798,51.5117320438929838]
 
     for ki in range(len(keys)):
         group_key = keys[ki]
@@ -226,7 +215,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        im, bounds = cx.bounds2img(*largest_bounds, ll = True, source=cx.providers.CartoDB.Positron, zoom = 19)
+        im, bounds = cx.bounds2img(*map_bounds, ll = True, source=cx.providers.Thunderforest.Transport(apikey="ebf9c5aef5b546ab9ea40180032937b5"))
         tbounds = bounds
 
         ax.set_axis_off()
@@ -290,4 +279,4 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
 rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
+batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Between Configuration", map_output_path)
