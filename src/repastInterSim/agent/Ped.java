@@ -211,11 +211,11 @@ public class Ped extends MobileAgent {
 
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
-        contA = totalContactAcceleration();
+        //contA = totalContactAcceleration();
         
-        totA = Vector.sumV(fovA, contA);
+        //totA = Vector.sumV(fovA, contA);
         
-        return totA;
+        return fovA;
     }
     
     
