@@ -41,6 +41,7 @@ import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.exceptions.RoutingException;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 
@@ -767,19 +768,8 @@ public class GISFunctions {
      * @throws RoutingException 
      */
 	public static Road getCoordinateRoad(Coordinate c, Geography<Road> rG) throws RoutingException {
-		Road r = null;
-		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(rG, c);
-    	
-    	if(intersectingRoads.size() == 0) {
-    		// Method returns default value, null, if there are no intersecting roads
-    	}
-    	else if (intersectingRoads.size() == 1) {
-        	r = intersectingRoads.get(0);
-    	}
-    	else {
-    		throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
-    	}
+				
+		Road r = SpatialIndexManager.findNearestObject(rG, c, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS);
     	
     	return r;
 	}
