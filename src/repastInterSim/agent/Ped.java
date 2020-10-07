@@ -207,7 +207,7 @@ public class Ped extends MobileAgent {
         double[] totA, fovA, contA;
         
         // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration();
+        fovA = motiveAccelerationSimple();
 
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
@@ -226,6 +226,23 @@ public class Ped extends MobileAgent {
     public double[] motiveAccelerationMoussaid()  {
     	
     	double[] desiredVelocity = desiredVelocity();
+    	
+    	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
+    	double[] a = {0,0};
+    	a[0] = (desiredVelocity[0] - this.v[0]) / this.tau;
+    	a[1] = (desiredVelocity[1] - this.v[1]) / this.tau;
+    	
+    	return a;
+    }
+    
+    /*
+     *  Calculate the acceleration towards the destination according to a very simple model where agent 
+     *  walks directly toward destination not accounting for objects in field of vision.
+     */
+    public double[] motiveAccelerationSimple()  {
+    	
+    	// Get velocity if ped were to walk straight towards its destination    	
+    	double[] desiredVelocity = {this.v0*Math.sin(this.a0), this.v0*Math.cos(this.a0)};
     	
     	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
     	double[] a = {0,0};
