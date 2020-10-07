@@ -211,7 +211,7 @@ public class Ped extends MobileAgent {
 
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
-        //contA = totalContactAcceleration();
+        //contA = totalContactAccelerationMoussaid();
         
         //totA = Vector.sumV(fovA, contA);
         
@@ -219,8 +219,11 @@ public class Ped extends MobileAgent {
     }
     
     
-    // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration()  {
+    /*
+     *  Calculate the acceleration towards the destination according to the Moussaid social force model.
+     *  Accounts for objects in the field of vision but not collisions.
+     */
+    public double[] motiveAccelerationMoussaid()  {
     	
     	double[] desiredVelocity = desiredVelocity();
     	
@@ -239,7 +242,7 @@ public class Ped extends MobileAgent {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration()  {
+    public double[] totalContactAccelerationMoussaid()  {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
@@ -428,6 +431,9 @@ public class Ped extends MobileAgent {
     	return output;    	
     }
     
+    /*
+     * Finds the desired velocity of the pedestrian according to the Moussaid social force model.
+     */
     public double[] desiredVelocity()  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
