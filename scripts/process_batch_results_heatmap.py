@@ -268,6 +268,61 @@ def heatmap(data, row_labels, col_labels, ax=None, x_label = None, y_label = Non
 
     return im, cbar
 
+def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_dict):
+
+    grouped = df_data.groupby(groupby_columns)
+    keys = list(grouped.groups.keys())
+
+    # Want to get separate array of data for each value of 'addVehicleTicks'
+    p = len(df_run[groupby_columns[0]].unique())
+    q = len(df_run[groupby_columns[1]].unique())
+
+    key_indices = np.reshape(np.arange(len(keys)), (p,q))
+
+    # Set fixed indices for q and r axes
+    qi = 0
+
+    f,axs = plt.subplots(p, q,figsize=(20,10), sharey=False, sharex = False)
+
+    # Make sure axes array in shame that matches the layout
+    axs = np.reshape(axs, (p, q))
+
+    # Select data to work with and corresponding axis
+    for pi in range(p):
+        key_index = key_indices[pi, qi]
+        group_key = keys[key_index]
+        df_group = grouped.get_group(group_key)
+
+        # Select the corresponding axis
+        ax = axs[pi, qi]
+
+        plot_group_heatmap(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], ax = ax)
+
+    # Now add text annotations to indicate the scenario
+    for i in range(p):
+        ki = key_indices[i, 0]
+        group_key = keys[ki]
+        ax = axs[i, 0]
+
+        s = None
+        if group_key[0] == 10:
+            s = "High\nVehicle\nFlow"
+        elif group_key[0] == 50:
+            s = "Low\nVehicle\nFlow"
+        plt.text(-0.4,0.5, s, fontsize = 11, transform = ax.transAxes)
+    '''
+    for j in range(q):
+        ki = key_indices[-1, j]
+        group_key = keys[ki]
+
+        ax = axs[-1, j]
+
+        s = "{}".format(rename_dict[group_key[1]])
+        plt.text(1.05,1.1, s, fontsize = 11, transform = ax.transAxes)
+    '''
+
+    return f, axs
+
 
 #####################################
 #
@@ -276,6 +331,7 @@ def heatmap(data, row_labels, col_labels, ax=None, x_label = None, y_label = Non
 #
 #
 #####################################
+rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
 
 # Values of interest are the ratio of unmarked crossings to unsignalised crossings and the fractio of pedestrians that are undecided
 def crossing_ratio(row, c1 = 'unmarked', c2 = 'unsignalised'):
@@ -288,30 +344,9 @@ df_cc_count['cratio'] = df_cc_count.apply(lambda r: crossing_ratio(r), axis = 1)
 df_cc_count['uratio'] = 1 - df_cc_count['undecided'] / 100.0
 
 # Groups by the variables I want to keep constant in eac plot
-groupby_columns = ['addVehicleTicks', 'epsilon', 'alpha']
+groupby_columns = ['addVehicleTicks', 'epsilon']
+parameter_sweep_columns = ['alpha', 'lambda']
 
-grouped = df_cc_count.groupby(groupby_columns)
-keys = list(grouped.groups.keys())
-
-# Want to get separate array of data for each value of 'addVehicleTicks'
-p = len(df_run[groupby_columns[0]].unique())
-q = len(df_run[groupby_columns[1]].unique())
-r = len(df_run[groupby_columns[2]].unique())
-
-key_indices = np.reshape(np.arange(len(keys)), (p,q*r))
-
-# Set fixed indices for q and r axes
-qi = 0
-ri = 0
-
-f,axs = plt.subplots(1, p,figsize=(20,10), sharey=False, sharex = False)
-
-# Select data to work with and corresponding axis
-for pi in range(p):
-    key_index = key_indices[pi, qi * ri]
-    group_key = keys[key_index]
-    df_group = grouped.get_group(group_key)
-
-    plot_group_heatmap(df_group, 'gamma', 'lambda', ax = axs[pi])
+f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, rename_dict)
 
 f.show()
