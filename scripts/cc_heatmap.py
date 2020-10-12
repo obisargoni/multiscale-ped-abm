@@ -198,5 +198,5 @@ parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
 
-f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'inverse_undecided_frac', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.viridis, output_path = "..\\output\\img\\al_crossing_heatmap.png")
+f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.viridis, output_path = "..\\output\\img\\al_crossing_heatmap.png")
 f.show()
