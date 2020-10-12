@@ -14,13 +14,13 @@ from process_batch_data import get_processed_crossing_locations_data
 # Functions to make figures
 #
 #####################################
-def plot_group_heatmap(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = 'inverse_undecided_frac', cmap = plt.cm.viridis, ax = None, cbarlabel="Proportion choosing unmarked crossings", cbar_kw = {}):
+def plot_group_heatmap(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = 'inverse_undecided_frac', cmap = plt.cm.viridis, ax = None):
     # get the data
     rgba, row_labels, col_labels = heatmap_rgba_data(df_group, row, col, value_col = value_col, alpha_col = alpha_col, cmap = cmap)
 
-    im, cbar = heatmap(rgba, row_labels, col_labels, ax = ax, x_label = col, y_label = row, cbar_kw = cbar_kw, cbarlabel=cbarlabel)
+    im = heatmap(rgba, row_labels, col_labels, ax = ax, x_label = col, y_label = row)
 
-    return im, cbar
+    return im
 
 def heatmap_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = None, cmap = plt.cm.viridis):
 
@@ -41,7 +41,7 @@ def heatmap_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col
 
     return rgba, row_labels, col_labels
 
-def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = None, cbar_kw = {}, cbarlabel="", **kwargs):
+def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = None, **kwargs):
     """
     Create a heatmap from a numpy array and two lists of labels.
 
@@ -69,10 +69,6 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
 
     # Plot the heatmap
     im = ax.imshow(data, **kwargs)
-
-    # Create colorbar
-    cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
-    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # We want to show all ticks...
     ax.set_xticks(np.arange(data.shape[1]))
@@ -103,9 +99,9 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
     ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
     ax.tick_params(which="minor", bottom=False, left=False)
 
-    return im, cbar
+    return im
 
-def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_dict, title = None, output_path = None):
+def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_dict, title = None, output_path = None, cbar_kw = {}):
 
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
@@ -116,7 +112,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_
 
     key_indices = np.reshape(np.arange(len(keys)), (p,q))
 
-    f,axs = plt.subplots(p, q,figsize=(20,10), sharey=False, sharex = False)
+    f,axs = plt.subplots(p, q, figsize=(13,10), sharey=False, sharex=False)
 
     # Make sure axes array in shame that matches the layout
     axs = np.reshape(axs, (p, q))
@@ -131,7 +127,18 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_
             # Select the corresponding axis
             ax = axs[pi, qi]
 
-            plot_group_heatmap(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], ax = ax, cbar_kw = dict(shrink = 0.7, anchor = (0,0)))
+            im = plot_group_heatmap(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], ax = ax)
+
+    # Adjust the plot to make space for the colourbar axis
+    plt.subplots_adjust(right=0.8, wspace = 0.1)    
+
+    # Create new axis at far right of plot - [left, bottom, width, height]
+    cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
+
+    # Create colorbar
+    cbar = f.colorbar(im, cax=cax, anchor = (0,0.7))
+    cbarlabel="Proportion choosing unmarked crossings"
+    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # Now add text annotations to indicate the scenario
     for i in range(p):
