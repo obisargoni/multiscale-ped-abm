@@ -14,14 +14,6 @@ from process_batch_data import get_processed_crossing_locations_data
 # Functions to make figures
 #
 #####################################
-def plot_group_heatmap(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = 'inverse_undecided_frac', cmap = plt.cm.viridis, ax = None):
-    # get the data
-    rgba, row_labels, col_labels = heatmap_rgba_data(df_group, row, col, value_col = value_col, alpha_col = alpha_col, cmap = cmap)
-
-    im = heatmap(rgba, row_labels, col_labels, ax = ax, x_label = col, y_label = row)
-
-    return im
-
 def heatmap_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = None, cmap = plt.cm.viridis):
 
     # Values used for pixel colours
@@ -101,7 +93,7 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
 
     return im
 
-def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_dict, title = None, output_path = None, cbar_kw = {}):
+def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_col, alpha_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None):
 
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
@@ -127,18 +119,17 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_
             # Select the corresponding axis
             ax = axs[pi, qi]
 
-            im = plot_group_heatmap(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], ax = ax)
+            # get the data and plot image
+            rgba, row_labels, col_labels = heatmap_rgba_data(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], value_col = value_col, alpha_col = alpha_col, cmap = cmap)
+            im = heatmap(rgba, row_labels, col_labels, ax = ax,  y_label = rename_dict[parameter_sweep_columns[0]], x_label = rename_dict[parameter_sweep_columns[1]])
 
     # Adjust the plot to make space for the colourbar axis
     plt.subplots_adjust(right=0.8, wspace = 0.1)    
 
     # Create new axis at far right of plot - [left, bottom, width, height]
     cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
-
     # Create colorbar
     cbar = f.colorbar(im, cax=cax, anchor = (0,0.7))
-    cbarlabel="Proportion choosing unmarked crossings"
-    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
 
     # Now add text annotations to indicate the scenario
     for i in range(p):
@@ -146,11 +137,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_
         group_key = keys[ki]
         ax = axs[i, 0]
 
-        s = None
-        if group_key[0] == 10:
-            s = "High\nVehicle\nFlow"
-        elif group_key[0] == 50:
-            s = "Low\nVehicle\nFlow"
+        s = "{}".format(rename_dict[group_key[0]])
         plt.text(-0.4,0.5, s, fontsize = 11, transform = ax.transAxes)
     
 
@@ -165,6 +152,8 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, rename_
 
     if title is not None:
         f.suptitle(title, fontsize=16, y = 1)
+    if cbarlabel is not None:
+        cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
     if output_path is not None:
         plt.savefig(output_path)
 
@@ -198,14 +187,16 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$", 
                 "between": "Between Configuration",
-                "beyond":"Beyond Configuration"
+                "beyond":"Beyond Configuration",
+                10:"High\nVehicle\nFlow",
+                50:"Low\nVehicle\nFlow"
                 }
 
 # Groups by the variables I want to keep constant in eac plot
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
-fig_title = "Crossing Choices - {} and {} sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
 
-f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, rename_dict, title = fig_title, output_path = "..\\output\\img\\al_crossing_heatmap.png")
+f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'inverse_undecided_frac', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.viridis, output_path = "..\\output\\img\\al_crossing_heatmap.png")
 f.show()
