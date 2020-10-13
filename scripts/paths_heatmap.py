@@ -70,7 +70,7 @@ def dt_from_file_name(file_name, regex):
 #
 ###############################
 data_dir = "..\\output\\batch\\model_run_data\\"
-outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
+outpath = "..\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
 file_datetime_string = "2020.Aug.31.13_37_31"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
@@ -128,7 +128,7 @@ for col in selection_columns:
 #
 #
 #################################
-'''
+
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 hex_polys_file = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\hexgrid.shp"
 gdf_hex = gpd.read_file(hex_polys_file)
@@ -156,7 +156,7 @@ gdf_hex_counts.crs = gdf_hex.crs
 
 # Save the data
 gdf_hex_counts.to_file(outpath)
-'''
+
 #################################
 #
 #
