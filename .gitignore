@@ -69,3 +69,4 @@ hs_err_pid*
 ~/data/model_run_exports/ReadMe.txt
 /scripts/.ipynb_checkpoints/*
 /scripts/gis_data_processing/config.json
+/scripts/__pycache__/*
