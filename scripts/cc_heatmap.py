@@ -163,10 +163,21 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 #####################################
 #
 #
-# Get data from runs for each configuration
+# Get data from alpha and lambda param sweep runs for each configuration
 #
 #
 #####################################
+
+rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
+                'alpha':r"$\mathrm{\alpha}$",
+                'lambda':r"$\mathrm{\lambda}$",
+                "epsilon":r"$\mathrm{\epsilon}$",
+                "gamma":r"$\mathrm{\gamma}$",
+                "between": "Between Configuration",
+                "beyond":"Beyond Configuration",
+                10:"High\nVehicle\nFlow",
+                50:"Low\nVehicle\nFlow"
+                }
 
 configuration_datetime_strings = { 
                                     "between":  dt.strptime("2020.Oct.08.20_55_52", "%Y.%b.%d.%H_%M_%S"),
@@ -181,22 +192,15 @@ btwn_ped_cc["configuration"] = "between"
 bynd_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['beyond'])
 bynd_ped_cc["configuration"] = "beyond"
 
-df_cc_count = pd.concat([btwn_ped_cc, bynd_ped_cc])
-
-rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
-                'alpha':r"$\mathrm{\alpha}$",
-                'lambda':r"$\mathrm{\lambda}$", 
-                "between": "Between Configuration",
-                "beyond":"Beyond Configuration",
-                10:"High\nVehicle\nFlow",
-                50:"Low\nVehicle\nFlow"
-                }
+df_cc_count_al = pd.concat([btwn_ped_cc, bynd_ped_cc])
 
 # Groups by the variables I want to keep constant in eac plot
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
+fig_file = "..\\output\\img\\al_crossing_heatmap.png"
 
-f, axs = batch_run_heatmap(df_cc_count, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.viridis, output_path = "..\\output\\img\\al_crossing_heatmap.png")
+f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f.show()
 f.show()
