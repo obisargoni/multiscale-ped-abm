@@ -203,4 +203,41 @@ fig_file = "..\\output\\img\\al_crossing_heatmap.png"
 
 f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
+
+
+#####################################
+#
+#
+# Get data from epsilon and gamma parameter sweep runs for each configuration
+#
+#
+#####################################
+
+configuration_datetime_strings = { 
+                                    "between":  dt.strptime("2020.Oct.12.18_33_37", "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime("2020.Oct.11.11_04_38", "%Y.%b.%d.%H_%M_%S")
+                                }
+
+btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
+btwn_ped_cc["configuration"] = "between"
+
+bynd_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['beyond'])
+bynd_ped_cc["configuration"] = "beyond"
+
+df_cc_count_eg = pd.concat([btwn_ped_cc, bynd_ped_cc])
+
+# If zero pedestrians have crossed this gives nan. Replace with zero. Need to use alpha instead to represent missing data (or mask array...?)
+df_cc_count_eg.fillna(0, inplace = True)
+
+# Groups by the variables I want to keep constant in eac plot
+groupby_columns = ['addVehicleTicks', 'configuration']
+parameter_sweep_columns = ['epsilon', 'gamma']
+
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "gamma")
+
+fig_file = "..\\output\\img\\eg_crossing_heatmap.png"
+
+# 'inverse_undecided_frac'
+
+f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'inverse_undecided_frac', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
