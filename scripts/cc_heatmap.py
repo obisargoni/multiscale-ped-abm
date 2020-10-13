@@ -121,7 +121,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 
             # get the data and plot image
             rgba, row_labels, col_labels = heatmap_rgba_data(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], value_col = value_col, alpha_col = alpha_col, cmap = cmap)
-            im = heatmap(rgba, row_labels, col_labels, ax = ax,  y_label = rename_dict[parameter_sweep_columns[0]], x_label = rename_dict[parameter_sweep_columns[1]])
+            im = heatmap(rgba, row_labels, col_labels, ax = ax,  y_label = rename_dict[parameter_sweep_columns[0]], x_label = rename_dict[parameter_sweep_columns[1]], cmap = cmap)
 
     # Adjust the plot to make space for the colourbar axis
     plt.subplots_adjust(right=0.8, wspace = 0.1)    
@@ -129,7 +129,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
     # Create new axis at far right of plot - [left, bottom, width, height]
     cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
     # Create colorbar
-    cbar = f.colorbar(im, cax=cax, anchor = (0,0.7))
+    cbar = f.colorbar(im, cax=cax, anchor = (0,0.7), cmap = cmap)
 
     # Now add text annotations to indicate the scenario
     for i in range(p):
