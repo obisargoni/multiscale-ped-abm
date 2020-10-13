@@ -132,7 +132,7 @@ def get_processed_crossing_locations_data(data_dir, file_prefix, file_datetime =
 
     df_cc_count = df_cc_count.apply(crossing_percentages, axis = 1)
 
-    df_cc_count['inverse_undecided_frac'] = 1 - (df_cc_count['undecided'] / df_cc_count['run_npeds'])
+    df_cc_count['undecided_frac'] = df_cc_count['undecided'] / df_cc_count['run_npeds']
 
     df_cc_count = pd.merge(df_cc_count, df_run, left_index = True, right_on = 'run', how = 'inner')
 
