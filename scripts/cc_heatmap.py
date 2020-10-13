@@ -1,7 +1,9 @@
 from datetime import datetime as dt
 import pandas as pd
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from colorspacious import cspace_convert
 
 from importlib import reload
 import process_batch_data
@@ -93,7 +95,68 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
 
     return im
 
-def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_col, alpha_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None):
+def annotate_heatmap(im, data=None, value_data = None, valfmt="{x:.0f}", textcolors=["white","black"], threshold=None, exclude = [], **textkw):
+    """
+    A function to annotate a heatmap.
+
+    Parameters
+    ----------
+    im
+        The AxesImage to be labeled.
+    data
+        Data used to annotate.  If None, the image's data is used.  Optional.
+    valfmt
+        The format of the annotations inside the heatmap.  This should either
+        use the string format method, e.g. "$ {x:.2f}", or be a
+        `matplotlib.ticker.Formatter`.  Optional.
+    textcolors
+        A list or array of two color specifications.  The first is used for
+        values below a threshold, the second for those above.  Optional.
+    threshold
+        Value in data units according to which the colors from textcolors are
+        applied.  If None (the default) uses the middle of the colormap as
+        separation.  Optional.
+    exclude
+        Values to exclude from annotating. Optional
+    **kwargs
+        All other arguments are forwarded to each call to `text` used to create
+        the text labels.
+    """
+
+    if not isinstance(data, (list, np.ndarray)):
+        data = im.get_array()
+
+    # Normalize the threshold to the images color range.
+    if threshold is not None:
+        threshold = im.norm(threshold)
+    else:
+        threshold = im.norm(data.max())/2.
+
+    # Set default alignment to center, but allow it to be
+    # overwritten by textkw.
+    kw = dict(horizontalalignment="center",
+              verticalalignment="center")
+    kw.update(textkw)
+
+    # Get the formatter in case a string is supplied
+    if isinstance(valfmt, str):
+        valfmt = mpl.ticker.StrMethodFormatter(valfmt)
+
+    # Loop over the data and create a `Text` for each "pixel".
+    # Change the text's color depending on the data.
+    texts = []
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            if data[i,j] in exclude:
+                continue
+            else:
+                kw.update(color=textcolors[int(20 < value_data[i,j] < 80)])
+                text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
+                texts.append(text)
+
+    return texts
+
+def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_col, alpha_col, annotate_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None):
 
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
@@ -122,6 +185,13 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
             # get the data and plot image
             rgba, row_labels, col_labels = heatmap_rgba_data(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], value_col = value_col, alpha_col = alpha_col, cmap = cmap)
             im = heatmap(rgba, row_labels, col_labels, ax = ax,  y_label = rename_dict[parameter_sweep_columns[0]], x_label = rename_dict[parameter_sweep_columns[1]], cmap = cmap)
+
+            # Annotate heatmap
+            if annotate_col is not None:
+                annotate_data = df_group.reindex(columns = [parameter_sweep_columns[0], parameter_sweep_columns[1], annotate_col]).set_index([parameter_sweep_columns[0], parameter_sweep_columns[1]]).unstack().values
+                colour_data = df_group.reindex(columns = [parameter_sweep_columns[0], parameter_sweep_columns[1], value_col]).set_index([parameter_sweep_columns[0], parameter_sweep_columns[1]]).unstack().values
+                texts = annotate_heatmap(im, data=annotate_data, value_data = colour_data, exclude = [0, 40], fontweight='bold')
+
 
     # Adjust the plot to make space for the colourbar axis
     plt.subplots_adjust(right=0.8, wspace = 0.1)    
@@ -201,7 +271,7 @@ parameter_sweep_columns = ['alpha', 'lambda']
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
 fig_file = "..\\output\\img\\al_crossing_heatmap.png"
 
-f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
 
 
@@ -212,7 +282,6 @@ f.show()
 #
 #
 #####################################
-
 configuration_datetime_strings = { 
                                     "between":  dt.strptime("2020.Oct.12.18_33_37", "%Y.%b.%d.%H_%M_%S"),
                                     "beyond":   dt.strptime("2020.Oct.11.11_04_38", "%Y.%b.%d.%H_%M_%S")
@@ -229,6 +298,9 @@ df_cc_count_eg = pd.concat([btwn_ped_cc, bynd_ped_cc])
 # If zero pedestrians have crossed this gives nan. Replace with zero. Need to use alpha instead to represent missing data (or mask array...?)
 df_cc_count_eg.fillna(0, inplace = True)
 
+# Create col that is zero if all peds undecided and one otherwise. Use this to set opacity of the plot
+df_cc_count_eg['opacity'] = 1 - np.floor(df_cc_count_eg['undecided_frac'])
+
 # Groups by the variables I want to keep constant in eac plot
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['epsilon', 'gamma']
@@ -239,5 +311,5 @@ fig_file = "..\\output\\img\\eg_crossing_heatmap.png"
 
 # 'inverse_undecided_frac'
 
-f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'inverse_undecided_frac', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'opacity', 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
