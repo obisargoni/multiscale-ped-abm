@@ -70,7 +70,7 @@ def dt_from_file_name(file_name, regex):
 #
 ###############################
 data_dir = "..\\output\\batch\\model_run_data\\"
-outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
+outpath = "..\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
 file_datetime_string = "2020.Oct.13.20_01_33"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
