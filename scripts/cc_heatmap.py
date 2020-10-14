@@ -151,7 +151,7 @@ def annotate_heatmap(im, data=None, value_data = None, valfmt="{x:.0f}", textcol
                 continue
             else:
                 kw.update(color=textcolors[int(20 < value_data[i,j] < 80)])
-                text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
+                text = im.axes.text(j, i, 'u', **kw)
                 texts.append(text)
 
     return texts
