@@ -72,13 +72,13 @@ def dt_from_file_name(file_name, regex):
 data_dir = "..\\output\\batch\\model_run_data\\"
 outpath = "C:\\Users\\obisargoni\\eclipse-workspace\\repastInterSim\\output\\hex_bin_trajectories\\hex_bin_trajectories.shp"
 
-file_datetime_string = "2020.Aug.31.13_37_31"
+file_datetime_string = "2020.Oct.13.20_01_33"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-file_re = get_file_regex("pedestrian_locations", file_datetime = None)
+file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = most_recent_directory_file(data_dir, file_re)
 
 df_ped_loc = pd.read_csv(os.path.join(data_dir, ped_locations_file))
@@ -104,13 +104,13 @@ gdf_loc = gdf_loc.to_crs(wsg_crs)
 #
 #
 ################################
-file_re = get_file_regex("pedestrian_locations", file_datetime = None, suffix = 'batch_param_map')
+file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime, suffix = 'batch_param_map')
 batch_file = most_recent_directory_file(data_dir, file_re)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
 selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
-selction_values = [ [0.1,1],
-                    [0.1,0.9],
+selction_values = [ [0.4,1.6],
+                    [0.2,0.8],
                     [10,50]
                     ]
 
@@ -128,7 +128,7 @@ for col in selection_columns:
 #
 #
 #################################
-'''
+
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 hex_polys_file = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\hexgrid.shp"
 gdf_hex = gpd.read_file(hex_polys_file)
@@ -156,7 +156,7 @@ gdf_hex_counts.crs = gdf_hex.crs
 
 # Save the data
 gdf_hex_counts.to_file(outpath)
-'''
+
 #################################
 #
 #
@@ -231,7 +231,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
         assert len(i) == len(j) == 1
         ax = axs[i[0], j[0]]
 
-        s = "{}:\n{}".format(rename_dict[groupby_columns[0]], group_key[0])
+        s = "{}".format(rename_dict[group_key[0]])
         plt.text(1.1,0.5, s, fontsize = 11, transform = ax.transAxes)
 
     for j in range(q):
@@ -247,9 +247,9 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
         # Add some explanitory text
         t = ""
-        if group_key[1] == 0.1:
+        if group_key[1] == 0.2:
             t = "Sensitive to traffic"
-        elif group_key[1] == 0.9:
+        elif group_key[1] == 0.8:
             t = "Sensitive to journey time"
         plt.text(0.95,1.2, t, fontsize = 15, transform = ax.transAxes)
 
@@ -266,9 +266,9 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
 
         # Add some explanitory text
         t = ""
-        if group_key[2] == 0.1:
+        if group_key[2] == 0.4:
             t = "Plans ahead"
-        elif group_key[2] == 1:
+        elif group_key[2] == 1.6:
             t = "Considers nearby\nalternatives more"
         plt.text(0.35,-0.35, t, fontsize = 15, transform = ax.transAxes)
 
@@ -278,5 +278,5 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     plt.savefig(output_path)
 
 map_output_path = "..\\output\\img\\binned_trajectories_w_background.png"
-rename_dict = {'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
-batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Between Configuration", map_output_path)
+rename_dict = {10:"High\nVehicle\nFlow", 50:"Low\nVehicle\nFlow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
+batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
