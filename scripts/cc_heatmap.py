@@ -283,8 +283,8 @@ f.show()
 #
 #####################################
 configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2020.Oct.12.18_33_37", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2020.Oct.11.11_04_38", "%Y.%b.%d.%H_%M_%S")
+                                    "between":  dt.strptime("2020.Oct.13.19_06_08", "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime("2020.Oct.13.16_26_17", "%Y.%b.%d.%H_%M_%S")
                                 }
 
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
