@@ -305,7 +305,7 @@ df_cc_count_eg['opacity'] = 1 - np.floor(df_cc_count_eg['undecided_frac'])
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['epsilon', 'gamma']
 
-fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "gamma")
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "$\mathrm{\gamma}$")
 
 fig_file = "..\\output\\img\\eg_crossing_heatmap.png"
 
