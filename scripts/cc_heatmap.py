@@ -150,7 +150,7 @@ def annotate_heatmap(im, data=None, value_data = None, valfmt="{x:.0f}", textcol
             if data[i,j] in exclude:
                 continue
             else:
-                kw.update(color=textcolors[int(20 < value_data[i,j] < 80)])
+                kw.update(color=textcolors[int(30 < value_data[i,j] < 70)])
                 text = im.axes.text(j, i, 'u', **kw)
                 texts.append(text)
 
