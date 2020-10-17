@@ -150,8 +150,8 @@ def annotate_heatmap(im, data=None, value_data = None, valfmt="{x:.0f}", textcol
             if data[i,j] in exclude:
                 continue
             else:
-                kw.update(color=textcolors[int(20 < value_data[i,j] < 80)])
-                text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
+                kw.update(color=textcolors[int(30 < value_data[i,j] < 70)])
+                text = im.axes.text(j, i, 'u', **kw)
                 texts.append(text)
 
     return texts
@@ -271,7 +271,7 @@ parameter_sweep_columns = ['alpha', 'lambda']
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
 fig_file = "..\\output\\img\\al_crossing_heatmap.png"
 
-f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
 
 
@@ -305,11 +305,11 @@ df_cc_count_eg['opacity'] = 1 - np.floor(df_cc_count_eg['undecided_frac'])
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['epsilon', 'gamma']
 
-fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "gamma")
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "$\mathrm{\gamma}$")
 
 fig_file = "..\\output\\img\\eg_crossing_heatmap.png"
 
 # 'inverse_undecided_frac'
 
-f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'opacity', 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing unmarked crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'opacity', 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
