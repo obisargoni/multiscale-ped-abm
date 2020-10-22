@@ -378,8 +378,9 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
 junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
 
-# Drop duplicates and recreate index
+# Drop duplicates, drop self loops and recreate index
 junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
+junc_edges = junc_edges.loc[ junc_edges['fid_from'] != junc_edges['fid_to']]
 junc_edges.index = np.arange(len(junc_edges))
 
 # Where the link connects nodes on the same ped poly, remove reference to road link as in these cases link does not cross road link
