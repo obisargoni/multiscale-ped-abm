@@ -310,7 +310,7 @@ gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
 # Create id for each ped node
-gdfPedNodes['fid'] = ['ped_node_{}'.format(i) for i in gdfPedNodes.index]
+gdfPedNodes['fid'] = ['pave_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.crs = projectCRS
 gdfPedNodes.to_file(output_ped_nodes_file)
 
