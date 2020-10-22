@@ -360,7 +360,8 @@ def check_ped_poly_id_repreated(row, ped_poly_col_regex = pcol_re):
 
 def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
-	# Connect nodes 
+	# Connect nodes if they share a road link ID since this means they lie on the opposite side of the same road
+	# This process also ends up connecting nodes to themselves which is corrected for afterwards
 	junc_edges1 = pd.merge(df, df, on = v1_poly_col, how = 'inner', suffixes = ('_to', '_from'))
 	junc_edges1['road_link'] = junc_edges1[v1_poly_col]
 
