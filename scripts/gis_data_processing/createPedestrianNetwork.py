@@ -434,7 +434,7 @@ gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
 
 # Rename node columns to match other network data columns and create fid field
 gdfPedNetwork.rename(columns = {"from_node":"MNodeFID", "to_node":"PNodeFID", "road_link":"pedRLID", "ped_poly":"pedRoadID"}, inplace=True)
-gdfPedNetwork['fid'] = "paveLink" + gdfPedNetwork['MNodeFID'].str.replace("pave_node","") + gdfPedNetwork['PNodeFID'].str.replace("pave_node","")
+gdfPedNetwork['fid'] = "pave_link" + gdfPedNetwork['MNodeFID'].str.replace("pave_node","") + gdfPedNetwork['PNodeFID'].str.replace("pave_node","")
 
 gdfPedNetwork.crs = projectCRS
 gdfPedNetwork.to_file(output_ped_links_file)
