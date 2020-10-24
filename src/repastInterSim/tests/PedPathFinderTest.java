@@ -528,9 +528,18 @@ class PedPathFinderTest {
 		}
 		
 	}
+	
+	@Test
+	void testTacticalHorizonEndJunctions() {
+		try {
 			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpODs("OD_pedestrian_nodes.shp");
 			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -550,7 +559,7 @@ class PedPathFinderTest {
 		}
 		
 		Coordinate expectedDefaultDest = null;
-		for (Junction pJ: this.pedJunctionGeography.getAllObjects()) {
+		for (Junction pJ: this.pavementNetwork.getNodes()) {
 			if (pJ.getFID().contentEquals("ped_node_10")) {
 				expectedDefaultDest = pJ.getGeom().getCoordinate();
 			}
@@ -566,8 +575,28 @@ class PedPathFinderTest {
 		}
 		List<RoadLink> path = rnr.getRoadsX();
 		
+		// Find planning horizon and links that lie either side of the boundary
+		List<RoadLink> tacticalPlanHorz = path.subList(0, 1);
+		String rlEndHorzID = tacticalPlanHorz.get(tacticalPlanHorz.size()-1).getFID();
+		String rlOutHorzID = path.get(tacticalPlanHorz.size()).getFID();
+		
 		// Get default destination coord
-		Coordinate ddc = PedPathFinder.defaultDestinationCoordinate(pedJunctionGeography, path, o);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorzID, rlOutHorzID);
+		
+		// Now check the nodes as as expected
+		String endJID1 = tacticalEndJunctions.get(0).getFID();
+		String endJID2 = tacticalEndJunctions.get(1).getFID();
+		
+		boolean nodeCheck = false;
+		if (endJID1.contentEquals("pave_node_72") & endJID2.contentEquals("pave_node_70")) {
+			nodeCheck = true;
+		}
+		else if (endJID1.contentEquals("pave_node_70") & endJID2.contentEquals("pave_node_72")) {
+			nodeCheck = true;
+		}
+		
+		assert nodeCheck == true;
+	}
 		
 		assert ddc.equals(expectedDefaultDest);
 	}
