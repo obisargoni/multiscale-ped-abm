@@ -13,10 +13,13 @@ import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
+import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
@@ -147,38 +150,52 @@ public class PedPathFinder {
     }
 	
 	/*
-	 * Method to get the default destination coordinate for a pedestrian agent. Defined
-	 * as the pedestrian network junction at the end of the planning horizon that doesn't
-	 * require a primary road crossing to reach.
+	 * Get the pavement network junction that is at the intersection between the final road link in the tactical planning horizin and
+	 * the next link in the strategic path that lies outside the tactical planning horizon.
+	 * 
+	 * 
 	 */
-	public static Coordinate defaultDestinationCoordinate(Geography<Junction> pedJG, List<RoadLink> sP, Coordinate sC) {
+	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, String rlEndHorzID, String rlOutHorzID) {
 		
-		// Get road link ID of link at end of planning horizon
-		int nlinks = sP.size();
-		String rlEndID = sP.get(nlinks-1).getFID();
-		
-		// Loop through ped network junctions and find coordinate at end of planning horizon that is on same side of road
-		Coordinate defaultCoord = null;
-		double cDist = Double.MIN_VALUE;
-		for (Junction pJ: pedJG.getAllObjects()) {
+		// Loop through ped network junctions and find junctions that connects link at end of planning horizon with first link outside planning horizon
+		List<Junction> tacticalEndJunctions = new ArrayList<Junction>();
+		for (Junction pJ: pavementNetwork.getNodes()) {
 			
 			// Check junction lies on end road link
-			if(pJ.getp1rlID().contentEquals(rlEndID) | pJ.getp2rlID().contentEquals(rlEndID) | pJ.getv1rlID().contentEquals(rlEndID) | pJ.getv2rlID().contentEquals(rlEndID)) {
+			if( (pJ.getv1rlID().contentEquals(rlEndHorzID) & pJ.getv2rlID().contentEquals(rlOutHorzID)) | ((pJ.getv1rlID().contentEquals(rlOutHorzID) & pJ.getv2rlID().contentEquals(rlEndHorzID))) ) {
+				tacticalEndJunctions.add(pJ);
+			}
+		}
+		
+		// If two junctions added to list then loop found junctions on either side of the road that are at end of tactical horizon
+		// This happens when tactical horizon ends at a bend without any turns, so no other road links involved
+		// If just one junction in list then need to find the junction at the other side of the road manually
+		if (tacticalEndJunctions.size() == 1) {
+			
+			// Use pavement network to get other junction. This is the one reached by crossing over the last link in tactical horizon
+			Junction endJ = tacticalEndJunctions.get(0);
+			for (RepastEdge<Junction> e: pavementNetwork.getEdges(endJ)) {
+				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
 				
-				// Check it is on same side of road
-				Coordinate candidate = pJ.getGeom().getCoordinate();
-				int parity = RoadNetworkRoute.calculateRouteParity(sC, candidate, sP);
-				if (parity == 0) {
-					// Check that coordinate is farther away
-					double d = sC.distance(candidate);
-					if (d>cDist) {
-						cDist = d;
-						defaultCoord = candidate;
+				// Important to get the PedRLID as this is the id of the link used in the strategic path (ie the Open Roads link id)
+				String rlID = ne.getRoadLink().getPedRLID();
+				if (rlID.contentEquals(rlEndHorzID)) {
+					
+					// Find which junction to add
+					String endJID = endJ.getFID();
+					String targetID = ne.getTarget().getFID();
+					if (targetID.contentEquals(endJID)) {
+						tacticalEndJunctions.add(ne.getSource());
+					}
+					else {
+						tacticalEndJunctions.add(ne.getTarget());
 					}
 				}
 			}
 		}
-		return defaultCoord;
+		
+		return tacticalEndJunctions;
+	}
 	}
 
 	/*
