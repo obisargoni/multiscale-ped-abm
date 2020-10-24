@@ -21,7 +21,8 @@ public class RoadLink implements FixedGeography, Serializable {
 	private List<Junction> junctions; // The Roads connected to this Junction, used in GIS road network
 	private NetworkEdge<Junction> edge;
 	private String fid = null;
-	private String pedRLID = null;
+	private String pedRLID = null; // ID of the strategic road network link this object corresponds to or cuts across in the case of pavement links
+	private String pedRoadID = null; // The ID of the pedestrian pavement polygon this link corresponds to in the case of pavement links
 	private String direction = null;
 	private String MNodeFID = null;
 	private String PNodeFID = null;
@@ -142,6 +143,15 @@ public class RoadLink implements FixedGeography, Serializable {
 
 	public void setPedRLID(String pedRoadLinkID) {
 		this.pedRLID = pedRoadLinkID;
+	}
+	
+
+	public String getPedRoadID() {
+		return pedRoadID;
+	}
+
+	public void setPedRoadID(String pedRoadID) {
+		this.pedRoadID = pedRoadID;
 	}
 
 }
