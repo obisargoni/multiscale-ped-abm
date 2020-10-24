@@ -89,23 +89,31 @@ class PedPathFinderTest {
 
 	}
 	
-	void setUpRoadLinks() throws Exception {
-		setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
-	}
-	
-	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		
+	Geography<RoadLink> setUpLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
 		roadLinkPath = testGISDir + roadLinkFile;
 		
 		// Initialise test road link geography and context
 		Context<RoadLink> roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
-		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		rlG.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, roadLinkGeography, roadLinkContext);
-		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, roadLinkContext);
+		SpatialIndexManager.createIndex(rlG, RoadLink.class);
 		
+		return rlG;
+	}
+	
+	void setUpRoadLinks(String roadLinkFile) throws Exception {
+		roadLinkGeography = setUpLinks(roadLinkFile);
+	}
+	
+	void setUpRoadLinks() throws Exception {
+		setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+	}
+	
+	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
+		pavementLinkGeography = setUpLinks(linkFile);
 	}
 		
 	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
