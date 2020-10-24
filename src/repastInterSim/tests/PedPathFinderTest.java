@@ -1,18 +1,12 @@
 package repastInterSim.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -49,18 +43,21 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 class PedPathFinderTest {
 	
 	Geography<Road> roadGeography = null;
-	Geography<RoadLink> roadLinkGeography = null;
 	Geography<OD> odGeography = null;
 	Geography<PedObstruction> pedObstructGeography = null;
+	Geography<RoadLink> roadLinkGeography = null;
+	Geography<RoadLink> pavementLinkGeography = null;
 	Network<Junction> roadNetwork = null;
-	Geography<Junction> junctionGeography = null;
-	Geography<Junction> pedJunctionGeography = null;
+	Context<Junction> pavementJunctionContext = null;
+	Geography<Junction> pavementJunctionGeography = null;
+	Network<Junction> pavementNetwork = null;
 	
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
 	String vehicleRoadsPath = null;
 	String roadLinkPath = null;
+	String pavementLinkPath = null;
 	String pedJPath = null;
 	String serialisedLookupPath = null;
 	
