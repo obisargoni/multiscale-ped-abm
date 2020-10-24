@@ -179,7 +179,7 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
 	}
 	
-	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d){
+	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
 		
 		// Plan the strategic path
 		List<RoadLink> sP = new ArrayList<RoadLink>();		
@@ -190,15 +190,15 @@ class PedPathFinderTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: junctionGeography.getAllObjects()) {
+		for(Junction j: roadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
-			if (j.getFID().contentEquals("osgb4000000029970684")) {
+			if (j.getFID().contentEquals(j1ID)) {
 				currentJunctions.add(j);
 			}
 			
 			// Set the test destination junctions
-			if (j.getFID().contentEquals("osgb4000000029970446")) {
+			if (j.getFID().contentEquals(j2ID)) {
 				destJunctions.add(j);
 			}
 		}
@@ -355,7 +355,7 @@ class PedPathFinderTest {
 		Coordinate o = ods.stream().filter(od -> od.getId() == 1).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
 		Coordinate d = ods.stream().filter(od -> od.getId() == 3).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
 		
-		List<RoadLink> sP = planStrategicPath(o,d);
+		List<RoadLink> sP = planStrategicPath(o,d, "osgb4000000029970684", "osgb4000000029970446");
 		
 		// Now set the planning horizon and whether secondary crossing is being performed or not and test the tactical destination coordinate returned
 		int pH = 1;
@@ -376,7 +376,7 @@ class PedPathFinderTest {
 		// This time no primary crossing required to reach destination
 		o = ods.stream().filter(od -> od.getId() == 1).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
 		d = ods.stream().filter(od -> od.getId() == 4).collect(Collectors.toList()).get(0).getGeom().getCoordinate();
-		sP = planStrategicPath(o,d);
+		sP = planStrategicPath(o,d, "osgb4000000029970684", "osgb4000000029970446");
 		
 		// tactical dest coord should be the same as pH=1 case above since agent doesn't have knowledge of where destination is
 		pH = 1;
