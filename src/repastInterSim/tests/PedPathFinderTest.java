@@ -222,6 +222,40 @@ class PedPathFinderTest {
 		return sP;
 	}
 	
+	List<Junction> getTacticalHorizonEndJunctionsFromODAndHorizon(Coordinate o, Coordinate d, int nPHLinks){
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Form road link path byt selecting links
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography);
+		try {
+			rnr.setRoadLinkRoute();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		List<RoadLink> path = rnr.getRoadsX();
+		
+		// Find planning horizon and links that lie either side of the boundary
+		List<RoadLink> tacticalPlanHorz = path.subList(0, 1);
+		String rlEndHorzID = tacticalPlanHorz.get(tacticalPlanHorz.size()-1).getFID();
+		String rlOutHorzID = path.get(tacticalPlanHorz.size()).getFID();
+		
+		// Get default destination coord
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorzID, rlOutHorzID);
+		
+		return tacticalEndJunctions;
+	}
+	
 	@Test
 	void testGetTacticalDestinationAlternativesFar() throws Exception {
 		setUpRoads();
@@ -530,15 +564,8 @@ class PedPathFinderTest {
 	}
 	
 	@Test
-	void testTacticalHorizonEndJunctions() {
+	void testTacticalHorizonEndJunctions1() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
-			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
-			
 			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -558,23 +585,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		// Form road link path byt selecting links
-		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography);
-		try {
-			rnr.setRoadLinkRoute();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		List<RoadLink> path = rnr.getRoadsX();
-		
-		// Find planning horizon and links that lie either side of the boundary
-		List<RoadLink> tacticalPlanHorz = path.subList(0, 1);
-		String rlEndHorzID = tacticalPlanHorz.get(tacticalPlanHorz.size()-1).getFID();
-		String rlOutHorzID = path.get(tacticalPlanHorz.size()).getFID();
-		
-		// Get default destination coord
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorzID, rlOutHorzID);
+		List<Junction> tacticalEndJunctions = getTacticalHorizonEndJunctionsFromODAndHorizon(o, d, 1);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
