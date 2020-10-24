@@ -478,7 +478,7 @@ class PedPathFinderTest {
 	}
 	
 	@Test
-	void testPedestrianNetworkJunctions() {
+	void testPavementJunctions() {
 		try {
 			setUpPedJunctions();
 		} catch (Exception e) {
@@ -487,7 +487,7 @@ class PedPathFinderTest {
 		}
 		
 		// Get a ped junction and check its attributes are not null
-		for (Junction pJ: this.pedJunctionGeography.getAllObjects()) {
+		for (Junction pJ: this.pavementJunctionGeography.getAllObjects()) {
 			assert pJ.getp1pID() != null;
 			assert pJ.getp1rlID() != null;
 			assert pJ.getp2pID() != null;
