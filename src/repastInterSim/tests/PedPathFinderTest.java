@@ -558,13 +558,6 @@ class PedPathFinderTest {
 			}
 		}
 		
-		Coordinate expectedDefaultDest = null;
-		for (Junction pJ: this.pavementNetwork.getNodes()) {
-			if (pJ.getFID().contentEquals("ped_node_10")) {
-				expectedDefaultDest = pJ.getGeom().getCoordinate();
-			}
-		}
-		
 		// Form road link path byt selecting links
 		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography);
 		try {
