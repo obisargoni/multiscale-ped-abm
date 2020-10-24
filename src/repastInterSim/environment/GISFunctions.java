@@ -71,6 +71,14 @@ public class GISFunctions {
 		// particular coordinate
 		Map<Coordinate, Junction> coordMap = new HashMap<Coordinate, Junction>();
 		
+		// Populate coord map. If input junction geography already contains junctions add these to the coord map.
+		// Allows junctions that are read from a shape file to be used in the network.
+		for (Junction j : junctionGeography.getAllObjects()) {
+			if (j.getGeom() != null) {
+				coordMap.put(j.getGeom().getCoordinate(), j);
+			}
+		}
+		
 		// Iterate through all roads
 		// Iterate through all roads
 		Iterable<RoadLink> roadIt = roadLinkGeography.getAllObjects();
