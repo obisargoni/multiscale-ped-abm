@@ -147,14 +147,22 @@ class PedPathFinderTest {
 	void setUpRoadNetwork(boolean isDirected) {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		// 2. Build road network
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+		
+		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext, junctionGeography, roadNetwork);
+	}
+	
+	void setUpPavementNetwork() {
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", pavementJunctionContext, false);
+		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+		pavementNetwork = builder.buildNetwork();
+		
+		GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
 	}
 	
 	void setUpPedJunctions() throws Exception {
