@@ -501,9 +501,33 @@ class PedPathFinderTest {
 	}
 	
 	@Test
-	void testDefaultDestinationCoordinate() {
+	void testPavementNetwork() {
+		
+		// Call methods that create the pavement junction geography and the pavement network
 		try {
 			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Check all the junctions but this time via the network nodes.
+		// Get a ped junction and check its attributes are not null
+		for (Junction pJ: this.pavementNetwork.getNodes()) {
+			assert pJ.getp1pID() != null;
+			assert pJ.getp1rlID() != null;
+			assert pJ.getp2pID() != null;
+			assert pJ.getp2rlID() != null;
+
+			assert pJ.getv1pID() != null;
+			assert pJ.getv1rlID() != null;
+			assert pJ.getv2pID() != null;
+			assert pJ.getv2rlID() != null;
+		}
+		
+	}
 			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
 			setUpODs("OD_pedestrian_nodes.shp");
 			setUpRoadNetwork(false);
