@@ -170,13 +170,13 @@ class PedPathFinderTest {
 		pedJPath = testGISDir + IO.getProperty("PedJunctions");
 		
 		// Initialise test road link geography and context
-		Context<Junction> pedJContext = new JunctionContext();
+		pavementJunctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
-		pedJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedJunctionGeography", pedJContext, GeoParams);
-		pedJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", pavementJunctionContext, GeoParams);
+		pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(Junction.class, pedJPath, pedJunctionGeography, pedJContext);
-		SpatialIndexManager.createIndex(pedJunctionGeography, Junction.class);
+		GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
+		SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
 	}
 	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d){
