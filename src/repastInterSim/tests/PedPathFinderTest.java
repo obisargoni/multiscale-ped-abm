@@ -222,40 +222,6 @@ class PedPathFinderTest {
 		return sP;
 	}
 	
-	List<Junction> getTacticalHorizonEndJunctionsFromODAndHorizon(Coordinate o, Coordinate d, int nPHLinks){
-		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
-			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		// Form road link path byt selecting links
-		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography);
-		try {
-			rnr.setRoadLinkRoute();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		List<RoadLink> path = rnr.getRoadsX();
-		
-		// Find planning horizon and links that lie either side of the boundary
-		List<RoadLink> tacticalPlanHorz = path.subList(0, 1);
-		String rlEndHorzID = tacticalPlanHorz.get(tacticalPlanHorz.size()-1).getFID();
-		String rlOutHorzID = path.get(tacticalPlanHorz.size()).getFID();
-		
-		// Get default destination coord
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorzID, rlOutHorzID);
-		
-		return tacticalEndJunctions;
-	}
-	
 	@Test
 	void testGetTacticalDestinationAlternativesFar() throws Exception {
 		setUpRoads();
@@ -601,8 +567,41 @@ class PedPathFinderTest {
 		
 		assert nodeCheck == true;
 	}
+	
+	@Test
+	void testLoadPavementNetwork() throws Exception {
 		
-		assert ddc.equals(expectedDefaultDest);
+		// Load pedestrian pavement network and test producing a path between two nodes
+		pavementLinkPath = testGISDir + "pedNetworkLinks.shp";
+		setUpRoadLinks(pavementLinkPath);
+		setUpRoadNetwork(false);
+		
+		List<RoadLink> sP = planStrategicPath(null, null, "osgb4000000029970684", "osgb4000000029970446");		
+		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, 20.0);
+		
+		RoadLink endOfHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
+		
+		// Loop through nodes and find those at the end of the planning horizon
+		List<Junction> endJuncs = new ArrayList<Junction>();
+		for (Junction j : roadNetwork.getNodes()) {
+			
+			j.getv1rlID();
+			j.getv2rlID();
+		}
+		
+		// Choose two junctions to get path between - these are junctions in the pavement network which is clear from the format of their ID
+		String startJuncID = "ped_node_110";
+		String endJuncID = "ped_node_98";
+		
+		List<RoadLink> pavementNetworkPath = planStrategicPath(null, null, startJuncID, endJuncID);
+		
+		// Run some checks on this path
+		
+		// Number of links? Number of crossings? etc
+		
+		// Then try to get multiple possible paths
+		
+		
 	}
 
 }
