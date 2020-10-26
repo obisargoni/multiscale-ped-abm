@@ -562,30 +562,30 @@ class PedPathFinderTest {
 		}
 		
 	}
+
 	
 	@Test
 	void testTacticalHorizonEndJunctions1() {
 		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
 			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		// Get origin and destination coordinates from ped junctions
-		Coordinate o = null;
-		Coordinate d = null;
-		for (OD od: this.odGeography.getAllObjects()) {
-			if (od.getId() == 3) {
-				o = od.getGeom().getCoordinate();
-			}
-			
-			if (od.getId() == 1) {
-				d = od.getGeom().getCoordinate();
-			}
-		}
+		// Manually set the two road links to get pavement junctions between
+		String rlEndHorzID = "9745D155-3C95-4CCD-BC65-0908D57FA83A_0";
+		String rlOutHorzID = "A8675945-DE94-4E22-9905-B0623A326221_0";		
 		
-		List<Junction> tacticalEndJunctions = getTacticalHorizonEndJunctionsFromODAndHorizon(o, d, 1);
+		// Get default destination coord
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorzID, rlOutHorzID);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
