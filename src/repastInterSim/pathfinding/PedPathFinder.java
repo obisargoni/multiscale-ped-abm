@@ -150,6 +150,22 @@ public class PedPathFinder {
     }
 	
 	/*
+	 * Returns the ID of the road network node connecting two road links. Returns null if there isn't a shared node.
+	 */
+	public static String connectingNodeID(RoadLink rl1, RoadLink rl2) {
+		
+		// Find the common node
+		if (rl1.getMNodeFID().contentEquals(rl2.getMNodeFID()) | rl1.getMNodeFID().contentEquals(rl2.getPNodeFID())) {
+			return rl1.getMNodeFID();
+		}
+		else if (rl1.getPNodeFID().contentEquals(rl2.getPNodeFID()) | rl1.getPNodeFID().contentEquals(rl2.getMNodeFID())) {
+			return rl1.getPNodeFID();
+		}
+		else {
+			return null;
+		}
+	}
+	/*
 	 * Get the pavement network junction that is at the intersection between the final road link in the tactical planning horizin and
 	 * the next link in the strategic path that lies outside the tactical planning horizon.
 	 * 
