@@ -186,41 +186,24 @@ public class PedPathFinder {
 	 * 
 	 * 
 	 */
-	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, String rlEndHorzID, String rlOutHorzID) {
+	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
 		
-		// Loop through ped network junctions and find junctions that connects link at end of planning horizon with first link outside planning horizon
+		// First get the road network node id connecting these links
+		String nodeID = connectingNodeID(rlEndHorz, rlOutHorz);
+		
+		// Get the pavement junctions linked to this road node
+		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, nodeID);
+				
+		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
 		List<Junction> tacticalEndJunctions = new ArrayList<Junction>();
-		for (Junction pJ: pavementNetwork.getNodes()) {
-			
-			// Check junction lies on end road link
-			if( (pJ.getv1rlID().contentEquals(rlEndHorzID) & pJ.getv2rlID().contentEquals(rlOutHorzID)) | ((pJ.getv1rlID().contentEquals(rlOutHorzID) & pJ.getv2rlID().contentEquals(rlEndHorzID))) ) {
-				tacticalEndJunctions.add(pJ);
+		for (Junction j: pavementJunctions) {
+			if (j.getv1rlID().contentEquals(rlEndHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlEndHorz.getPedRLID())) {
+				tacticalEndJunctions.add(j);
 			}
 		}
 		
-		// If two junctions added to list then loop found junctions on either side of the road that are at end of tactical horizon
-		// This happens when tactical horizon ends at a bend without any turns, so no other road links involved
-		// If just one junction in list then need to find the junction at the other side of the road manually
-		if (tacticalEndJunctions.size() == 1) {
-			
-			// Use pavement network to get other junction. This is the one reached by crossing over the last link in tactical horizon
-			Junction endJ = tacticalEndJunctions.get(0);
-			for (RepastEdge<Junction> e: pavementNetwork.getEdges(endJ)) {
-				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
-				
-				// Important to get the PedRLID as this is the id of the link used in the strategic path (ie the Open Roads link id)
-				String rlID = ne.getRoadLink().getPedRLID();
-				if (rlID.contentEquals(rlEndHorzID)) {
-					
-					// Find which junction to add
-					String endJID = endJ.getFID();
-					String targetID = ne.getTarget().getFID();
-					if (targetID.contentEquals(endJID)) {
-						tacticalEndJunctions.add(ne.getSource());
-					}
-					else {
-						tacticalEndJunctions.add(ne.getTarget());
-					}
+		return tacticalEndJunctions;
+	}
 				}
 			}
 		}
