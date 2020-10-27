@@ -841,6 +841,164 @@ class PedPathFinderTest {
 		assert tacticalEndJunctions.size() > 0;
 	}
 	
+	
+	/*
+	 * 4 way junction straight ahead
+	 */
+	@Test
+	void testTacticalHorizonOutsideJunctions1() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Manually set the two road links to get pavement junctions between
+		String rlEndHorzID = "762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0";
+		String rlOutHorzID = "CF9F0CB7-1387-4C83-9D25-98F63CADBE26_0";		
+		
+		RoadLink rlEndHorz = null;
+		RoadLink rlOutHorz = null;
+		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
+				rlEndHorz = rl;
+				continue;
+			}
+			
+			if (rl.getPedRLID().contentEquals(rlOutHorzID)) {
+				rlOutHorz = rl;
+				continue;
+			}
+		}
+		
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		// Now check the nodes as as expected
+		String endJID1 = tacticalEndJunctions.get(0).getFID();
+		String endJID2 = tacticalEndJunctions.get(1).getFID();
+		
+		boolean nodeCheck = false;
+		if (endJID1.contentEquals("pave_node_118") & endJID2.contentEquals("pave_node_120")) {
+			nodeCheck = true;
+		}
+		else if (endJID1.contentEquals("pave_node_120") & endJID2.contentEquals("pave_node_118")) {
+			nodeCheck = true;
+		}
+		
+		assert nodeCheck == true;
+	}
+	
+	/*
+	 * 4 way junction left turn
+	 */
+	@Test
+	void testTacticalHorizonOutsideJunctions2() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Manually set the two road links to get pavement junctions between
+		String rlEndHorzID = "762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0";
+		String rlOutHorzID = "1DACEAB0-2BA5-4299-8D86-F854C2FAC565_0";		
+		
+		RoadLink rlEndHorz = null;
+		RoadLink rlOutHorz = null;
+		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
+				rlEndHorz = rl;
+				continue;
+			}
+			
+			if (rl.getPedRLID().contentEquals(rlOutHorzID)) {
+				rlOutHorz = rl;
+				continue;
+			}
+		}
+		
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		// Now check the nodes as as expected
+		String endJID1 = tacticalEndJunctions.get(0).getFID();
+		String endJID2 = tacticalEndJunctions.get(1).getFID();
+		
+		boolean nodeCheck = false;
+		if (endJID1.contentEquals("pave_node_120") & endJID2.contentEquals("pave_node_121")) {
+			nodeCheck = true;
+		}
+		else if (endJID1.contentEquals("pave_node_121") & endJID2.contentEquals("pave_node_120")) {
+			nodeCheck = true;
+		}
+		
+		assert nodeCheck == true;
+	}
+	
+	/*
+	 * Complex covent garden junction straight ahead
+	 */
+	@Test
+	void testTacticalHorizonOutsideJunctions3() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Manually set the two road links to get pavement junctions between
+		String rlEndHorzID = "BBABD5F1-74AC-4481-91C0-61D4C85ABD77_0";
+		String rlOutHorzID = "3868DA68-A5D6-4B90-9E0C-4B117146CCFD_0";
+		
+		RoadLink rlEndHorz = null;
+		RoadLink rlOutHorz = null;
+		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
+				rlEndHorz = rl;
+				continue;
+			}
+			
+			if (rl.getPedRLID().contentEquals(rlOutHorzID)) {
+				rlOutHorz = rl;
+				continue;
+			}
+		}
+		
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		// Now check the nodes as as expected - only one junction returned in this case due to complicated junction
+		String endJID1 = tacticalEndJunctions.get(0).getFID();
+		
+		boolean nodeCheck = false;
+		if (endJID1.contentEquals("pave_node_35")) {
+			nodeCheck = true;
+		}
+		assert nodeCheck == true;
+	}
+	
 	@Test
 	void testLoadPavementNetwork() throws Exception {
 		
