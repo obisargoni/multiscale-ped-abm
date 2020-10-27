@@ -38,6 +38,8 @@ public class Junction implements FixedGeography, Serializable{
 	private String fid = null;
 	
 	// Attributes specific to pedestrian junctions
+	private String juncNodeID;
+	
 	private String p1pID;
 	private String p2pID;
 	private String p1rlID;
@@ -185,6 +187,14 @@ public class Junction implements FixedGeography, Serializable{
 
 	public void setv2rlID(String v2rlID) {
 		this.v2rlID = v2rlID;
+	}
+
+	public String getjuncNodeID() {
+		return juncNodeID;
+	}
+
+	public void setjuncNodeID(String juncNodeID) {
+		this.juncNodeID = juncNodeID;
 	}
 	
 }

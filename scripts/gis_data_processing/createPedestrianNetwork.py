@@ -118,7 +118,7 @@ def find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdf
 	# Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
 	for fid_pair in itertools.combinations(rl_fids, 2):
 		# Initialise data to go into the geodataframe
-		row = {"junc_node":road_node_id}
+		row = {"juncNodeID":road_node_id}
 
 		veh_polys_indices = gdfVehPolys.loc[ gdfVehPolys['roadLinkID'].isin(fid_pair)].index
 		ped_polys1_indices = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == fid_pair[0]].index
@@ -344,7 +344,7 @@ G_ped_poly.add_edges_from(ped_poly_edges)
 #############################
 
 # Geoup by junctions node id
-grouped = gdfPedNodes.groupby('junc_node')
+grouped = gdfPedNodes.groupby('juncNodeID')
 group_names = list(grouped.groups.keys())
 group_sizes = grouped.apply(lambda df: df.shape[0])
 group_sizes = grouped.transform(lambda df: df.shape[0])
@@ -377,7 +377,7 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
 	return junc_edges
 
-junc_edges = gdfPedNodes.groupby('junc_node').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
+junc_edges = gdfPedNodes.groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
 
 # Drop duplicates, drop self loops and recreate index
 junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
