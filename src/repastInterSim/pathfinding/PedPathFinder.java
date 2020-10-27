@@ -165,6 +165,21 @@ public class PedPathFinder {
 			return null;
 		}
 	}
+	
+	/*
+	 * Given a road node ID return the pavement network junctions associated to this node. These are the pavement junctions
+	 * around a road network node.
+	 */
+	public static List<Junction> roadNodePavementJunctions(Network<Junction> pavementNetwork, String roadNodeID) {
+		 List<Junction> nodeJunctions = new ArrayList<Junction>();
+		 for(Junction j:pavementNetwork.getNodes()) {
+			 if (j.getjuncNodeID().contentEquals(roadNodeID)) {
+				 nodeJunctions.add(j);
+			 }
+		 }
+		 return nodeJunctions;
+	}
+	
 	/*
 	 * Get the pavement network junction that is at the intersection between the final road link in the tactical planning horizin and
 	 * the next link in the strategic path that lies outside the tactical planning horizon.
