@@ -181,23 +181,62 @@ public class PedPathFinder {
 	}
 	
 	/*
-	 * Get the pavement network junction that is at the intersection between the final road link in the tactical planning horizin and
-	 * the next link in the strategic path that lies outside the tactical planning horizon.
-	 * 
+	 * Get the pavement network junctions that are at the end of the tactical planning horizon.
 	 * 
 	 */
 	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		
+		List<Junction> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz, false);
+		
+		return tacticalEndJunctions;
+	}
+	
+	/*
+	 * Get the pavement network junctions that are at the start of the first link beyond the tactical planning horizon.
+	 * 
+	 */
+	public static List<Junction> tacticalHorizonOutsideJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		
+		List<Junction> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz, true);
+		
+		return tacticalEndJunctions;
+	}
+	
+	/*
+	 * Get the pavement network junctions that at the intersection between the final road link in the tactical planning horizin and
+	 * the next link in the strategic path that lies outside the tactical planning horizon.
+	 * 
+	 * Choose whether to return the junctions connected to the link at the end of the horizon or connected to the next link beyong the horizon.
+	 * 
+	 * @param Network<Junction> pavementNetwork
+	 * 			The network of pavement junctions used to connect pedestrian pavements
+	 * @param RoadLink rlEndHorz
+	 * 			The road link at the end of the tactical planning horizon
+	 * @param RoadLink rlOutHorz
+	 * 			The road link on the other side of the tactical planning horizon
+	 * @param boolean outside
+	 * 			Selects whether to return the junctions at the end of the planning horizon or outside the planning horizon at the start of the next link
+	 */
+	public static List<Junction> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz, boolean outside) {
 		
 		// First get the road network node id connecting these links
 		String nodeID = connectingNodeID(rlEndHorz, rlOutHorz);
 		
 		// Get the pavement junctions linked to this road node
 		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, nodeID);
-				
+		
+		String targetRLID = null; 
+		if (outside) {
+			targetRLID = rlOutHorz.getPedRLID();
+		}
+		else {
+			targetRLID = rlEndHorz.getPedRLID();
+		}
+
 		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
 		List<Junction> tacticalEndJunctions = new ArrayList<Junction>();
 		for (Junction j: pavementJunctions) {
-			if (j.getv1rlID().contentEquals(rlEndHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlEndHorz.getPedRLID())) {
+			if (j.getv1rlID().contentEquals(targetRLID) | j.getv2rlID().contentEquals(targetRLID)) {
 				tacticalEndJunctions.add(j);
 			}
 		}
