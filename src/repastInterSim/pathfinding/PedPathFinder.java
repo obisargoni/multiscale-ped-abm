@@ -240,11 +240,61 @@ public class PedPathFinder {
 		
 		return tacticalEndJunctions;
 	}
+	
+	public static TacticalRoute setupTacticalRoute(ShortestPath<Junction> p, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
+		
+		TacticalRoute tr = new TacticalRoute();
+		
+		// Record which junctions to go via in this route
+		tr.addJunction(eJ);
+		
+		// Get path to end junctions
+		List<RepastEdge<Junction>> path = p.getPath(currentJ, eJ);
+		
+		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
+		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
+		double minLength = Double.MAX_VALUE;
+		Junction outsideJ = eJ;
+		
+		// Calculate path from the end junction to each possible outside junction. Select the shortest path that does not involve a primary crossing
+		// This is the path that stays on the same side of the road and moves to the start of the next route section
+		for (Junction j: outsideJunctions) {
+			List<RepastEdge<Junction>> pTO = p.getPath(eJ, j);
+			
+			if (containsPrimaryCrossing(path, sP) == false) {
+				double pathLength = p.getPathLength(eJ, j);
+				if (pathLength < minLength) {
+					pathToOutside = pTO;
+					minLength = pathLength;
+					outsideJ = j;
 				}
 			}
 		}
 		
-		return tacticalEndJunctions;
+		// Get additional junctions to go via in orget to get from end junction to outside junction
+		for (RepastEdge<Junction> e : pathToOutside) {
+			if (!tr.getRouteJunctions().contains(e.getSource())) {
+				tr.addJunction(e.getSource());
+			}
+			if (!tr.getRouteJunctions().contains(e.getTarget())) {
+				tr.addJunction(e.getTarget());
+			}
+		}
+		
+		// Combine the two paths and add to the tactical route
+		for (RepastEdge<Junction> e: pathToOutside) {
+			path.add(e);
+		}
+		
+		tr.setRoutePath(path);
+		
+		// Finally, if the destination junction is know, calculate the path from the last junction added to the tactical route to the destination junction
+		// This is recorded separately as the path required to complete the journey
+		if (destJ != null) {
+			tr.setRouteRemainderPath(p.getPath(outsideJ, destJ));
+		}
+		
+		return tr;
 	}
 	}
 
