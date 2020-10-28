@@ -1010,7 +1010,7 @@ class PedPathFinderTest {
 	 * This tests whether the expected path is created.
 	 */
 	@Test
-	public void testSetupTacticalRoute() {
+	public void testSetupTacticalRoute1() {
 		try {
 			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
 			setUpRoadNetwork(false);
@@ -1060,11 +1060,29 @@ class PedPathFinderTest {
 		TacticalRoute tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// Now validate the tactical route
+		// Check expected junctions
 		String[] expectedJunctions1 = {end1ID};
 		List<Junction> rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
 		}
+		
+		assert tr.getRoutePath().size() == 1;
+		
+		// Check remainder path by counting number of times a primary crossing is performed
+		List<RepastEdge<Junction>> rP = tr.getRouteRemainderPath();
+		int count = 0;
+		for (RepastEdge<Junction> re: rP) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			for (RoadLink rl : sP) {
+				String rlid = ne.getRoadLink().getPedRLID();
+				if (rlid.contentEquals(rl.getPedRLID())){
+					count++;
+				}
+			}
+		}
+		
+		assert (count % 2) == 0; 
 		
 		
 		// Test for other end junction
@@ -1077,7 +1095,24 @@ class PedPathFinderTest {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
 		}
 		
+		// Primary crossing required to reach this end junction so expect additional link in path
+		assert tr.getRoutePath().size() == 2;
+		
+		rP = tr.getRouteRemainderPath();
+		count = 0;
+		for (RepastEdge<Junction> re: rP) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			for (RoadLink rl : sP) {
+				if (ne.getRoadLink().getPedRLID().contentEquals(rl.getPedRLID())){
+					count++;
+				}
+			}
+		}
+		
+		assert (count % 2) == 1; 
+		
 	}
+	
 	
 	@Test
 	void testLoadPavementNetwork() throws Exception {
