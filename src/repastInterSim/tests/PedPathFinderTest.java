@@ -29,7 +29,6 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
-import repastInterSim.environment.TacticalAlternative;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
@@ -39,6 +38,7 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
+import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
 	
@@ -254,7 +254,7 @@ class PedPathFinderTest {
 		
 		// Get the tactical desinations for the origin coord and this road link
 		int pH = 3;
-		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, true);
+		ArrayList<TacticalRoute> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, true);
 		
 		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).count()==1;
 		assert alternatives.stream().filter(ta -> ta.getParityT() == 0).count()==2;
@@ -297,7 +297,7 @@ class PedPathFinderTest {
 		
 		// Get the tactical desinations for the origin coord and this road link
 		int pH = 3;
-		ArrayList<TacticalAlternative> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, false);
+		ArrayList<TacticalRoute> alternatives = PedPathFinder.getTacticalDestinationAlternatives(o, currentPedRoads, rls, d, pH, pedObstructGeography, false);
 		
 		// Check the coorrdinates are as expected
 		assert alternatives.stream().filter(ta -> ta.getParityT() == 1).count()==1;
