@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
+import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -997,6 +999,84 @@ class PedPathFinderTest {
 			nodeCheck = true;
 		}
 		assert nodeCheck == true;
+	}
+	
+	/*
+	 * Test the creation of a TacticalRoute object
+	 * 
+	 * The tactical route provides a path to a pavement junction the end of the pedestrian agents planning horizon and then from that junction
+	 * to their destination.
+	 * 
+	 * This tests whether the expected path is created.
+	 */
+	@Test
+	public void testSetupTacticalRoute() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		String originRoadJunctionID = "node_id_64";
+		String destRoadJunctionID = "node_id_73";
+		List<RoadLink> sP = planStrategicPath(new Coordinate(), new Coordinate(), originRoadJunctionID, destRoadJunctionID);
+		
+		
+		// Produce strategic path between pavement junctions
+		Junction oJ = null;
+		Junction dJ = null;
+		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals("pave_node_107")) {
+				oJ = j;
+				continue;
+			}
+			else if (j.getFID().contentEquals("pave_node_115")) {
+				dJ = j;
+				continue;
+			}
+		}
+		
+		int horizonNLinks = 2;
+		RoadLink rlEndHorz = sP.get(horizonNLinks-1);
+		RoadLink rlOutHorz = sP.get(horizonNLinks);
+		
+		// Identify the end and outside junctions
+		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
+		ShortestPath<Junction> p = new ShortestPath<Junction>(this.pavementNetwork);
+		
+		// Select which end junction to find tactical path to
+		final String end1ID = "pave_node_73";
+		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
+		TacticalRoute tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		
+		// Now validate the tactical route
+		String[] expectedJunctions1 = {end1ID};
+		List<Junction> rJs =  tr.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
+		}
+		
+		
+		// Test for other end junction
+		final String end2ID = "pave_node_74";
+		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
+		tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		String[] expectedJunctions2 =  {end2ID};
+		rJs =  tr.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
+		}
+		
 	}
 	
 	@Test
