@@ -1113,6 +1113,117 @@ class PedPathFinderTest {
 		
 	}
 	
+	/*
+	 * Test the creation of a TacticalRoute object
+	 * 
+	 * The tactical route provides a path to a pavement junction the end of the pedestrian agents planning horizon and then from that junction
+	 * to their destination.
+	 * 
+	 * This tests tactical route when turning left at 4 way junc
+	 */
+	@Test
+	public void testSetupTacticalRoute2() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		String originRoadJunctionID = "node_id_66";
+		String destRoadJunctionID = "node_id_73";
+		List<RoadLink> sP = planStrategicPath(new Coordinate(), new Coordinate(), originRoadJunctionID, destRoadJunctionID);
+		
+		
+		// Produce strategic path between pavement junctions
+		Junction oJ = null;
+		Junction dJ = null;
+		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals("pave_node_73")) {
+				oJ = j;
+				continue;
+			}
+			else if (j.getFID().contentEquals("pave_node_115")) {
+				dJ = j;
+				continue;
+			}
+		}
+		
+		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, 20.00);
+		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
+		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		
+		// Identify the end and outside junctions
+		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
+		ShortestPath<Junction> p = new ShortestPath<Junction>(this.pavementNetwork);
+		
+		// Select which end junction to find tactical path to
+		final String end1ID = "pave_node_68";
+		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
+		TacticalRoute tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		
+		// Now validate the tactical route
+		// Check expected junctions
+		String[] expectedJunctions1 = {end1ID};
+		List<Junction> rJs =  tr.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
+		}
+		
+		assert tr.getRoutePath().size() == 1;
+		
+		// Check remainder path by counting number of times a primary crossing is performed
+		List<RepastEdge<Junction>> rP = tr.getRouteRemainderPath();
+		int count = 0;
+		for (RepastEdge<Junction> re: rP) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			for (RoadLink rl : sP) {
+				String rlid = ne.getRoadLink().getPedRLID();
+				if (rlid.contentEquals(rl.getPedRLID())){
+					count++;
+				}
+			}
+		}
+		
+		assert (count % 2) == 0; 
+		
+		
+		// Test for other end junction
+		final String end2ID = "pave_node_66";
+		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
+		tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		String[] expectedJunctions2 =  {end2ID, "pave_node_67", "pave_node_69"};
+		rJs =  tr.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
+		}
+		
+		// Primary crossing required to reach this end junction so expect additional link in path
+		assert tr.getRoutePath().size() == 4;
+		
+		rP = tr.getRouteRemainderPath();
+		count = 0;
+		for (RepastEdge<Junction> re: rP) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			for (RoadLink rl : sP) {
+				if (ne.getRoadLink().getPedRLID().contentEquals(rl.getPedRLID())){
+					count++;
+				}
+			}
+		}
+		
+		assert (count % 2) == 1; 
+		
+	}
 	
 	@Test
 	void testLoadPavementNetwork() throws Exception {
