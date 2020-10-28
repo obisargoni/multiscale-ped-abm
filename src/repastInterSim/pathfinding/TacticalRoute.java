@@ -90,5 +90,9 @@ public class TacticalRoute {
 		this.remainderPath = path;
 	}
 	
+	public List<RepastEdge<Junction>> getRouteRemainderPath() {
+		return this.remainderPath;
+	}
+	
 	
 }
