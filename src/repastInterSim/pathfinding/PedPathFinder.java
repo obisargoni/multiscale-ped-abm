@@ -186,9 +186,9 @@ public class PedPathFinder {
 	 */
 	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
 		
-		List<Junction> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz, false);
+		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		
-		return tacticalEndJunctions;
+		return tacticalEndJunctions.get("end");
 	}
 	
 	/*
@@ -197,9 +197,9 @@ public class PedPathFinder {
 	 */
 	public static List<Junction> tacticalHorizonOutsideJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
 		
-		List<Junction> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz, true);
+		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		
-		return tacticalEndJunctions;
+		return tacticalEndJunctions.get("outside");
 	}
 	
 	/*
@@ -217,27 +217,24 @@ public class PedPathFinder {
 	 * @param boolean outside
 	 * 			Selects whether to return the junctions at the end of the planning horizon or outside the planning horizon at the start of the next link
 	 */
-	public static List<Junction> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz, boolean outside) {
+	public static HashMap<String, List<Junction>> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
 		
 		// First get the road network node id connecting these links
 		String nodeID = connectingNodeID(rlEndHorz, rlOutHorz);
 		
 		// Get the pavement junctions linked to this road node
 		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, nodeID);
-		
-		String targetRLID = null; 
-		if (outside) {
-			targetRLID = rlOutHorz.getPedRLID();
-		}
-		else {
-			targetRLID = rlEndHorz.getPedRLID();
-		}
 
 		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
-		List<Junction> tacticalEndJunctions = new ArrayList<Junction>();
+		HashMap<String, List<Junction>> tacticalEndJunctions = new HashMap<String, List<Junction>>();
+		tacticalEndJunctions.put("end", new ArrayList<Junction>());
+		tacticalEndJunctions.put("outside", new ArrayList<Junction>());
 		for (Junction j: pavementJunctions) {
-			if (j.getv1rlID().contentEquals(targetRLID) | j.getv2rlID().contentEquals(targetRLID)) {
-				tacticalEndJunctions.add(j);
+			if (j.getv1rlID().contentEquals(rlEndHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlEndHorz.getPedRLID())) {
+				tacticalEndJunctions.get("end").add(j);
+			}
+			if (j.getv1rlID().contentEquals(rlOutHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlOutHorz.getPedRLID())) {
+				tacticalEndJunctions.get("outside").add(j);
 			}
 		}
 		
