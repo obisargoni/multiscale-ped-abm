@@ -261,7 +261,7 @@ public class PedPathFinder {
 		for (Junction j: outsideJunctions) {
 			List<RepastEdge<Junction>> pTO = p.getPath(eJ, j);
 			
-			if (containsPrimaryCrossing(path, sP) == false) {
+			if (containsPrimaryCrossing(pTO, sP) == false) {
 				double pathLength = p.getPathLength(eJ, j);
 				if (pathLength < minLength) {
 					pathToOutside = pTO;
