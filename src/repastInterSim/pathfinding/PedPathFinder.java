@@ -288,7 +288,7 @@ public class PedPathFinder {
 		
 		tr.setRoutePath(path);
 		
-		// Finally, if the destination junction is know, calculate the path from the last junction added to the tactical route to the destination junction
+		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
 			tr.setRouteRemainderPath(p.getPath(outsideJ, destJ));
