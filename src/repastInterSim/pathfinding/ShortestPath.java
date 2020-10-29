@@ -2,6 +2,8 @@ package repastInterSim.pathfinding;
 
 import java.util.List;
 
+import org.apache.commons.collections15.Transformer;
+
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 import repast.simphony.context.space.graph.ContextJungNetwork;
@@ -19,7 +21,7 @@ public class ShortestPath<T> implements ProjectionListener<T> {
 	
 		private Network<T> net;
 		private boolean calc = true;
-	  private JungEdgeTransformer<T> transformer;
+	  private Transformer<RepastEdge<T>,Double> transformer;
 	  private DijkstraShortestPath<T,RepastEdge<T>> dsp;
 	  
 	  /**
@@ -96,7 +98,7 @@ public class ShortestPath<T> implements ProjectionListener<T> {
 		/*
 		 * Set the transformer
 		 */
-		public void setTransformer(JungEdgeTransformer<T> t) {
+		public void setTransformer(Transformer<RepastEdge<T>,Double> t) {
 			this.transformer = t;
 			this.calc = true;
 		}
@@ -108,8 +110,6 @@ public class ShortestPath<T> implements ProjectionListener<T> {
 			this.transformer = new JungEdgeTransformer<T>();
 			this.calc = true;
 		}
-		
-		
 		
 		/**
 		 * Called when the network is modified so that this will recalculate the
