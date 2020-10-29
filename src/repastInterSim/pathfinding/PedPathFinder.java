@@ -430,22 +430,22 @@ public class PedPathFinder {
 			// If not at a secondary crossing, destination coordinate options are the farthest coordinates on the ped roads associated to the road link
 			if (secondaryCrossing==false) {
 				// Get tactical destination options
-				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, true);
+				ArrayList<TacticalRoute> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, true);
 				
 				// Write a comparator that sorts on multiple attributes of alternative
-				Comparator<TacticalAlternative> comparator = Comparator.comparing(TacticalAlternative::getParityS,Comparator.nullsLast(Comparator.naturalOrder()))
-																		.thenComparing(TacticalAlternative::getParityT, Comparator.nullsLast(Comparator.naturalOrder()))
-																		.thenComparing(TacticalAlternative::getCostT, Comparator.reverseOrder());
+				Comparator<TacticalRoute> comparator = Comparator.comparing(TacticalRoute::getParityS,Comparator.nullsLast(Comparator.naturalOrder()))
+																		.thenComparing(TacticalRoute::getParityT, Comparator.nullsLast(Comparator.naturalOrder()))
+																		.thenComparing(TacticalRoute::getCostT, Comparator.reverseOrder());
 				
 				// Now sort the tactical alternatives and choose appropriate one
-				List<TacticalAlternative> sortedAlternatives = alternatives.stream().sorted(comparator).collect(Collectors.toList());
+				List<TacticalRoute> sortedAlternatives = alternatives.stream().sorted(comparator).collect(Collectors.toList());
 				tacticalDestCoord = sortedAlternatives.get(0).getC();
 			}
 			
 			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
 			else if (secondaryCrossing==true) {
 				// Get tactical destination options
-				ArrayList<TacticalAlternative> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, false);
+				ArrayList<TacticalRoute> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, false);
 				
 				// Always select only the nearest no cross option
 				tacticalDestCoord = alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted((ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(0).getC();
@@ -471,9 +471,9 @@ public class PedPathFinder {
 	 * 
 	 * @return HashMap<String, List<Coordinate>>
 	 */
-	public static ArrayList<TacticalAlternative> getTacticalDestinationAlternatives(Coordinate oC, List<Road> pR, List<RoadLink> sP, Coordinate d, int pH, Geography<PedObstruction> obstructGeography, Boolean far){
+	public static ArrayList<TacticalRoute> getTacticalDestinationAlternatives(Coordinate oC, List<Road> pR, List<RoadLink> sP, Coordinate d, int pH, Geography<PedObstruction> obstructGeography, Boolean far){
 		
-		ArrayList<TacticalAlternative> alternatives = new ArrayList<TacticalAlternative>();
+		ArrayList<TacticalRoute> alternatives = new ArrayList<TacticalRoute>();
 		
 		for(Road r: pR) {
 			// Get candidate destination coordiante from pedestrian road
@@ -485,7 +485,7 @@ public class PedPathFinder {
 			}
 			
 			// Create new alternative
-			TacticalAlternative tc = new TacticalAlternative(c);
+			TacticalRoute tc = new TacticalRoute(c);
 			
 			// Find parity of coordinate at tactical scale
 			// Tells us whether primary crossing is needed to reach coordinate
