@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -14,7 +16,6 @@ import com.vividsolutions.jts.geom.LineString;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
-import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
@@ -240,44 +241,42 @@ public class PedPathFinder {
 		return tacticalEndJunctions;
 	}
 	
-	public static TacticalRoute setupTacticalRoute(ShortestPath<Junction> p, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
+	public static TacticalRoute setupTacticalRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
 		
 		TacticalRoute tr = new TacticalRoute();
 		
-		// Record which junctions to go via in this route
-		tr.addJunction(eJ);
-		
 		// Get path to end junctions
-		List<RepastEdge<Junction>> path = p.getPath(currentJ, eJ);
+		List<RepastEdge<Junction>> path = nP.getShortestPath(currentJ, eJ);
 		
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
+		Stack<Junction> nodesToOutside = new Stack<Junction>();
 		double minLength = Double.MAX_VALUE;
-		Junction outsideJ = eJ;
-		
+				
 		// Calculate path from the end junction to each possible outside junction. Select the shortest path that does not involve a primary crossing
 		// This is the path that stays on the same side of the road and moves to the start of the next route section
 		for (Junction j: outsideJunctions) {
-			List<RepastEdge<Junction>> pTO = p.getPath(eJ, j);
 			
-			if (containsPrimaryCrossing(pTO, sP) == false) {
-				double pathLength = p.getPathLength(eJ, j);
-				if (pathLength < minLength) {
-					pathToOutside = pTO;
-					minLength = pathLength;
-					outsideJ = j;
+			Predicate<Junction> nodeFilter = n -> n.getjuncNodeID().contentEquals(eJ.getjuncNodeID());
+			List<Stack<Junction>> nodePaths = nP.getSimplePaths(eJ, j, nodeFilter);
+			
+			// Loop through these paths and find the shortest one that does not make a primary crossing
+			for (Stack<Junction> nodePath : nodePaths) {
+				List<RepastEdge<Junction>> edgePath = nP.edgePathFromNodes(nodePath);
+				if (containsPrimaryCrossing(edgePath, sP) == false) {
+					double pathLength = nP.getPathLength(edgePath);
+					if (pathLength < minLength) {
+						nodesToOutside = nodePath;
+						pathToOutside = edgePath;
+						minLength = pathLength;
+					}
 				}
 			}
 		}
 		
-		// Get additional junctions to go via in orget to get from end junction to outside junction
-		for (RepastEdge<Junction> e : pathToOutside) {
-			if (!tr.getRouteJunctions().contains(e.getSource())) {
-				tr.addJunction(e.getSource());
-			}
-			if (!tr.getRouteJunctions().contains(e.getTarget())) {
-				tr.addJunction(e.getTarget());
-			}
+		// Get junctions to go via in orget to get from end junction to outside junction, including the end junction itself
+		for (Junction j : nodesToOutside) {
+			tr.addJunction(j);
 		}
 		
 		// Combine the two paths and add to the tactical route
@@ -290,7 +289,7 @@ public class PedPathFinder {
 		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
-			tr.setRouteRemainderPath(p.getPath(outsideJ, destJ));
+			tr.setRouteRemainderPath(nP.getShortestPath(nodesToOutside.get(nodesToOutside.size()-1), destJ));
 		}
 		
 		return tr;
