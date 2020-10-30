@@ -50,10 +50,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @param target
 		 * @return
 		 */
-		public List<RepastEdge<T>> getPath(T source, T target){
+		public List<RepastEdge<T>> getShortestPath(T source, T target){
 			
 			if (calc){
-				calcPaths();
+				calcShortestPaths();
 				calc = false;
 			}
 			return dsp.getPath(source, target); 
@@ -66,9 +66,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @param target the node we want to get the path length to
 		 * @return the path length from the source node to the target node.
 		 */
-		public double getPathLength(T source, T target){
+		public double getShortestPathLength(T source, T target){
 			if (calc){
-				calcPaths();
+				calcShortestPaths();
 				calc = false;
 			}
 			
@@ -83,7 +83,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		/**
 		 * Creates shortest path info  nodes using the Jung Dijkstra algorithm
 		 */
-		private void calcPaths(){
+		private void calcShortestPaths(){
 			Graph<T, RepastEdge<T>> graph = null;
 			
 			if (net instanceof JungNetwork)
