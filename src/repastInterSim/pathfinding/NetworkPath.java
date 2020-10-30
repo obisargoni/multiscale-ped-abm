@@ -1,6 +1,10 @@
 package repastInterSim.pathfinding;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -21,8 +25,11 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 	
 		private Network<T> net;
 		private boolean calc = true;
-	  private Transformer<RepastEdge<T>,Double> transformer;
-	  private DijkstraShortestPath<T,RepastEdge<T>> dsp;
+		private Transformer<RepastEdge<T>,Double> transformer;
+		private DijkstraShortestPath<T,RepastEdge<T>> dsp;
+	  
+		private Stack<T> connectionPath;
+		private List<Stack<T>> connectionPaths;
 	  
 	  /**
 	   * Constructor
@@ -39,8 +46,14 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		
 		private void init(Network<T> net){
 			this.net = net;
+			resetConnectionPaths();
 			transformer = new JungEdgeTransformer<T>();
 			net.addProjectionListener(this);
+		}
+		
+		public void resetConnectionPaths() {
+			connectionPath = new Stack<T>();
+			connectionPaths = new ArrayList<Stack<T>>();
 		}
 
 		/**
@@ -80,6 +93,33 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 				return Double.POSITIVE_INFINITY;
 		}
 		
+		public List<Stack<T>> getSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter){
+			calcSimplePaths(node, targetNode, nodeFilter);
+			List<Stack<T>> output = this.connectionPaths;
+			resetConnectionPaths(); // Empty the paths
+			return output;
+		}
+		
+		public List<Stack<T>> getSimplePaths(T node, T targetNode){
+			return getSimplePaths(node, targetNode, null);
+		}
+
+		public List<RepastEdge<T>> edgePathFromNodes(Stack<T> nodePath) {
+			List<RepastEdge<T>> edgePath = new ArrayList<RepastEdge<T>>();
+			for (int i = 0; i<nodePath.size()-1;i++) {
+				edgePath.add(net.getEdge(nodePath.get(i), nodePath.get(i+1)));
+			}
+			return edgePath;
+		}
+
+		public double getPathLength(List<RepastEdge<T>> edgePath) {
+			double length = 0;
+			for (RepastEdge<T> e: edgePath) {
+				length += e.getWeight();
+			}
+			return length;
+		}
+		
 		/**
 		 * Creates shortest path info  nodes using the Jung Dijkstra algorithm
 		 */
@@ -92,6 +132,25 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 				graph = ((ContextJungNetwork<T>)net).getGraph();
 			
 			dsp = new DijkstraShortestPath<T,RepastEdge<T>>(graph, transformer);
+		}
+		
+		// Push to connectionsPath the object that would be passed as the parameter 'node' into the method below
+		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
+			List<T> adj = (List<T>)net.getAdjacent(node);
+			Iterable<T> validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
+		    for (T nextNode : validAdj) {
+		       if (nextNode.equals(targetNode)) {
+		           Stack<T> temp = new Stack<T>();
+		           for (T node1 : connectionPath)
+		               temp.add(node1);
+		           connectionPaths.add(temp);
+		       
+		       } else if (!connectionPath.contains(nextNode)) {
+		           connectionPath.push(nextNode);
+		           calcSimplePaths(nextNode, targetNode, nodeFilter);
+		           connectionPath.pop(); // Clears connection path on the way out
+		        }
+		    }
 		}
 		
 		
