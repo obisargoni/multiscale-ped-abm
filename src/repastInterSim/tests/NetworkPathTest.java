@@ -88,7 +88,7 @@ class NetworkPathTest {
 	}
 	
 	@Test
-	void testPathsBetweenNodePavemetnJunctions1() {
+	void testPathsBetweenNodePavementJunctions1() {
 		try {
 			setUpPavementJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -116,10 +116,6 @@ class NetworkPathTest {
 		}
 		
 		String roadJuncID = source.getjuncNodeID();
-		
-		// Now get all paths between these nodes
-		List<Stack<Junction>> allPaths = np.getSimplePaths(source, target);
-		assert allPaths.size()>0;
 		
 		// Now get just the paths around the road node
 		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
