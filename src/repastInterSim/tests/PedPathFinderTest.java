@@ -21,7 +21,6 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
-import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -40,6 +39,7 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
+import repastInterSim.pathfinding.NetworkPath;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
@@ -1052,7 +1052,7 @@ class PedPathFinderTest {
 		// Identify the end and outside junctions
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		ShortestPath<Junction> p = new ShortestPath<Junction>(this.pavementNetwork);
+		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_73";
@@ -1164,7 +1164,7 @@ class PedPathFinderTest {
 		// Identify the end and outside junctions
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		ShortestPath<Junction> p = new ShortestPath<Junction>(this.pavementNetwork);
+		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_68";
