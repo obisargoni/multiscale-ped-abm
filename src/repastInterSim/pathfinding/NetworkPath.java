@@ -170,7 +170,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		}
 		
 		/*
-		 * Calculate the paths between the node and targetNode that don't contain any duplicate nodes
+		 * Calculate the paths between the node and targetNode that don't contain any duplicate nodes.
+		 * 
+		 * Importantly, if the start node and targetNode are the same then this function only returns
+		 * a single path containing just the start node
 		 * 
 		 * @param T node
 		 * 		The starting node of the path
@@ -180,28 +183,36 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * 		Used to filter which nodes can be including in the paths
 		 */
 		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
-			LinkedHashSet<T> adj = (LinkedHashSet<T>)net.getAdjacent(node);
-			Iterable<T> validAdj;
-			if (nodeFilter == null) {
-				validAdj = adj;
+	        // First add the node to the path
+			connectionPath.push(node);
+			
+			// If target node reached log path and exit
+			if (node.equals(targetNode)) {
+	           Stack<T> temp = new Stack<T>();
+	           for (T node1 : connectionPath)
+	               temp.push(node1);
+	           connectionPaths.add(temp);
 			}
+			
+			// Otherwise get children nodes and add them to the path
 			else {
-				validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
+				// Then find valid children nodes
+				LinkedHashSet<T> adj = (LinkedHashSet<T>)net.getAdjacent(node);
+				Iterable<T> validAdj;
+				if (nodeFilter == null) {
+					validAdj = adj;
+				}
+				else {
+					validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
+				}
+				
+			    for (T nextNode : validAdj) {
+			    	if (!connectionPath.contains(nextNode)) {
+			           calcSimplePaths(nextNode, targetNode, nodeFilter);
+			           connectionPath.pop(); // Clears connection path on the way out
+				    }
+				}
 			}
-
-		    for (T nextNode : validAdj) {
-		       if (nextNode.equals(targetNode)) {
-		           Stack<T> temp = new Stack<T>();
-		           for (T node1 : connectionPath)
-		               temp.add(node1);
-		           connectionPaths.add(temp);
-		       
-		       } else if (!connectionPath.contains(nextNode)) {
-		           connectionPath.push(nextNode);
-		           calcSimplePaths(nextNode, targetNode, nodeFilter);
-		           connectionPath.pop(); // Clears connection path on the way out
-		        }
-		    }
 		}
 		
 		
