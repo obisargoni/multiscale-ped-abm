@@ -139,5 +139,43 @@ class NetworkPathTest {
 			}
 		}
 	}
+	
+	@Test
+	void testPathToSelf() {
+		try {
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Initialise the path finder
+		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		
+		// Get the start and end nodes to find paths between
+		String sourceID = "pave_node_114";
+		Junction source = null;
+		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+		}
+		
+		String roadJuncID = source.getjuncNodeID();
+		
+		// Now get just the paths around the road node
+		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
+		List<Stack<Junction>> selfPaths = np.getSimplePaths(source, source, filter);
+		
+		assert selfPaths.size()==1;
+		
+		Stack<Junction> path = selfPaths.get(0);
+		assert path.get(0).getFID().contentEquals(sourceID);
+		// Check that the edge path for this single entry node path is empty
+		List<RepastEdge<Junction>> edgePath = np.edgePathFromNodes(path);
+		assert edgePath.size()==0;
+	}
 
 }
