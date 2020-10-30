@@ -1,6 +1,7 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Predicate;
@@ -179,8 +180,15 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * 		Used to filter which nodes can be including in the paths
 		 */
 		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
-			List<T> adj = (List<T>)net.getAdjacent(node);
-			Iterable<T> validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
+			LinkedHashSet<T> adj = (LinkedHashSet<T>)net.getAdjacent(node);
+			Iterable<T> validAdj;
+			if (nodeFilter == null) {
+				validAdj = adj;
+			}
+			else {
+				validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
+			}
+
 		    for (T nextNode : validAdj) {
 		       if (nextNode.equals(targetNode)) {
 		           Stack<T> temp = new Stack<T>();
