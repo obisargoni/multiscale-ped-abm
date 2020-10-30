@@ -51,6 +51,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			net.addProjectionListener(this);
 		}
 		
+		/*
+		 * Initialise the connection path objects used to record the paths between nodes in the network
+		 */
 		public void resetConnectionPaths() {
 			connectionPath = new Stack<T>();
 			connectionPaths = new ArrayList<Stack<T>>();
@@ -93,6 +96,20 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 				return Double.POSITIVE_INFINITY;
 		}
 		
+		
+		/*
+		 * Returns a list of all paths of nodes connecting two nodes in the network. Paths containing duplicated nodes are excluded.
+		 * 
+		 * @param T node
+		 * 		The starting node of the path
+		 * @param T targetNode
+		 * 		The end node of the path
+		 * @param Predicate<? super T> nodeFilter
+		 * 		Used to filter which nodes can be including in the paths
+		 * 
+		 * @return List<Stack<T>>
+		 * 		The paths
+		 */
 		public List<Stack<T>> getSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter){
 			calcSimplePaths(node, targetNode, nodeFilter);
 			List<Stack<T>> output = this.connectionPaths;
@@ -100,10 +117,24 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			return output;
 		}
 		
+		/*
+		 * Returns a list of all paths of nodes connecting two nodes in the network. Paths containing duplicated nodes are excluded.
+		 * 
+		 * @param T node
+		 * 		The starting node of the path
+		 * @param T targetNode
+		 * 		The end node of the path
+		 * 
+		 * @return List<Stack<T>>
+		 * 		The paths
+		 */
 		public List<Stack<T>> getSimplePaths(T node, T targetNode){
 			return getSimplePaths(node, targetNode, null);
 		}
-
+		
+		/*
+		 * Given a path of nodes return the corresponding path of edges that connect these nodes
+		 */
 		public List<RepastEdge<T>> edgePathFromNodes(Stack<T> nodePath) {
 			List<RepastEdge<T>> edgePath = new ArrayList<RepastEdge<T>>();
 			for (int i = 0; i<nodePath.size()-1;i++) {
@@ -111,7 +142,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			}
 			return edgePath;
 		}
-
+		
+		/*
+		 * Given a list of network edges return the length of this path using the class transformer
+		 */
 		public double getPathLength(List<RepastEdge<T>> edgePath) {
 			double length = 0;
 			for (RepastEdge<T> e: edgePath) {
@@ -134,7 +168,16 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			dsp = new DijkstraShortestPath<T,RepastEdge<T>>(graph, transformer);
 		}
 		
-		// Push to connectionsPath the object that would be passed as the parameter 'node' into the method below
+		/*
+		 * Calculate the paths between the node and targetNode that don't contain any duplicate nodes
+		 * 
+		 * @param T node
+		 * 		The starting node of the path
+		 * @param T targetNode
+		 * 		The end node of the path
+		 * @param Predicate<? super T> nodeFilter
+		 * 		Used to filter which nodes can be including in the paths
+		 */
 		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
 			List<T> adj = (List<T>)net.getAdjacent(node);
 			Iterable<T> validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
