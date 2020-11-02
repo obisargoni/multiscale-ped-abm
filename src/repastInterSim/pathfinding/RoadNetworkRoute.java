@@ -499,7 +499,10 @@ public class RoadNetworkRoute implements Cacheable {
 	 *            An array of destination junctions
 	 * @param routeEndpoints
 	 *            An array of size 2 which can be used to store the origin (index 0) and destination (index 1) Junctions
-	 *            which form the endpoints of the shortest route.
+	 *            which form the end points of the shortest route.
+	 * @param longestShortest
+	 * 				Boolean. Select whether or not to return the longest of the shortest routes between pairs of origin and destination junctions.
+	 * 				Longest path is useful because it includes the road link of the origin and destination.
 	 * @return the shortest route between the origin and destination junctions
 	 * @throws Exception
 	 */
