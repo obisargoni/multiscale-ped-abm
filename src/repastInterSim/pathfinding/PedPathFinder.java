@@ -49,21 +49,18 @@ public class PedPathFinder {
 	private String prevCoordType = "";
 
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
-		this.geography = g;
-		this.origin = o;
-		this.destination = d;
-		
-		this.obstructGeography = SpaceBuilder.pedObstructGeography;
-		this.rGeography = SpaceBuilder.roadGeography;
-		
-		planStrategicPath(this.origin, this.destination, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography);
+		init(g, o, d);
 	}
 	
 	public PedPathFinder(Ped p) {
 		this.ped = p;
-		this.geography = p.getGeography();
-		this.origin = p.getOrigin();
-		this.destination = p.getDestination();
+		init(p.getGeography(), p.getOrigin(), p.getDestination());
+	}
+	
+	private void init(Geography<Object> g, OD o, OD d) {
+		this.geography = g;
+		this.origin = o;
+		this.destination = d;
 		
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
 		this.rGeography = SpaceBuilder.roadGeography;
