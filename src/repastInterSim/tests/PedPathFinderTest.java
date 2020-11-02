@@ -1224,41 +1224,4 @@ class PedPathFinderTest {
 		assert (count % 2) == 1; 
 		
 	}
-	
-	@Test
-	void testLoadPavementNetwork() throws Exception {
-		
-		// Load pedestrian pavement network and test producing a path between two nodes
-		pavementLinkPath = testGISDir + "pedNetworkLinks.shp";
-		setUpRoadLinks(pavementLinkPath);
-		setUpRoadNetwork(false);
-		
-		List<RoadLink> sP = planStrategicPath(null, null, "osgb4000000029970684", "osgb4000000029970446");		
-		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, 20.0);
-		
-		RoadLink endOfHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
-		
-		// Loop through nodes and find those at the end of the planning horizon
-		List<Junction> endJuncs = new ArrayList<Junction>();
-		for (Junction j : roadNetwork.getNodes()) {
-			
-			j.getv1rlID();
-			j.getv2rlID();
-		}
-		
-		// Choose two junctions to get path between - these are junctions in the pavement network which is clear from the format of their ID
-		String startJuncID = "ped_node_110";
-		String endJuncID = "ped_node_98";
-		
-		List<RoadLink> pavementNetworkPath = planStrategicPath(null, null, startJuncID, endJuncID);
-		
-		// Run some checks on this path
-		
-		// Number of links? Number of crossings? etc
-		
-		// Then try to get multiple possible paths
-		
-		
-	}
-
 }
