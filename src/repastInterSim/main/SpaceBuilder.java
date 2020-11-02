@@ -99,6 +99,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<Junction> pedJunctionContext;
 	public static Geography<Junction> pedJunctionGeography;
+	public static Network<Junction> pavementNetwork;
+	
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
