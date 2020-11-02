@@ -1,6 +1,7 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,7 @@ public class PedPathFinder {
 	
 	
 	private List<RoadLink> strategicPath;
+	private Junction[] spPavementJunctionEndpoints;
 	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
 	private Coordinate nextCrossingCoord;	
