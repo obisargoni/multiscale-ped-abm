@@ -349,6 +349,25 @@ public class PedPathFinder {
 		}		
 		return cPC;
 	}
+	
+	/*
+	 * Identifies possible tactical paths and chooses the path with the shortest path length to the tactical planning horizon. By setting link
+	 * weight based on whether the link crossing the strategic path this returns the path that avoids primary crossings.
+	 */
+	public static Coordinate defaultDestinationCoordinate(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ) {
+		
+		// First identify possible tactical paths
+		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, pH, currentJ, destJ);
+		
+		// Sort routes based on the length of the path to the end of tactical horizon
+		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
+		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
+		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
+		
+		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
+		
+		return chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate();
+		
 	}
 
 	/*
