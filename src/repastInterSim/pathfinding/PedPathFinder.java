@@ -90,6 +90,48 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * Set the start and destination pavement network junctions from the road network route
+	 */
+	public static Junction[] strategicPathPavementJunctions(Network<Junction> pavementNetwork, RoadNetworkRoute rnr, Coordinate oC, Coordinate dC) {
+		
+		Junction[] rnrEndpoints = rnr.routeEndpoints;
+		
+		// Choose the candidate associated to the first road link in the strategic path and that is closest to the origin
+		Junction originPavementJunction = null;
+		double d = Double.MAX_VALUE;
+		for (Junction j: pavementNetwork.getNodes()) {
+			if (j.getjuncNodeID().contentEquals(rnrEndpoints[0].getjuncNodeID())) {
+				RoadLink startLink = rnr.getRoadsX().get(0);
+				if (j.getv1rlID().contentEquals(startLink.getFID()) | j.getv2rlID().contentEquals(startLink.getFID())) {
+					Double dj = oC.distance(j.getGeom().getCoordinate());
+					if (dj < d) {
+						d = dj;
+						originPavementJunction = j;
+					}
+				}
+			}
+		}
+		
+		Junction destPavementJunction = null;
+		d = Double.MAX_VALUE;
+		for (Junction j: pavementNetwork.getNodes()) {
+			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getjuncNodeID())) {
+				RoadLink endLink = rnr.getRoadsX().get(rnr.getRoadsX().size()-1);
+				if (j.getv1rlID().contentEquals(endLink.getFID()) | j.getv2rlID().contentEquals(endLink.getFID())) {
+					Double dj = oC.distance(j.getGeom().getCoordinate());
+					if (dj < d) {
+						d = dj;
+						destPavementJunction = j;
+					}
+				}
+			}
+		}
+		
+		Junction[] odPavementJunctions = {originPavementJunction, destPavementJunction}; 
+		return odPavementJunctions;
+	}
+	
+	/*
 	 * Set the next tactical coordinate. If there are no coordinates in the tactical path, plan a new tactical path. Otherwise get the next coordinate
 	 * in the tactical path.
 	 * 

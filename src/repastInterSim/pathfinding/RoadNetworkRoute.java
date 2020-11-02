@@ -85,10 +85,11 @@ public class RoadNetworkRoute implements Cacheable {
 	private Geography<RoadLink> roadLinkGeography;
 	private Network<Junction> roadNetwork;
 	private Geography<OD> destinationGeography;
-	
 
 	protected Coordinate origin;
 	protected Coordinate destination;
+	
+	protected Junction[] routeEndpoints;
 
 	/*
 	 * The route consists of a list of roads which describe how to get to the destination from the origin.
@@ -248,7 +249,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * Now have possible routes (2 origin junctions, 2 destination junctions max, less if directed roads don't allow junctions to be  accessed) need to pick which junctions
 			 * form shortest route
 			 */
-			Junction[] routeEndpoints = new Junction[2];
+			this.routeEndpoints = new Junction[2];
 			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints, true);
 
 			/*
