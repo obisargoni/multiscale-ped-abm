@@ -12,7 +12,7 @@ public class PavementRoadLinkTransformer<T> implements Transformer<RepastEdge<T>
 	
 	// The road link id to return a different weight value for if the edge crosses them
 	private List<String> roadLinkIDs = new ArrayList<String>();;
-	private double crossesRoadLinkWeight = Double.POSITIVE_INFINITY;
+	private double crossesRoadLinkWeight = Double.MAX_VALUE;
 	
 	public PavementRoadLinkTransformer() {
 		// TODO Auto-generated constructor stub
