@@ -294,6 +294,18 @@ public class PedPathFinder {
 		
 		return tr;
 	}
+	private static boolean containsPrimaryCrossing(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
+		boolean cPC = false;
+		for (RepastEdge<Junction> e: path) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
+			for (RoadLink rl : sP) {
+				if (rl.getPedRLID().contentEquals(ne.getRoadLink().getPedRLID())) {
+					cPC = true;
+				}
+			}
+		}		
+		return cPC;
+	}
 	}
 
 	/*
