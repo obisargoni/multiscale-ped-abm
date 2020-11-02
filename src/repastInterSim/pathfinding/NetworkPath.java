@@ -145,14 +145,21 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		}
 		
 		/*
+		 * Given a list of network edges return the length of this path using the input transformer
+		 */
+		public static <T> double getPathLength(List<RepastEdge<T>> edgePath, Transformer<RepastEdge<T>,Double> t) {
+			double length = 0;
+			for (RepastEdge<T> e: edgePath) {
+				length += t.transform(e);
+			}
+			return length;
+		}
+		
+		/*
 		 * Given a list of network edges return the length of this path using the class transformer
 		 */
 		public double getPathLength(List<RepastEdge<T>> edgePath) {
-			double length = 0;
-			for (RepastEdge<T> e: edgePath) {
-				length += this.transformer.transform(e);
-			}
-			return length;
+			return getPathLength(edgePath, this.transformer);
 		}
 		
 		/**
