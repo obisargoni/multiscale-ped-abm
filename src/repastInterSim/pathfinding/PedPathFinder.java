@@ -75,9 +75,9 @@ public class PedPathFinder {
 	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
 	 * 
 	 */
-	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> pedNet, Geography<OD> odG, Network<Junction> pNet) {
+	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
 		// Initialise road network route - needs to ne non-directed for pedestrians! fix this
-		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, pedNet, odG);
+		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, orNetwork, odG);
 		
 		// Find shortest path using road network route
 		try {
@@ -90,7 +90,7 @@ public class PedPathFinder {
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
 		
-		this.spPavementJunctionEndpoints = strategicPathPavementJunctions(pNet, rnr, oC, dC);
+		this.spPavementJunctionEndpoints = strategicPathPavementJunctions(paveNetwork, rnr, oC, dC);
 	}
 	
 	/*
