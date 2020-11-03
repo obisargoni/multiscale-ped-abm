@@ -246,7 +246,21 @@ public class PedPathFinder {
 		return tr;
 	}
 	
-	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ) {
+	/*
+	 * Identify the possible paths and junctions on the pavement network that lead to the end of the tactical planning horizon.
+	 * 
+	 * @param Network<Junction> pavementNetwork
+	 * 		The network that connects pavement polygons to be used for tactical path finding.
+	 * @param List<RoadLink> sP
+	 * 		The strategic path. Road links corresponding to open road data
+	 * @param int nL
+	 * 		The number of strategic path links that are included in the tactical planning horizon
+	 * @param Junction currentJ
+	 * 		The starting pavement junction to path find from
+	 * @param Junction destJ
+	 * 		The pavement network junction corresponding to the pavement the pedestrian's destination is on.
+	 */
+	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, int nL, Junction currentJ, Junction destJ) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		RoadLink rlEndHorz = sP.get(nL-1);
 		RoadLink rlOutHorz = sP.get(nL);
