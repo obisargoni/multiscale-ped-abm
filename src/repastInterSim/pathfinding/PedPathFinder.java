@@ -337,6 +337,30 @@ public class PedPathFinder {
 		
 		return tr;
 	}
+	
+	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ) {
+		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
+		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, pH);
+		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
+		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		
+		// Get horizon junctions
+		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		// get path to each of the junctions at the end of the planning horizon
+		List<Junction> endJunctions = horizonJunctions.get("end");
+		
+		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
+		
+		// For each of the end junctions create a TacticalRoute object representing the route via this junction
+		List<TacticalRoute> tacticalRoutes = new ArrayList<TacticalRoute>();
+		for (Junction eJ: endJunctions) {
+			TacticalRoute tr = setupTacticalRoute(nP, sP, eJ, horizonJunctions.get("outside"), currentJ, destJ);
+			tacticalRoutes.add(tr);
+		}
+		return tacticalRoutes;
+	}
+	
 	private static boolean containsPrimaryCrossing(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
 		boolean cPC = false;
 		for (RepastEdge<Junction> e: path) {
