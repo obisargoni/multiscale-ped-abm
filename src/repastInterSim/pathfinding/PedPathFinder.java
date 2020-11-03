@@ -422,10 +422,34 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public void planTacticaAccumulatorPath(Geography<CrossingAlternative> caG, List<RoadLink> sP, Ped p, Geography<Road> rG, Coordinate tacticalDestCoord, Coordinate defaultDestCoord) {
+	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
-		// Get crossing alternatives within planning horizon
-		List<CrossingAlternative> cas = getCrossingAlternatives(caG, sP, p, rG, tacticalDestCoord);
+		// Calculate number of links in planning horizon
+		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
+		List<RoadLink> tacticalHorizon = this.strategicPath.subList(0, nLinks);
+		
+		// First identify tactical route alternatives
+		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ);
+		
+		// Sort routes based on the length of the path to the end of tactical horizon
+		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
+		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
+		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
+		
+		// Choose tactical route alternative
+		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
+		// By definition this is also the default TacticalRoute the agent walks towards
+		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
+		
+		// If chosen to cross road, identify crossing options and initialise accumulator route
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		if (NetworkPath.getPathLength(chosenTR.getRoutePath(), transformer)<Double.MAX_VALUE) {
+			// No primary crossings required
+		}
+		else {
+			// Get crossing alternatives within planning horizon
+			cas = getCrossingAlternatives(caG, tacticalHorizon, p, rG, chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate());
+		}
 		
 		// Get length of the planning horizon, this is used in the accumulator route
 		double pHLength = 0;
@@ -433,8 +457,8 @@ public class PedPathFinder {
 			pHLength += rl.getGeom().getLength();
 		}
 		
-		// Initialse AccumulatorRoute with strategic path planning horizon and origin and destination coordiantes, crossing alternatives
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, defaultDestCoord, cas, pHLength);
+		//Initialise Accumulator route with the chosen tactical route also set as the default.
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, cas, pHLength, chosenTR, chosenTR);
 		
 		this.tacticalPath = accRoute;
 	}
