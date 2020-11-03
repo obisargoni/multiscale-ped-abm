@@ -158,7 +158,7 @@ public class PedPathFinder {
 		List<RoadLink> tacticalHorizon = this.strategicPath.subList(0, nLinks);
 		
 		// First identify tactical route alternatives
-		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ);
+		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, nLinks, currentJ, destJ);
 		
 		// Sort routes based on the length of the path to the end of tactical horizon
 		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
@@ -248,9 +248,8 @@ public class PedPathFinder {
 	
 	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
-		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, pH);
-		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
-		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		RoadLink rlEndHorz = sP.get(nL-1);
+		RoadLink rlOutHorz = sP.get(nL);
 		
 		// Get horizon junctions
 		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
