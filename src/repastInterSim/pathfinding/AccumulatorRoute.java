@@ -15,13 +15,15 @@ import com.vividsolutions.jts.geom.Coordinate;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.Junction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 
 public class AccumulatorRoute {
 	
-	private Coordinate defaultDestination; // The destination pedestrian walks towards while choosing crossing alternative
 	private Ped ped;
+	
+	TacticalRoute targetTR;
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
@@ -35,8 +37,7 @@ public class AccumulatorRoute {
 		routeX = new ArrayList<Coordinate>();
 	}
 	
-	public AccumulatorRoute(Ped p, Coordinate defD, List<CrossingAlternative> cas, double rL) {
-		this.defaultDestination = defD;
+	public AccumulatorRoute(Ped p, List<CrossingAlternative> cas, double rL, TacticalRoute dTR, TacticalRoute tTR) {
 		this.ped = p;
 		this.roadLength = rL;
 		this.cas = cas;
@@ -44,9 +45,13 @@ public class AccumulatorRoute {
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
 		}
+		this.targetTR = tTR;
 		
+		// Initialise the route with the coordinates default tactical route junctions
 		routeX = new ArrayList<Coordinate>();
-		routeX.add(defaultDestination);
+		for (Junction j : dTR.getRouteJunctions()) {
+			routeX.add(j.getGeom().getCoordinate());
+		}
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
