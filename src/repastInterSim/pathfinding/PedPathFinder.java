@@ -66,6 +66,15 @@ public class PedPathFinder {
 		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementNetwork);
 	}
 	
+	public void step() {
+		
+		// Only update the accumulator path if the ped agent is walking along a road linked to the strategic path,
+		// ie not crossing over another road
+		if (pedOnStrategicPathRoadLink()) {
+			this.tacticalPath.step();
+		}
+	}
+	
 	/**
 	 * Initialise a new road link routing object that can be used to find a path along a topological road network.
 	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
@@ -146,64 +155,47 @@ public class PedPathFinder {
     }
 	
 	/*
-	 * Get the pavement network junctions that are at the end of the tactical planning horizon.
-	 * 
+	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
-		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		// Calculate number of links in planning horizon
+		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
+		List<RoadLink> tacticalHorizon = this.strategicPath.subList(0, nLinks);
 		
-		return tacticalEndJunctions.get("end");
-	}
-	
-	/*
-	 * Get the pavement network junctions that are at the start of the first link beyond the tactical planning horizon.
-	 * 
-	 */
-	public static List<Junction> tacticalHorizonOutsideJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		// First identify tactical route alternatives
+		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ);
 		
-		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		// Sort routes based on the length of the path to the end of tactical horizon
+		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
+		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
+		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
 		
-		return tacticalEndJunctions.get("outside");
-	}
-	
-	/*
-	 * Get the pavement network junctions that at the intersection between the final road link in the tactical planning horizin and
-	 * the next link in the strategic path that lies outside the tactical planning horizon.
-	 * 
-	 * Choose whether to return the junctions connected to the link at the end of the horizon or connected to the next link beyong the horizon.
-	 * 
-	 * @param Network<Junction> pavementNetwork
-	 * 			The network of pavement junctions used to connect pedestrian pavements
-	 * @param RoadLink rlEndHorz
-	 * 			The road link at the end of the tactical planning horizon
-	 * @param RoadLink rlOutHorz
-	 * 			The road link on the other side of the tactical planning horizon
-	 * @param boolean outside
-	 * 			Selects whether to return the junctions at the end of the planning horizon or outside the planning horizon at the start of the next link
-	 */
-	public static HashMap<String, List<Junction>> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		// Choose tactical route alternative
+		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
+		// By definition this is also the default TacticalRoute the agent walks towards
+		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
 		
-		// First get the road network node id connecting these links
-		String nodeID = connectingNodeID(rlEndHorz, rlOutHorz);
-		
-		// Get the pavement junctions linked to this road node
-		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, nodeID);
-
-		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
-		HashMap<String, List<Junction>> tacticalEndJunctions = new HashMap<String, List<Junction>>();
-		tacticalEndJunctions.put("end", new ArrayList<Junction>());
-		tacticalEndJunctions.put("outside", new ArrayList<Junction>());
-		for (Junction j: pavementJunctions) {
-			if (j.getv1rlID().contentEquals(rlEndHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlEndHorz.getPedRLID())) {
-				tacticalEndJunctions.get("end").add(j);
-			}
-			if (j.getv1rlID().contentEquals(rlOutHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlOutHorz.getPedRLID())) {
-				tacticalEndJunctions.get("outside").add(j);
-			}
+		// If chosen to cross road, identify crossing options and initialise accumulator route
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		if (NetworkPath.getPathLength(chosenTR.getRoutePath(), transformer)<Double.MAX_VALUE) {
+			// No primary crossings required
+		}
+		else {
+			// Get crossing alternatives within planning horizon
+			cas = getCrossingAlternatives(caG, tacticalHorizon, p, rG, chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate());
 		}
 		
-		return tacticalEndJunctions;
+		// Get length of the planning horizon, this is used in the accumulator route
+		double pHLength = 0;
+		for (RoadLink rl: sP) {
+			pHLength += rl.getGeom().getLength();
+		}
+		
+		//Initialise Accumulator route with the chosen tactical route also set as the default.
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, cas, pHLength, chosenTR, chosenTR);
+		
+		this.tacticalPath = accRoute;
 	}
 	
 	public static TacticalRoute setupTacticalRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
@@ -297,6 +289,67 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * Get the pavement network junctions that are at the end of the tactical planning horizon.
+	 * 
+	 */
+	public static List<Junction> tacticalHorizonEndJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		
+		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		return tacticalEndJunctions.get("end");
+	}
+	
+	/*
+	 * Get the pavement network junctions that are at the start of the first link beyond the tactical planning horizon.
+	 * 
+	 */
+	public static List<Junction> tacticalHorizonOutsideJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		
+		HashMap<String, List<Junction>> tacticalEndJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		return tacticalEndJunctions.get("outside");
+	}
+	
+	/*
+	 * Get the pavement network junctions that at the intersection between the final road link in the tactical planning horizin and
+	 * the next link in the strategic path that lies outside the tactical planning horizon.
+	 * 
+	 * Choose whether to return the junctions connected to the link at the end of the horizon or connected to the next link beyong the horizon.
+	 * 
+	 * @param Network<Junction> pavementNetwork
+	 * 			The network of pavement junctions used to connect pedestrian pavements
+	 * @param RoadLink rlEndHorz
+	 * 			The road link at the end of the tactical planning horizon
+	 * @param RoadLink rlOutHorz
+	 * 			The road link on the other side of the tactical planning horizon
+	 * @param boolean outside
+	 * 			Selects whether to return the junctions at the end of the planning horizon or outside the planning horizon at the start of the next link
+	 */
+	public static HashMap<String, List<Junction>> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rlEndHorz, RoadLink rlOutHorz) {
+		
+		// First get the road network node id connecting these links
+		String nodeID = connectingNodeID(rlEndHorz, rlOutHorz);
+		
+		// Get the pavement junctions linked to this road node
+		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, nodeID);
+
+		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
+		HashMap<String, List<Junction>> tacticalEndJunctions = new HashMap<String, List<Junction>>();
+		tacticalEndJunctions.put("end", new ArrayList<Junction>());
+		tacticalEndJunctions.put("outside", new ArrayList<Junction>());
+		for (Junction j: pavementJunctions) {
+			if (j.getv1rlID().contentEquals(rlEndHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlEndHorz.getPedRLID())) {
+				tacticalEndJunctions.get("end").add(j);
+			}
+			if (j.getv1rlID().contentEquals(rlOutHorz.getPedRLID()) | j.getv2rlID().contentEquals(rlOutHorz.getPedRLID())) {
+				tacticalEndJunctions.get("outside").add(j);
+			}
+		}
+		
+		return tacticalEndJunctions;
+	}
+	
+	/*
 	 * Identifies possible tactical paths and chooses the path with the shortest path length to the tactical planning horizon. By setting link
 	 * weight based on whether the link crossing the strategic path this returns the path that avoids primary crossings.
 	 */
@@ -340,59 +393,6 @@ public class PedPathFinder {
 		tP.setNextRouteSection();
 		
 		//this.tacticalPath= tP;
-	}
-	
-	/*
-	 * Plan a tactical level path using the accumulator crossing choice path finding model.
-	 */
-	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
-		
-		// Calculate number of links in planning horizon
-		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-		List<RoadLink> tacticalHorizon = this.strategicPath.subList(0, nLinks);
-		
-		// First identify tactical route alternatives
-		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ);
-		
-		// Sort routes based on the length of the path to the end of tactical horizon
-		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
-		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
-		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
-		
-		// Choose tactical route alternative
-		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
-		// By definition this is also the default TacticalRoute the agent walks towards
-		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
-		
-		// If chosen to cross road, identify crossing options and initialise accumulator route
-		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		if (NetworkPath.getPathLength(chosenTR.getRoutePath(), transformer)<Double.MAX_VALUE) {
-			// No primary crossings required
-		}
-		else {
-			// Get crossing alternatives within planning horizon
-			cas = getCrossingAlternatives(caG, tacticalHorizon, p, rG, chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate());
-		}
-		
-		// Get length of the planning horizon, this is used in the accumulator route
-		double pHLength = 0;
-		for (RoadLink rl: sP) {
-			pHLength += rl.getGeom().getLength();
-		}
-		
-		//Initialise Accumulator route with the chosen tactical route also set as the default.
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, cas, pHLength, chosenTR, chosenTR);
-		
-		this.tacticalPath = accRoute;
-	}
-	
-	public void step() {
-		
-		// Only update the accumulator path if the ped agent is walking along a road linked to the strategic path,
-		// ie not crossing over another road
-		if (pedOnStrategicPathRoadLink()) {
-			this.tacticalPath.step();
-		}
 	}
 
 	
