@@ -350,53 +350,6 @@ public class PedPathFinder {
 	}
 	
 	/*
-	 * Identifies possible tactical paths and chooses the path with the shortest path length to the tactical planning horizon. By setting link
-	 * weight based on whether the link crossing the strategic path this returns the path that avoids primary crossings.
-	 */
-	public static Coordinate defaultDestinationCoordinate(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ) {
-		
-		
-		// First identify possible tactical paths
-		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, pH, currentJ, destJ);
-		
-		// Sort routes based on the length of the path to the end of tactical horizon
-		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
-		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
-		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
-		
-		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
-		
-		return chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate();
-		
-	}
-
-	/*
-	 * Plan a tactical level path from an origin coordinate to a destination coordinate. The tactical path is planned using the
-	 * GridRoute class.
-	 * 
-	 * @param gSPM
-	 * 			The map from integers used to indicate the road user priority of grid cells to the perceived cost of moving through those grid cells. Used for routing on a grid.
-	 * @param tacticalOriginCoord
-	 * 			The start coordinate of the tactical route.
-	 * @param tacticalDestCoord
-	 * 			The end coordinate of the tactical route.
-	 */
-	public void planTacticaPath(HashMap<Integer, Double> gSPM, Coordinate tacticalOriginCoord, Coordinate tacticalDestCoord) {
-		
-		GridCoverage2D grid = this.geography.getCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE);
-		GridRoute tP = new GridRoute(grid, gSPM, tacticalOriginCoord, tacticalDestCoord, true);
-		
-    	// Get updated set of route coords to follow to next road link coordinate
-		tP.setGroupedGridPath();
-    	
-    	// Adds coordinates to route from next section of grid path
-		tP.setNextRouteSection();
-		
-		//this.tacticalPath= tP;
-	}
-
-	
-	/*
 	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
 	 * for use in the accumulator choice model.
 	 * 
