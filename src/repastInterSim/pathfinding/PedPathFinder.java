@@ -39,16 +39,13 @@ public class PedPathFinder {
 	private OD destination;
 	private Geography<Object> geography;
 	
-	private Geography<PedObstruction> obstructGeography;
-	private Geography<Road> rGeography;
-	
+	private Geography<PedObstruction> obstructGeography;	
 	
 	private List<RoadLink> strategicPath;
 	private Junction[] spPavementJunctionEndpoints;
 	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
 	private Coordinate nextCrossingCoord;	
-	private String prevCoordType = "";
 
 	public PedPathFinder(Geography<Object> g, OD o, OD d) {
 		init(g, o, d);
@@ -65,7 +62,6 @@ public class PedPathFinder {
 		this.destination = d;
 		
 		this.obstructGeography = SpaceBuilder.pedObstructGeography;
-		this.rGeography = SpaceBuilder.roadGeography;
 		
 		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementNetwork);
 	}
@@ -429,159 +425,7 @@ public class PedPathFinder {
 			this.tacticalPath.step();
 		}
 	}
-	
-	
-	/*
-	 * When agent reaches a tactical destination coordinate they must identify the next tactical destination coordinate. This involves interaction between
-	 * the strategic and tactical pathfinding levels as an agents needs to identify whether it has reached the end of one road link.
-	 * 
-	 * To do this, the tactical destination coordinate needs to be categorised in terms of whether it is at the end of a road link and at the stat of the next road link,
-	 * at the end of a road link and not yet at the start of the next road link, or not yet at the end of a road link.
-	 * 
-	 * Ideally also want to be able to tell if at the start of a road link but not sure how to do this now.
-	 * 
-	 * @param Coordinate c
-	 * 		The coordinate to get information on
-	 * @param Geography<Road>
-	 * 		The projection containing road objects
-	 * @param String cRL
-	 * 		The ID of the current road link
-	 * @param String nRL
-	 * 		The ID of the next road link in the strategic path.
-	 *  
-	 * @return String
-	 * 		Indicates the location of coordinate in reference to the strategic path
-	 */
-	public static String checkCoordinateIntersectingRoads(Coordinate c, Geography<Road> roadGeography, String cRL, String nRL) {
-				
-		// Get the intersecting road objects
-		List<Road> roads = SpatialIndexManager.findIntersectingObjects(roadGeography, c);
-		
-		// If all roads have the ID of the current road link then coordinate is not at the end of the road link
-		Boolean notAtEnd = roads.stream().allMatch(r -> r.getRoadLinkID().contentEquals(cRL));
-		if(notAtEnd) {
-			return "not_at_end";
-		}
-		
-		// Check if intersecting roads include the next link in the strategic path
-		Boolean intersectsNext = roads.stream().anyMatch(r -> r.getRoadLinkID().contentEquals(nRL));
-		
-		if (intersectsNext) {
-			return "intersects_next";
-		}
-		else {
-			return "not_intersects_next";
-		}
-	}
-	
-	/*
-	 * Identify the destination coordinate for the tactical path. This is currently defined as the coordinate of the end junction of the
-	 * current road link in the road link path, if the agent has reached the final road link in the path, the final destination.
-	 * 
-	 * @param Coordinate originCoord
-	 * 		The starting coordinate
-	 * @param String prevDestType
-	 * 		A string indicating the type of destination coordinate the last tactical destination was. This is used to determine how next
-	 * destination options are identified.
-	 */
-	public static Coordinate chooseTacticalDestinationCoordinate(Coordinate originCoord, Coordinate destCoord, Geography<Road> roadGeography, Geography<PedObstruction> pedObstructGeography, int pH, List<RoadLink> sP, Boolean secondaryCrossing) {
-		
-		Coordinate tacticalDestCoord = null;
-		
-		// If number of links in planning horizon equal to or greater than length of strategic path then destination is within planning horizon.
-		// Set the destination as the tactical destination coordinate
-		if (pH >= sP.size()) {
-			tacticalDestCoord = destCoord;
-		}
-		else {			
-			// Get the ID of the current road link
-			String roadLinkID = sP.get(0).getFID();
-			
-			// Get pedestrian roads linked to this road link
-			List<Road> pedRoads = null;
-			try {
-				pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID, roadGeography);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			// If not at a secondary crossing, destination coordinate options are the farthest coordinates on the ped roads associated to the road link
-			if (secondaryCrossing==false) {
-				// Get tactical destination options
-				ArrayList<TacticalRoute> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, true);
-				
-				// Write a comparator that sorts on multiple attributes of alternative
-				Comparator<TacticalRoute> comparator = Comparator.comparing(TacticalRoute::getParityS,Comparator.nullsLast(Comparator.naturalOrder()))
-																		.thenComparing(TacticalRoute::getParityT, Comparator.nullsLast(Comparator.naturalOrder()))
-																		.thenComparing(TacticalRoute::getCostT, Comparator.reverseOrder());
-				
-				// Now sort the tactical alternatives and choose appropriate one
-				List<TacticalRoute> sortedAlternatives = alternatives.stream().sorted(comparator).collect(Collectors.toList());
-				tacticalDestCoord = sortedAlternatives.get(0).getC();
-			}
-			
-			// If about to perform a secondary crossing destination options are nearest coordinates. Always select the no crossing option
-			else if (secondaryCrossing==true) {
-				// Get tactical destination options
-				ArrayList<TacticalRoute> alternatives = getTacticalDestinationAlternatives(originCoord, pedRoads, sP, destCoord, pH, pedObstructGeography, false);
-				
-				// Always select only the nearest no cross option
-				tacticalDestCoord = alternatives.stream().filter(ta -> ta.getParityT() == 0).sorted((ta1,ta2) -> ta1.getCostT().compareTo(ta2.getCostT())).collect(Collectors.toList()).get(0).getC();
-			}
-		}
-		
-		return tacticalDestCoord;
-	}
-	
-	
-	/*
-	 * Given a starting coordinate, ie the current position of the agent, the pedestrian roads the agent is considering as destinations, the road link associated to these
-	 * pedestrian roads and the geography projection of pedestrian obstructions.
-	 * 
-	 * @param Coordinate oC
-	 * 		The origin coordinate
-	 * @param List<Road> pR
-	 * 		The pedestrian roads
-	 * @param List<RoadLink> sPS
-	 * 		A segment of the strategic path that consists of the link associated to the pedestrian roads
-	 * @param Geography<PedObstruction> obstructGeography
-	 * 		The geography projection containing obstructions to pedestrian movement
-	 * 
-	 * @return HashMap<String, List<Coordinate>>
-	 */
-	public static ArrayList<TacticalRoute> getTacticalDestinationAlternatives(Coordinate oC, List<Road> pR, List<RoadLink> sP, Coordinate d, int pH, Geography<PedObstruction> obstructGeography, Boolean far){
-		
-		ArrayList<TacticalRoute> alternatives = new ArrayList<TacticalRoute>();
-		
-		for(Road r: pR) {
-			// Get candidate destination coordiante from pedestrian road
-			Coordinate c = GISFunctions.xestUnobstructedGeomCoordinate(oC, r.getGeom(), obstructGeography, far);
-			
-			// Null coordinate returned when it is not possible to see a coordinate on a ped road without obstruction. Skip these
-			if (c==null) {
-				continue;
-			}
-			
-			// Create new alternative
-			TacticalRoute tc = new TacticalRoute(c);
-			
-			// Find parity of coordinate at tactical scale
-			// Tells us whether primary crossing is needed to reach coordinate
-			tc.setParityT(RoadNetworkRoute.calculateRouteParity(oC, c, sP.subList(0, 1)));
-			
-			// Find distance to tactical coordinate
-			tc.setCostT(c.distance(oC));
-			
-			// Find parity at strategic level - identifies whether primary crossing required to get from tactical alternative to destination
-			// Takes into account bounded rationality
-			tc.setParityS(RoadNetworkRoute.boundedRouteParity(c, d, sP, pH));
-			
-			// Add to collection of choice alternatives
-			alternatives.add(tc);
-		}
-		return alternatives;
-	}
+
 	
 	/*
 	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
@@ -731,14 +575,4 @@ public class PedPathFinder {
 		
 		return currentRoadLinkID;
 	}
-	
-	private String getNextRoadLinkID() {
-		if(this.strategicPath.isEmpty() | this.strategicPath.size()<2) {
-			return "";
-		}
-		else {
-			return this.strategicPath.get(1).getFID();
-		}
-	}
-
 }
