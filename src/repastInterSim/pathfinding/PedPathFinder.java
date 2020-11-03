@@ -146,37 +146,6 @@ public class PedPathFinder {
     }
 	
 	/*
-	 * Returns the ID of the road network node connecting two road links. Returns null if there isn't a shared node.
-	 */
-	public static String connectingNodeID(RoadLink rl1, RoadLink rl2) {
-		
-		// Find the common node
-		if (rl1.getMNodeFID().contentEquals(rl2.getMNodeFID()) | rl1.getMNodeFID().contentEquals(rl2.getPNodeFID())) {
-			return rl1.getMNodeFID();
-		}
-		else if (rl1.getPNodeFID().contentEquals(rl2.getPNodeFID()) | rl1.getPNodeFID().contentEquals(rl2.getMNodeFID())) {
-			return rl1.getPNodeFID();
-		}
-		else {
-			return null;
-		}
-	}
-	
-	/*
-	 * Given a road node ID return the pavement network junctions associated to this node. These are the pavement junctions
-	 * around a road network node.
-	 */
-	public static List<Junction> roadNodePavementJunctions(Network<Junction> pavementNetwork, String roadNodeID) {
-		 List<Junction> nodeJunctions = new ArrayList<Junction>();
-		 for(Junction j:pavementNetwork.getNodes()) {
-			 if (j.getjuncNodeID().contentEquals(roadNodeID)) {
-				 nodeJunctions.add(j);
-			 }
-		 }
-		 return nodeJunctions;
-	}
-	
-	/*
 	 * Get the pavement network junctions that are at the end of the tactical planning horizon.
 	 * 
 	 */
@@ -526,6 +495,37 @@ public class PedPathFinder {
 			}
 		}
 		return pedOnSLink;
+	}
+	
+	/*
+	 * Returns the ID of the road network node connecting two road links. Returns null if there isn't a shared node.
+	 */
+	public static String connectingNodeID(RoadLink rl1, RoadLink rl2) {
+		
+		// Find the common node
+		if (rl1.getMNodeFID().contentEquals(rl2.getMNodeFID()) | rl1.getMNodeFID().contentEquals(rl2.getPNodeFID())) {
+			return rl1.getMNodeFID();
+		}
+		else if (rl1.getPNodeFID().contentEquals(rl2.getPNodeFID()) | rl1.getPNodeFID().contentEquals(rl2.getMNodeFID())) {
+			return rl1.getPNodeFID();
+		}
+		else {
+			return null;
+		}
+	}
+	
+	/*
+	 * Given a road node ID return the pavement network junctions associated to this node. These are the pavement junctions
+	 * around a road network node.
+	 */
+	public static List<Junction> roadNodePavementJunctions(Network<Junction> pavementNetwork, String roadNodeID) {
+		 List<Junction> nodeJunctions = new ArrayList<Junction>();
+		 for(Junction j:pavementNetwork.getNodes()) {
+			 if (j.getjuncNodeID().contentEquals(roadNodeID)) {
+				 nodeJunctions.add(j);
+			 }
+		 }
+		 return nodeJunctions;
 	}
 	
 	
