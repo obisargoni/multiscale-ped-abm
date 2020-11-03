@@ -583,19 +583,19 @@ public class PedPathFinder {
 	 * 
 	 * @param Geography<CrossingAlternative> caG
 	 * 		The geography containing all crossing alternative objects
-	 * @param List<RoadLink> sP
-	 * 		The road links to identify crossing alternatives along
+	 * @param List<RoadLink> rls
+	 * 		The road links to identify crossing alternatives along, typically the tactical planning horizon section of the strategic path.
 	 * @param Ped p
 	 * 		The pedestrian agent perceiving the crossing alternatives
 	 * @param Geography<Road> rG
 	 * 		The Geography containing Road objects
 	 */
-	public static List<CrossingAlternative> getCrossingAlternatives(Geography<CrossingAlternative> caG, List<RoadLink> sP, Ped p, Geography<Road> rG, Coordinate dest){
+	public static List<CrossingAlternative> getCrossingAlternatives(Geography<CrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG, Coordinate dest){
 		
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 		
 		// Loop through open road sp section road links and crossing alternatives and add any crossing alternatives that match the road link id to the list
-		for (RoadLink rl: sP) {
+		for (RoadLink rl: rls) {
 			for (CrossingAlternative ca: caG.getAllObjects()) {
 				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
 					
@@ -603,7 +603,7 @@ public class PedPathFinder {
 					ca.setPed(p);
 					ca.setRoadGeography(rG);
 					ca.setDestination(dest);
-					ca.setStrategicPathSection(sP);
+					ca.setStrategicPathSection(rls);
 					ca.setRoad();
 					
 					// Add to list
@@ -619,7 +619,7 @@ public class PedPathFinder {
 		caU.setPed(p);
 		caU.setRoadGeography(rG);
 		caU.setDestination(dest);
-		caU.setStrategicPathSection(sP);
+		caU.setStrategicPathSection(rls);
 		cas.add(caU);
 		
 		return cas;		
