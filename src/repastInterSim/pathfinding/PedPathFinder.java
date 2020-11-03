@@ -37,32 +37,26 @@ public class PedPathFinder {
 	
 	private OD origin;
 	private OD destination;
-	private Geography<Object> geography;
-	
-	private Geography<PedObstruction> obstructGeography;	
-	
+		
 	private List<RoadLink> strategicPath;
 	private Junction[] spPavementJunctionEndpoints;
 	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
 	private Coordinate nextCrossingCoord;	
 
-	public PedPathFinder(Geography<Object> g, OD o, OD d) {
-		init(g, o, d);
+	public PedPathFinder(OD o, OD d) {
+		init(o, d);
 	}
 	
 	public PedPathFinder(Ped p) {
 		this.ped = p;
-		init(p.getGeography(), p.getOrigin(), p.getDestination());
+		init(p.getOrigin(), p.getDestination());
 	}
 	
-	private void init(Geography<Object> g, OD o, OD d) {
-		this.geography = g;
+	private void init(OD o, OD d) {
 		this.origin = o;
 		this.destination = d;
-		
-		this.obstructGeography = SpaceBuilder.pedObstructGeography;
-		
+				
 		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementNetwork);
 	}
 	
