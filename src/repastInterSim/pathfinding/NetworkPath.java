@@ -18,6 +18,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.projection.ProjectionEvent;
 import repast.simphony.space.projection.ProjectionListener;
+import repastInterSim.environment.Junction;
 
 /*
  * An amended version of the Repast Simphony ShortestPath class that allows bespoke transformers to be used in the shortest path calculation
@@ -145,6 +146,25 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		}
 		
 		/*
+		 * Extract the series of nodes that make up a path of edges
+		 */
+		public List<T> nodePathFromEdges(List<RepastEdge<T>> edgePath, T startNode) {
+			List<T> pathNodes = new ArrayList<T>();
+			T prev = startNode;
+			pathNodes.add(prev);
+			for (RepastEdge<T> e: edgePath) {
+				if (e.getSource().equals(prev)) {
+					prev = e.getTarget();
+				}
+				else {
+					prev = e.getSource();
+				}
+				pathNodes.add(prev);
+			}
+			return pathNodes;
+		}
+		
+		/*
 		 * Given a list of network edges return the length of this path using the input transformer
 		 */
 		public static <T> double getPathLength(List<RepastEdge<T>> edgePath, Transformer<RepastEdge<T>,Double> t) {
@@ -268,6 +288,5 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			sp.finalize();
 			sp=null;
 			return sp;
-		}
-		
+		}		
 }
