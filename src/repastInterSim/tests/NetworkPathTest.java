@@ -119,14 +119,13 @@ class NetworkPathTest {
 		
 		// Now get just the paths around the road node
 		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
-		List<Stack<Junction>> roadNodePaths = np.getSimplePaths(source, target, filter);
+		List<Stack<RepastEdge<Junction>>> edgePaths = np.getSimplePaths(source, target, filter);
 		
-		assert roadNodePaths.size()==2;
+		assert edgePaths.size()==2;
 		
 		// Finally convert these paths to edge paths and check the edges
 		String[] expectedLinks = {"pave_link_114_116", "pave_link_116_117", "pave_link_115_117"};
-		for (Stack<Junction> path:roadNodePaths) {
-			List<RepastEdge<Junction>> edgePath = np.edgePathFromNodes(path);
+		for (Stack<RepastEdge<Junction>> edgePath:edgePaths) {
 			if (edgePath.size()==1) {
 				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edgePath.get(0);
 				assert ne.getRoadLink().getFID().contentEquals("pave_link_114_115");
@@ -167,14 +166,12 @@ class NetworkPathTest {
 		
 		// Now get just the paths around the road node
 		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
-		List<Stack<Junction>> selfPaths = np.getSimplePaths(source, source, filter);
+		List<Stack<RepastEdge<Junction>>> selfPaths = np.getSimplePaths(source, source, filter);
 		
 		assert selfPaths.size()==1;
 		
-		Stack<Junction> path = selfPaths.get(0);
-		assert path.get(0).getFID().contentEquals(sourceID);
 		// Check that the edge path for this single entry node path is empty
-		List<RepastEdge<Junction>> edgePath = np.edgePathFromNodes(path);
+		Stack<RepastEdge<Junction>> edgePath = selfPaths.get(0);
 		assert edgePath.size()==0;
 	}
 

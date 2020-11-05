@@ -30,8 +30,8 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		private Transformer<RepastEdge<T>,Double> transformer;
 		private DijkstraShortestPath<T,RepastEdge<T>> dsp;
 	  
-		private Stack<T> connectionPath;
-		private List<Stack<T>> connectionPaths;
+		private Stack<T> nodePath;
+		private List<Stack<RepastEdge<T>>> edgePaths;
 	  
 	  /**
 	   * Constructor
@@ -57,8 +57,8 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * Initialise the connection path objects used to record the paths between nodes in the network
 		 */
 		public void resetConnectionPaths() {
-			connectionPath = new Stack<T>();
-			connectionPaths = new ArrayList<Stack<T>>();
+			nodePath = new Stack<T>();
+			edgePaths = new ArrayList<Stack<RepastEdge<T>>>();
 		}
 
 		/**
@@ -112,9 +112,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @return List<Stack<T>>
 		 * 		The paths
 		 */
-		public List<Stack<T>> getSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter){
+		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter){
 			calcSimplePaths(node, targetNode, nodeFilter);
-			List<Stack<T>> output = this.connectionPaths;
+			List<Stack<RepastEdge<T>>> output = this.edgePaths;
 			resetConnectionPaths(); // Empty the paths
 			return output;
 		}
@@ -130,7 +130,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @return List<Stack<T>>
 		 * 		The paths
 		 */
-		public List<Stack<T>> getSimplePaths(T node, T targetNode){
+		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode){
 			return getSimplePaths(node, targetNode, null);
 		}
 		
@@ -148,8 +148,8 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		/*
 		 * Extract the series of nodes that make up a path of edges
 		 */
-		public List<T> nodePathFromEdges(List<RepastEdge<T>> edgePath, T startNode) {
-			List<T> pathNodes = new ArrayList<T>();
+		public Stack<T> nodePathFromEdges(List<RepastEdge<T>> edgePath, T startNode) {
+			Stack<T> pathNodes = new Stack<T>();
 			T prev = startNode;
 			pathNodes.add(prev);
 			for (RepastEdge<T> e: edgePath) {
@@ -211,14 +211,19 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 */
 		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
 	        // First add the node to the path
-			connectionPath.push(node);
+			nodePath.push(node);
 			
 			// If target node reached log path and exit
+			// Could create edge path here...?
 			if (node.equals(targetNode)) {
-	           Stack<T> temp = new Stack<T>();
-	           for (T node1 : connectionPath)
-	               temp.push(node1);
-	           connectionPaths.add(temp);
+	           Stack<RepastEdge<T>> temp = new Stack<RepastEdge<T>>();
+	           for (int i = 0; i<nodePath.size()-1;i++) {
+	        	   T ni = nodePath.get(i);
+	        	   T nj = nodePath.get(i+1);
+	        	   RepastEdge<T> e = net.getEdge(ni, nj);
+	               temp.add(e);
+	           }
+	           edgePaths.add(temp);
 			}
 			
 			// Otherwise get children nodes and add them to the path
@@ -234,9 +239,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 				}
 				
 			    for (T nextNode : validAdj) {
-			    	if (!connectionPath.contains(nextNode)) {
+			    	if (!nodePath.contains(nextNode)) {
 			           calcSimplePaths(nextNode, targetNode, nodeFilter);
-			           connectionPath.pop(); // Clears connection path on the way out
+			           nodePath.pop(); // Clears connection path on the way out
 				    }
 				}
 			}
