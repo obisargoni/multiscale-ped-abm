@@ -154,9 +154,7 @@ public class PedPathFinder {
 	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
-		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-		List<RoadLink> tacticalHorizon = sP.subList(0, nLinks);
-		
+		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
 		// First identify tactical route alternatives
 		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ, caG, rG, p);
 		
@@ -174,8 +172,8 @@ public class PedPathFinder {
 		// Initialise Accumulator route with the chosen tactical route also set as the default.
 		// Get length of the planning horizon, this is used in the accumulator route
 		double pHLength = 0;
-		for (RoadLink rl: tacticalHorizon) {
-			pHLength += rl.getGeom().getLength();
+		for (int i = 0; i<nLinks; i++) {
+			pHLength += sP.get(i).getGeom().getLength();
 		}
 		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, chosenTR, chosenTR);
 		
