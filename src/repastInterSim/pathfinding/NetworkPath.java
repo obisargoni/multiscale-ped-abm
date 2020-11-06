@@ -2,6 +2,7 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Predicate;
@@ -18,7 +19,6 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.projection.ProjectionEvent;
 import repast.simphony.space.projection.ProjectionListener;
-import repastInterSim.environment.Junction;
 
 /*
  * An amended version of the Repast Simphony ShortestPath class that allows bespoke transformers to be used in the shortest path calculation
@@ -148,8 +148,8 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		/*
 		 * Extract the series of nodes that make up a path of edges
 		 */
-		public Stack<T> nodePathFromEdges(List<RepastEdge<T>> edgePath, T startNode) {
-			Stack<T> pathNodes = new Stack<T>();
+		public LinkedList<T> nodePathFromEdges(List<RepastEdge<T>> edgePath, T startNode) {
+			LinkedList<T> pathNodes = new LinkedList<T>();
 			T prev = startNode;
 			pathNodes.add(prev);
 			for (RepastEdge<T> e: edgePath) {
