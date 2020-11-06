@@ -1,12 +1,18 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.graph.RepastEdge;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 
 public class TacticalRoute {
 	
@@ -22,9 +28,14 @@ public class TacticalRoute {
 	private boolean routeCompleted;
 	
 	
-	public TacticalRoute() {
-		this.routeJunctions = new ArrayList<Junction>();
-		this.routePath = new ArrayList<RepastEdge<Junction>>();
+	public TacticalRoute(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
+		this.nP = nP;
+		this.currentJunction = startJunction;
+		this.endJunction = endJunction;
+		this.pathToEnd = new ArrayList<RepastEdge<Junction>>();
+		this.pathEndToOutside = new ArrayList<RepastEdge<Junction>>();
+		this.pathRemainder = new ArrayList<RepastEdge<Junction>>();
+		this.routeCompleted = false;
 	}
 	
 	public void addJunction(Junction j) {
