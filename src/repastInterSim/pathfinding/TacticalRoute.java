@@ -59,7 +59,29 @@ public class TacticalRoute {
 	public Junction getCurrentJunction() {
 		return this.currentJunction;
 	}
+	
+	/*
+	 * First tries to return a coordinate from the route coordinates stack, then if that is empty returns the coordinate of the next junction in the path.
+	 */
+	public Coordinate getTargetCoordinate() {
+		if(this.routeCoordinates.size()>0) {
+			return routeCoordinates.getFirst();
+		}
+		else {
+			return this.currentJunction.getGeom().getCoordinate();
+		}
 	}
+	
+	/*
+	 * First tries to remove the top coordiante from the coordinates stack. If the coordinates stack is empty then the top junction is removed from the junction stack.
+	 */
+	public void updateTargetCoordiante() {
+		if (this.routeCoordinates.size()>0) {
+			this.routeCoordinates.removeFirst();
+		}
+		else {
+			updateCurrentJunction();
+		}
 	}
 	
 	public void updateCurrentJunction() {
