@@ -123,7 +123,13 @@ public class TacticalRoute {
 	public List<RepastEdge<Junction>> getRoutePath() {
 		return Stream.of(this.pathToEnd, this.pathEndToOutside).flatMap(Collection::stream).collect(Collectors.toList());
 	}
+
+	public void setCrossingAlternatives(List<CrossingAlternative> cas) {
+		this.crossingAlternatives = cas;
 	}
 	
-	
+	public List<CrossingAlternative> getCrossingAlternatives() {
+		return this.crossingAlternatives;
+	}
+
 }
