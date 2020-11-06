@@ -38,11 +38,17 @@ public class TacticalRoute {
 		this.routeCompleted = false;
 	}
 	
-	public void addJunction(Junction j) {
-		this.routeJunctions.add(j);
+	private void setRouteJunctions() {
+		// Get junctions from path
+		List<RepastEdge<Junction>> path = this.getRoutePath();
+		LinkedList<Junction> nodesToEnd = nP.nodePathFromEdges(path, this.currentJunction);
+		this.routeJunctions = nodesToEnd;
 	}
 	
-	public List<Junction> getRouteJunctions(){
+	public LinkedList<Junction> getRouteJunctions(){
+		if (this.routeJunctions == null) {
+			setRouteJunctions();
+		}
 		return this.routeJunctions;
 	}
 	
