@@ -151,11 +151,11 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-		List<RoadLink> tacticalHorizon = this.strategicPath.subList(0, nLinks);
+		List<RoadLink> tacticalHorizon = sP.subList(0, nLinks);
 		
 		// First identify tactical route alternatives
 		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ, caG, rG, p);
@@ -170,26 +170,19 @@ public class PedPathFinder {
 		// By definition this is also the default TacticalRoute the agent walks towards
 		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
 		
-		// If chosen to cross road, identify crossing options and initialise accumulator route
-		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		if (NetworkPath.getPathLength(chosenTR.getRoutePath(), transformer)<Double.MAX_VALUE) {
-			// No primary crossings required
-		}
-		else {
-			// Get crossing alternatives within planning horizon
-			cas = getCrossingAlternatives(caG, tacticalHorizon, p, rG, chosenTR.getRouteJunctions().get(0).getGeom().getCoordinate());
-		}
 		
+		// Initialise Accumulator route with the chosen tactical route also set as the default.
 		// Get length of the planning horizon, this is used in the accumulator route
 		double pHLength = 0;
-		for (RoadLink rl: sP) {
+		for (RoadLink rl: tacticalHorizon) {
 			pHLength += rl.getGeom().getLength();
 		}
-		
-		//Initialise Accumulator route with the chosen tactical route also set as the default.
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, cas, pHLength, chosenTR, chosenTR);
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, chosenTR, chosenTR);
 		
 		this.tacticalPath = accRoute;
+		
+		// Once tactical path planned can update strategic path by removing the links included in the tactical horizon
+		sP = sP.subList(nLinks, sP.size()-1);
 	}
 	
 	/*
