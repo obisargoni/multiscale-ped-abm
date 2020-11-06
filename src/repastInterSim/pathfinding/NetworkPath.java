@@ -276,6 +276,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			}
 		}
 		
+		public Network<T> getNet() {
+			return net;
+		}
+
 		/**
 		 * Removes this as a projection listener when this ShortestPath is garbage
 		 * collected.
