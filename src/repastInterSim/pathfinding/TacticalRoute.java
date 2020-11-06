@@ -61,6 +61,9 @@ public class TacticalRoute {
 	}
 	}
 	}
+	
+	public void updateCurrentJunction() {
+		this.currentJunction = this.getRouteJunctions().pollFirst();
 	}
 	}
 	}
