@@ -52,7 +52,12 @@ public class TacticalRoute {
 		return this.routeJunctions;
 	}
 	
+	public void setCurrentJunction(Junction j) {
+		this.currentJunction = j;
 	}
+	
+	public Junction getCurrentJunction() {
+		return this.currentJunction;
 	}
 	}
 	}
