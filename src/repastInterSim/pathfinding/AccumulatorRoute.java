@@ -12,18 +12,16 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.Road;
-import repastInterSim.environment.RoadLink;
 
 public class AccumulatorRoute {
 	
 	private Ped ped;
 	
 	TacticalRoute targetTR;
+	TacticalRoute currentTR;
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
@@ -37,20 +35,18 @@ public class AccumulatorRoute {
 		routeX = new ArrayList<Coordinate>();
 	}
 	
-	public AccumulatorRoute(Ped p, List<CrossingAlternative> cas, double rL, TacticalRoute dTR, TacticalRoute tTR) {
+	public AccumulatorRoute(Ped p, double rL, TacticalRoute dTR, TacticalRoute tTR) {
 		this.ped = p;
 		this.roadLength = rL;
-		this.cas = cas;
+		
+		// Agent starts by using the default tactical route but wants to use the target tactical route and must decide where to switch between these
+		this.currentTR = dTR;
+		this.targetTR = tTR;
+		
+		this.cas = this.targetTR.getCrossingAlternatives();
 		this.caActivations = new double[this.cas.size()];
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
-		}
-		this.targetTR = tTR;
-		
-		// Initialise the route with the coordinates default tactical route junctions
-		routeX = new ArrayList<Coordinate>();
-		for (Junction j : dTR.getRouteJunctions()) {
-			routeX.add(j.getGeom().getCoordinate());
 		}
 	}
 	/*
