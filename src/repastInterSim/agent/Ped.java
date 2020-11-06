@@ -127,13 +127,16 @@ public class Ped extends MobileAgent {
     	// its route coordinate because this involves removing coordinates from the route.
    		//decideYield();
     	
-    	Boolean tacticalCoordUpdateRequired = false;
-    	if(this.pathFinder.getTacticalPath().getRouteX().size() == 0) {
-    		tacticalCoordUpdateRequired = true;
-    	}
-    	else if (this.maLoc.distance(this.pathFinder.getTacticalPath().getRouteX().get(0)) < 0.5) {
+    	// First check if ped has reached target coordinate, in which case update the target coordinate in the tactical path
+    	if (this.maLoc.distance(this.pathFinder.getTacticalPath().targetCoordinate()) < 0.5) {
     		// Remove the tactial coordinate the agent has reached
-    		this.pathFinder.getTacticalPath().removeFromRoute(0);
+    		this.pathFinder.getTacticalPath().updateTargetCoordiante();
+    	}
+    	
+    	// Check whether tactical path needs updating. This is required when no longer any coordinates in tactical path
+    	Boolean tacticalCoordUpdateRequired = false;
+    	if(this.pathFinder.getTacticalPath().getCurrentJunction()==null) {
+    		tacticalCoordUpdateRequired = true;
     	}
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
@@ -141,7 +144,7 @@ public class Ped extends MobileAgent {
         	if (tacticalCoordUpdateRequired) {
         		pathFinder.updateTacticalPathCoordinate();
         	}
-        	walk(pathFinder.getTacticalPath().getRouteX().get(0));
+        	walk(pathFinder.getTacticalPath().targetCoordinate());
         	pathFinder.step();
     	}
    		
@@ -155,7 +158,7 @@ public class Ped extends MobileAgent {
             	if (tacticalCoordUpdateRequired) {
             		pathFinder.updateTacticalPathCoordinate();
             	}
-            	walk(pathFinder.getTacticalPath().getRouteX().get(0));
+            	walk(pathFinder.getTacticalPath().targetCoordinate());
             	pathFinder.step();
 
         	}
@@ -670,10 +673,6 @@ public class Ped extends MobileAgent {
     
     public PedPathFinder getPathFinder() {
     	return this.pathFinder;
-    }
-    
-    public String getRouteCoordString() {
-    	return this.pathFinder.getTacticalPath().getRouteX().get(0).toString();
     }
     
     @Override
