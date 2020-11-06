@@ -10,20 +10,17 @@ import repastInterSim.environment.Junction;
 
 public class TacticalRoute {
 	
-	private Coordinate c;
-	private Double costT;
-	private Integer parityT;
-
-	private Double costS;
-	private Integer parityS;
+	private NetworkPath<Junction> nP;
+	private Junction currentJunction;
+	private Junction endJunction;
+	private List<CrossingAlternative> crossingAlternatives;
+	private LinkedList<Junction> routeJunctions = null;
+	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();; 
+	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
+	private List<RepastEdge<Junction>> pathEndToOutside; // Path that gets agent from end of tactical horizon to first link outside of tactical horizon
+	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
+	private boolean routeCompleted;
 	
-	private List<Junction> routeJunctions;
-	private List<RepastEdge<Junction>> routePath;
-	private List<RepastEdge<Junction>> remainderPath;
-	
-	public TacticalRoute(Coordinate c){
-		this.c = c;
-	}
 	
 	public TacticalRoute() {
 		this.routeJunctions = new ArrayList<Junction>();
@@ -45,45 +42,16 @@ public class TacticalRoute {
 	public void setRoutePath(List<RepastEdge<Junction>> routePath) {
 		this.routePath = routePath;
 	}
-
-	public Integer getParityT() {
-		return parityT;
+	}
+	}
+	}
+	}
+	}
+	}
+	}
+	}
 	}
 
-	public void setParityT(Integer parityT) {
-		this.parityT = parityT;
-	}
-
-	public Coordinate getC() {
-		return c;
-	}
-
-	public void setC(Coordinate c) {
-		this.c = c;
-	}
-
-	public Double getCostT() {
-		return costT;
-	}
-
-	public void setCostT(Double costT) {
-		this.costT = costT;
-	}
-
-	public Double getCostS() {
-		return costS;
-	}
-
-	public void setCostS(Double costS) {
-		this.costS = costS;
-	}
-
-	public Integer getParityS() {
-		return parityS;
-	}
-
-	public void setParityS(Integer parityS) {
-		this.parityS = parityS;
 	}
 
 	public void setRouteRemainderPath(List<RepastEdge<Junction>> path) {
