@@ -145,4 +145,8 @@ public class TacticalRoute {
 		this.setPathToEnd();
 		this.routeJunctions = null;
 	}
+
+	void addCoordinate(Coordinate c) {
+		this.routeCoordinates.push(c);
+	}	
 }
