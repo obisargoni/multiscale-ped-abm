@@ -132,4 +132,17 @@ public class TacticalRoute {
 		return this.crossingAlternatives;
 	}
 
+	public void updatePathToEnd(Junction j) {
+		// Get the junction that is connected to junction j across the road, use this as the new starting junction
+		for (Junction aj: this.nP.getNet().getAdjacent(j)) {
+			NetworkEdge<Junction> e = (NetworkEdge<Junction>)this.nP.getNet().getEdge(j, aj);
+			if (e.getRoadLink() != null) {
+				this.currentJunction = aj;
+			}
+		}
+		
+		// Get path from this junction to the end junction and set route junctions to null so that they will be re calculated
+		this.setPathToEnd();
+		this.routeJunctions = null;
+	}
 }
