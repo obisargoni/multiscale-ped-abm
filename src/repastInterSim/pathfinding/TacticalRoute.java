@@ -87,20 +87,42 @@ public class TacticalRoute {
 	public void updateCurrentJunction() {
 		this.currentJunction = this.getRouteJunctions().pollFirst();
 	}
+	
+	public List<RepastEdge<Junction>> getPathToEnd() {
+		return pathToEnd;
 	}
+	
+	public void setPathToEnd(List<RepastEdge<Junction>> path) {
+		this.pathToEnd = path;
 	}
+	
+	public void setPathToEnd() {
+		this.pathToEnd = nP.getShortestPath(this.currentJunction, this.endJunction);
 	}
+	
+	public List<RepastEdge<Junction>> getPathEndToOutside() {
+		return pathEndToOutside;
 	}
-	}
-
-	}
-
-	public void setRouteRemainderPath(List<RepastEdge<Junction>> path) {
-		this.remainderPath = path;
+	
+	public void setPathEndToOutside(List<RepastEdge<Junction>> path) {
+		this.pathEndToOutside = path;
 	}
 	
 	public List<RepastEdge<Junction>> getRouteRemainderPath() {
-		return this.remainderPath;
+		return this.pathRemainder;
+	}
+	
+	public void setRouteRemainderPath(List<RepastEdge<Junction>> path) {
+		this.pathRemainder = path;
+	}
+	
+	/*
+	 * Create the path of pavement edges along the tactical route on the fly by combining the path to the end of the tactical horizon and the
+	 * path from the end to the start of the next tactical horizon.
+	 */
+	public List<RepastEdge<Junction>> getRoutePath() {
+		return Stream.of(this.pathToEnd, this.pathEndToOutside).flatMap(Collection::stream).collect(Collectors.toList());
+	}
 	}
 	
 	
