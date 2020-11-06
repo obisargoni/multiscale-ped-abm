@@ -26,13 +26,10 @@ public class AccumulatorRoute {
 	private double roadLength;
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
-	
-	private List<Coordinate> routeX; // The list of coordinates that form the pedestrian agent's tactical route
-	
+		
 	private boolean caChosen = false;
 	
 	public AccumulatorRoute() {
-		routeX = new ArrayList<Coordinate>();
 	}
 	
 	public AccumulatorRoute(Ped p, double rL, TacticalRoute dTR, TacticalRoute tTR) {
@@ -212,10 +209,12 @@ public class AccumulatorRoute {
 			// With crossing alternative chosen, update the tactical path
 			CrossingAlternative chosenCA = this.cas.get(choseni);
 			
-			this.routeX = new ArrayList<Coordinate>();
-			this.routeX.add(chosenCA.nearestCoord(this.ped.getLoc()));
-			this.routeX.add(chosenCA.farthestCoord(this.ped.getLoc()));
-			this.routeX.add(chosenCA.getDestination());
+			// Once crossing choice is made, need to update which tactical route the ped must follow
+			// Also need to update the tactical path of the tactical route
+			this.targetTR.updatePathToEnd(this.currentTR.getCurrentJunction());
+			this.targetTR.addCoordinate(chosenCA.nearestCoord(this.ped.getLoc()));
+			this.targetTR.addCoordinate(chosenCA.farthestCoord(this.ped.getLoc()));
+			this.currentTR = this.targetTR;
 			
 			// Update bool indicating whether crossing choice has been made or not
 			this.caChosen = true;
@@ -234,16 +233,20 @@ public class AccumulatorRoute {
 		}
 	}
 	
-	public List<Coordinate> getRouteX() {
-		return routeX;
+	public Coordinate targetCoordinate() {
+		return this.currentTR.getTargetCoordinate();	
+	}
+	
+	public void updateTargetCoordiante() {
+		this.currentTR.updateTargetCoordiante();
+	}
+	
+	public Junction getCurrentJunction() {
+		return this.currentTR.getCurrentJunction();
 	}
 	
 	public boolean isCrossingChosen() {
 		return this.caChosen;
-	}
-	
-	public void removeFromRoute(int index) {
-		this.routeX.remove(index);
 	}
 
 }
