@@ -156,7 +156,7 @@ public class PedPathFinder {
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
 		// First identify tactical route alternatives
-		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, p.getpHorizon(), currentJ, destJ, caG, rG, p);
+		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
 		
 		// Sort routes based on the length of the path to the end of tactical horizon
 		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
@@ -236,11 +236,10 @@ public class PedPathFinder {
 		return tr;
 	}
 	
-	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, Double pH, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
-		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, pH);
-		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
-		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
+		RoadLink rlOutHorz = sP.get(tacticalNLinks);
 		
 		// Get horizon junctions
 		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
@@ -253,7 +252,7 @@ public class PedPathFinder {
 		// For each of the end junctions create a TacticalRoute object representing the route via this junction
 		List<TacticalRoute> tacticalRoutes = new ArrayList<TacticalRoute>();
 		for (Junction eJ: endJunctions) {
-			TacticalRoute tr = setupTacticalRoute(nP, sP, tacticalPlanHorz, eJ, horizonJunctions.get("outside"), currentJ, destJ, caG, rG, p);
+			TacticalRoute tr = setupTacticalRoute(nP, sP, sP.subList(0, tacticalNLinks), eJ, horizonJunctions.get("outside"), currentJ, destJ, caG, rG, p);
 			tacticalRoutes.add(tr);
 		}
 		return tacticalRoutes;
