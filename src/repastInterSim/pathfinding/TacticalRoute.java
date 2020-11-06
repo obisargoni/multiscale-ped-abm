@@ -52,12 +52,6 @@ public class TacticalRoute {
 		return this.routeJunctions;
 	}
 	
-	public List<RepastEdge<Junction>> getRoutePath() {
-		return routePath;
-	}
-
-	public void setRoutePath(List<RepastEdge<Junction>> routePath) {
-		this.routePath = routePath;
 	}
 	}
 	}
