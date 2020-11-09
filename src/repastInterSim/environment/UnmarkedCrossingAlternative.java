@@ -52,9 +52,13 @@ public class UnmarkedCrossingAlternative implements CrossingAlternative {
 	}
 
 	@Override
+	/*
+	 * Get the number of vehicles on the road link. 
+	 * Ideally will calculate exactly the number of cars that would pass through the crossing in a given time period
+	 */
 	public Integer getvFlow() {
-		// TODO Auto-generated method stub
-		return null;
+		int vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
+		return vehicleNumber;
 	}
 
 	@Override

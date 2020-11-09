@@ -71,17 +71,11 @@ public class DedicatedCrossingAlternative implements CrossingAlternative {
 		return cFar;
 	}	
 	
+	/*
+	 * Vehicles are assumed to yield at dedicated crossings resulting in zero vehicle flow
+	 */
 	public Integer getvFlow() {
-		// Get the number of vehicles on the road link
-		// Ideally will calculate exactly the number of cars that would pass through the crossing in a given time period
-		int vehicleNumber;
-    	if (this.type.contentEquals("unsignalised")) {
-    		vehicleNumber = 0;
-    	}
-    	else {
-    		vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
-    	}
-		return vehicleNumber;
+		return 0;
 	}
 	
 	public void setRoadLinkID(String rlID) {
