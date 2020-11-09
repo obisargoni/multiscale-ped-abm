@@ -148,5 +148,9 @@ public class TacticalAlternative {
 
 	void addCoordinate(Coordinate c) {
 		this.routeCoordinates.push(c);
-	}	
+	}
+	
+	public Junction getEndJunction() {
+		return this.endJunction;
+	}
 }
