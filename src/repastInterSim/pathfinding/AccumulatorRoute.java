@@ -29,9 +29,6 @@ public class AccumulatorRoute {
 		
 	private boolean caChosen = false;
 	
-	public AccumulatorRoute() {
-	}
-	
 	public AccumulatorRoute(Ped p, double rL, TacticalAlternative dTR, TacticalAlternative tTR) {
 		this.ped = p;
 		this.roadLength = rL;

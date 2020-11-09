@@ -40,7 +40,7 @@ public class PedPathFinder {
 		
 	private List<RoadLink> strategicPath;
 	private Junction[] spPavementJunctionEndpoints;
-	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
+	private AccumulatorRoute tacticalPath = null;
 	
 	private Coordinate nextCrossingCoord;	
 
