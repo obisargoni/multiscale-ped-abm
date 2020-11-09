@@ -156,7 +156,7 @@ public class PedPathFinder {
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
 		// First identify tactical route alternatives
-		List<TacticalRoute> trs = tacticalRoutes(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
+		List<TacticalAlternative> trs = tacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
 		
 		// Sort routes based on the length of the path to the end of tactical horizon
 		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
@@ -165,10 +165,10 @@ public class PedPathFinder {
 		
 		// Identify default and chosen tactical route alternatives
 		// Default tactical route is the one with the fewest primary crossings
-		TacticalRoute defaultTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
+		TacticalAlternative defaultTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
 
 		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
-		TacticalRoute chosenTR = defaultTR;		
+		TacticalAlternative chosenTR = defaultTR;		
 		
 		// Initialise Accumulator route with the chosen tactical route also set as the default.
 		// Get length of the planning horizon, this is used in the accumulator route
@@ -187,7 +187,7 @@ public class PedPathFinder {
 	/*
 	 * Make this method about finding the correct outside junction given the inside junction and the path between the two, and initialising the TacticalRoute
 	 */
-	public static TacticalRoute setupTacticalRoute(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
@@ -214,14 +214,14 @@ public class PedPathFinder {
 		}
 		
 		// Now that paths identified, initialise the tactical route object
-		TacticalRoute tr = new TacticalRoute(nP, currentJ, eJ);
+		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
 		tr.setPathToEnd();
 		tr.setPathEndToOutside(pathToOutside);
 		
 		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
-			tr.setRouteRemainderPath(nP.getShortestPath(outsideJunction, destJ));
+			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
 		}
 		
 		// Finally identify the crossing alternatives available in order to complete this tactical route
@@ -237,7 +237,7 @@ public class PedPathFinder {
 		return tr;
 	}
 	
-	public static List<TacticalRoute> tacticalRoutes(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static List<TacticalAlternative> tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
 		RoadLink rlOutHorz = sP.get(tacticalNLinks);
@@ -251,9 +251,9 @@ public class PedPathFinder {
 		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
 		
 		// For each of the end junctions create a TacticalRoute object representing the route via this junction
-		List<TacticalRoute> tacticalRoutes = new ArrayList<TacticalRoute>();
+		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
 		for (Junction eJ: endJunctions) {
-			TacticalRoute tr = setupTacticalRoute(nP, sP, sP.subList(0, tacticalNLinks), eJ, horizonJunctions.get("outside"), currentJ, destJ, caG, rG, p);
+			TacticalAlternative tr = setupTacticalAlternative(nP, sP, sP.subList(0, tacticalNLinks), eJ, horizonJunctions.get("outside"), currentJ, destJ, caG, rG, p);
 			tacticalRoutes.add(tr);
 		}
 		return tacticalRoutes;

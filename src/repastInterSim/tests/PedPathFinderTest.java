@@ -40,7 +40,7 @@ import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.NetworkPath;
-import repastInterSim.pathfinding.TacticalRoute;
+import repastInterSim.pathfinding.TacticalAlternative;
 
 class PedPathFinderTest {
 	
@@ -892,7 +892,7 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_73";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalRoute tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		TacticalAlternative tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// Now validate the tactical route
 		// Check expected junctions
@@ -905,7 +905,7 @@ class PedPathFinderTest {
 		assert tr.getRoutePath().size() == 1;
 		
 		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getRouteRemainderPath();
+		List<RepastEdge<Junction>> rP = tr.getAlternativeRemainderPath();
 		int count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -933,7 +933,7 @@ class PedPathFinderTest {
 		// Primary crossing required to reach this end junction so expect additional link in path
 		assert tr.getRoutePath().size() == 2;
 		
-		rP = tr.getRouteRemainderPath();
+		rP = tr.getAlternativeRemainderPath();
 		count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -1004,7 +1004,7 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_68";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalRoute tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		TacticalAlternative tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// Now validate the tactical route
 		// Check expected junctions
@@ -1017,7 +1017,7 @@ class PedPathFinderTest {
 		assert tr.getRoutePath().size() == 1;
 		
 		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getRouteRemainderPath();
+		List<RepastEdge<Junction>> rP = tr.getAlternativeRemainderPath();
 		int count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -1045,7 +1045,7 @@ class PedPathFinderTest {
 		// Primary crossing required to reach this end junction so expect additional link in path
 		assert tr.getRoutePath().size() == 4;
 		
-		rP = tr.getRouteRemainderPath();
+		rP = tr.getAlternativeRemainderPath();
 		count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;

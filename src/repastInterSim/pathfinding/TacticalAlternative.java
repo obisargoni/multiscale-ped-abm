@@ -14,7 +14,7 @@ import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 
-public class TacticalRoute {
+public class TacticalAlternative {
 	
 	private NetworkPath<Junction> nP;
 	private Junction currentJunction;
@@ -28,7 +28,7 @@ public class TacticalRoute {
 	private boolean routeCompleted;
 	
 	
-	public TacticalRoute(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
+	public TacticalAlternative(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
 		this.nP = nP;
 		this.currentJunction = startJunction;
 		this.endJunction = endJunction;
@@ -108,11 +108,11 @@ public class TacticalRoute {
 		this.pathEndToOutside = path;
 	}
 	
-	public List<RepastEdge<Junction>> getRouteRemainderPath() {
+	public List<RepastEdge<Junction>> getAlternativeRemainderPath() {
 		return this.pathRemainder;
 	}
 	
-	public void setRouteRemainderPath(List<RepastEdge<Junction>> path) {
+	public void setAlternativeRemainderPath(List<RepastEdge<Junction>> path) {
 		this.pathRemainder = path;
 	}
 	

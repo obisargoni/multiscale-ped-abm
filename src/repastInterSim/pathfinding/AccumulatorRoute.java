@@ -20,8 +20,8 @@ public class AccumulatorRoute {
 	
 	private Ped ped;
 	
-	TacticalRoute targetTR;
-	TacticalRoute currentTR;
+	TacticalAlternative targetTR;
+	TacticalAlternative currentTR;
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
@@ -32,7 +32,7 @@ public class AccumulatorRoute {
 	public AccumulatorRoute() {
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, TacticalRoute dTR, TacticalRoute tTR) {
+	public AccumulatorRoute(Ped p, double rL, TacticalAlternative dTR, TacticalAlternative tTR) {
 		this.ped = p;
 		this.roadLength = rL;
 		
