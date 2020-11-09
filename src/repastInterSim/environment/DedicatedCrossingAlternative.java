@@ -106,14 +106,6 @@ public class DedicatedCrossingAlternative implements CrossingAlternative, FixedG
 		this.type = type;
 	}
 
-	public Coordinate getDestination() {
-		return destination;
-	}
-
-	public void setDestination(Coordinate destination) {
-		this.destination = destination;
-	}
-
 	@Override
 	public Geometry getGeom() {
 		return this.geom;

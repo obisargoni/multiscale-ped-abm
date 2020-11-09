@@ -12,8 +12,5 @@ public interface CrossingAlternative {
 	public Coordinate getC1();
 	public Coordinate getC2();
 	public String getType();
-	public Coordinate getDestination();
-	public void setDestination(Coordinate d);
-
 
 }

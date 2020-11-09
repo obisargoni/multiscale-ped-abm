@@ -125,14 +125,6 @@ public class UnmarkedCrossingAlternative implements CrossingAlternative {
 		return type;
 	}
 
-	public Coordinate getDestination() {
-		return destination;
-	}
-
-	public void setDestination(Coordinate destination) {
-		this.destination = destination;
-	}
-
 	public Ped getPed() {
 		return ped;
 	}

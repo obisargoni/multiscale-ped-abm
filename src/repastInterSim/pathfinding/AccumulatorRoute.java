@@ -27,6 +27,8 @@ public class AccumulatorRoute {
 	private double roadLength;
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
+	
+	private Coordinate targetDest;
 		
 	private boolean caChosen = false;
 	
@@ -43,6 +45,8 @@ public class AccumulatorRoute {
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
 		}
+		
+		this.targetDest = this.targetTR.getEndJunction().getGeom().getCoordinate();
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -130,7 +134,7 @@ public class AccumulatorRoute {
 		
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
-		Double dFromCAToDest = ca.distanceTo(ca.getDestination());
+		Double dFromCAToDest = ca.distanceTo(this.targetDest);
 				
 		// Get the unmarked crossing alternative and calculate the distance to dest using it
 		CrossingAlternative umCA = null;
@@ -141,7 +145,7 @@ public class AccumulatorRoute {
 		}
 		
 		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
-		Double umDFromCAToDest = umCA.distanceTo(ca.getDestination());
+		Double umDFromCAToDest = umCA.distanceTo(this.targetDest);
 		
 		double detourWalkTime = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest)) / this.ped.getSpeed();
 				

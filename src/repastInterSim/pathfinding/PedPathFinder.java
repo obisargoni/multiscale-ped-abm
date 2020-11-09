@@ -243,7 +243,7 @@ public class PedPathFinder {
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 		if (containsPrimaryCrossing(tr.getRoutePath(),sP)) {
 			// Get crossing alternatives within planning horizon
-			cas = getCrossingAlternatives(caG, tSP, p, rG, eJ.getGeom().getCoordinate());
+			cas = getCrossingAlternatives(caG, tSP, p, rG);
 		}
 		
 		tr.setCrossingAlternatives(cas);
@@ -360,7 +360,7 @@ public class PedPathFinder {
 	 * @param Geography<Road> rG
 	 * 		The Geography containing Road objects
 	 */
-	public static List<CrossingAlternative> getCrossingAlternatives(Geography<DedicatedCrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG, Coordinate dest){
+	public static List<CrossingAlternative> getCrossingAlternatives(Geography<DedicatedCrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG){
 		
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 		
@@ -368,9 +368,6 @@ public class PedPathFinder {
 		for (RoadLink rl: rls) {
 			for (DedicatedCrossingAlternative ca: caG.getAllObjects()) {
 				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
-					
-					// Set up this crossing alternative
-					ca.setDestination(dest);
 					// Add to list
 					cas.add(ca);
 				}
@@ -382,7 +379,6 @@ public class PedPathFinder {
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);
 		caU.setRoadGeography(rG);
-		caU.setDestination(dest);
 		caU.setStrategicPathSection(rls);
 		cas.add(caU);
 		
