@@ -77,10 +77,6 @@ public class DedicatedCrossingAlternative implements CrossingAlternative, FixedG
 	public String getRoadLinkID() {
 		return this.roadLinkID;
 	}
-	
-	public Road getRoad() {
-		return this.road;
-	}
 
 	public void setRoad(Road r) {
 		this.road = r;

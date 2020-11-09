@@ -9,7 +9,6 @@ public interface CrossingAlternative {
 	public Coordinate farthestCoord(Coordinate loc);
 	public Integer getvFlow();
 	public String getRoadLinkID();
-	public Road getRoad();
 	public Coordinate getC1();
 	public Coordinate getC2();
 	public String getType();
