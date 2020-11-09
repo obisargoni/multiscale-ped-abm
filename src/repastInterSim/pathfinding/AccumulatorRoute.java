@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.Junction;
 
 public class AccumulatorRoute {

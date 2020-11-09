@@ -19,10 +19,10 @@ along with RepastCity.  If not, see <http://www.gnu.org/licenses/>.
 package repastInterSim.environment.contexts;
 
 import repast.simphony.context.DefaultContext;
-import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.main.GlobalVars;
 
-public class CAContext extends DefaultContext<CrossingAlternative> {
+public class CAContext extends DefaultContext<DedicatedCrossingAlternative> {
 	
 	public CAContext() {
 		super(GlobalVars.CONTEXT_NAMES.CA_CONTEXT);

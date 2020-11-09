@@ -11,6 +11,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 

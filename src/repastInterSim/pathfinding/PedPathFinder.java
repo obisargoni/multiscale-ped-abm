@@ -19,6 +19,7 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -163,7 +164,7 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<DedicatedCrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
@@ -199,7 +200,7 @@ public class PedPathFinder {
 	/*
 	 * Make this method about finding the correct outside junction given the inside junction and the path between the two, and initialising the TacticalRoute
 	 */
-	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<DedicatedCrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
@@ -249,7 +250,7 @@ public class PedPathFinder {
 		return tr;
 	}
 	
-	public static List<TacticalAlternative> tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static List<TacticalAlternative> tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<DedicatedCrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
 		RoadLink rlOutHorz = sP.get(tacticalNLinks);
@@ -358,13 +359,13 @@ public class PedPathFinder {
 	 * @param Geography<Road> rG
 	 * 		The Geography containing Road objects
 	 */
-	public static List<CrossingAlternative> getCrossingAlternatives(Geography<CrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG, Coordinate dest){
+	public static List<CrossingAlternative> getCrossingAlternatives(Geography<DedicatedCrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG, Coordinate dest){
 		
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 		
 		// Loop through open road sp section road links and crossing alternatives and add any crossing alternatives that match the road link id to the list
 		for (RoadLink rl: rls) {
-			for (CrossingAlternative ca: caG.getAllObjects()) {
+			for (DedicatedCrossingAlternative ca: caG.getAllObjects()) {
 				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
 					
 					// Set up this crossing alternative
