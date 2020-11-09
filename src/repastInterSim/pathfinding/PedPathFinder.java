@@ -28,6 +28,7 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
@@ -383,7 +384,7 @@ public class PedPathFinder {
 		
 		// Add unmarked crossing alternative to lsit
 		// Don't set road for unmarked crossings
-		CrossingAlternative caU = new CrossingAlternative();
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setType("unmarked");
 		caU.setPed(p);
 		caU.setRoadGeography(rG);
