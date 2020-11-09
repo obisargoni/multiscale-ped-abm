@@ -39,7 +39,8 @@ public class PedPathFinder {
 	private OD destination;
 		
 	private List<RoadLink> strategicPath;
-	private Junction[] spPavementJunctionEndpoints;
+	private Junction startPavementJunction;
+	private Junction destPavementJunction;
 	private AccumulatorRoute tacticalPath = null;
 	
 	private Coordinate nextCrossingCoord;	
@@ -89,7 +90,9 @@ public class PedPathFinder {
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
 		
-		this.spPavementJunctionEndpoints = strategicPathPavementJunctions(paveNetwork, rnr, oC, dC);
+		Junction [] spPavementJunctionEndpoints = strategicPathPavementJunctions(paveNetwork, rnr, oC, dC);
+		this.startPavementJunction = spPavementJunctionEndpoints[0];
+		this.destPavementJunction = spPavementJunctionEndpoints[1];
 	}
 	
 	/*
@@ -143,9 +146,18 @@ public class PedPathFinder {
 	 * @param tacticalOriginCoord
 	 * 			The start coordinate of the tactical route.
 	 */
-	public void updateTacticalPath() {		
+	public void updateTacticalPath() {
+		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
+		Junction startJunction = null;
+		if (this.tacticalPath == null) {
+			startJunction = this.startPavementJunction;
+		}
+		else {
+			startJunction = this.tacticalPath.currentTR.getEndJunction();
+		}
+		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
-		planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, this.spPavementJunctionEndpoints[0], this.spPavementJunctionEndpoints[1]);
+		planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
     }
 	
 	/*
