@@ -370,12 +370,7 @@ public class PedPathFinder {
 				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
 					
 					// Set up this crossing alternative
-					ca.setPed(p);
-					ca.setRoadGeography(rG);
 					ca.setDestination(dest);
-					ca.setStrategicPathSection(rls);
-					ca.setRoad();
-					
 					// Add to list
 					cas.add(ca);
 				}
@@ -385,7 +380,6 @@ public class PedPathFinder {
 		// Add unmarked crossing alternative to lsit
 		// Don't set road for unmarked crossings
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
-		caU.setType("unmarked");
 		caU.setPed(p);
 		caU.setRoadGeography(rG);
 		caU.setDestination(dest);
