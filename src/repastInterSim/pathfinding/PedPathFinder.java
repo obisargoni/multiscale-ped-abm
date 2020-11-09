@@ -163,11 +163,12 @@ public class PedPathFinder {
 		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
 		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
 		
-		// Choose tactical route alternative
+		// Identify default and chosen tactical route alternatives
+		// Default tactical route is the one with the fewest primary crossings
+		TacticalRoute defaultTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
+
 		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
-		// By definition this is also the default TacticalRoute the agent walks towards
-		TacticalRoute chosenTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
-		
+		TacticalRoute chosenTR = defaultTR;		
 		
 		// Initialise Accumulator route with the chosen tactical route also set as the default.
 		// Get length of the planning horizon, this is used in the accumulator route
@@ -175,7 +176,7 @@ public class PedPathFinder {
 		for (int i = 0; i<nLinks; i++) {
 			pHLength += sP.get(i).getGeom().getLength();
 		}
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, chosenTR, chosenTR);
+		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, defaultTR, chosenTR);
 		
 		this.tacticalPath = accRoute;
 		
