@@ -143,7 +143,7 @@ public class PedPathFinder {
 	 * @param tacticalOriginCoord
 	 * 			The start coordinate of the tactical route.
 	 */
-	public void updateTacticalPathCoordinate() {		
+	public void updateTacticalPath() {		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
 		planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, this.spPavementJunctionEndpoints[0], this.spPavementJunctionEndpoints[1]);
     }

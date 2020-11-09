@@ -142,7 +142,7 @@ public class Ped extends MobileAgent {
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
         	if (tacticalCoordUpdateRequired) {
-        		pathFinder.updateTacticalPathCoordinate();
+        		pathFinder.updateTacticalPath();
         	}
         	walk(pathFinder.getTacticalPath().targetCoordinate());
         	pathFinder.step();
@@ -156,7 +156,7 @@ public class Ped extends MobileAgent {
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
             	if (tacticalCoordUpdateRequired) {
-            		pathFinder.updateTacticalPathCoordinate();
+            		pathFinder.updateTacticalPath();
             	}
             	walk(pathFinder.getTacticalPath().targetCoordinate());
             	pathFinder.step();
