@@ -21,6 +21,8 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
+import repastInterSim.agent.Ped;
+import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -887,16 +889,16 @@ class PedPathFinderTest {
 		// Identify the end and outside junctions
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_73";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
-		
+		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
+
 		// Now validate the tactical route
-		// Check expected junctions
-		String[] expectedJunctions1 = {end1ID};
+		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
+		String[] expectedJunctions1 = {"pave_node_107", end1ID};
 		List<Junction> rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
@@ -920,11 +922,11 @@ class PedPathFinderTest {
 		assert (count % 2) == 0; 
 		
 		
-		// Test for other end junction
+		// Test for other end junction, again should include the starting junction, junctions path passes along and end junction
 		final String end2ID = "pave_node_74";
 		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
-		tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
-		String[] expectedJunctions2 =  {end2ID};
+		tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
+		String[] expectedJunctions2 =  {"pave_node_107", "pave_node_73", end2ID};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
@@ -1004,11 +1006,11 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_68";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// Now validate the tactical route
-		// Check expected junctions
-		String[] expectedJunctions1 = {end1ID};
+		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
+		String[] expectedJunctions1 = {"pave_node_73", end1ID};
 		List<Junction> rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
@@ -1035,8 +1037,10 @@ class PedPathFinderTest {
 		// Test for other end junction
 		final String end2ID = "pave_node_66";
 		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
-		tr = PedPathFinder.setupTacticalRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
-		String[] expectedJunctions2 =  {end2ID, "pave_node_67", "pave_node_69"};
+		tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		
+		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
+		String[] expectedJunctions2 =  {"pave_node_73", "pave_node_74", end2ID, "pave_node_67", "pave_node_69"};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
