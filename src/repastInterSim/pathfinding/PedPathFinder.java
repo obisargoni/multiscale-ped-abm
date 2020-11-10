@@ -199,9 +199,10 @@ public class PedPathFinder {
 	}
 	
 	/*
-	 * Make this method about finding the correct outside junction given the inside junction and the path between the two, and initialising the TacticalRoute
+	 * Create a tactical alternative which contains the route from the current jucntion to the end junction, from the end junction to the outside junction and from the outside
+	 * junction to the final destination.
 	 */
-	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<DedicatedCrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
 		
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
@@ -237,6 +238,19 @@ public class PedPathFinder {
 		if (destJ != null) {
 			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
 		}
+		
+		return tr;
+	}
+	
+	
+	
+	/*
+	 * Sets up the tactical alternative route. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
+	 * route and add these to the tactical alternative.
+	 */
+	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<DedicatedCrossingAlternative> caG, Geography<Road> rG, Ped p) {
+		
+		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, sP, eJ, outsideJunctions, currentJ, destJ);
 		
 		// Finally identify the crossing alternatives available in order to complete this tactical route
 		// If chosen to cross road, identify crossing options and initialise accumulator route
