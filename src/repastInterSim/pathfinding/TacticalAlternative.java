@@ -11,7 +11,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.CrossingAlternative;
-import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 
@@ -25,9 +24,7 @@ public class TacticalAlternative {
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();; 
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathEndToOutside; // Path that gets agent from end of tactical horizon to first link outside of tactical horizon
-	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
-	private boolean routeCompleted;
-	
+	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination	
 	
 	public TacticalAlternative(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
 		this.nP = nP;
@@ -36,7 +33,6 @@ public class TacticalAlternative {
 		this.pathToEnd = new ArrayList<RepastEdge<Junction>>();
 		this.pathEndToOutside = new ArrayList<RepastEdge<Junction>>();
 		this.pathRemainder = new ArrayList<RepastEdge<Junction>>();
-		this.routeCompleted = false;
 	}
 	
 	private void setRouteJunctions() {
@@ -51,10 +47,6 @@ public class TacticalAlternative {
 			setRouteJunctions();
 		}
 		return this.routeJunctions;
-	}
-	
-	public void setCurrentJunction(Junction j) {
-		this.currentJunction = j;
 	}
 	
 	public Junction getCurrentJunction() {
