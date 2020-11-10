@@ -77,8 +77,12 @@ public class TacticalAlternative {
 		}
 	}
 	
+	/*
+	 * Remove first entry from route junctions and then set current junction to new first entry
+	 */
 	public void updateCurrentJunction() {
-		this.currentJunction = this.getRouteJunctions().pollFirst();
+		this.getRouteJunctions().pollFirst();
+		this.currentJunction = this.getRouteJunctions().peekFirst();
 	}
 	
 	public List<RepastEdge<Junction>> getPathToEnd() {
