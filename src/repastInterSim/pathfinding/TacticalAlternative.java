@@ -130,11 +130,24 @@ public class TacticalAlternative {
 	}
 
 	public void updatePathToEnd(Junction j) {
-		// Get the junction that is connected to junction j across the road, use this as the new starting junction
-		for (Junction aj: this.nP.getNet().getAdjacent(j)) {
-			NetworkEdge<Junction> e = (NetworkEdge<Junction>)this.nP.getNet().getEdge(j, aj);
-			if (e.getRoadLink() != null) {
-				this.currentJunction = aj;
+		// Get the earliest route junction that is connected to input junction j and belongs to the same road network node as j
+		// Use this as the new starting junction.
+		String roadNodeID = j.getjuncNodeID();
+		boolean breakLoop = false;
+		
+		// Start at first route coord and continue searching along route until match found
+		for (Junction rj:this.getRouteJunctions()) {
+			
+			// Get adjacent junctions and find the one that belongs to the same road node and matches the route junction
+			for (Junction aj: this.nP.getNet().getAdjacent(j)) {
+				if ( (aj.getjuncNodeID().contentEquals(roadNodeID)) & (aj.getFID().contentEquals(rj.getFID())) ) {
+					this.currentJunction = aj;
+					breakLoop = true;
+					break;
+				}
+			}
+			if (breakLoop) {
+				break;
 			}
 		}
 		
