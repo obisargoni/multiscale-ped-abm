@@ -898,7 +898,7 @@ class PedPathFinderTest {
 
 		// Now validate the tactical route
 		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
-		String[] expectedJunctions1 = {"pave_node_107", end1ID};
+		String[] expectedJunctions1 = {end1ID};
 		List<Junction> rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
@@ -926,7 +926,7 @@ class PedPathFinderTest {
 		final String end2ID = "pave_node_74";
 		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
 		tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
-		String[] expectedJunctions2 =  {"pave_node_107", "pave_node_73", end2ID};
+		String[] expectedJunctions2 =  {"pave_node_73", end2ID};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
@@ -1010,7 +1010,7 @@ class PedPathFinderTest {
 		
 		// Now validate the tactical route
 		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
-		String[] expectedJunctions1 = {"pave_node_73", end1ID};
+		String[] expectedJunctions1 = {end1ID};
 		List<Junction> rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
@@ -1040,7 +1040,7 @@ class PedPathFinderTest {
 		tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
-		String[] expectedJunctions2 =  {"pave_node_73", "pave_node_74", end2ID, "pave_node_67", "pave_node_69"};
+		String[] expectedJunctions2 =  {"pave_node_74", end2ID, "pave_node_67", "pave_node_69"};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
@@ -1074,7 +1074,7 @@ class PedPathFinderTest {
 	 *  walking along the default route.
 	 */
 	@Test
-	public void testUpdateTacticalAlternative() {
+	public void testUpdateTacticalAlternative1() {
 		try {
 			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
 			setUpRoadNetwork(false);
@@ -1130,14 +1130,13 @@ class PedPathFinderTest {
 		TacticalAlternative trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
 		
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
-		String[] expectedInitialTargetRouteJunctions =  {"pave_node_73", "pave_node_74", targetEndID, "pave_node_67", "pave_node_69"};
+		String[] expectedInitialTargetRouteJunctions =  {"pave_node_74", targetEndID, "pave_node_67", "pave_node_69"};
 		List<Junction> rJs =  trTarget.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedInitialTargetRouteJunctions[i]);
 		}
 		
 		// Now update current junction of default route to emulate pedestrian making progress
-		trDefault.updateCurrentJunction();
 		assert trDefault.getCurrentJunction().getFID().contentEquals(defaultEndID);
 		
 		// Now update the target path so that it corresponds to the situation where the pedestrian's target junction is up to date
