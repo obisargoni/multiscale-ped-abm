@@ -155,7 +155,7 @@ public class PedPathFinder {
 			startJunction = this.startPavementJunction;
 		}
 		else {
-			startJunction = this.tacticalPath.currentTR.getEndJunction();
+			startJunction = this.tacticalPath.getCurrentTA().getEndJunction();
 		}
 		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon

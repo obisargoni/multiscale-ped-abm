@@ -14,15 +14,14 @@ import com.vividsolutions.jts.geom.Coordinate;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
-import repastInterSim.environment.DedicatedCrossingAlternative;
 import repastInterSim.environment.Junction;
 
 public class AccumulatorRoute {
 	
 	private Ped ped;
 	
-	TacticalAlternative targetTR = new TacticalAlternative();
-	TacticalAlternative currentTR = new TacticalAlternative();
+	private TacticalAlternative targetTR = new TacticalAlternative();
+	private TacticalAlternative currentTR = new TacticalAlternative();
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
@@ -253,6 +252,10 @@ public class AccumulatorRoute {
 	
 	public boolean isCrossingChosen() {
 		return this.caChosen;
+	}
+	
+	public TacticalAlternative getCurrentTA() {
+		return this.currentTR;
 	}
 
 }
