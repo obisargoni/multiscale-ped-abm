@@ -1149,4 +1149,99 @@ class PedPathFinderTest {
 		}
 		
 	}
+	
+	/*
+	 *  This test replicates the process of a pedestrian agent updating the path of the target tactical alternative to cut out junctions that it has passed while 
+	 *  walking along the default route.
+	 *  
+	 *  Repeat test for different section of the road network.
+	 */
+	@Test
+	public void testUpdateTacticalAlternative2() {
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		String originRoadJunctionID = "node_id_84";
+		String destRoadJunctionID = "node_id_76";
+		List<RoadLink> sP = planStrategicPath(new Coordinate(), new Coordinate(), originRoadJunctionID, destRoadJunctionID);
+		
+		
+		// Produce strategic path between pavement junctions
+		Junction oJ = null;
+		Junction dJ = null;
+		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals("pave_node_95")) {
+				oJ = j;
+				continue;
+			}
+			else if (j.getFID().contentEquals("pave_node_121")) {
+				dJ = j;
+				continue;
+			}
+		}
+		
+		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, 20.00);
+		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
+		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		
+		// Identify the end and outside junctions
+		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
+		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
+		
+		// Select which end junction to find tactical path to
+		final String defaultEndID = "pave_node_99";
+		Junction defaultEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(defaultEndID)).collect(Collectors.toList()).get(0);
+		TacticalAlternative trDefault = PedPathFinder.setupTacticalAlternativeRoute(p, sP, defaultEndJ, outsideJunctions, oJ, dJ);
+		
+		
+		// Test for other end junction
+		final String targetEndID = "pave_node_97";
+		Junction targetEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(targetEndID)).collect(Collectors.toList()).get(0);
+		TacticalAlternative trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
+		
+		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
+		String[] expectedInitialTargetRouteJunctions =  {"pave_node_96", targetEndID};
+		List<Junction> rJs =  trTarget.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedInitialTargetRouteJunctions[i]);
+		}
+		
+		// Check current junction of default route is as expected
+		assert trDefault.getCurrentJunction().getFID().contentEquals("pave_node_94");
+		
+		// Now update the target path so that it corresponds to the situation where the pedestrian's target junction is up to date
+		trTarget.updatePathToEnd(trDefault.getCurrentJunction());
+		
+		String[] expectedUpdateTargetRouteJunctions =  {"pave_node_96", targetEndID};
+		rJs =  trTarget.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedUpdateTargetRouteJunctions[i]);
+		}
+		
+		// update default route
+		trDefault.updateCurrentJunction();
+		assert trDefault.getCurrentJunction().getFID().contentEquals(defaultEndID);
+		
+		// Now update the target path so that it corresponds to the situation where the pedestrian's target junction is up to date
+		trTarget.updatePathToEnd(trDefault.getCurrentJunction());
+		
+		String[] expectedUpdateTargetRouteJunctions2 =  {targetEndID};
+		rJs =  trTarget.getRouteJunctions();
+		for (int i=0; i<rJs.size(); i++) {
+			assert rJs.get(i).getFID().contentEquals(expectedUpdateTargetRouteJunctions2[i]);
+		}
+	}
 }
