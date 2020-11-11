@@ -21,8 +21,8 @@ public class AccumulatorRoute {
 	
 	private Ped ped;
 	
-	TacticalAlternative targetTR;
-	TacticalAlternative currentTR;
+	TacticalAlternative targetTR = new TacticalAlternative();
+	TacticalAlternative currentTR = new TacticalAlternative();
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
@@ -31,6 +31,10 @@ public class AccumulatorRoute {
 	private Coordinate targetDest;
 		
 	private boolean caChosen = false;
+	
+	public AccumulatorRoute() {
+		// Blank constructor allows ped agent to be initialised with an AccumulatorRoute object which returns a null initial coordinate
+	}
 	
 	public AccumulatorRoute(Ped p, double rL, TacticalAlternative dTR, TacticalAlternative tTR) {
 		this.ped = p;

@@ -17,14 +17,18 @@ import repastInterSim.environment.NetworkEdge;
 public class TacticalAlternative {
 	
 	private NetworkPath<Junction> nP;
-	private Junction currentJunction;
-	private Junction endJunction;
+	private Junction currentJunction = null;
+	private Junction endJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<Junction> routeJunctions = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();; 
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathEndToOutside; // Path that gets agent from end of tactical horizon to first link outside of tactical horizon
-	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination	
+	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
+	
+	public TacticalAlternative() {
+		// Blank constructor
+	}
 	
 	public TacticalAlternative(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
 		this.nP = nP;

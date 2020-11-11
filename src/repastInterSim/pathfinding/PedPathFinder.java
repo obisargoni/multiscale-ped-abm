@@ -43,7 +43,7 @@ public class PedPathFinder {
 	private List<RoadLink> strategicPath;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
-	private AccumulatorRoute tacticalPath = null;
+	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
 	
 	private Coordinate nextCrossingCoord;	
 
