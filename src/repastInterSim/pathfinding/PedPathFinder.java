@@ -233,11 +233,14 @@ public class PedPathFinder {
 		tr.setPathToEnd();
 		tr.setPathEndToOutside(pathToOutside);
 		
-		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
+		// If the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
 			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
 		}
+		
+		// Finally update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
+		tr.updateCurrentJunction();
 		
 		return tr;
 	}
