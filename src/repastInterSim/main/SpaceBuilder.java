@@ -523,8 +523,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     private Ped addPed(OD o, OD d)  {
         
         // Instantiate a new pedestrian agent and add the agent to the context
-
-    	Ped newPed = new Ped(geography, this.roadGeography, o, d);
+		Parameters  params = RunEnvironment.getInstance().getParameters();
+    	Ped newPed = new Ped(geography, SpaceBuilder.roadGeography, o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

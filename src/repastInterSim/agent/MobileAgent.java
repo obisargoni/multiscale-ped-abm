@@ -20,8 +20,6 @@ public class MobileAgent {
     protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
     protected Coordinate defaultDestination;
-	protected Parameters params = RunEnvironment.getInstance ().getParameters();
-
     
     MobileAgent(Geography<Object> geography, Geography<Road> rG, OD o, OD d){
     	this.id = MobileAgent.uniqueID++;

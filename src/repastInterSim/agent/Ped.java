@@ -18,11 +18,14 @@ import com.vividsolutions.jts.geom.Point;
 import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
@@ -81,7 +84,7 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d) {
+    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
     	super(geography, rG, o, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
@@ -98,13 +101,13 @@ public class Ped extends MobileAgent {
         this.k = GlobalVars.interactionForceConstant;
         
         // Set parameters for crossing choice model
-		this.alpha = params.getDouble("alpha");
-		this.lambda = params.getDouble("lambda");
-		this.gamma = params.getDouble("gamma");
-		this.epsilon = params.getDouble("epsilon");
+		this.alpha = alpha;
+		this.lambda = lambda;
+		this.gamma = gamma;
+		this.epsilon = epsilon;
         
 		// Set pedestrian perception of cost of moving in vehicle priority areas. 1 = same cost as pavement. 10 = ten times more costly than pavement
-        this.vehiclePriorityCostRatio =  params.getDouble("vehiclePriorityCostRatio"); 
+        this.vehiclePriorityCostRatio =  1; 
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian_crossing"), 1.0);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
@@ -514,7 +517,7 @@ public class Ped extends MobileAgent {
     public HashMap<Integer, Double> calculateDynamicGridSummandPriorityMap(String roadLinkID) {
     	// perceive the space taken up by vehicles on the road links that pass by/though this road
     	double vehicleRoadSpace = estimateVehicleRoadSpace(roadLinkID);
-    	double gridCellCostParam = params.getDouble("cellCostUpdate");
+    	double gridCellCostParam = 1;
     	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio + gridCellCostParam * vehicleRoadSpace;
     	
     	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
