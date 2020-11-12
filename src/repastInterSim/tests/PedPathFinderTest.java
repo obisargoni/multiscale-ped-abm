@@ -1,6 +1,5 @@
 package repastInterSim.tests;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.context.Context;
+import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
@@ -47,6 +47,8 @@ import repastInterSim.pathfinding.TacticalAlternative;
 
 class PedPathFinderTest {
 	
+	Context<Object> context = new DefaultContext<Object>();;
+	Geography<Object> geography; 
 	Geography<Road> roadGeography = null;
 	Geography<OD> odGeography = null;
 	Geography<CrossingAlternative> caGeography = null;
@@ -69,6 +71,13 @@ class PedPathFinderTest {
 	
 	void setUpProperties() throws IOException {
 		IO.readProperties();
+	}
+	
+	void setUpObjectGeography() {
+		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
+		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		geography.setCRS(GlobalVars.geographyCRSString);
+		context.add(geography);
 	}
 	
 	void setUpRoads() throws Exception {
