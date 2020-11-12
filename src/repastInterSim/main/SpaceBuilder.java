@@ -40,7 +40,8 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.DedicatedCrossingAlternative;
+import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
@@ -90,8 +91,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<RoadLink> orRoadLinkContext;
 	public static Geography<RoadLink> orRoadLinkGeography;
 	
-	public static Context<DedicatedCrossingAlternative> caContext;
-	public static Geography<DedicatedCrossingAlternative> caGeography;
+	public static Context<CrossingAlternative> caContext;
+	public static Geography<CrossingAlternative> caGeography;
 	
 	public static Context<Junction> orJunctionContext;
 	public static Geography<Junction> orJunctionGeography;
@@ -194,7 +195,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
 		caContext = new CAContext();
-		caGeography = createTypedGeography(DedicatedCrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
+		caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
 		context.addSubContext(caContext);
 		fixedGeographies.add(caGeography);
 		
@@ -251,8 +252,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// 4. Load crossing alternatives
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
-			GISFunctions.readShapefile(DedicatedCrossingAlternative.class, caFile, caGeography, caContext);
-			SpatialIndexManager.createIndex(caGeography, DedicatedCrossingAlternative.class);
+			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
+			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
 			
 			// 5. Load junctions of pedestrian network (actual network not created)
 			String pedJuncFile = GISDataDir + IO.getProperty("PedJunctions");

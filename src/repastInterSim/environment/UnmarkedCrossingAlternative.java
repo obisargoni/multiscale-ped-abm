@@ -11,7 +11,7 @@ import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
-public class UnmarkedCrossingAlternative implements CrossingAlternative {
+public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	
 	private Ped ped;
 	
@@ -143,6 +143,24 @@ public class UnmarkedCrossingAlternative implements CrossingAlternative {
 
 	public void setStrategicPathSection(List<RoadLink> rls) {
 		this.strategicPathsection = rls;
+	}
+
+	@Override
+	/*
+	 * Unmarked crossing doesn't have a geometry
+	 */
+	public Geometry getGeom() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	/*
+	 * Unmarked crossing doesn't have a geometry
+	 */
+	public void setGeom(Geometry c) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
