@@ -22,7 +22,7 @@ import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
-import repastInterSim.environment.DedicatedCrossingAlternative;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -32,6 +32,7 @@ import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
@@ -48,6 +49,7 @@ class PedPathFinderTest {
 	
 	Geography<Road> roadGeography = null;
 	Geography<OD> odGeography = null;
+	Geography<CrossingAlternative> caGeography = null;
 	Geography<PedObstruction> pedObstructGeography = null;
 	Geography<RoadLink> roadLinkGeography = null;
 	Geography<RoadLink> pavementLinkGeography = null;
@@ -146,6 +148,20 @@ class PedPathFinderTest {
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
 		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+	}
+	
+	void setUpCrossingAlternatives() throws MalformedURLException, FileNotFoundException {
+		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
+		Context<CrossingAlternative> caContext = new CAContext();
+		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
+		caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
+		caGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		
+		// Load ped obstructions data
+		String testCAFile = testGISDir + "crossing_lines.shp";
+		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, caGeography, caContext);
+		SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
 	}
 	
 	void setUpRoadNetwork(boolean isDirected) {
