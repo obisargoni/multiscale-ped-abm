@@ -47,20 +47,20 @@ public class PedPathFinder {
 	
 	private Coordinate nextCrossingCoord;	
 
-	public PedPathFinder(OD o, OD d) {
-		init(o, d);
+	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
+		init(o, d, rlG, orNetwork, odG, paveNetwork);
 	}
 	
-	public PedPathFinder(Ped p) {
+	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
 		this.ped = p;
-		init(p.getOrigin(), p.getDestination());
+		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveNetwork);
 	}
 	
-	private void init(OD o, OD d) {
+	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
 		this.origin = o;
 		this.destination = d;
 				
-		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementNetwork);
+		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveNetwork);
 	}
 	
 	public void step() {
