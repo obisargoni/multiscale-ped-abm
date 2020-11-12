@@ -108,7 +108,7 @@ public class PedPathFinder {
 		Junction originPavementJunction = null;
 		double d = Double.MAX_VALUE;
 		for (Junction j: pavementNetwork.getNodes()) {
-			if (j.getjuncNodeID().contentEquals(rnrEndpoints[0].getjuncNodeID())) {
+			if (j.getjuncNodeID().contentEquals(rnrEndpoints[0].getFID())) {
 				RoadLink startLink = rnr.getRoadsX().get(0);
 				if (j.getv1rlID().contentEquals(startLink.getFID()) | j.getv2rlID().contentEquals(startLink.getFID())) {
 					Double dj = oC.distance(j.getGeom().getCoordinate());
@@ -123,7 +123,7 @@ public class PedPathFinder {
 		Junction destPavementJunction = null;
 		d = Double.MAX_VALUE;
 		for (Junction j: pavementNetwork.getNodes()) {
-			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getjuncNodeID())) {
+			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getFID())) {
 				RoadLink endLink = rnr.getRoadsX().get(rnr.getRoadsX().size()-1);
 				if (j.getv1rlID().contentEquals(endLink.getFID()) | j.getv2rlID().contentEquals(endLink.getFID())) {
 					Double dj = oC.distance(j.getGeom().getCoordinate());
