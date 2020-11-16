@@ -257,6 +257,29 @@ assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['leng
 # Sinplify road network such that edges that don't have ped polygons associated to them are removed, and connecting nodes directly linked to source node
 G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
 
+# Remove orphan nodes
+G_clean.remove_nodes_from(nx.isolates(G_clean))
+
+# Need to repreat this process on the geodataframe data so that the road links are updated to match the graph
+G_clean_df = pd.DataFrame(G_clean.edges(data='fid'))
+gdfORLink_clean = pd.merge(gdfORLink, G_clean_df, left_on='fid', right_on = 2, how = 'inner')
+gdfORLink_clean.drop(['PNodeFID','MNodeFID'], axis=1, inplace=True)
+gdfORLink_clean.rename(columns = {0:'MNodeFID', 1:'PNodeFID'}, inplace=True)
+
+gdfORLink_clean = gdfORLink_clean.merge(gdfORNode.rename(columns = {'node_fid':'MNodeFID'}), suffixes = ('','_mnode'), on='MNodeFID')
+gdfORLink_clean = gdfORLink_clean.merge(gdfORNode.rename(columns = {'node_fid':'PNodeFID'}), suffixes = ('','_pnode'), on='PNodeFID')
+gdfORLink_clean.drop(['geometry',2], axis=1, inplace=True)
+
+gdfORLink_clean['geometry'] = gdfORLink_clean.apply(lambda r: LineString([r['geometry_mnode'], r['geometry_pnode']]), axis=1)
+
+gdfORLink_clean.drop(['geometry_pnode','geometry_mnode'], axis=1, inplace=True)
+gdfORLink_clean = gdfORLink_clean.set_geometry('geometry')
+
+gdfORNode_clean = gdfORNode.loc[ gdfORNode['node_fid'].isin(gdfORLink_clean['PNodeFID']) | gdfORNode['node_fid'].isin(gdfORLink_clean['MNodeFID']) ]
+
+gdfORLink_clean.to_file(os.path.join(output_directory, "nonpave_links_removed_"+config["openroads_link_processed_file"]))
+gdfORNode_clean.to_file(os.path.join(output_directory, "nonpave_nodes_removed_"+config["openroads_node_processed_file"]))
+
 
 #################################
 #
