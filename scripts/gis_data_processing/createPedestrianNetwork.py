@@ -69,6 +69,7 @@ def remove_edge_connect_ends(graph, edge):
 	'''
 	'''
 	edges_to_add = []
+	edges_to_remove = [edge]
 
 	u = edge[0]
 	v = edge[1]
@@ -78,13 +79,17 @@ def remove_edge_connect_ends(graph, edge):
 	for node in graph[v]:
 		if node != u:
 			data = graph.get_edge_data(v, node)
-			edges_to_add.append((u, node, data)) # id now no longer matches geographic representation of link
+
+			# overwrite this edge by removing it and adding replacement than connects to u node
+			# id of new edge no longer matches geographic representation of link
+			edges_to_remove.append((v,node))
+			edges_to_add.append((u, node, data))
 	
 	# Add these edges to the graph
 	graph.add_edges_from(edges_to_add)
 
-	# Remove the from node, which removes all edges connected to it, no longer needed
-	graph.remove_node(v)
+	# Remove the edge - need to later clean up the orphan nodes
+	graph.remove_edges_from(edges_to_remove)
 	return graph
 
 def remove_multiple_edges(graph, edge_attribute, edge_values):
