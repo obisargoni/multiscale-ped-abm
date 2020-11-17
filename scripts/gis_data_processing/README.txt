@@ -16,20 +16,26 @@ Given a polygon covering the study area, this extracts the road links and nodes,
 
 It also processes and cleans this data, for example linking road links (both open road and ITN) with vehicle and pedestrian space
 
-4. makeITNdirectional.py
+4. editORRoadsToMatchPedPolys.py
+
+The processOSTopographicData.py script splits the pedestrian polygons so that they link with OR open road links. However, some links, due to being small or far from the pavement, do not get a pedestrian polygon.
+
+This script removes and replaces these links so that the road network more accurately reflects the pavement network.
+
+5. makeITNdirectional.py
 
 This uses the direction information extracted with the first script and edits the portion of the road network selected in the section so that it represents a directed road network.
 
-5. checkDiNetworkRouting.py
+6. checkDiNetworkRouting.py
 
 NOTE: Requires manually placing shape files of vehicle OD nodes in the processed data directory.
 
 Given the road nodes to use as vehicle ODs this procudes random flows between ODs, checking that a route is possible.
 
-6. randomOD2.py
+7. randomOD2.py
 
 Very simple script to generate random flows between pedestrian ODs
 
-7. createPedestrianNetwork.py
+8. createPedestrianNetwork.py
 
 Creates a network approximating the paths available to a pedestrian in that separate side of the road have different nodes with links to connect them across junctions
