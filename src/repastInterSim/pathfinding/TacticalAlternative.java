@@ -174,4 +174,10 @@ public class TacticalAlternative {
 		this.destCoordinate = dC;
 	}
 	
+	/*
+	 * Used to control whether the end junction of this tactical alternative is recurring or not.
+	 */
+	public void setRecurringEndJunction(boolean b) {
+		this.recurringEndJunction = b;
+	}
 }
