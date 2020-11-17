@@ -60,11 +60,19 @@ public class TacticalAlternative {
 	}
 	
 	/*
-	 * First tries to return a coordinate from the route coordinates stack, then if that is empty returns the coordinate of the next junction in the path.
+	 * Method for retrieving the coordinate the pedestrian agent should be walking towards.
+	 * 
+	 * Three possible cases. The tactical route of the pedestrian agent is set by the route junctions. Additional coordinate can be prepended to the route
+	 * via the routeCoordinates list. This is used for adding the start and end coordinates of a crossing into the route. Also, when the pedestrian agent is as the end 
+	 * of their journey, they will walk towards their destination coordinate rather than the final junction. Otherwise the agent walks towards the next junction in
+	 * the route.
 	 */
 	public Coordinate getTargetCoordinate() {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getFirst();
+		}
+		else if ((this.destCoordinate != null) & (this.routeJunctions.size()==0)) {
+			return this.destCoordinate;
 		}
 		else {
 			return this.currentJunction.getGeom().getCoordinate();
