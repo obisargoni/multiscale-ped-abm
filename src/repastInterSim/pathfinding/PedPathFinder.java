@@ -199,11 +199,28 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * Create a tactical alternative which contains the route from the current junction to the end junction.
+	 */
+	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, Junction currentJ, Junction destJ) {
+		
+		// Now that paths identified, initialise the tactical route object
+		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
+		tr.setPathToEnd();
+		// Update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
+		tr.updateCurrentJunction();
+		
+		return tr;
+	}
+	
+	/*
 	 * Create a tactical alternative which contains the route from the current jucntion to the end junction, from the end junction to the outside junction and from the outside
 	 * junction to the final destination.
 	 */
 	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
 		
+		// Get the tactical alternative with the route to the end junction planned
+		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, sP, eJ, currentJ, destJ);
+
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
 		Junction outsideJunction = null;
@@ -228,23 +245,16 @@ public class PedPathFinder {
 			}
 		}
 		
-		// Now that paths identified, initialise the tactical route object
-		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
-		tr.setPathToEnd();
 		tr.setPathEndToOutside(pathToOutside);
-		
-		// If the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
+
+		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
 			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
 		}
 		
-		// Finally update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
-		tr.updateCurrentJunction();
-		
 		return tr;
 	}
-	
 	
 	
 	/*
