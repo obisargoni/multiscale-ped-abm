@@ -21,10 +21,12 @@ public class TacticalAlternative {
 	private Junction endJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<Junction> routeJunctions = null;
-	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();; 
+	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
+	private Coordinate destCoordinate = null;
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathEndToOutside; // Path that gets agent from end of tactical horizon to first link outside of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
+	private boolean recurringEndJunction = false;
 	
 	public TacticalAlternative() {
 		// Blank constructor
