@@ -168,9 +168,28 @@ public class PedPathFinder {
 	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
-		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
+		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
+		
+		// Get length of the planning horizon, this is used in the accumulator route
+		double pHLength = 0;
+		for (int i = 0; i<nLinks; i++) {
+			pHLength += sP.get(i).getGeom().getLength();
+		}
+		
+		boolean endOfJourney = false;
+		if (nLinks == sP.size()) {
+			endOfJourney = true;
+		}
+		
 		// First identify tactical route alternatives
-		List<TacticalAlternative> trs = tacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
+		List<TacticalAlternative> trs = new ArrayList<TacticalAlternative>();
+		if (endOfJourney) {
+			trs = destinationTacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
+		}
+		else {
+			trs = tacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
+		}
+		
 		
 		// Sort routes based on the length of the path to the end of tactical horizon
 		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
@@ -180,22 +199,35 @@ public class PedPathFinder {
 		// Identify default and chosen tactical route alternatives
 		// Default tactical route is the one with the fewest primary crossings
 		TacticalAlternative defaultTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
-
-		// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
-		TacticalAlternative chosenTR = defaultTR;		
+		
+		// Choose the target tactical alternative differently depending on whether end of route has been reached
+		TacticalAlternative chosenTR = null;
+		if (endOfJourney) {
+			// Target tactical alternative is one with dest junction as end junction
+			chosenTR = trs.stream().filter(tr -> tr.getEndJunction().getFID().contentEquals(destJ.getFID())).collect(Collectors.toList()).get(0);
+			
+			// Include the destination coordinate in the tactical route
+			chosenTR.setDestinationCoordinate(this.destination.getGeom().getCoordinate());
+			// Used to keep pedestrian agent end end junction
+			defaultTR.setRecurringEndJunction(true);
+		}
+		else {
+			// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
+			chosenTR = defaultTR;
+		}
 		
 		// Initialise Accumulator route with the chosen tactical route also set as the default.
-		// Get length of the planning horizon, this is used in the accumulator route
-		double pHLength = 0;
-		for (int i = 0; i<nLinks; i++) {
-			pHLength += sP.get(i).getGeom().getLength();
-		}
 		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, defaultTR, chosenTR);
 		
 		this.tacticalPath = accRoute;
 		
 		// Once tactical path planned can update strategic path by removing the links included in the tactical horizon
-		sP = sP.subList(nLinks, sP.size()-1);
+		if (endOfJourney) {
+			sP = sP.subList(sP.size()-1, sP.size()-1);
+		}
+		else {
+			sP = sP.subList(nLinks, sP.size()-1);
+		}
 	}
 	
 	/*
