@@ -396,6 +396,34 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * Get the pavement network junctions around the input node id. Group these junctions according to whether they lie on the input road link or not.
+	 * 
+	 * @param Network<Junction> pavementNetwork
+	 * 			The network of pavement junctions used to connect pedestrian pavements
+	 * @param RoadLink rlEndHorz
+	 * 			The road link at the end of the tactical planning horizon
+	 * @param String endNodeID
+	 * 			The road node to get pavement junctions for
+	 */
+	public static HashMap<String, List<Junction>> tacticalHorizonJunctions(Network<Junction> pavementNetwork, RoadLink rl, String endNodeID) {
+		
+		// Get the pavement junctions linked to this road node
+		List<Junction> pavementJunctions =  roadNodePavementJunctions(pavementNetwork, endNodeID);
+
+		// Loop over pavement junctions and select those touching the road link at the end of the planning horizon
+		HashMap<String, List<Junction>> tacticalEndJunctions = new HashMap<String, List<Junction>>();
+		tacticalEndJunctions.put("end", new ArrayList<Junction>());
+		tacticalEndJunctions.put("outside", new ArrayList<Junction>());
+		for (Junction j: pavementJunctions) {
+			if (j.getv1rlID().contentEquals(rl.getPedRLID()) | j.getv2rlID().contentEquals(rl.getPedRLID())) {
+				tacticalEndJunctions.get("end").add(j);
+			}
+		}
+		
+		return tacticalEndJunctions;
+	}
+	
+	/*
 	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
 	 * for use in the accumulator choice model.
 	 * 
