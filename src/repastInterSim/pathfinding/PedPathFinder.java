@@ -257,6 +257,27 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * Sets up the tactical alternative which includes only the route to the end junction. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
+	 * route and add these to the tactical alternative.
+	 */
+	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, Junction currentJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+		
+		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, eJ, currentJ);
+		
+		// Finally identify the crossing alternatives available in order to complete this tactical route
+		// If chosen to cross road, identify crossing options and initialise accumulator route
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		if (containsPrimaryCrossing(tr.getRoutePath(),sP)) {
+			// Get crossing alternatives within planning horizon
+			cas = getCrossingAlternatives(caG, tSP, p, rG);
+		}
+		
+		tr.setCrossingAlternatives(cas);
+		
+		return tr;
+	}
+	
+	/*
 	 * Sets up the tactical alternative route. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
 	 * route and add these to the tactical alternative.
 	 */
@@ -276,6 +297,7 @@ public class PedPathFinder {
 		
 		return tr;
 	}
+	
 	
 	public static List<TacticalAlternative> tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
