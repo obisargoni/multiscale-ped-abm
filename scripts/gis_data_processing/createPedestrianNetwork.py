@@ -57,46 +57,6 @@ output_ped_links_file = os.path.join(output_directory, "pedNetworkLinks.shp")
 #
 #
 #################################
-def find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value):
-	edge_to_remove = None
-	for u,v,d in graph.edges(data=True):
-		if d[edge_attribute] == edge_value:
-			edge_to_remove = (u,v)
-			break
-	return remove_edge_connect_ends(graph, edge_to_remove)
-
-def remove_edge_connect_ends(graph, edge):
-	'''
-	'''
-	edges_to_add = []
-	edges_to_remove = [edge]
-
-	u = edge[0]
-	v = edge[1]
-
-	## Find nodes linked to the 'from' node of this edge
-	## Create new edges that link these directly to the 'to' node
-	for node in graph[v]:
-		if node != u:
-			data = graph.get_edge_data(v, node)
-
-			# overwrite this edge by removing it and adding replacement than connects to u node
-			# id of new edge no longer matches geographic representation of link
-			edges_to_remove.append((v,node))
-			edges_to_add.append((u, node, data))
-	
-	# Add these edges to the graph
-	graph.add_edges_from(edges_to_add)
-
-	# Remove the edge - need to later clean up the orphan nodes
-	graph.remove_edges_from(edges_to_remove)
-	return graph
-
-def remove_multiple_edges(graph, edge_attribute, edge_values):
-	for edge_value in edge_values:
-		graph = find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value)
-	return graph
-
 def save_geometries(*geoms, path):
 	gdf = gpd.GeoDataFrame({'geometry':geoms})
 	gdf.to_file(path)
@@ -225,62 +185,6 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 	return ped_node_edges
 
 
-######################################
-#
-#
-# Create nx network frrom road link data
-#
-# Graph is not an exact representation of the road link data.
-# Some road links do not have any pedestrian polygons associated to them.
-# These links should not form part of this network as they will not be traversed by the pedestrians,
-# although they represent important geographic information.
-#
-# To exclude these from the network the output node of these links is replaced by the input node for all
-# edges.
-#
-# Then, network better represents decisions pedestrian agent must make. Need to use this version of the network in pedestrian
-# strategic route.
-#
-#######################################
-G = nx.Graph()
-gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
-edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
-G.add_edges_from(edges)
-
-# Get fids of links which don't have any pedestrian polygons.
-fids_no_ped_polys = gdfORLink.loc[~gdfORLink['fid'].isin(gdfTopoPed['roadLinkID']), 'fid'].values
-
-# Don't remove those that are of a *significant* length - raise assertion error if this is going to happen
-gdfORLink['length'] = gdfORLink['geometry'].length
-assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['length'] > 25)].shape[0] == 0
-
-# Sinplify road network such that edges that don't have ped polygons associated to them are removed, and connecting nodes directly linked to source node
-G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
-
-# Remove orphan nodes
-G_clean.remove_nodes_from(nx.isolates(G_clean))
-
-# Need to repreat this process on the geodataframe data so that the road links are updated to match the graph
-G_clean_df = pd.DataFrame(G_clean.edges(data='fid'))
-gdfORLink_clean = pd.merge(gdfORLink, G_clean_df, left_on='fid', right_on = 2, how = 'inner')
-gdfORLink_clean.drop(['PNodeFID','MNodeFID'], axis=1, inplace=True)
-gdfORLink_clean.rename(columns = {0:'MNodeFID', 1:'PNodeFID'}, inplace=True)
-
-gdfORLink_clean = gdfORLink_clean.merge(gdfORNode.rename(columns = {'node_fid':'MNodeFID'}), suffixes = ('','_mnode'), on='MNodeFID')
-gdfORLink_clean = gdfORLink_clean.merge(gdfORNode.rename(columns = {'node_fid':'PNodeFID'}), suffixes = ('','_pnode'), on='PNodeFID')
-gdfORLink_clean.drop(['geometry',2], axis=1, inplace=True)
-
-gdfORLink_clean['geometry'] = gdfORLink_clean.apply(lambda r: LineString([r['geometry_mnode'], r['geometry_pnode']]), axis=1)
-
-gdfORLink_clean.drop(['geometry_pnode','geometry_mnode'], axis=1, inplace=True)
-gdfORLink_clean = gdfORLink_clean.set_geometry('geometry')
-
-gdfORNode_clean = gdfORNode.loc[ gdfORNode['node_fid'].isin(gdfORLink_clean['PNodeFID']) | gdfORNode['node_fid'].isin(gdfORLink_clean['MNodeFID']) ]
-
-gdfORLink_clean.to_file(os.path.join(output_directory, "nonpave_links_removed_"+config["openroads_link_processed_file"]))
-gdfORNode_clean.to_file(os.path.join(output_directory, "nonpave_nodes_removed_"+config["openroads_node_processed_file"]))
-
-
 #################################
 #
 #
@@ -293,8 +197,15 @@ gdfORNode_clean.to_file(os.path.join(output_directory, "nonpave_nodes_removed_"+
 #
 ##################################
 
+
+# Load the Open Roads road network as a nx graph
+G = nx.Graph()
+gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
+edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
+G.add_edges_from(edges)
+
 # Nodes with degree > 2 are junctions. Get these
-node_degrees = G_clean.degree()
+node_degrees = G.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
 
@@ -332,7 +243,7 @@ island_polys = gdfTopoPed.loc[ gdfTopoPed['polyID'].isin(island_poly_ids)]
 
 # Exclude island polys from the ped network
 gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
-gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
+gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
 
 # Remove the multipoints - seems like these are traffic islands - might want to think about including in future
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
