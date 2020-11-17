@@ -201,7 +201,7 @@ public class PedPathFinder {
 	/*
 	 * Create a tactical alternative which contains the route from the current junction to the end junction.
 	 */
-	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, Junction currentJ, Junction destJ) {
+	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, Junction eJ, Junction currentJ) {
 		
 		// Now that paths identified, initialise the tactical route object
 		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
@@ -219,7 +219,7 @@ public class PedPathFinder {
 	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
 		
 		// Get the tactical alternative with the route to the end junction planned
-		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, sP, eJ, currentJ, destJ);
+		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, eJ, currentJ);
 
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
@@ -255,7 +255,6 @@ public class PedPathFinder {
 		
 		return tr;
 	}
-	
 	
 	/*
 	 * Sets up the tactical alternative route. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
