@@ -176,8 +176,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(orJunctionContext);
 		fixedGeographies.add(orJunctionGeography);
 		
-		pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
-		pavementJunctionGeography = createTypedGeography(Junction.class, pavementJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
+		pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_CONTEXT);
+		pavementJunctionGeography = createTypedGeography(Junction.class, pavementJunctionContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
 		context.addSubContext(pavementJunctionContext);
 		fixedGeographies.add(pavementJunctionGeography);
 		
