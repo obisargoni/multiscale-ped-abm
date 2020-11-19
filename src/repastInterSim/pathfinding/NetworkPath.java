@@ -49,7 +49,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		private void init(Network<T> net){
 			this.net = net;
 			resetConnectionPaths();
-			transformer = new JungEdgeTransformer<T>();
+			this.setDefaultTransformer();
 			net.addProjectionListener(this);
 		}
 		
