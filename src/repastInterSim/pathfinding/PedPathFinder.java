@@ -2,14 +2,12 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.geotools.coverage.grid.GridCoverage2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
@@ -19,18 +17,14 @@ import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
-import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.exceptions.RoutingException;
-import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class PedPathFinder {
