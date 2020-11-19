@@ -102,8 +102,8 @@ class NetworkPathTest {
 		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Get the start and end nodes to find paths between
-		String sourceID = "pave_node_114";
-		String targetID = "pave_node_115";
+		String sourceID = "pave_node_111";
+		String targetID = "pave_node_112";
 		Junction source = null;
 		Junction target = null;
 		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
@@ -124,11 +124,11 @@ class NetworkPathTest {
 		assert edgePaths.size()==2;
 		
 		// Finally convert these paths to edge paths and check the edges
-		String[] expectedLinks = {"pave_link_114_116", "pave_link_116_117", "pave_link_115_117"};
+		String[] expectedLinks = {"pave_link_111_113", "pave_link_113_114", "pave_link_112_114"};
 		for (Stack<RepastEdge<Junction>> edgePath:edgePaths) {
 			if (edgePath.size()==1) {
 				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edgePath.get(0);
-				assert ne.getRoadLink().getFID().contentEquals("pave_link_114_115");
+				assert ne.getRoadLink().getFID().contentEquals("pave_link_111_112");
 			}
 			else {
 				for (int i=0; i<edgePath.size(); i++) {
