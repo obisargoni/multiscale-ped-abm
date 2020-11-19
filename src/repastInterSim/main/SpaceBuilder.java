@@ -27,7 +27,6 @@ import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
-import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
@@ -40,7 +39,6 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
@@ -98,8 +96,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<Junction> orJunctionGeography;
 	public static Network<Junction> orRoadNetwork;
 	
-	public static Context<Junction> pedJunctionContext;
-	public static Geography<Junction> pedJunctionGeography;
+	public static Context<Junction> pavementJunctionContext;
+	public static Geography<Junction> pavementJunctionGeography;
 	public static Network<Junction> pavementNetwork;
 	
 	
@@ -178,10 +176,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(orJunctionContext);
 		fixedGeographies.add(orJunctionGeography);
 		
-		pedJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
-		pedJunctionGeography = createTypedGeography(Junction.class, pedJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
-		context.addSubContext(pedJunctionContext);
-		fixedGeographies.add(pedJunctionGeography);
+		pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PED_JUNCTION_CONTEXT);
+		pavementJunctionGeography = createTypedGeography(Junction.class, pavementJunctionContext, GlobalVars.CONTEXT_NAMES.PED_JUNCTION_GEOGRAPHY);
+		context.addSubContext(pavementJunctionContext);
+		fixedGeographies.add(pavementJunctionGeography);
 		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
 		vehicleDestinationContext = new VehicleDestinationContext();
@@ -203,17 +201,24 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		String GISDataDir = IO.getProperty("GISDataDir");
 		try {
 			
-			// Build the road network
+			// Build the road network and pavement networks
 			
 			// 1a. Load the vehicle road links
 			String roadLinkFile = GISDataDir + IO.getProperty("VehicleRoadLinkShapefile");
 			GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
 			SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 			
-			// 1b. Load the pedestrian road links
+			// 1b. Load the open road road links
 			String orRoadLinkFile = GISDataDir + IO.getProperty("ORRoadLinkShapefile");
 			GISFunctions.readShapefile(RoadLink.class, orRoadLinkFile, orRoadLinkGeography, orRoadLinkContext);
 			SpatialIndexManager.createIndex(orRoadLinkGeography, RoadLink.class);
+			
+			// 1c. Load pavement nodes and links used for the pavement network
+			String pedJPath = GISDataDir + IO.getProperty("PedJunctions");					
+			GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
+			SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
+			
+			// Links
 			
 			
 			// 2a. vehicle roadNetwork
@@ -222,11 +227,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			roadNetwork = builder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 			
-			// 2b. pedestrian road network
+			// 2b. open road road network (use by pedestrian agents)
 			NetworkBuilder<Junction> orBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
 			orBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			orRoadNetwork = orBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
+			
+			
 			
 			// Build the fixed environment
 			
@@ -254,11 +261,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
 			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
 			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
-			
-			// 5. Load junctions of pedestrian network (actual network not created)
-			String pedJuncFile = GISDataDir + IO.getProperty("PedJunctions");
-			GISFunctions.readShapefile(Junction.class, pedJuncFile, pedJunctionGeography, pedJunctionContext);
-			SpatialIndexManager.createIndex(pedJunctionGeography, Junction.class);
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
