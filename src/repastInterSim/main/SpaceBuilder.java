@@ -98,6 +98,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<Junction> pavementJunctionContext;
 	public static Geography<Junction> pavementJunctionGeography;
+	public static Context<RoadLink> pavementLinkContext;
+	public static Geography<RoadLink> pavementLinkGeography;
 	public static Network<Junction> pavementNetwork;
 	
 	
@@ -164,6 +166,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		orRoadLinkGeography = createTypedGeography(RoadLink.class, orRoadLinkContext, GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
 		context.addSubContext(orRoadLinkContext);
 		fixedGeographies.add(orRoadLinkGeography);
+		
+		pavementLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT);
+		pavementLinkGeography = createTypedGeography(RoadLink.class, pavementLinkContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+		context.addSubContext(pavementLinkContext);
+		fixedGeographies.add(pavementLinkGeography);
 
 		// Junction geography also used to create the road network
 		junctionContext = new JunctionContext();
@@ -218,8 +225,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
 			SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
 			
-			// Links
-			
+			String pavementLinkFile = GISDataDir + IO.getProperty("PavementLinkShapefile");
+			GISFunctions.readShapefile(RoadLink.class, pavementLinkFile, pavementLinkGeography, pavementLinkContext);
+			SpatialIndexManager.createIndex(pavementLinkGeography, RoadLink.class);
 			
 			// 2a. vehicle roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
@@ -233,6 +241,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			orRoadNetwork = orBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
 			
+			// 2c pavement network
+			NetworkBuilder<Junction> pavementBuilder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", pavementJunctionContext, false);
+			pavementBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+			pavementNetwork = pavementBuilder.buildNetwork();
+			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
 			
 			
 			// Build the fixed environment
