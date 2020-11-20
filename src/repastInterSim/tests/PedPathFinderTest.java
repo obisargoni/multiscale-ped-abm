@@ -1333,4 +1333,48 @@ class PedPathFinderTest {
 			assert cas.get(i).getType().contentEquals(expectedTypes2[i]);
 		}
 	}
+	
+	/*
+	 * Testing the initialisation of a PedPathFinder object
+	 */
+	@Test
+	public void testPedPathFinder() {
+		
+		// Setup environment
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : this.odGeography.getAllObjects()) {
+			if (i.getId() == 4) {
+				o = i;
+			}
+			else if (i.getId() == 1) {
+				d = i;
+			}
+		}
+		
+		
+		// Set up ped path finder
+		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		
+		// Check the start and end pavement junctions are as expected
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_83");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_59");
+		
+	}
 }
