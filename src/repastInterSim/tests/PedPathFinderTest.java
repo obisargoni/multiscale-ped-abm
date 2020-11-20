@@ -1342,12 +1342,16 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
+			setUpObjectGeography();
+
 			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
 			setUpRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
+			
+			setUpCrossingAlternatives();
 			
 			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
@@ -1376,5 +1380,13 @@ class PedPathFinderTest {
 		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_85");
 		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		
+		// Now test planning the first tactical path with this ped path finder object
+		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+		
+		// Check the current (default) and target tactical alternatives are as expected
+		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_87");
+		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_87");
 	}
 }

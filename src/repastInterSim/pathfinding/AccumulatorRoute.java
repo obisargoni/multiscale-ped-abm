@@ -257,5 +257,9 @@ public class AccumulatorRoute {
 	public TacticalAlternative getCurrentTA() {
 		return this.currentTR;
 	}
+	
+	public TacticalAlternative getTargetTA() {
+		return this.targetTR;
+	}
 
 }

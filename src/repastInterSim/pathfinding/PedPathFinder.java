@@ -159,7 +159,7 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	private void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
