@@ -437,10 +437,10 @@ class PedPathFinderTest {
 		String endJID2 = tacticalEndJunctions.get(1).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_72") & endJID2.contentEquals("pave_node_70")) {
+		if (endJID1.contentEquals("pave_node_89") & endJID2.contentEquals("pave_node_91")) {
 			nodeCheck = true;
 		}
-		else if (endJID1.contentEquals("pave_node_70") & endJID2.contentEquals("pave_node_72")) {
+		else if (endJID1.contentEquals("pave_node_91") & endJID2.contentEquals("pave_node_89")) {
 			nodeCheck = true;
 		}
 		
@@ -491,10 +491,10 @@ class PedPathFinderTest {
 		String endJID2 = tacticalEndJunctions.get(1).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_72") & endJID2.contentEquals("pave_node_71")) {
+		if (endJID1.contentEquals("pave_node_90") & endJID2.contentEquals("pave_node_91")) {
 			nodeCheck = true;
 		}
-		else if (endJID1.contentEquals("pave_node_71") & endJID2.contentEquals("pave_node_72")) {
+		else if (endJID1.contentEquals("pave_node_91") & endJID2.contentEquals("pave_node_90")) {
 			nodeCheck = true;
 		}
 		
@@ -653,10 +653,10 @@ class PedPathFinderTest {
 		String endJID2 = tacticalEndJunctions.get(1).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_34") & endJID2.contentEquals("pave_node_35")) {
+		if (endJID1.contentEquals("pave_node_44") & endJID2.contentEquals("pave_node_45")) {
 			nodeCheck = true;
 		}
-		else if (endJID1.contentEquals("pave_node_35") & endJID2.contentEquals("pave_node_34")) {
+		else if (endJID1.contentEquals("pave_node_45") & endJID2.contentEquals("pave_node_44")) {
 			nodeCheck = true;
 		}
 		
@@ -684,7 +684,7 @@ class PedPathFinderTest {
 		
 		// Manually set the two road links to get pavement junctions between
 		String rlEndHorzID = "3868DA68-A5D6-4B90-9E0C-4B117146CCFD_0";		
-		String rlOutHorzID = "9E5AB3E2-FB6A-4A4B-BD37-1A6C6E14195D_0";
+		String rlOutHorzID = "A9B5D6A4-C673-4C4F-8DC4-98FB56A72974_0";
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
@@ -750,10 +750,10 @@ class PedPathFinderTest {
 		String endJID2 = tacticalEndJunctions.get(1).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_118") & endJID2.contentEquals("pave_node_120")) {
+		if (endJID1.contentEquals("pave_node_122") & endJID2.contentEquals("pave_node_120")) {
 			nodeCheck = true;
 		}
-		else if (endJID1.contentEquals("pave_node_120") & endJID2.contentEquals("pave_node_118")) {
+		else if (endJID1.contentEquals("pave_node_120") & endJID2.contentEquals("pave_node_122")) {
 			nodeCheck = true;
 		}
 		
@@ -804,10 +804,10 @@ class PedPathFinderTest {
 		String endJID2 = tacticalEndJunctions.get(1).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_120") & endJID2.contentEquals("pave_node_121")) {
+		if (endJID1.contentEquals("pave_node_122") & endJID2.contentEquals("pave_node_121")) {
 			nodeCheck = true;
 		}
-		else if (endJID1.contentEquals("pave_node_121") & endJID2.contentEquals("pave_node_120")) {
+		else if (endJID1.contentEquals("pave_node_121") & endJID2.contentEquals("pave_node_122")) {
 			nodeCheck = true;
 		}
 		
@@ -897,17 +897,17 @@ class PedPathFinderTest {
 		Junction oJ = null;
 		Junction dJ = null;
 		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
-			if (j.getFID().contentEquals("pave_node_107")) {
+			if (j.getFID().contentEquals("pave_node_85")) {
 				oJ = j;
 				continue;
 			}
-			else if (j.getFID().contentEquals("pave_node_115")) {
+			else if (j.getFID().contentEquals("pave_node_112")) {
 				dJ = j;
 				continue;
 			}
 		}
 		
-		int horizonNLinks = 2;
+		int horizonNLinks = 1;
 		RoadLink rlEndHorz = sP.get(horizonNLinks-1);
 		RoadLink rlOutHorz = sP.get(horizonNLinks);
 		
@@ -917,7 +917,7 @@ class PedPathFinderTest {
 		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
-		final String end1ID = "pave_node_73";
+		final String end1ID = "pave_node_87";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
 		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
 
@@ -948,10 +948,10 @@ class PedPathFinderTest {
 		
 		
 		// Test for other end junction, again should include the starting junction, junctions path passes along and end junction
-		final String end2ID = "pave_node_74";
+		final String end2ID = "pave_node_88";
 		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
 		tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
-		String[] expectedJunctions2 =  {"pave_node_73", end2ID};
+		String[] expectedJunctions2 =  {end1ID, end2ID};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
@@ -1009,11 +1009,11 @@ class PedPathFinderTest {
 		Junction oJ = null;
 		Junction dJ = null;
 		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
-			if (j.getFID().contentEquals("pave_node_73")) {
+			if (j.getFID().contentEquals("pave_node_87")) {
 				oJ = j;
 				continue;
 			}
-			else if (j.getFID().contentEquals("pave_node_115")) {
+			else if (j.getFID().contentEquals("pave_node_112")) {
 				dJ = j;
 				continue;
 			}
@@ -1029,7 +1029,7 @@ class PedPathFinderTest {
 		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
-		final String end1ID = "pave_node_68";
+		final String end1ID = "pave_node_81";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
 		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
@@ -1060,12 +1060,12 @@ class PedPathFinderTest {
 		
 		
 		// Test for other end junction
-		final String end2ID = "pave_node_66";
+		final String end2ID = "pave_node_79";
 		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
 		tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
-		String[] expectedJunctions2 =  {"pave_node_74", end2ID, "pave_node_67", "pave_node_69"};
+		String[] expectedJunctions2 =  {"pave_node_88", end2ID, "pave_node_80", "pave_node_82"};
 		rJs =  tr.getRouteJunctions();
 		for (int i=0; i<rJs.size(); i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
