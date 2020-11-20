@@ -1373,8 +1373,8 @@ class PedPathFinderTest {
 		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
-		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_83");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_59");
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_85");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
 	}
 }
