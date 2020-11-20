@@ -405,8 +405,6 @@ class PedPathFinderTest {
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
-			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -460,7 +458,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -514,7 +511,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -568,7 +564,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -622,7 +617,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -676,7 +670,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -719,7 +712,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -773,7 +765,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -827,7 +818,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -881,7 +871,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -993,7 +982,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1108,7 +1096,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1191,7 +1178,6 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
