@@ -527,4 +527,14 @@ public class PedPathFinder {
 		
 		return currentRoadLinkID;
 	}
+
+	public Junction getStartPavementJunction() {
+		return startPavementJunction;
+	}
+
+	
+	public Junction getDestPavementJunction() {
+		return destPavementJunction;
+	}	
+	
 }
