@@ -120,7 +120,7 @@ public class PedPathFinder {
 			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getFID())) {
 				RoadLink endLink = rnr.getRoadsX().get(rnr.getRoadsX().size()-1);
 				if (j.getv1rlID().contentEquals(endLink.getFID()) | j.getv2rlID().contentEquals(endLink.getFID())) {
-					Double dj = oC.distance(j.getGeom().getCoordinate());
+					Double dj = dC.distance(j.getGeom().getCoordinate());
 					if (dj < d) {
 						d = dj;
 						destPavementJunction = j;
