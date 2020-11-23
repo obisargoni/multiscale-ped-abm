@@ -823,7 +823,7 @@ public class RoadNetworkRoute implements Cacheable {
 	}
 	
 	public List<RoadLink> getRoadsX(){
-		return this.roadsX;
+		return (List<RoadLink>)this.roadsX;
 	}
 	
 	public List<String> getRouteDescriptionX(){
