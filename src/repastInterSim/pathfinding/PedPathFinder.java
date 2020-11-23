@@ -145,7 +145,7 @@ public class PedPathFinder {
 	public void updateTacticalPath() {
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
 		Junction startJunction = null;
-		if (this.tacticalPath == null) {
+		if (this.tacticalPath.isBlank()) {
 			startJunction = this.startPavementJunction;
 		}
 		else {
