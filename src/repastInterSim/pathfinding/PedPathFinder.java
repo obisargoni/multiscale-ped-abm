@@ -354,7 +354,7 @@ public class PedPathFinder {
 	 * a different method is required for setting up the tactical alternatives that includes the destination within the route and a default option that doesn't involde crossing
 	 * or progressing past the strategic path as it is assumed the ped agent does not have a tactical route choice at this stage, ie the ped is committed to walking to its destination.
 	 */
-	public List<TacticalAlternative> destinationTacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static List<TacticalAlternative> destinationTacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		
 		// Find the default end junction by finding the junctions at the end of the strategic path and selecting the one that is not the destination junction
 		Junction nonDestJ = null;
