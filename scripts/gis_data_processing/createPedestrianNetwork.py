@@ -57,41 +57,6 @@ output_ped_links_file = os.path.join(output_directory, "pedNetworkLinks.shp")
 #
 #
 #################################
-def find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value):
-	edge_to_remove = None
-	for u,v,d in graph.edges(data=True):
-		if d[edge_attribute] == edge_value:
-			edge_to_remove = (u,v)
-			break
-	return remove_edge_connect_ends(graph, edge_to_remove)
-
-def remove_edge_connect_ends(graph, edge):
-	'''
-	'''
-	edges_to_add = []
-
-	u = edge[0]
-	v = edge[1]
-
-	## Find nodes linked to the 'from' node of this edge
-	## Create new edges that link these directly to the 'to' node
-	for node in graph[v]:
-		if node != u:
-			data = graph.get_edge_data(v, node)
-			edges_to_add.append((u, node, data)) # id now no longer matches geographic representation of link
-	
-	# Add these edges to the graph
-	graph.add_edges_from(edges_to_add)
-
-	# Remove the from node, which removes all edges connected to it, no longer needed
-	graph.remove_node(v)
-	return graph
-
-def remove_multiple_edges(graph, edge_attribute, edge_values):
-	for edge_value in edge_values:
-		graph = find_and_remove_edge_connect_ends(graph, edge_attribute, edge_value)
-	return graph
-
 def save_geometries(*geoms, path):
 	gdf = gpd.GeoDataFrame({'geometry':geoms})
 	gdf.to_file(path)
@@ -220,39 +185,6 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 	return ped_node_edges
 
 
-######################################
-#
-#
-# Create nx network frrom road link data
-#
-# Graph is not an exact representation of the road link data.
-# Some road links do not have any pedestrian polygons associated to them.
-# These links should not form part of this network as they will not be traversed by the pedestrians,
-# although they represent important geographic information.
-#
-# To exclude these from the network the output node of these links is replaced by the input node for all
-# edges.
-#
-# Then, network better represents decisions pedestrian agent must make. Need to use this version of the network in pedestrian
-# strategic route.
-#
-#######################################
-G = nx.Graph()
-gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
-edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
-G.add_edges_from(edges)
-
-# Get fids of links which don't have any pedestrian polygons.
-fids_no_ped_polys = gdfORLink.loc[~gdfORLink['fid'].isin(gdfTopoPed['roadLinkID']), 'fid'].values
-
-# Don't remove those that are of a *significant* length - raise assertion error if this is going to happen
-gdfORLink['length'] = gdfORLink['geometry'].length
-assert gdfORLink.loc[gdfORLink['fid'].isin(fids_no_ped_polys) & (gdfORLink['length'] > 25)].shape[0] == 0
-
-# Sinplify road network such that edges that don't have ped polygons associated to them are removed, and connecting nodes directly linked to source node
-G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
-
-
 #################################
 #
 #
@@ -265,8 +197,15 @@ G_clean = remove_multiple_edges(G.copy(), 'fid', fids_no_ped_polys)
 #
 ##################################
 
+
+# Load the Open Roads road network as a nx graph
+G = nx.Graph()
+gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
+edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
+G.add_edges_from(edges)
+
 # Nodes with degree > 2 are junctions. Get these
-node_degrees = G_clean.degree()
+node_degrees = G.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
 
@@ -304,7 +243,7 @@ island_polys = gdfTopoPed.loc[ gdfTopoPed['polyID'].isin(island_poly_ids)]
 
 # Exclude island polys from the ped network
 gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
-gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G_clean, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
+gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
 
 # Remove the multipoints - seems like these are traffic islands - might want to think about including in future
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']

@@ -120,7 +120,7 @@ public class PedPathFinder {
 			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getFID())) {
 				RoadLink endLink = rnr.getRoadsX().get(rnr.getRoadsX().size()-1);
 				if (j.getv1rlID().contentEquals(endLink.getFID()) | j.getv2rlID().contentEquals(endLink.getFID())) {
-					Double dj = oC.distance(j.getGeom().getCoordinate());
+					Double dj = dC.distance(j.getGeom().getCoordinate());
 					if (dj < d) {
 						d = dj;
 						destPavementJunction = j;
@@ -145,7 +145,7 @@ public class PedPathFinder {
 	public void updateTacticalPath() {
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
 		Junction startJunction = null;
-		if (this.tacticalPath == null) {
+		if (this.tacticalPath.isBlank()) {
 			startJunction = this.startPavementJunction;
 		}
 		else {
@@ -167,7 +167,7 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	private int planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	public int planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
@@ -274,8 +274,8 @@ public class PedPathFinder {
 		}
 		
 		tr.setPathEndToOutside(pathToOutside);
-
-		// Finally, if the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
+		
+		// If the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
 		// This is recorded separately as the path required to complete the journey
 		if (destJ != null) {
 			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
@@ -652,4 +652,14 @@ public class PedPathFinder {
 		
 		return currentRoadLinkID;
 	}
+
+	public Junction getStartPavementJunction() {
+		return startPavementJunction;
+	}
+
+	
+	public Junction getDestPavementJunction() {
+		return destPavementJunction;
+	}	
+	
 }

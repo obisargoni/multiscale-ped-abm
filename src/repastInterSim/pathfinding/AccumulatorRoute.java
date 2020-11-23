@@ -31,8 +31,11 @@ public class AccumulatorRoute {
 		
 	private boolean caChosen = false;
 	
+	private boolean isBlank = false;
+	
 	public AccumulatorRoute() {
 		// Blank constructor allows ped agent to be initialised with an AccumulatorRoute object which returns a null initial coordinate
+		this.isBlank = true;
 	}
 	
 	public AccumulatorRoute(Ped p, double rL, TacticalAlternative dTR, TacticalAlternative tTR) {
@@ -232,7 +235,7 @@ public class AccumulatorRoute {
 	 */
 	public void step() {
 		// Accumulate activation and chooses a crossing alternative if choice not made yet
-		if (this.caChosen==false) {
+		if ((this.caChosen==false) & (this.cas.size()>0)) {
 			this.accumulateCAActivation();
 			this.chooseCA();
 		}
@@ -256,6 +259,14 @@ public class AccumulatorRoute {
 	
 	public TacticalAlternative getCurrentTA() {
 		return this.currentTR;
+	}
+	
+	public TacticalAlternative getTargetTA() {
+		return this.targetTR;
+	}
+	
+	public boolean isBlank() {
+		return this.isBlank;
 	}
 
 }
