@@ -153,13 +153,16 @@ public class PedPathFinder {
 		}
 		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
-		planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
+		int nLinks = planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
+		
+		// Once tactical path planned can update strategic path by removing the links included in the tactical horizon
+		this.strategicPath = this.strategicPath.subList(nLinks, this.strategicPath.size()-1);
     }
 	
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public void planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	public int planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
 		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());		
@@ -188,8 +191,7 @@ public class PedPathFinder {
 		
 		this.tacticalPath = accRoute;
 		
-		// Once tactical path planned can update strategic path by removing the links included in the tactical horizon
-		sP = sP.subList(nLinks, sP.size()-1);
+		return nLinks;
 	}
 	
 	/*
