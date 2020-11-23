@@ -35,6 +35,7 @@ public class PedPathFinder {
 	private OD destination;
 		
 	private List<RoadLink> strategicPath;
+	int tacticalHorizonLinks = 0;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
 	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
@@ -143,6 +144,12 @@ public class PedPathFinder {
 	 * 			The start coordinate of the tactical route.
 	 */
 	public void updateTacticalPath() {
+		
+		// First update the strategic path by removing the links that formed part of the previous tactical planning horizon
+		for (int i = 0; i < tacticalHorizonLinks; i++) {
+			this.strategicPath.remove(0);
+		}
+		
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
 		Junction startJunction = null;
 		if (this.tacticalPath.isBlank()) {
@@ -152,16 +159,9 @@ public class PedPathFinder {
 			startJunction = this.tacticalPath.getCurrentTA().getEndJunction();
 		}
 		
-		// Initialise Accumulator Route that agent will use to navigate along the planning horizon
-		int tacticalHorizonLinks = planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
-		
-		// Once tactical path planned can update strategic path by removing the links included in the tactical horizon
-		if (this.strategicPath.size()==tacticalHorizonLinks) {
-			this.strategicPath = this.strategicPath.subList(this.strategicPath.size()-1, this.strategicPath.size()-1);
-		}
-		else {
-			this.strategicPath = this.strategicPath.subList(tacticalHorizonLinks, this.strategicPath.size()-1);
-		}
+		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
+		tacticalHorizonLinks = planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
+	
     }
 	
 	/*
