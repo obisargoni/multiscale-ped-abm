@@ -295,7 +295,8 @@ public class PedPathFinder {
 		// Finally identify the crossing alternatives available in order to complete this tactical route
 		// If chosen to cross road, identify crossing options and initialise accumulator route
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		if (containsPrimaryCrossing(tr.getRoutePath(),sP)) {
+		int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(currentJ.getGeom().getCoordinate(), eJ.getGeom().getCoordinate(), sP);
+		if (primaryCrossingParity == 1) {
 			// Get crossing alternatives within planning horizon
 			cas = getCrossingAlternatives(caG, tSP, p, rG);
 		}
@@ -316,7 +317,8 @@ public class PedPathFinder {
 		// Finally identify the crossing alternatives available in order to complete this tactical route
 		// If chosen to cross road, identify crossing options and initialise accumulator route
 		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		if (containsPrimaryCrossing(tr.getRoutePath(),sP)) {
+		int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(currentJ.getGeom().getCoordinate(), eJ.getGeom().getCoordinate(), sP);
+		if (primaryCrossingParity == 1) {
 			// Get crossing alternatives within planning horizon
 			cas = getCrossingAlternatives(caG, tSP, p, rG);
 		}
