@@ -130,16 +130,13 @@ public class Ped extends MobileAgent {
     	// its route coordinate because this involves removing coordinates from the route.
    		//decideYield();
     	
-    	// Check whether tactical path needs updating. This is required when no longer any coordinates in tactical path
-    	// No point checking whether next coordinate in route has been reached if update is required, hence the following else if
+    	// If the ped has reached the end of its tactical path, this update will result in a null current junction
+    	// In this case need to update the tactical path
     	Boolean tacticalCoordUpdateRequired = false;
     	if(this.pathFinder.getTacticalPath().getCurrentJunction()==null) {
     		tacticalCoordUpdateRequired = true;
     	}
-    	// check if ped has reached target coordinate, in which case update the target coordinate in the tactical path
-    	else if (this.maLoc.distance(this.pathFinder.getTacticalPath().targetCoordinate()) < 0.5) {
-    		this.pathFinder.getTacticalPath().updateTargetCoordiante();
-    	}
+
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
@@ -167,6 +164,11 @@ public class Ped extends MobileAgent {
         	else {
         		assert true;
         	}
+    	}
+   		
+    	// Finally update the target coordinate if current target coordinate has been reached
+    	if (this.maLoc.distance(this.pathFinder.getTacticalPath().targetCoordinate()) < 0.5) {
+    		this.pathFinder.getTacticalPath().updateTargetCoordiante();
     	}
     }
     
