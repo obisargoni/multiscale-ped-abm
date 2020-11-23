@@ -95,7 +95,7 @@ public class TacticalAlternative {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if (this.recurringEndJunction & (this.getRouteJunctions().size()==0)) {
+		if (this.recurringEndJunction & (this.getRouteJunctions().size()==1)) {
 			// do not update the current junction
 			
 		}
