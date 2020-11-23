@@ -1335,10 +1335,10 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Testing the initialisation of a PedPathFinder object
+	 * Testing the initialisation of a PedPathFinder object. O Id = 4 D id = 1.
 	 */
 	@Test
-	public void testPedPathFinder() {
+	public void testPedPathFinder1() {
 		
 		// Setup environment
 		try {
