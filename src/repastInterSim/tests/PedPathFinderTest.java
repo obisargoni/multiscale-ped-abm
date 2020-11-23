@@ -1335,6 +1335,73 @@ class PedPathFinderTest {
 	}
 	
 	/*
+	 * Test setting up destination tactical alternative route objects. These are the tactical alternatives that are presented to a pedestrian
+	 * when they reach the final tactical planning horizon of their journey.
+	 */
+	@Test
+	public void testDestinationTacticalAlternatives1() {
+		
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpRoads();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// origin and destination don't matter, just choose arbitrarily
+		OD o = null;
+		OD d = null;
+		for (OD i : this.odGeography.getAllObjects()) {
+			if (i.getId()==3) {
+				o = i;
+			}
+			else if (i.getId()==2) {
+				d = i;
+			}
+		}
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		
+		int nLinks = p.getPathFinder().getStrategicPath().size();	
+
+		
+		Junction currentJ = p.getPathFinder().getStartPavementJunction();
+		Junction destJ = p.getPathFinder().getDestPavementJunction();
+		
+		List<TacticalAlternative> trs = PedPathFinder.destinationTacticalAlternatives(pavementNetwork, p.getPathFinder().getStrategicPath(), nLinks, currentJ, destJ, this.caGeography, this.roadGeography, p);
+		
+		TacticalAlternative targetTA = trs.get(0);
+		TacticalAlternative nonDestTA = trs.get(1);
+		
+		// Now run checks
+		assert nonDestTA.getEndJunction().getFID().contentEquals("pave_node_119");
+		assert targetTA.getEndJunction().getFID().contentEquals(destJ.getFID());
+		
+		assert nonDestTA.getCrossingAlternatives().size() > 0;
+		assert targetTA.getCrossingAlternatives().size() == 0;
+		
+		assert targetTA.getPathEndToOutside().size()==0;
+		assert nonDestTA.getPathEndToOutside().size()==0;
+		
+		assert targetTA.getPathToEnd().size() == 4;
+		assert nonDestTA.getPathToEnd().size() == 5;
+		
+		assert targetTA.getCurrentJunction().getFID().contentEquals("pave_node_91");
+		assert nonDestTA.getCurrentJunction().getFID().contentEquals("pave_node_91");		
+	}
+	
+	/*
 	 * Testing the initialisation of a PedPathFinder object. O Id = 4 D id = 1.
 	 */
 	@Test
