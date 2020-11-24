@@ -200,7 +200,14 @@ public class AccumulatorRoute {
 		Arrays.sort(sortedActivations);
 		
 		// Compare the largest activation to the second largest
-		double diff = sortedActivations[nCAs-1] - sortedActivations[nCAs-2];  
+		double diff;
+		if (nCAs > 1) {
+			diff = sortedActivations[nCAs-1] - sortedActivations[nCAs-2];
+		}
+		else {
+			diff = sortedActivations[nCAs-1] - 0;
+		}
+		  
 		if (diff > this.ped.getEpsilon()) {
 			
 			// initialise variable to record index of chosen crossing alterantive
