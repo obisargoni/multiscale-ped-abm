@@ -75,7 +75,7 @@ class NetworkPathTest {
 	
 	void setUpPavementJunctions() throws Exception {
 		setUpProperties();
-		pedJPath = testGISDir + IO.getProperty("PedJunctions");
+		pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
 		
 		// Initialise test road link geography and context
 		pavementJunctionContext = new JunctionContext();
