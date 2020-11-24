@@ -50,7 +50,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			this.net = net;
 			resetConnectionPaths();
 			this.setDefaultTransformer();
-			net.addProjectionListener(this);
+			this.net.addProjectionListener(this);
 		}
 		
 		/*
