@@ -12,3 +12,6 @@ vs crossing at an unmarked location
 
 Now that I am recording the crossing choices of the pedestrian agents there are much simpler ways of calculating this information, especially if all pedestrian agents should be crossing at some point.
 
+3. cc_heatmap.py
+
+Use to produce figure illustrating different crossing choices resulting from parameter sweep of pairs of parameters.
