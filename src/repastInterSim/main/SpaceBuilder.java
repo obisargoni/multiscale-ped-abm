@@ -263,6 +263,18 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.readShapefile(Road.class, vehicleRoadFile, roadGeography, roadContext);
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
+			
+			// Link road with itn road links
+			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
+				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
+				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+					// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+					if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
+						roadLinks.add(rl);
+					}
+				}
+				r.setRoadLinks(roadLinks);
+			}
 
 			
 			// 3. Load pedestrian obstruction boundaries

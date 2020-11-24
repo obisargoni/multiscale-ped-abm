@@ -62,10 +62,6 @@ public class Road implements FixedGeography, Serializable {
 	}
 	
 	public List<RoadLink> getRoadLinks() {
-		
-		if (this.roadLinks == null) {
-			setRoadLinks();
-		}
 		return this.roadLinks;
 	}
 	
@@ -92,20 +88,9 @@ public class Road implements FixedGeography, Serializable {
 	public String getRoadLinkID() {
 		return this.roadLinkID;
 	}
-	
-	/**
-	 * To model two way roads, two RoadLink objects are created with the same id. Therefore, when getting the RoadLink objects
-	 * that this Road object is associated, allow for multiple RoadLink objects to be associated.
-	 */
-	public void setRoadLinks() {
-		this.roadLinks = new ArrayList<RoadLink>();
-		for(RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
-			
-			// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
-			if (rl.getPedRLID().contentEquals(this.roadLinkID)) {
-				this.roadLinks.add(rl);
-			}
-		}
+
+	public void setRoadLinks(List<RoadLink> rLs) {
+		this.roadLinks = rLs;
 	}
 
 }
