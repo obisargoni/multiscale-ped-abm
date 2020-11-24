@@ -69,7 +69,7 @@ public class TacticalAlternative {
 	 */
 	public Coordinate getTargetCoordinate() {
 		if(this.routeCoordinates.size()>0) {
-			return routeCoordinates.getFirst();
+			return routeCoordinates.getLast();
 		}
 		else if ((this.destCoordinate != null) & (this.routeJunctions.size()==0)) {
 			return this.destCoordinate;
@@ -84,7 +84,7 @@ public class TacticalAlternative {
 	 */
 	public void updateTargetCoordiante() {
 		if (this.routeCoordinates.size()>0) {
-			this.routeCoordinates.removeFirst();
+			this.routeCoordinates.removeLast();
 		}
 		else {
 			updateCurrentJunction();
