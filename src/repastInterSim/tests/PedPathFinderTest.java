@@ -1456,4 +1456,60 @@ class PedPathFinderTest {
 		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_87");
 		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_87");
 	}
+	
+	/*
+	 * Testing the initialisation of a PedPathFinder object. O Id = 3 D id = 1.
+	 */
+	@Test
+	public void testPedPathFinder2() {
+		
+		// Setup environment
+		try {
+			setUpObjectGeography();
+
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpCrossingAlternatives();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : this.odGeography.getAllObjects()) {
+			if (i.getId() == 2) {
+				o = i;
+			}
+			else if (i.getId() == 1) {
+				d = i;
+			}
+		}
+		
+		
+		// Set up ped path finder
+		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		
+		// Check the start and end pavement junctions are as expected
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_121");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
+		
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		
+		// Now test planning the first tactical path with this ped path finder object
+		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+		
+		// Check the current (default) and target tactical alternatives are as expected
+		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_114");
+		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_114");
+	}
 }
