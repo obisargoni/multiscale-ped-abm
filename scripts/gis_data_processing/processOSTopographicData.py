@@ -88,19 +88,23 @@ def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
 gdfTopoArea = gpd.read_file(topographic_area_file)
 gdfTopoArea.crs = projectCRS
 
-# Mastermap ITN data - for road network
+# Mastermap ITN data - for road network. Set columns to be those from the ITN raw data only, prevents duplicated columns when running this script multiple times
 gdfITNLink = gpd.read_file(itn_link_file)
 gdfITNLink.crs = projectCRS
+gdfITNLink = gdfITNLink.reindex(columns = ['fid', 'version', 'versionDat', 'theme', 'changeDate', 'reasonForC','descriptiv', 'descript_1', 'natureOfRo', 'length', 'geometry'])
 
 gdfITNNode = gpd.read_file(itn_node_file)
 gdfITNNode.crs = projectCRS
+gdfITNNode = gdfITNNode.reindex(columns = ['fid', 'version', 'versionDat', 'theme', 'changeDate', 'reasonForC','descriptiv', 'geometry'])
 
 # OS Open Road - for ped road network
 gdfORLink = gpd.read_file(or_link_file)
 gdfORLink.crs = projectCRS
+gdfORLink = gdfORLink.reindex(columns = ['fictitious', 'old_fid', 'class', 'roadNumber', 'name1', 'name1_lang','name2', 'name2_lang', 'formOfWay', 'length', 'primary', 'trunkRoad','loop', 'structure', 'nameTOID', 'numberTOID', 'function', 'geometry','fid', 'MNodeFID', 'PNodeFID'])
 
 gdfORNode = gpd.read_file(or_node_file)
 gdfORNode.crs = projectCRS
+gdfORNode = gdfORNode.reindex(columns = ['geometry', 'node_fid'])
 
 # Study area polygon - to select data within the study area
 gdfSelect = gpd.read_file(selection_layer_file)
