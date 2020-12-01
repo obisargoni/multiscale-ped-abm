@@ -71,7 +71,7 @@ public class TacticalAlternative {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		else if ((this.destCoordinate != null) & (this.getRouteJunctions().size()==0)) {
+		else if ((this.destCoordinate != null) & (this.getRouteJunctions().size()==1)) {
 			return this.destCoordinate;
 		}
 		else {
