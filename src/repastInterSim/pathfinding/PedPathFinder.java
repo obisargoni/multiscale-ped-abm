@@ -75,9 +75,12 @@ public class PedPathFinder {
 	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
 		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, orNetwork, odG);
 		
+		// initialise object to record the start and end pavement junctions of the route
+		Junction[] routeEnds = null;
+		
 		// Find shortest path using road network route
 		try {
-			rnr.setRoadLinkRoute();
+			routeEnds = rnr.setRoadLinkRoute(paveG, paveNetwork);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -86,51 +89,9 @@ public class PedPathFinder {
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
 		
-		Junction [] spPavementJunctionEndpoints = strategicPathPavementJunctions(paveNetwork, rnr, oC, dC);
-		this.startPavementJunction = spPavementJunctionEndpoints[0];
-		this.destPavementJunction = spPavementJunctionEndpoints[1];
-	}
-	
-	/*
-	 * Set the start and destination pavement network junctions from the road network route
-	 */
-	public static Junction[] strategicPathPavementJunctions(Network<Junction> pavementNetwork, RoadNetworkRoute rnr, Coordinate oC, Coordinate dC) {
 		
-		Junction[] rnrEndpoints = rnr.routeEndpoints;
-		
-		// Choose the candidate associated to the first road link in the strategic path and that is closest to the origin
-		Junction originPavementJunction = null;
-		double d = Double.MAX_VALUE;
-		for (Junction j: pavementNetwork.getNodes()) {
-			if (j.getjuncNodeID().contentEquals(rnrEndpoints[0].getFID())) {
-				RoadLink startLink = rnr.getRoadsX().get(0);
-				if (j.getv1rlID().contentEquals(startLink.getFID()) | j.getv2rlID().contentEquals(startLink.getFID())) {
-					Double dj = oC.distance(j.getGeom().getCoordinate());
-					if (dj < d) {
-						d = dj;
-						originPavementJunction = j;
-					}
-				}
-			}
-		}
-		
-		Junction destPavementJunction = null;
-		d = Double.MAX_VALUE;
-		for (Junction j: pavementNetwork.getNodes()) {
-			if (j.getjuncNodeID().contentEquals(rnrEndpoints[1].getFID())) {
-				RoadLink endLink = rnr.getRoadsX().get(rnr.getRoadsX().size()-1);
-				if (j.getv1rlID().contentEquals(endLink.getFID()) | j.getv2rlID().contentEquals(endLink.getFID())) {
-					Double dj = dC.distance(j.getGeom().getCoordinate());
-					if (dj < d) {
-						d = dj;
-						destPavementJunction = j;
-					}
-				}
-			}
-		}
-		
-		Junction[] odPavementJunctions = {originPavementJunction, destPavementJunction}; 
-		return odPavementJunctions;
+		this.startPavementJunction = routeEnds[0];
+		this.destPavementJunction = routeEnds[1];
 	}
 	
 	/*
