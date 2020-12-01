@@ -197,6 +197,62 @@ public class RoadNetworkRoute implements Cacheable {
 		serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
 	}
 	
+	/**
+	 * Find the shortest route from the input origin junctions to the input destination junctions. If multiple origin or destination junctions are given
+	 * the shortest of the routes between OD pairs is set are the road link route.
+	 * 
+	 * @throws Exception
+	 */
+	public void setRoadLinkRoute(List<Junction> currentJunctions, List<Junction> destJunctions) throws Exception {
+		long time = System.nanoTime();
+
+		this.roadsX = new Vector<RoadLink>();
+		this.routeDescriptionX = new Vector<String>();
+		this.routeSpeedsX = new Vector<Double>();
+
+		// No route cached, have to create a new one (and cache it at the end).
+		try {			
+			/*
+			 * Now have possible routes (2 origin junctions, 2 destination junctions max, less if directed roads don't allow junctions to be  accessed) need to pick which junctions
+			 * form shortest route
+			 */
+			this.routeEndpoints = new Junction[2];
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints, true);
+
+			/*
+			 * Add the road links that make up the shortest path to the class attribute lists
+			 */
+			this.addPathToRoute(shortestPath);
+
+			// Check that a route has actually been created
+			checkListSizes();
+			
+			setRouteParity();
+
+		} catch (RoutingException e) {
+			/*
+			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + " going from " + currentCoord.toString() + " to " + this.destination.toString());
+					*/
+			throw e;
+		}
+		// Cache the route and route speeds
+		// List<Coordinate> routeClone = Cloning.copy(theRoute);
+		// LinkedHashMap<Coordinate, Double> routeSpeedsClone = Cloning.copy(this.routeSpeeds);
+		// cachedRoute.setRoute(routeClone);
+		// cachedRoute.setRouteSpeeds(routeSpeedsClone);
+
+		// cachedRoute.setRoute(this.routeX, this.roadsX, this.routeSpeedsX, this.routeDescriptionX);
+		// synchronized (Route.routeCache) {
+		// // Same cached route is both value and key
+		// Route.routeCache.put(cachedRoute, cachedRoute);
+		// }
+		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
+		/*
+		LOGGER.log(Level.FINER, "Route Finished planning route for " + "with "
+				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
+				*/
+	}
+	
 
 	/**
 	 * Find a route from the origin to the destination. A route is a list of Coordinates which describe the route to a
@@ -213,12 +269,6 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @throws Exception
 	 */
 	public void setRoadLinkRoute() throws Exception {
-		long time = System.nanoTime();
-
-		this.roadsX = new Vector<RoadLink>();
-		this.routeDescriptionX = new Vector<String>();
-		this.routeSpeedsX = new Vector<Double>();
-		
 		Coordinate currentCoord = this.origin;		
 		Coordinate destCoord = this.destination;
 
@@ -244,24 +294,7 @@ public class RoadNetworkRoute implements Cacheable {
 			// Find which Junction connected to the edge is closest to the coordinate.
 			List<Junction> destJunctions = destRoad.getJunctions();
 			
-			
-			/*
-			 * Now have possible routes (2 origin junctions, 2 destination junctions max, less if directed roads don't allow junctions to be  accessed) need to pick which junctions
-			 * form shortest route
-			 */
-			this.routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints, true);
-
-			/*
-			 * Add the road links that make up the shortest path to the class attribute lists
-			 */
-			this.addPathToRoute(shortestPath);
-
-
-			// Check that a route has actually been created
-			checkListSizes();
-			
-			setRouteParity();
+			setRoadLinkRoute(currentJunctions, destJunctions);
 
 		} catch (RoutingException e) {
 			/*
