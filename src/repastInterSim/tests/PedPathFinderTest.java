@@ -1458,7 +1458,9 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Testing the initialisation of a PedPathFinder object. O Id = 3 D id = 1.
+	 * Testing the initialisation of a PedPathFinder object. O Id = 2 D id = 1.
+	 * 
+	 * Test fails due to issues with strategic path finding model.
 	 */
 	@Test
 	public void testPedPathFinder2() {
