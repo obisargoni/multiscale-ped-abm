@@ -256,15 +256,7 @@ public class RoadNetworkRoute implements Cacheable {
 
 	/**
 	 * Find a route from the origin to the destination. A route is a list of Coordinates which describe the route to a
-	 * destination restricted to a road network. The algorithm consists of three major parts:
-	 * <ol>
-	 * <li>Find out if the agent is on a road already, if not then move to the nearest road segment</li>
-	 * <li>Get from the current location (probably mid-point on a road) to the nearest junction</li>
-	 * <li>Travel to the junction which is closest to our destination (using Dijkstra's shortest path)</li>
-	 * <li>Get from the final junction to the road which is nearest to the destination
-	 * <li>
-	 * <li>Move from the road to the destination</li>
-	 * </ol>
+	 * destination restricted to a road network.
 	 * 
 	 * @throws Exception
 	 */
