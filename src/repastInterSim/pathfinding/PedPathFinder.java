@@ -73,7 +73,6 @@ public class PedPathFinder {
 	 * 
 	 */
 	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
-		// Initialise road network route - needs to ne non-directed for pedestrians! fix this
 		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, orNetwork, odG);
 		
 		// Find shortest path using road network route
