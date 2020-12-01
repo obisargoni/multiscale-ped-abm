@@ -218,7 +218,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			this.routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints, true);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
@@ -700,6 +700,24 @@ public class RoadNetworkRoute implements Cacheable {
 					*/
 			return shortestPath;
 		} // synchronized
+	}
+	
+	/**
+	 * Finds the shortest route between multiple origin and destination junctions. Will return the shortest path and
+	 * also, via two parameters, can return the origin and destination junctions which make up the shortest route.
+	 * 
+	 * @param currentJunctions
+	 *            An array of origin junctions
+	 * @param destJunctions
+	 *            An array of destination junctions
+	 * @param routeEndpoints
+	 *            An array of size 2 which can be used to store the origin (index 0) and destination (index 1) Junctions
+	 *            which form the end points of the shortest route.
+	 * @throws Exception
+	 */
+	public List<RepastEdge<Junction>> getShortestRoute(Network<Junction> net, Iterable<Junction> currentJunctions, Iterable<Junction> destJunctions,
+			Junction[] routeEndpoints) throws Exception {
+		return getShortestRoute(net, currentJunctions, destJunctions, routeEndpoints, false);
 	}
 	
 	/*
