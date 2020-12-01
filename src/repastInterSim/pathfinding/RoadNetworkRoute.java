@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
@@ -310,6 +311,115 @@ public class RoadNetworkRoute implements Cacheable {
 		LOGGER.log(Level.FINER, "Route Finished planning route for " + "with "
 				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
 				*/
+	}
+	
+	/**
+	 * Find a route from the origin to the destination by first finding the nearest junctions to the pedestrian then finding the shortest road network
+	 * path between those junctions. 
+	 * 
+	 * A route is a list of Coordinates which describe the route to a
+	 * destination restricted to a road network.
+	 * 
+	 * @throws Exception
+	 */
+	public Junction[] setRoadLinkRoute(Geography<Junction> pavementJunctionsGeography, Network<Junction> pavementNetwork) throws Exception {
+		Coordinate currentCoord = this.origin;		
+		Coordinate destCoord = this.destination;
+
+
+		// No route cached, have to create a new one (and cache it at the end).
+		Junction currentPaveJ;
+		Junction destPaveJ;
+		RoadLink currentRoad = null;
+		RoadLink destRoad = null;
+		try {
+			
+			// Get pavement junctions nearest pedestrian OD
+			// Get road links OD are beside
+			currentPaveJ = findNearestObject(currentCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			destPaveJ = findNearestObject(destCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			
+			currentRoad = findNearestObject(currentCoord, this.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			destRoad = findNearestObject(destCoord, this.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			
+			// Get start and end road network junctions from IDs
+			List<Junction> currentORJ = currentRoad.getJunctions().stream().filter(j -> j.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList());
+			List<Junction> destORJ = destRoad.getJunctions().stream().filter(j -> j.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList());
+			
+			assert currentORJ.size() == 1;
+			assert destORJ.size() == 1;
+				
+			setRoadLinkRoute(currentORJ, destORJ);
+
+		} catch (RoutingException e) {
+			/*
+			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + " going from " + currentCoord.toString() + " to " + this.destination.toString());
+					*/
+			throw e;
+		}
+		
+		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
+		Junction startPaveJ = null;
+		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
+			this.roadsX.add(0, currentRoad);
+			
+			// Set the current pavement junction to be that connected to the nearest pavement junction but at the other end of the starting road link
+			
+			// Get road junction that is not near to the pavement junction
+			Junction roadNode = currentRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
+			
+			// Find connecting pavement node that is associated with this road node
+			for(Junction j: pavementNetwork.getAdjacent(currentPaveJ)) {
+				if (j.getjuncNodeID().contentEquals(roadNode.getFID())) {
+					startPaveJ = j;
+				}
+			}
+		}
+		else {
+			startPaveJ = currentPaveJ;
+		}
+		
+		// Do the same for the end of the route
+		Junction endPaveJ = null;
+		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
+			this.roadsX.add(destRoad);
+			
+			// Update the dest pavement junction to be that connected to the nearest pavement junction but at the other end of the ending road link
+			
+			// Get road junction that is not near to the pavement junction
+			Junction roadNode = destRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
+			
+			// Find connecting pavement node that is associated with this road node
+			for(Junction j: pavementNetwork.getAdjacent(destPaveJ)) {
+				if (j.getjuncNodeID().contentEquals(roadNode.getFID())) {
+					endPaveJ = j;
+				}
+			}
+		}
+		else {
+			endPaveJ = destPaveJ;
+		}
+
+		
+		// Cache the route and route speeds
+		// List<Coordinate> routeClone = Cloning.copy(theRoute);
+		// LinkedHashMap<Coordinate, Double> routeSpeedsClone = Cloning.copy(this.routeSpeeds);
+		// cachedRoute.setRoute(routeClone);
+		// cachedRoute.setRouteSpeeds(routeSpeedsClone);
+
+		// cachedRoute.setRoute(this.routeX, this.roadsX, this.routeSpeedsX, this.routeDescriptionX);
+		// synchronized (Route.routeCache) {
+		// // Same cached route is both value and key
+		// Route.routeCache.put(cachedRoute, cachedRoute);
+		// }
+		// TempLogger.out("...Route cacheing new route with unique id " + cachedRoute.hashCode());
+		/*
+		LOGGER.log(Level.FINER, "Route Finished planning route for " + "with "
+				+ this.routeX.size() + " coords in " + (0.000001 * (System.nanoTime() - time)) + "ms.");
+				*/
+		Junction[] routeEnds = {startPaveJ, endPaveJ};
+		return routeEnds;
+		
 	}
 	
 
