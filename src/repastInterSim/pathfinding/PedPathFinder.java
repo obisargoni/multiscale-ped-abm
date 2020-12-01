@@ -42,20 +42,20 @@ public class PedPathFinder {
 	
 	private Coordinate nextCrossingCoord;	
 
-	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
-		init(o, d, rlG, orNetwork, odG, paveNetwork);
+	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+		init(o, d, rlG, orNetwork, odG, paveG, paveNetwork);
 	}
 	
-	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
+	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
 		this.ped = p;
-		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveNetwork);
+		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveG, paveNetwork);
 	}
 	
-	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
+	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
 		this.origin = o;
 		this.destination = d;
 				
-		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveNetwork);
+		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveG, paveNetwork);
 	}
 	
 	public void step() {
@@ -72,7 +72,7 @@ public class PedPathFinder {
 	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
 	 * 
 	 */
-	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Network<Junction> paveNetwork) {
+	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
 		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, orNetwork, odG);
 		
 		// initialise object to record the start and end pavement junctions of the route

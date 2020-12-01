@@ -306,13 +306,13 @@ class AccumulatorRouteTest {
 		
 		
 		// Set up ped path finder
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
 		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_87");
 		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
