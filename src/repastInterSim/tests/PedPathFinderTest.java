@@ -1500,10 +1500,15 @@ class PedPathFinderTest {
 		
 		// Set up ped path finder
 		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
+		// Check the strategic path is as expected
+		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "56CF7BBA-28E4-4ACA-9F58-E096E88094FB_0", "B2B9D137-2BA4-4864-8350-2EDAA5910747_0"};
+		for (int i=0;i<ppf.getStrategicPath().size(); i++) {
+			assert ppf.getStrategicPath().get(i).getFID().contentEquals(expectedRoadIDs[i]);
+		}
 		
 		// Check the start and end pavement junctions are as expected
 		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_121");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_80");
 		
 		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementNetwork);
 		
