@@ -204,7 +204,7 @@ gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
 edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
 G.add_edges_from(edges)
 
-# Nodes with degree > 2 are junctions. Get these
+# Get dataframe of node degrees. Useful for selecting certain junctions nodes, eg those that correspond to intersections (degree > 3)
 node_degrees = G.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
