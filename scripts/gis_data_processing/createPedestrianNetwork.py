@@ -282,7 +282,7 @@ G_ped_poly.add_edges_from(ped_poly_edges)
 #
 #############################
 
-# Geoup by junctions node id
+# Group by junctions node id
 grouped = gdfPedNodes.groupby('juncNodeID')
 group_names = list(grouped.groups.keys())
 group_sizes = grouped.apply(lambda df: df.shape[0])
