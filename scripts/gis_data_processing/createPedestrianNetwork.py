@@ -316,7 +316,9 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
 	return junc_edges
 
-junc_edges = gdfPedNodes.groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
+# Ony connect nodes around junctions with > 2 connections, ie actual intersections rather than continuations
+junctionNodesToConnect = df_node_degree.loc[ df_node_degree["nodeDegree"] > 2, "nodeID"].values
+junc_edges = gdfPedNodes.loc[gdfPedNodes['juncNodeID'].isin(junctionNodesToConnect)].groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
 
 # Drop duplicates, drop self loops and recreate index
 junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
