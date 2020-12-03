@@ -207,7 +207,8 @@ public class PedPathFinder {
 	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
 		
 		// Get the tactical alternative with the route to the end junction planned
-		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, eJ, currentJ);
+		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
+		tr.setPathToEnd();
 
 		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
 		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
@@ -240,6 +241,9 @@ public class PedPathFinder {
 		if (destJ != null) {
 			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
 		}
+		
+		// Update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
+		tr.updateCurrentJunction();
 		
 		return tr;
 	}
