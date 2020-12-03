@@ -1055,7 +1055,7 @@ class PedPathFinderTest {
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
 		String[] expectedJunctions2 =  {"pave_node_88", end2ID, "pave_node_80", "pave_node_82"};
 		rJs =  tr.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedJunctions2.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
 		}
 		
@@ -1144,7 +1144,7 @@ class PedPathFinderTest {
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
 		String[] expectedInitialTargetRouteJunctions =  {"pave_node_88", targetEndID, "pave_node_80", "pave_node_82"};
 		List<Junction> rJs =  trTarget.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedInitialTargetRouteJunctions.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedInitialTargetRouteJunctions[i]);
 		}
 		
@@ -1156,7 +1156,7 @@ class PedPathFinderTest {
 		
 		String[] expectedUpdateTargetRouteJunctions =  {targetEndID, "pave_node_80", "pave_node_82"};
 		rJs =  trTarget.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedUpdateTargetRouteJunctions.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedUpdateTargetRouteJunctions[i]);
 		}
 		
@@ -1226,7 +1226,7 @@ class PedPathFinderTest {
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
 		String[] expectedInitialTargetRouteJunctions =  {"pave_node_105", targetEndID};
 		List<Junction> rJs =  trTarget.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedInitialTargetRouteJunctions.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedInitialTargetRouteJunctions[i]);
 		}
 		
@@ -1238,7 +1238,7 @@ class PedPathFinderTest {
 		
 		String[] expectedUpdateTargetRouteJunctions =  {"pave_node_105", targetEndID};
 		rJs =  trTarget.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedUpdateTargetRouteJunctions.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedUpdateTargetRouteJunctions[i]);
 		}
 		
@@ -1251,7 +1251,7 @@ class PedPathFinderTest {
 		
 		String[] expectedUpdateTargetRouteJunctions2 =  {targetEndID};
 		rJs =  trTarget.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
+		for (int i=0; i<expectedUpdateTargetRouteJunctions2.length; i++) {
 			assert rJs.get(i).getFID().contentEquals(expectedUpdateTargetRouteJunctions2[i]);
 		}
 	}
