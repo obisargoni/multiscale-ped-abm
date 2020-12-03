@@ -168,17 +168,24 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 
 			l = LineString([g_u, g_v])
 
-			# Now check if linestring intersects any of the road link geometries
-			if gdfLinkSub['geometry'].map(lambda g: g.intersects(l)).any():
+			# Connect pairs of ped nodes that are at different ends of the road link, ie associated to different road nodes
+			u_junction_id = gdfPN.loc[gdfPN['fid'] == ped_u, "juncNodeID"].values[0]
+			v_junction_id = gdfPN.loc[gdfPN['fid'] == ped_v, "juncNodeID"].values[0]
+			if u_junction_id == v_junction_id:
 				continue
 			else:
 				edge_data = {'road_link':None, 'ped_poly':None}
+				intersect_check = gdfLinkSub['geometry'].map(lambda g: g.intersects(l))
 
-				# Need to identify which pedestrian polygon(s) this edge corresponds to
-				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
-				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
-				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
+				# Check whether links crosses road or not
+				if intersect_check.any():
+					edge_data['road_link'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+				else:
+					# Need to identify which pedestrian polygon(s) this edge corresponds to
+					candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
+					nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
+					ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist] # unpacking nested list
+					edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
 
 				ped_node_edges.append((ped_u, ped_v, edge_data))
 
