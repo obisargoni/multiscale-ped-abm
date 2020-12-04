@@ -19,6 +19,7 @@ public class TacticalAlternative {
 	private NetworkPath<Junction> nP;
 	private Junction currentJunction = null;
 	private Junction endJunction = null;
+	private Junction outsideJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<Junction> routeJunctions = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
@@ -124,6 +125,14 @@ public class TacticalAlternative {
 	
 	public void setPathEndToOutside(List<RepastEdge<Junction>> path) {
 		this.pathEndToOutside = path;
+	}
+	
+	public void setOutsideJunction(Junction j) {
+		this.outsideJunction = j;
+	}
+	
+	public Junction getOutsideJunction() {
+		return this.outsideJunction;
 	}
 	
 	public List<RepastEdge<Junction>> getAlternativeRemainderPath() {
