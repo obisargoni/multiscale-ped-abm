@@ -999,5 +999,32 @@ public class GISFunctions {
 		Coordinate destCoord = xestUnobstructedGeomCoordinate(originCoord, geom, obstructionGeography, false);
 		return destCoord;
 	}
+	
+	/*
+	 * Method to get a line string starting at a certain angle from north a certain distance in length
+	 * 
+	 * @param Coordinate start
+	 * 		The starting coordinate of the line string
+	 * @param Double ang
+	 * 		The angle from north the line string points in
+	 * @param Double length
+	 * 		The length of the linestring
+	 * 
+	 * @returns
+	 * 		LineString
+	 */
+	public static LineString linestringRay(Coordinate start, Double ang, Double length) {
+    	// Get unit vector in the direction of the sampled angle
+    	double[] rayVector = {Math.sin(ang), Math.cos(ang)};
+    	
+    	// Get the coordinate of the end of the field of vision in this direction
+    	Coordinate rayEnd = new Coordinate(start.x + rayVector[0]*length, start.y + rayVector[1]*length);
+    	
+    	Coordinate[] lineCoords = {start, rayEnd};
+    	// Create a line from the pedestrian to the end of the field of vision in this direction
+    	LineString ray = new GeometryFactory().createLineString(lineCoords);
+    	
+    	return ray;
+	}
 
 }

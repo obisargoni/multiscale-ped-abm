@@ -345,15 +345,7 @@ public class Ped extends MobileAgent {
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
     	
-    	// Get unit vector in the direction of the sampled angle
-    	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
-    	
-    	// Get the coordinate of the end of the field of vision in this direction
-    	Coordinate rayEnd = new Coordinate(maLoc.x + rayVector[0]*this.dmax, maLoc.y + rayVector[1]*this.dmax);
-    	
-    	Coordinate[] lineCoords = {maLoc, rayEnd};
-    	// Create a line from the pedestrian to the end of the field of vision in this direction
-    	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
+    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
     	
     	// Check to see if this line intersects with any pedestrian agents
         Context<Object> context = ContextUtils.getContext(this);
