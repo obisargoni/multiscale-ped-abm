@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
@@ -89,25 +90,50 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 			e.printStackTrace();
 		}
 		
+		// Get rays perpendicular to agent's bearing to find crossing coordinate
+		LineString ray1 = GISFunctions.linestringRay(c, this.ped.getPedestrianBearing() - (Math.PI/2), 50.0);
+		LineString ray2 = GISFunctions.linestringRay(c, this.ped.getPedestrianBearing() + (Math.PI/2), 50.0);
+		
+		LineString[] rays = {ray1, ray2};
+		
 		// Loop through ped roads and find nearest coordinate on each
 		Double minDist = Double.MAX_VALUE;
 		Coordinate nearestOpCoord = null;
-		for (Road rd:caPedRoads) {
-			// Get nearest coord
-			Coordinate nearC = GISFunctions.xestGeomCoordinate(c, rd.getGeom(), false);
-			
-			// Check parity to make sure coordinate is on opposite side of the road
-			int p = RoadNetworkRoute.calculateRouteParity(c, nearC, sps);
-			if (p==0) {
-				continue;
+		int i = 0;
+		boolean rayUnknown = true;
+		while (rayUnknown) {
+			LineString ray = rays[i];
+		
+			for (Road rd:caPedRoads) {
+				// Get intersection between ray and this polygon
+				Coordinate[] intersectingCoords = rd.getGeom().intersection(ray).getCoordinates();
+				
+				// Now loop through these intersecting coords to find one that is
+				// - on the opposite side of the road
+				// - nearest to ped
+				
+				for (int j=0; j<intersectingCoords.length; j++) {
+					
+					Coordinate intC = intersectingCoords[j];
+					
+					// Check parity to make sure coordinate is on opposite side of the road
+					int p = RoadNetworkRoute.calculateRouteParity(c, intC, sps);
+					if (p==0) {
+						continue;
+					}
+					else {
+						rayUnknown = false;
+						
+						// Check if nearer
+						double d = c.distance(intC);
+						if (d < minDist) {
+							minDist = d;
+							nearestOpCoord = intC;
+						}
+					}
+				}
 			}
-			
-			// Check if nearer
-			double d = c.distance(nearC);
-			if (d < minDist) {
-				minDist = d;
-				nearestOpCoord = nearC;
-			}
+			i++;
 		}
 		
 		return nearestOpCoord;
