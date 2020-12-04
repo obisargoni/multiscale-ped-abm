@@ -608,6 +608,10 @@ public class Ped extends MobileAgent {
     	this.aP = aP;
     }
     
+    public double getPedestrianBearing() {
+    	return this.aP;
+    }
+    
     /**
      * Set the estimated expected location of the pedestrian agent in a number of timesteps time
      * 
