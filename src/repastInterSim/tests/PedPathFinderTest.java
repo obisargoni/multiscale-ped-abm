@@ -1591,7 +1591,7 @@ class PedPathFinderTest {
 			assert ppf.getTacticalPath().getTargetTA().getRouteJunctions().get(i).getFID().contentEquals(expectedRouteJunctions[i]);
 		}
 		
-		Junction secondStart = ppf.getTacticalPath().getTargetTA().getRouteJunctions().getLast();
+		Junction secondStart = ppf.getTacticalPath().getTargetTA().getOutsideJunction();
 		List<RoadLink> updatedSP = ppf.getStrategicPath().subList(2, ppf.getStrategicPath().size());
 		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, updatedSP, secondStart, ppf.getDestPavementJunction());
 		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_81");
