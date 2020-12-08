@@ -76,4 +76,4 @@ dfFlows = dfFlows.set_index(['O','D']).unstack().fillna(0)
 dfFlows.columns = [c[1] for c in dfFlows.columns]
 
 # Save this dataframe and use as the flows matrix
-dfFlows.to_csv(output_flows_path, index=False, header=False)
+dfFlows.to_csv(output_flows_path, index=False, header=True)

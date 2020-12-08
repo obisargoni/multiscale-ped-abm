@@ -1,5 +1,7 @@
 package repastInterSim.main;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -412,17 +414,30 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
-			int iD = 0; //vDI % nOD; For sigspatial paper there is only one active destination. Need to fix this as the destination to generate flows to otherwise end up with large gaps between vehicle addition
+			int iD = vDI % nOD;
 			
-			// Get the OD matrix entry
-			Float flow = Float.parseFloat(odData.get(iO)[iD]);
+			// First row of data is the IDs of the ODs
+			String[] ids = odData.get(0);
+			String idO = ids[iO];
+			String idD = ids[iD];
+			
+			// Get the OD matrix entry. Add one to row index to skip header of ids
+			Float flow = Float.parseFloat(odData.get(iO + 1)[iD]);
 			float threshold = rn.nextFloat();
 
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				OD o = vehicleDestinationContext.getObjects(OD.class).get(iO);
-				OD d = vehicleDestinationContext.getObjects(OD.class).get(iD);
+				OD o = null;
+				OD d = null;
+				for (OD j: vehicleDestinationContext.getObjects(OD.class)) {
+					if (j.getFID().contentEquals(idO)) {
+						o = j;
+					}
+					else if (j.getFID().contentEquals(idD)) {
+						d = j;
+					}
+				}
 				addVehicle(o, d);
 			}
 		}
