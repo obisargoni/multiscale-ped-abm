@@ -12,6 +12,7 @@ public class OD implements FixedGeography{
 	private Geography<OD> destinationGeography;
 	private Geometry geom;
 	private Long id;
+	private String fid;
 		
 	public OD() {
 
@@ -45,5 +46,13 @@ public class OD implements FixedGeography{
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+	
+	public String getFID() {
+		return this.fid;
+	}
+	
+	public void setFID(String s) {
+		this.fid = s;
 	}
 }
