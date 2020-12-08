@@ -99,19 +99,29 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		// Loop through ped roads and find nearest coordinate on each
 		Double minDist = Double.MAX_VALUE;
 		Coordinate nearestOpCoord = null;
-		int i = 0;
-		boolean rayUnknown = true;
-		while (rayUnknown) {
-			LineString ray = rays[i];
-		
+		int iRay = 0;
+		boolean oppRoadSideUnknown = true;
+		while (oppRoadSideUnknown) {		
 			for (Road rd:caPedRoads) {
-				// Get intersection between ray and this polygon
-				Coordinate[] intersectingCoords = rd.getGeom().intersection(ray).getCoordinates();
-				
+
+				// First check whether both rays have been tried
+				// If not all rays tried use ray intersection method
+				// Otherwise use nearest coord method
+				Coordinate[] intersectingCoords = null;
+				if (iRay<rays.length) {
+					LineString ray = rays[iRay];
+					// Get intersection between ray and this polygon
+					intersectingCoords = rd.getGeom().intersection(ray).getCoordinates();
+				}
+				else {
+					Coordinate nearC = GISFunctions.xestGeomCoordinate(c, rd.getGeom(), false);
+					intersectingCoords = new Coordinate[1];
+					intersectingCoords[0] = nearC;
+				}
+
 				// Now loop through these intersecting coords to find one that is
 				// - on the opposite side of the road
 				// - nearest to ped
-				
 				for (int j=0; j<intersectingCoords.length; j++) {
 					
 					Coordinate intC = intersectingCoords[j];
@@ -122,7 +132,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 						continue;
 					}
 					else {
-						rayUnknown = false;
+						oppRoadSideUnknown = false;
 						
 						// Check if nearer
 						double d = c.distance(intC);
@@ -133,7 +143,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 					}
 				}
 			}
-			i++;
+			iRay++;
 		}
 		
 		return nearestOpCoord;
