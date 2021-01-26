@@ -1,7 +1,13 @@
 package graph;
 
-import edu.uci.ics.jung.graph.Graph;
-import edu.uci.ics.jung.graph.util.EdgeType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.DefaultEdgeCreator;
 import repast.simphony.space.graph.EdgeCreator;
@@ -11,46 +17,40 @@ import repast.simphony.space.projection.DefaultProjection;
 import repast.simphony.space.projection.ProjectionEvent;
 import repast.simphony.space.projection.ProjectionPredicate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-
-public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements
-		Network<T> {
+public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements Network<T> {
 
 	protected Graph<T, RepastEdge<T>> graph;
 	private ArrayList<T> tmpRandomList = new ArrayList<T>();
-  protected EdgeCreator<? extends RepastEdge<T>, T> creator;
+	protected EdgeCreator<? extends RepastEdge<T>, T> creator;
 
-  public JgraphTNetwork(String name) {
+	public JgraphTNetwork(String name) {
 		this(name, new DefaultEdgeCreator<T>());
 	}
 
-  public JgraphTNetwork(String name, EdgeCreator<? extends RepastEdge<T>, T> creator) {
-    super(name);
-    this.creator = creator;
-  }
+	public JgraphTNetwork(String name, EdgeCreator<? extends RepastEdge<T>, T> creator) {
+		super(name);
+		this.creator = creator;
+	}
 
-  /**
-   * Gets the EdgeCreator used to create edges for
-   * this Network. {@link #addEdge(Object, Object) addEdge} and
-   * {@link #addEdge(Object, Object, double) addEdge} will use
-   * this creator to create edges. Any edge added with
-   * {@link #addEdge(repast.simphony.space.graph.RepastEdge) addEdge} must be of the same
-   * type as that created with this EdgeCreator. By default,
-   * an edge creator that creates RepastEdges is used.
-   * <p/>
-   * The default EdgeCreator will create
-   * RepastEdge
-   *
-   * @return the edge class of this network
-   */
-  public EdgeCreator<? extends RepastEdge<T>, T> getEdgeCreator() {
-    return creator;
-  }
+	/**
+	 * Gets the EdgeCreator used to create edges for
+	 * this Network. {@link #addEdge(Object, Object) addEdge} and
+	 * {@link #addEdge(Object, Object, double) addEdge} will use
+	 * this creator to create edges. Any edge added with
+	 * {@link #addEdge(repast.simphony.space.graph.RepastEdge) addEdge} must be of the same
+	 * type as that created with this EdgeCreator. By default,
+	 * an edge creator that creates RepastEdges is used.
+	 * <p/>
+	 * The default EdgeCreator will create
+	 * RepastEdge
+	 *
+	 * @return the edge class of this network
+	 */
+	public EdgeCreator<? extends RepastEdge<T>, T> getEdgeCreator() {
+		return creator;
+	}
 
-  public void setGraph(Graph<T, RepastEdge<T>> graph) {
+	public void setGraph(Graph<T, RepastEdge<T>> graph) {
 		this.graph = graph;
 	}
 
