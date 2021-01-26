@@ -16,18 +16,18 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-public abstract class JungNetwork<T> extends DefaultProjection<T> implements
+public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements
 		Network<T> {
 
 	protected Graph<T, RepastEdge<T>> graph;
 	private ArrayList<T> tmpRandomList = new ArrayList<T>();
   protected EdgeCreator<? extends RepastEdge<T>, T> creator;
 
-  public JungNetwork(String name) {
+  public JgraphTNetwork(String name) {
 		this(name, new DefaultEdgeCreator<T>());
 	}
 
-  public JungNetwork(String name, EdgeCreator<? extends RepastEdge<T>, T> creator) {
+  public JgraphTNetwork(String name, EdgeCreator<? extends RepastEdge<T>, T> creator) {
     super(name);
     this.creator = creator;
   }
