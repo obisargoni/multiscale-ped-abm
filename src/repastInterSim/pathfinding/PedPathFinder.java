@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 
+import graph.NetworkPath;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;

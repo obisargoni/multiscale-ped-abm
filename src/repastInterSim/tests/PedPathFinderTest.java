@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import graph.NetworkPath;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -42,7 +43,6 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
-import repastInterSim.pathfinding.NetworkPath;
 import repastInterSim.pathfinding.TacticalAlternative;
 
 class PedPathFinderTest {

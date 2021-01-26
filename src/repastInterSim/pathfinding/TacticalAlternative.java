@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import graph.NetworkPath;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;

@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import graph.NetworkPath;
 import repast.simphony.context.Context;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
@@ -28,7 +29,6 @@ import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
-import repastInterSim.pathfinding.NetworkPath;
 
 class NetworkPathTest {
 	
