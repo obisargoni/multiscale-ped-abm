@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
@@ -64,103 +66,106 @@ public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements 
 
 	public Iterable<T> getAdjacent(T agent) {
 		Collection<T> out = new LinkedHashSet<T>();
-		out.addAll(graph.getPredecessors(agent));
-		out.addAll(graph.getSuccessors(agent));
+		out.addAll(Graphs.predecessorListOf(this.graph, agent));
+		out.addAll(Graphs.successorListOf(this.graph, agent));
 		return out;
 	}
 
 	public int getDegree() {
-		return graph.getEdges().size();
+		return graph.edgeSet().size();
 	}
 
 	public int getDegree(T agent) {
-		return graph.degree(agent);
+		return graph.degreeOf(agent);
 	}
 
 	public Iterable<RepastEdge<T>> getEdges() {
-		return graph.getEdges();
+		return graph.edgeSet();
 	}
 
 	public Iterable<RepastEdge<T>> getEdges(T agent) {
-		return graph.getIncidentEdges(agent);
+		return graph.edgesOf(agent);
 	}
 
 	public int getInDegree(T agent) {
-		return graph.inDegree(agent);
+		return graph.inDegreeOf(agent);
 	}
 
 	public Iterable<RepastEdge<T>> getInEdges(T agent) {
-		return graph.getInEdges(agent);
+		return graph.incomingEdgesOf(agent);
 	}
 
 	public Iterable<T> getNodes() {
-		return graph.getVertices();
+		return graph.vertexSet();
 	}
 
 	public int getOutDegree(T agent) {
-		return graph.outDegree(agent);
+		return graph.outDegreeOf(agent);
 	}
 
 	public Iterable<RepastEdge<T>> getOutEdges(T agent) {
-		return graph.getOutEdges(agent);
+		return graph.outgoingEdgesOf(agent);
 	}
 
 	public Iterable<T> getPredecessors(T agent) {
-		return graph.getPredecessors(agent);
+		return Graphs.predecessorListOf(graph, agent);
 	}
 
 	public T getRandomAdjacent(T agent) {
-		int size = graph.getNeighbors(agent).size();
+		Set<T> neighbours = Graphs.neighborSetOf(graph, agent);
+		int size = neighbours.size();
 		if (size == 0) {
 			return null;
 		}
 		int index = RandomHelper.getUniform().nextIntFromTo(0, size - 1);
 		tmpRandomList.clear();
-		tmpRandomList.addAll(graph.getNeighbors(agent));
+		tmpRandomList.addAll(neighbours);
 		return tmpRandomList.get(index);
 	}
 
 	public T getRandomPredecessor(T agent) {
-		int size = graph.getPredecessors(agent).size();
+		Set<T> preds =  Graphs.predecessorListOf(graph, agent).stream().collect(Collectors.toSet());
+		int size = preds.size();
 		if (size == 0) {
 			return null;
 		}
 		int index = RandomHelper.getUniform().nextIntFromTo(0, size - 1);
 		tmpRandomList.clear();
-		tmpRandomList.addAll(graph.getPredecessors(agent));
+		tmpRandomList.addAll(preds);
 		return tmpRandomList.get(index);
 	}
 
 	public T getRandomSuccessor(T agent) {
-		int size = graph.getSuccessors(agent).size();
+		Set<T> sucs =  Graphs.successorListOf(graph, agent).stream().collect(Collectors.toSet());
+		int size = sucs.size();
 		if (size == 0) {
 			return null;
 		}
 		int index = RandomHelper.getUniform().nextIntFromTo(0, size - 1);
 		tmpRandomList.clear();
-		tmpRandomList.addAll(graph.getSuccessors(agent));
+		tmpRandomList.addAll(sucs);
 		return tmpRandomList.get(index);
 	}
 
 	public Iterable<T> getSuccessors(T agent) {
-		return graph.getSuccessors(agent);
+		return Graphs.successorListOf(graph,  agent);
 	}
 
 	public boolean isAdjacent(T first, T second) {
-		return graph.isNeighbor(first, second)
-				|| graph.isNeighbor(second, first);
+		return graph.containsEdge(first, second) ||
+		graph.containsEdge(second, first);
 	}
 
 	public boolean isPredecessor(T first, T second) {
-		return graph.isPredecessor(second, first);
+		return graph.containsEdge(second, first);
 	}
 
 	public boolean isSuccessor(T first, T second) {
-		return graph.isSuccessor(second, first);
+		return graph.containsEdge(first, second);
 	}
 
 	public int numEdges() {
-		return graph.getEdges().size();
+		return graph.edgeSet().size();
 	}
 
 	public void removeEdge(RepastEdge<T> edge) {
@@ -181,33 +186,24 @@ public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements 
   }
 
   public RepastEdge<T> addEdge(RepastEdge<T> edge) {
-    RepastEdge<T> oldEdge = graph.findEdge(edge.getSource(), edge.getTarget());
-    if (oldEdge != null) removeEdge(oldEdge);
-    graph.addEdge(edge, edge.getSource(), edge.getTarget());
-		fireProjectionEvent(new ProjectionEvent<T>(this, edge,
-				ProjectionEvent.EDGE_ADDED));
-		return edge;
-	}
-	
-  public RepastEdge<T> addEdge(RepastEdge<T> edge, EdgeType type) {
-	RepastEdge<T> oldEdge = graph.findEdge(edge.getSource(), edge.getTarget());
-    if (oldEdge != null) removeEdge(oldEdge);
-    graph.addEdge(edge, edge.getSource(), edge.getTarget(), type);
-		fireProjectionEvent(new ProjectionEvent<T>(this, edge,
-				ProjectionEvent.EDGE_ADDED));
-		return edge;
-	}
+    RepastEdge<T> oldEdge = graph.getEdge(edge.getSource(), edge.getTarget());
+    if (oldEdge != null) removeEdge(oldEdge);    
+    graph.addEdge(edge.getSource(), edge.getTarget(), edge);
+	fireProjectionEvent(new ProjectionEvent<T>(this, edge, ProjectionEvent.EDGE_ADDED));
+	return edge;
+  }
+  
 
 	public RepastEdge<T> addEdge(T source, T target) {
 		return addEdge(source, target, 1);
 	}
 
 	public RepastEdge<T> getEdge(T source, T target) {
-		return graph.findEdge(source, target);
+		return graph.getEdge(source, target);
 	}
 
 	public int size() {
-		return graph.getVertices().size();
+		return graph.vertexSet().size();
 	}
 
 	public void addVertex(T vertex) {
@@ -217,7 +213,7 @@ public abstract class JgraphTNetwork<T> extends DefaultProjection<T> implements 
 	}
 
 	public void removeVertex(T vertex) {
-    Collection<RepastEdge<T>> edges = graph.getIncidentEdges(vertex);
+    Collection<RepastEdge<T>> edges = graph.edgesOf(vertex);
     
     ArrayList<RepastEdge<T>> tempEdges = new ArrayList<RepastEdge<T>>();
     for (RepastEdge<T> edge : edges)
