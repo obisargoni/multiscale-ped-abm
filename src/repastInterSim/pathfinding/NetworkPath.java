@@ -120,10 +120,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 */
 		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode, Predicate<T> nodeFilter){
 			this.filterGraph(nodeFilter);
-			calcSimplePaths(node, targetNode);
-			List<Stack<RepastEdge<T>>> output = this.edgePaths;
-			resetConnectionPaths(); // Empty the paths
-			return output;
+			return getSimplePaths(node, targetNode);
 		}
 		
 		/*
@@ -138,7 +135,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * 		The paths
 		 */
 		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode){
-			return getSimplePaths(node, targetNode, null);
+			calcSimplePaths(node, targetNode);
+			List<Stack<RepastEdge<T>>> output = this.edgePaths;
+			resetConnectionPaths(); // Empty the paths
+			return output;
 		}
 		
 		/*
