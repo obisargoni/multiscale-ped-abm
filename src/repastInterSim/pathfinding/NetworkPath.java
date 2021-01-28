@@ -2,11 +2,9 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 import org.apache.commons.collections15.Predicate;
 
 import org.apache.commons.collections15.Transformer;
@@ -229,7 +227,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			// Otherwise get children nodes and add them to the path
 			else {
 				// Then find valid children nodes
-				LinkedHashSet<T> adj = (LinkedHashSet<T>)graph.getNeighbors(node);
+				Collection<T> adj = graph.getNeighbors(node);
 			    for (T nextNode : adj) {
 			    	if (!nodePath.contains(nextNode)) {
 			           calcSimplePaths(nextNode, targetNode);
