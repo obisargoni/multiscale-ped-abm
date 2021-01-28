@@ -118,8 +118,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @return List<Stack<T>>
 		 * 		The paths
 		 */
-		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter){
-			calcSimplePaths(node, targetNode, nodeFilter);
+		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode, Predicate<T> nodeFilter){
+			this.filterGraph(nodeFilter);
+			calcSimplePaths(node, targetNode);
 			List<Stack<RepastEdge<T>>> output = this.edgePaths;
 			resetConnectionPaths(); // Empty the paths
 			return output;
@@ -208,7 +209,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @param Predicate<? super T> nodeFilter
 		 * 		Used to filter which nodes can be including in the paths
 		 */
-		private void calcSimplePaths(T node, T targetNode, Predicate<? super T> nodeFilter) {
+		private void calcSimplePaths(T node, T targetNode) {
 	        // First add the node to the path
 			nodePath.push(node);
 			
@@ -229,17 +230,9 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			else {
 				// Then find valid children nodes
 				LinkedHashSet<T> adj = (LinkedHashSet<T>)graph.getNeighbors(node);
-				Iterable<T> validAdj;
-				if (nodeFilter == null) {
-					validAdj = adj;
-				}
-				else {
-					validAdj = adj.stream().filter(nodeFilter).collect(Collectors.toList());
-				}
-				
-			    for (T nextNode : validAdj) {
+			    for (T nextNode : adj) {
 			    	if (!nodePath.contains(nextNode)) {
-			           calcSimplePaths(nextNode, targetNode, nodeFilter);
+			           calcSimplePaths(nextNode, targetNode);
 			           nodePath.pop(); // Clears connection path on the way out
 				    }
 				}
