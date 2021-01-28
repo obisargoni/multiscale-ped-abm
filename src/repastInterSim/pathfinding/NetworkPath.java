@@ -26,6 +26,7 @@ import repast.simphony.space.projection.ProjectionListener;
 public class NetworkPath<T> implements ProjectionListener<T> {
 	
 		private Network<T> net;
+		private Graph<T, RepastEdge<T>> graph;
 		private boolean calc = true;
 		private Transformer<RepastEdge<T>,Double> transformer;
 		private DijkstraShortestPath<T,RepastEdge<T>> dsp;
@@ -42,6 +43,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 	    public NetworkPath(){
 	    	
 	    }
+
 		public NetworkPath(Network<T> net){
 			init(net);
 		}
@@ -51,6 +53,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			resetConnectionPaths();
 			this.setDefaultTransformer();
 			this.net.addProjectionListener(this);
+			this.graph = this.netToGraph(net);
 		}
 		
 		/*
@@ -186,14 +189,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * Creates shortest path info  nodes using the Jung Dijkstra algorithm
 		 */
 		private void calcShortestPaths(){
-			Graph<T, RepastEdge<T>> graph = null;
-			
-			if (net instanceof JungNetwork)
-				graph = ((JungNetwork<T>)net).getGraph();
-			else if (net instanceof ContextJungNetwork)
-				graph = ((ContextJungNetwork<T>)net).getGraph();
-			
-			dsp = new DijkstraShortestPath<T,RepastEdge<T>>(graph, transformer);
+			dsp = new DijkstraShortestPath<T,RepastEdge<T>>(this.graph, transformer);
 		}
 		
 		/*
@@ -278,6 +274,17 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		
 		public Network<T> getNet() {
 			return net;
+		}
+		
+		private Graph<T, RepastEdge<T>> netToGraph(Network<T> net) {
+			Graph<T, RepastEdge<T>> graph = null;
+
+			if (net instanceof JungNetwork)
+				graph = ((JungNetwork<T>)net).getGraph();
+			else if (net instanceof ContextJungNetwork)
+				graph = ((ContextJungNetwork<T>)net).getGraph();
+			
+			return graph;
 		}
 
 		/**
