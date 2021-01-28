@@ -1,6 +1,7 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections15.Transformer;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
+import edu.uci.ics.jung.algorithms.filters.FilterUtils;
+import edu.uci.ics.jung.algorithms.filters.VertexPredicateFilter;
 import edu.uci.ics.jung.graph.Graph;
 import repast.simphony.context.space.graph.ContextJungNetwork;
 import repast.simphony.space.graph.JungEdgeTransformer;
@@ -285,6 +288,24 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 				graph = ((ContextJungNetwork<T>)net).getGraph();
 			
 			return graph;
+		}
+		
+		public void filterGraph(Collection<T> vertices) {
+			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+			this.graph = FilterUtils.createInducedSubgraph(vertices, g);
+			calc = true;
+		}
+		
+		public void filterGraph(Predicate<T> verticesFilter) {
+			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>((org.apache.commons.collections15.Predicate<T>) verticesFilter);
+			this.graph = filter.transform(g);
+			calc = true;
+		}
+		
+		public void resetgraph() {
+			this.graph = this.netToGraph(net);
+			calc = true;
 		}
 
 		/**
