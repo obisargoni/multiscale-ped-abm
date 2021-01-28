@@ -134,7 +134,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * @return List<Stack<T>>
 		 * 		The paths
 		 */
-		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode){
+		private List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode){
 			calcSimplePaths(node, targetNode);
 			List<Stack<RepastEdge<T>>> output = this.edgePaths;
 			resetConnectionPaths(); // Empty the paths
