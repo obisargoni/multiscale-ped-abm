@@ -6,8 +6,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.apache.commons.collections15.Predicate;
 
 import org.apache.commons.collections15.Transformer;
 
@@ -291,7 +291,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		
 		public void filterGraph(Predicate<T> verticesFilter) {
 			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>((org.apache.commons.collections15.Predicate<T>) verticesFilter);
+			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
 			this.graph = filter.transform(g);
 			calc = true;
 		}

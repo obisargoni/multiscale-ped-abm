@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.Predicate;
+import org.apache.commons.collections15.Predicate;
 
 import org.junit.jupiter.api.Test;
 
