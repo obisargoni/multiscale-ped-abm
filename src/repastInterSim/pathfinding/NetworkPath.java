@@ -228,7 +228,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			// Otherwise get children nodes and add them to the path
 			else {
 				// Then find valid children nodes
-				LinkedHashSet<T> adj = (LinkedHashSet<T>)net.getAdjacent(node);
+				LinkedHashSet<T> adj = (LinkedHashSet<T>)graph.getNeighbors(node);
 				Iterable<T> validAdj;
 				if (nodeFilter == null) {
 					validAdj = adj;
