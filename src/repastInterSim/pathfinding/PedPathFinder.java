@@ -1,13 +1,16 @@
 package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections15.Predicate;
+import org.apache.commons.collections15.Transformer;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
@@ -247,6 +250,70 @@ public class PedPathFinder {
 		tr.updateCurrentJunction();
 		
 		return tr;
+	}
+	
+	/*
+	 * Method that chooses the tactical path. Does by finding all simple paths to the junction(s) at the end of the
+	 * planning horizon using a filtered version of the pavement graph. 
+	 * 
+	 * These paths are then ranked, first using heurisitc 1 then heuristic 2. The joint shortest paths by these measures are added to a list
+	 * and the chosen path is selected at random from that list.
+	 * 
+	 * @param networkpath<Junction> nP
+	 * 		NetworkPath instance used for finding simple paths. Graph paths found on is stored internally.
+	 * @param Junction currentJunction
+	 * 		The junction to start paths from.
+	 * @param colelction<Junction> targetJunctions
+	 * 		The destination junctions to find paths to.
+	 * @param Transformer<RepastEdge<Junction>> heuristic1
+	 * 		Primary metric to measure and rank path length by.
+	 * @param Transformer<RepastEdge<Junction>> heuristic2
+	 * 		Secondary metric to measure and rank path length by.
+	 * 
+	 * @returns List<RepastEdge<Junction>>
+	 */
+	public List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Double> heuristic1, Transformer<RepastEdge<Junction>,Double> heuristic2) {
+		
+		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
+		
+		// Loop through simple paths to target junctions. Identify those with shortest path length and add to the licat of candicate paths
+		Integer minPathLength1 = Integer.MAX_VALUE;
+		Integer minPathLength2 = Integer.MAX_VALUE;
+		for (Junction tJ: targetJunctions) {
+			
+			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ);
+			
+			for (Stack<RepastEdge<Junction>> path : simplePaths) {
+				Integer pathLength1 = (int) NetworkPath.getPathLength(path, heuristic1);
+				
+				if (pathLength1 < minPathLength1) {
+					candidatePaths.clear();
+					minPathLength1 = pathLength1;
+					candidatePaths.add(path);
+					
+					minPathLength2 = (int) NetworkPath.getPathLength(path, heuristic2);
+				}
+				// If paths are tied on 1st distance heuristic, use 2nd to discriminate
+				else if (pathLength1 == minPathLength1) {
+					Integer pathLength2 = (int) NetworkPath.getPathLength(path, heuristic2);
+					if (pathLength2 < minPathLength2) {
+						candidatePaths.clear();
+						minPathLength2 = pathLength2;
+						candidatePaths.add(path);
+					}
+					
+					else if (pathLength2 == minPathLength2) {
+						candidatePaths.add(path);
+					}
+				}
+			}
+		}
+		
+		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
+		// To choose between these we choose at random
+	    Random rand = new Random();
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(rand.nextInt(candidatePaths.size()));
+	    return chosenPath;
 	}
 	
 	/*
