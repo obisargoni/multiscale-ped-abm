@@ -23,7 +23,7 @@ public class TacticalAlternative {
 	private Junction endJunction = null;
 	private Junction outsideJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
-	private LinkedList<Junction> routeJunctions = null;
+	private LinkedList<RepastEdge<Junction>> routePath = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
 	private Coordinate destCoordinate = null;
 	private List<RepastEdge<Junction>> initPath; // Path that gets agent from the end of the previous road link they were on to the start of the next. Empty when last junction agent reached boarders previous and next road link.
@@ -41,6 +41,7 @@ public class TacticalAlternative {
 		this.initPath = initTacticalPath;
 		this.pathToEnd = firstLinkTacticalPath;
 		this.pathRemainder = remainderTacticalPath;
+		this.routePath = (LinkedList<RepastEdge<Junction>>) Stream.of(this.initPath, this.pathToEnd).flatMap(Collection::stream).collect(Collectors.toList());
 		
 	}
 	
@@ -69,7 +70,7 @@ public class TacticalAlternative {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		else if ((this.destCoordinate != null) & (this.getRoutePath().size()==1)) {
+		else if ((this.destCoordinate != null) & (this.routePath.size()==1)) {
 			return this.destCoordinate;
 		}
 		else {
@@ -93,7 +94,7 @@ public class TacticalAlternative {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if (this.recurringEndJunction & (this.getRoutePath().size()==1)) {
+		if (this.recurringEndJunction & (this.routePath.size()==1)) {
 			// do not update the current junction
 			
 		}
@@ -120,17 +121,8 @@ public class TacticalAlternative {
 	 * current strategic road link.
 	 */
 	public void updateCurrentEdge() {
-		if (this.initPath.size() > 0) {
-			this.currentEdge = this.initPath.get(0);
-			this.initPath.remove(0);
-		}
-		else if (this.pathToEnd.size() > 0) {
-			this.currentEdge = this.initPath.get(0);
-			this.initPath.remove(0);
-		}
-		else {
-			this.currentEdge = null;
-		}
+		this.routePath.pollFirst();
+		this.currentEdge = this.routePath.peekFirst();
 	}
 	
 	public List<RepastEdge<Junction>> getPathToEnd() {
@@ -167,14 +159,6 @@ public class TacticalAlternative {
 	
 	public void setAlternativeRemainderPath(List<RepastEdge<Junction>> path) {
 		this.pathRemainder = path;
-	}
-	
-	/*
-	 * Create the path of pavement edges along the tactical route on the fly by combining the path to the end of the tactical horizon and the
-	 * path from the end to the start of the next tactical horizon.
-	 */
-	public List<RepastEdge<Junction>> getRoutePath() {
-		return Stream.of(this.pathToEnd, this.pathEndToOutside).flatMap(Collection::stream).collect(Collectors.toList());
 	}
 
 	public void setCrossingAlternatives(List<CrossingAlternative> cas) {
