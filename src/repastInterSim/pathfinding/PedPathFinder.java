@@ -317,6 +317,64 @@ public class PedPathFinder {
 	}
 	
 	/*
+	 * New method for setting up a tactical alternative. The method takes the chosen tactical path along with the strategic path and uses this to 
+	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
+	 * crossing locations at those points
+	 */
+	public static void setupChosenTacticalAlternative(List<RoadLink> tacticalStrategicPath, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, List<Junction> endFirstLinkHorizonJunctions, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+		
+		// Need to split the chosen tactical path into three section sections
+		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 
+		List<RepastEdge<Junction>> firstLinkTacticalPath = new ArrayList<RepastEdge<Junction>>();
+		List<RepastEdge<Junction>> remainderTacticalPath = new ArrayList<RepastEdge<Junction>>();
+		
+		
+		// Split firstLinkTacticalPath from remainderTacticalPath using endFirstLinkHorizonJunctions
+		Junction prev = currentJ;
+		boolean reachedEndJunction = false;
+		int i = 0;
+		while (reachedEndJunction == false) {
+			RepastEdge<Junction> e = tacticalPath.get(i);
+			
+			Junction next = null;
+			if (e.getSource().equals(prev)) {
+				next = e.getTarget();
+			}
+			else {
+				next = e.getSource();
+			}
+			
+			// Check whether previous node / next node is one of the end junctions
+			boolean matchPrev = endFirstLinkHorizonJunctions.stream().anyMatch(j -> j.getFID().contentEquals(prev.getFID()));
+			boolean matchNext = endFirstLinkHorizonJunctions.stream().anyMatch(j -> j.getFID().contentEquals(next.getFID()));
+			
+			// Based on these matches decide whether to include the current edge in the path section that goes to the end of the first link
+			if (matchPrev & !matchNext) {
+				reachedEndJunction = true;
+			}
+			else if (matchPrev & matchNext) {
+				firstLinkTacticalPath.add(e);
+				i++;
+				reachedEndJunction = true;
+			}
+			else {
+				firstLinkTacticalPath.add(e);
+				i++;
+			}
+		}
+		
+		remainderTacticalPath = tacticalPath.subList(i, tacticalPath.size()-1);
+
+		
+		// Initialise the tactical alternative - sets the path
+		//TacticalAlternative tr = new TacticalAlternative(tacticalStrategicPath, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath);
+		//tr.updateCurrentJunction();
+		
+		//return tr;
+		
+	}
+	
+	/*
 	 * Sets up the tactical alternative which includes only the route to the end junction. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
 	 * route and add these to the tactical alternative.
 	 */
