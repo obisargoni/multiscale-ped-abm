@@ -115,6 +115,18 @@ public class TacticalAlternative {
 			// Update the current junction
 			this.getRouteJunctions().pollFirst();
 			this.currentJunction = this.getRouteJunctions().peekFirst();	
+	/*
+	 * Set the current edge to be either the next edge in the initial path or the next edge in the tactical path that goes up to the end of the 
+	 * current strategic road link.
+	 */
+	public void updateCurrentEdge() {
+		if (this.initPath.size() > 0) {
+			this.currentEdge = this.initPath.get(0);
+			this.initPath.remove(0);
+		}
+		else if (this.pathToEnd.size() > 0) {
+			this.currentEdge = this.initPath.get(0);
+			this.initPath.remove(0);
 		}
 	}
 	
