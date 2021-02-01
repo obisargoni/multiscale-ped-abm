@@ -102,7 +102,10 @@ public class TacticalAlternative {
 			updateCurrentEdge();
 			
 			Junction nextJunction = null;
-			if (this.currentEdge.getSource().equals(this.currentJunction)) {
+			if (this.currentEdge == null) {
+				nextJunction = null;
+			}
+			else if (this.currentEdge.getSource().equals(this.currentJunction)) {
 				nextJunction = this.currentEdge.getTarget();
 			}
 			else {
@@ -124,6 +127,9 @@ public class TacticalAlternative {
 		else if (this.pathToEnd.size() > 0) {
 			this.currentEdge = this.initPath.get(0);
 			this.initPath.remove(0);
+		}
+		else {
+			this.currentEdge = null;
 		}
 	}
 	
