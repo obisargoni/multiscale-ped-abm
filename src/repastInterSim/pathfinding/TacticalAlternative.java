@@ -53,20 +53,6 @@ public class TacticalAlternative {
 		this.pathRemainder = new ArrayList<RepastEdge<Junction>>();
 	}
 	
-	private void setRouteJunctions() {
-		// Get junctions from path
-		List<RepastEdge<Junction>> path = this.getRoutePath();
-		LinkedList<Junction> nodesToEnd = nP.nodePathFromEdges(path, this.currentJunction);
-		this.routeJunctions = nodesToEnd;
-	}
-	
-	public LinkedList<Junction> getRouteJunctions(){
-		if (this.routeJunctions == null) {
-			setRouteJunctions();
-		}
-		return this.routeJunctions;
-	}
-	
 	public Junction getCurrentJunction() {
 		return this.currentJunction;
 	}
@@ -83,7 +69,7 @@ public class TacticalAlternative {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		else if ((this.destCoordinate != null) & (this.getRouteJunctions().size()==1)) {
+		else if ((this.destCoordinate != null) & (this.getRoutePath().size()==1)) {
 			return this.destCoordinate;
 		}
 		else {
@@ -107,7 +93,7 @@ public class TacticalAlternative {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if (this.recurringEndJunction & (this.getRouteJunctions().size()==1)) {
+		if (this.recurringEndJunction & (this.getRoutePath().size()==1)) {
 			// do not update the current junction
 			
 		}
