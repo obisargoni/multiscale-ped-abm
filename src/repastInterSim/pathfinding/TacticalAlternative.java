@@ -13,24 +13,35 @@ import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.RoadLink;
 
 public class TacticalAlternative {
 	
 	private NetworkPath<Junction> nP;
 	private Junction currentJunction = null;
+	private RepastEdge<Junction> currentEdge = null;
 	private Junction endJunction = null;
 	private Junction outsideJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<Junction> routeJunctions = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
 	private Coordinate destCoordinate = null;
+	private List<RepastEdge<Junction>> initPath; // Path that gets agent from the end of the previous road link they were on to the start of the next. Empty when last junction agent reached boarders previous and next road link.
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
-	private List<RepastEdge<Junction>> pathEndToOutside; // Path that gets agent from end of tactical horizon to first link outside of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
 	private boolean recurringEndJunction = false;
 	
 	public TacticalAlternative() {
 		// Blank constructor
+	}
+	
+	public TacticalAlternative(List<RoadLink> tacticalStrategicPath, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction) {
+		this.currentJunction = startJunction;
+		this.endJunction = ; // Is this needed?
+		this.initPath = initTacticalPath;
+		this.pathToEnd = firstLinkTacticalPath;
+		this.pathRemainder = remainderTacticalPath;
+		
 	}
 	
 	public TacticalAlternative(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
