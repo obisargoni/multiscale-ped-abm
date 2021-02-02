@@ -31,6 +31,7 @@ public class AccumulatorRoute {
 	private Junction defaultJunction;
 		
 	private boolean caChosen = false;
+	private CrossingAlternative chosenCA = null;
 	
 	private boolean isBlank = false;
 	
@@ -250,8 +251,8 @@ public class AccumulatorRoute {
 		}
 	}
 	
-	public boolean isCrossingChosen() {
-		return this.caChosen;
+	public CrossingAlternative getChosenCA() {
+		return this.chosenCA;
 	}
 	
 	public TacticalAlternative getTacticalRoute() {
