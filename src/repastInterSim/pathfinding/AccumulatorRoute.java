@@ -22,9 +22,6 @@ public class AccumulatorRoute {
 	
 	private Ped ped;
 	
-	// Change accumulator so that is does not provide access to tactical route. Should only change tactical route. All access to junctions, coordinates should go direct to tactical alternative.
-	private TacticalAlternative tacticalRoute = null;
-	
 	private double roadLength;
 	private List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 	private double[] caActivations;
@@ -43,11 +40,9 @@ public class AccumulatorRoute {
 		this.isBlank = true;
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, TacticalAlternative tr, Junction dJ, Junction tJ, List<CrossingAlternative> cas, LinkedList<RepastEdge<Junction>> tRP) {
+	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, LinkedList<RepastEdge<Junction>> tRP) {
 		this.ped = p;
 		this.roadLength = rL;
-		
-		this.tacticalRoute = tr;
 		
 		this.cas = cas;
 		this.caActivations = new double[this.cas.size()];
@@ -244,10 +239,6 @@ public class AccumulatorRoute {
 	
 	public CrossingAlternative getChosenCA() {
 		return this.chosenCA;
-	}
-	
-	public TacticalAlternative getTacticalRoute() {
-		return this.tacticalRoute;
 	}
 	
 	public Junction getTargetJunction() {
