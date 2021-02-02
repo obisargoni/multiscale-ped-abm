@@ -29,8 +29,6 @@ public class AccumulatorRoute {
 	
 	private Junction targetJunction;
 	private Junction defaultJunction;
-	private Coordinate targetDest;
-	private Coordinate defaultDest;
 		
 	private boolean caChosen = false;
 	
@@ -55,9 +53,6 @@ public class AccumulatorRoute {
 		
 		this.targetJunction = tJ;
 		this.defaultJunction = dJ;
-		
-		this.targetDest = this.targetJunction.getGeom().getCoordinate();
-		this.defaultDest = this.defaultJunction.getGeom().getCoordinate();
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -145,7 +140,7 @@ public class AccumulatorRoute {
 		
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
-		Double dFromCAToDest = ca.distanceTo(this.targetDest);
+		Double dFromCAToDest = ca.distanceTo(this.targetJunction.getGeom().getCoordinate());
 				
 		// Get the unmarked crossing alternative and calculate the distance to dest using it
 		CrossingAlternative umCA = null;
@@ -156,7 +151,7 @@ public class AccumulatorRoute {
 		}
 		
 		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
-		Double umDFromCAToDest = umCA.distanceTo(this.targetDest);
+		Double umDFromCAToDest = umCA.distanceTo(this.targetJunction.getGeom().getCoordinate());
 		
 		double detourWalkTime = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest)) / this.ped.getSpeed();
 				
