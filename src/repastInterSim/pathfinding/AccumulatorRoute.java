@@ -20,14 +20,17 @@ public class AccumulatorRoute {
 	
 	private Ped ped;
 	
-	private TacticalAlternative targetTR = new TacticalAlternative();
-	private TacticalAlternative currentTR = new TacticalAlternative();
+	// Change accumulator so that is does not provide access to tactical route. Should only change tactical route. All access to junctions, coordinates should go direct to tactical alternative.
+	private TacticalAlternative tacticalRoute = null;
 	
 	private double roadLength;
 	private List<CrossingAlternative> cas;
 	private double[] caActivations;
 	
+	private Junction targetJunction;
+	private Junction defaultJunction;
 	private Coordinate targetDest;
+	private Coordinate defaultDest;
 		
 	private boolean caChosen = false;
 	
@@ -38,21 +41,23 @@ public class AccumulatorRoute {
 		this.isBlank = true;
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, TacticalAlternative dTR, TacticalAlternative tTR) {
+	public AccumulatorRoute(Ped p, double rL, TacticalAlternative tr, Junction dJ, Junction tJ, List<CrossingAlternative> cas) {
 		this.ped = p;
 		this.roadLength = rL;
 		
-		// Agent starts by using the default tactical route but wants to use the target tactical route and must decide where to switch between these
-		this.currentTR = dTR;
-		this.targetTR = tTR;
+		this.tacticalRoute = tr;
 		
-		this.cas = this.targetTR.getCrossingAlternatives();
+		this.cas = cas;
 		this.caActivations = new double[this.cas.size()];
 		for (int i=0;i<this.caActivations.length; i++) {
 			this.caActivations[i]=0;
 		}
 		
-		this.targetDest = this.targetTR.getEndJunction().getGeom().getCoordinate();
+		this.targetJunction = tJ;
+		this.defaultJunction = dJ;
+		
+		this.targetDest = this.targetJunction.getGeom().getCoordinate();
+		this.defaultDest = this.defaultJunction.getGeom().getCoordinate();
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -224,12 +229,14 @@ public class AccumulatorRoute {
 			// With crossing alternative chosen, update the tactical path
 			CrossingAlternative chosenCA = this.cas.get(choseni);
 			
-			// Once crossing choice is made, need to update which tactical route the ped must follow
-			// Also need to update the tactical path of the tactical route
-			this.targetTR.updatePathToEnd(this.currentTR.getCurrentJunction());
-			this.targetTR.addCoordinate(chosenCA.nearestCoord(this.ped.getLoc()));
-			this.targetTR.addCoordinate(chosenCA.farthestCoord(this.ped.getLoc()));
-			this.currentTR = this.targetTR;
+			// Once crossing choice is made, need to update the coordiantes the agents should walk to
+			
+			// Add the coordinates of the start and end of the crossing to the route
+			this.tacticalRoute.addCoordinate(chosenCA.nearestCoord(this.ped.getLoc()));
+			this.tacticalRoute.addCoordinate(chosenCA.farthestCoord(this.ped.getLoc()));
+			
+			// Set the current junction to be the target junction - this is the junction the agent will walk to
+			this.tacticalRoute.setCurrentJunction(this.targetDest);
 			
 			// Update bool indicating whether crossing choice has been made or not
 			this.caChosen = true;
@@ -248,28 +255,20 @@ public class AccumulatorRoute {
 		}
 	}
 	
-	public Coordinate targetCoordinate() {
-		return this.currentTR.getTargetCoordinate();	
-	}
-	
-	public void updateTargetCoordiante() {
-		this.currentTR.updateTargetCoordiante();
-	}
-	
-	public Junction getCurrentJunction() {
-		return this.currentTR.getCurrentJunction();
-	}
-	
 	public boolean isCrossingChosen() {
 		return this.caChosen;
 	}
 	
-	public TacticalAlternative getCurrentTA() {
-		return this.currentTR;
+	public TacticalAlternative getTacticalRoute() {
+		return this.tacticalRoute;
 	}
 	
-	public TacticalAlternative getTargetTA() {
-		return this.targetTR;
+	public Junction getTargetJunction() {
+		return this.targetJunction;
+	}
+	
+	public Junction getDefaultJunction() {
+		return this.defaultJunction;
 	}
 	
 	public boolean isBlank() {
