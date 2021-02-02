@@ -197,6 +197,29 @@ public class TacticalAlternative {
 		// Get path from this junction to the end junction and set route junctions to null so that they will be re calculated
 		this.setPathToEnd();
 		this.routeJunctions = null;
+	/*
+	 * Given the source and target junctions of an edge of the tactical network, return the junction that belongs to the same road node
+	 * as the target junction, is not the target junction itself, and does not require a road crossing to get to. If no such junction is 
+	 * available return null.
+	 * 
+	 * This method is used to identify the default junction a pedestrian walks towards whilst choosing a crossing location.
+	 */
+	public Junction noCrossTargetJunction(Junction sourceJunction, Junction targetJunction) {
+		Junction noCrossJ = null;
+		
+		// get road node id
+		String roadNodeID = targetJunction.getjuncNodeID();
+		
+		// Loop through junctions connected to the source junction
+		for (Junction j:this.nP.getNet().getAdjacent(sourceJunction)) {
+			
+			if ( (j.getjuncNodeID().contentEquals(roadNodeID)) & !(j.getFID().contentEquals(targetJunction.getFID())) ) {
+				noCrossJ = j;
+				break;
+			}
+		}
+		
+		return noCrossJ;
 	}
 
 	void addCoordinate(Coordinate c) {
