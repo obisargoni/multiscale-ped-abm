@@ -236,7 +236,7 @@ public class AccumulatorRoute {
 			this.tacticalRoute.addCoordinate(chosenCA.farthestCoord(this.ped.getLoc()));
 			
 			// Set the current junction to be the target junction - this is the junction the agent will walk to
-			this.tacticalRoute.setCurrentJunction(this.targetDest);
+			this.tacticalRoute.setCurrentJunction(this.targetJunction);
 			
 			// Update bool indicating whether crossing choice has been made or not
 			this.caChosen = true;
