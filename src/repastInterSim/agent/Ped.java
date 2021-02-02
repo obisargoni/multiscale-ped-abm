@@ -143,7 +143,7 @@ public class Ped extends MobileAgent {
         	if (tacticalCoordUpdateRequired) {
         		pathFinder.updateTacticalPath();
         	}
-        	walk(pathFinder.getTacticalPath().targetCoordinate());
+        	walk(pathFinder.getTacticalPath().getTargetCoordinate());
         	pathFinder.step();
     	}
    		
@@ -157,7 +157,7 @@ public class Ped extends MobileAgent {
             	if (tacticalCoordUpdateRequired) {
             		pathFinder.updateTacticalPath();
             	}
-            	walk(pathFinder.getTacticalPath().targetCoordinate());
+            	walk(pathFinder.getTacticalPath().getTargetCoordinate());
             	pathFinder.step();
 
         	}
@@ -167,7 +167,7 @@ public class Ped extends MobileAgent {
     	}
    		
     	// Finally update the target coordinate if current target coordinate has been reached
-    	if (this.maLoc.distance(this.pathFinder.getTacticalPath().targetCoordinate()) < 0.5) {
+    	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
     		this.pathFinder.getTacticalPath().updateTargetCoordiante();
     	}
     }

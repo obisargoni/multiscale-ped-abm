@@ -41,7 +41,7 @@ public class PedPathFinder {
 	int tacticalHorizonLinks = 0;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
-	private AccumulatorRoute tacticalPath = new AccumulatorRoute();
+	private TacticalAlternative tacticalPath = new TacticalAlternative();
 	
 	private Coordinate nextCrossingCoord;	
 
@@ -702,7 +702,7 @@ public class PedPathFinder {
 		return this.strategicPath;
 	}
 	
-	public AccumulatorRoute getTacticalPath() {
+	public TacticalAlternative getTacticalPath() {
 		return this.tacticalPath;
 	}
 	
