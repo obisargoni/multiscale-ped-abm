@@ -227,20 +227,7 @@ public class AccumulatorRoute {
 			}
 			
 			// With crossing alternative chosen, update the tactical path
-			CrossingAlternative chosenCA = this.cas.get(choseni);
-			
-			// Once crossing choice is made, need to update the coordiantes the agents should walk to
-			
-			// Add the coordinates of the start and end of the crossing to the route
-			this.tacticalRoute.addCoordinate(chosenCA.nearestCoord(this.ped.getLoc()));
-			this.tacticalRoute.addCoordinate(chosenCA.farthestCoord(this.ped.getLoc()));
-			
-			// Set the current junction to be the target junction - this is the junction the agent will walk to
-			this.tacticalRoute.setCurrentJunction(this.targetJunction);
-			
-			// Update bool indicating whether crossing choice has been made or not
-			this.caChosen = true;
-			this.ped.setChosenCrossingType(chosenCA.getType());
+			this.chosenCA = this.cas.get(choseni);
 		}
 	}
 	
