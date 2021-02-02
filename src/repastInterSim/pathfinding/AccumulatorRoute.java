@@ -6,12 +6,14 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
