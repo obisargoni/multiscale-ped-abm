@@ -250,6 +250,10 @@ public class TacticalAlternative {
 	public Junction getEndJunction() {
 		return this.endJunction;
 	}
+	
+	public Junction getFinalJunction() {
+		return this.finalJunction;
+	}
 
 	public void setDestinationCoordinate(Coordinate dC) {
 		this.destCoordinate = dC;

@@ -119,12 +119,11 @@ public class PedPathFinder {
 			startJunction = this.startPavementJunction;
 		}
 		else {
-			startJunction = this.tacticalPath.getCurrentTA().getOutsideJunction();
+			startJunction = this.tacticalPath.getFinalJunction();
 		}
 		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
 		tacticalHorizonLinks = planTacticaAccumulatorPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
-	
     }
 	
 	/*
