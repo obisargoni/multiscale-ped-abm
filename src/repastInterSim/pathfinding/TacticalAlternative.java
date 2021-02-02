@@ -30,10 +30,12 @@ public class TacticalAlternative {
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
 	private boolean recurringEndJunction = false;
+	private boolean isBlank = false;
 	private AccumulatorRoute accumulator = new AccumulatorRoute();
 	
 	public TacticalAlternative() {
 		// Blank constructor
+		this.isBlank = true;
 	}
 	
 	public TacticalAlternative(List<RoadLink> tacticalStrategicPath, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction) {
@@ -236,4 +238,7 @@ public class TacticalAlternative {
 		}
 	}
 	
+	public boolean isBlank() {
+		return this.isBlank;
+	}
 }
