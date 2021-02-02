@@ -249,7 +249,7 @@ public class AccumulatorRoute {
 	 */
 	public void step() {
 		// Accumulate activation and chooses a crossing alternative if choice not made yet
-		if ((this.caChosen==false) & (this.cas.size()>0)) {
+		if ((isBlank == false) & (this.caChosen==false) & (this.cas.size()>0)) {
 			this.accumulateCAActivation();
 			this.chooseCA();
 		}
