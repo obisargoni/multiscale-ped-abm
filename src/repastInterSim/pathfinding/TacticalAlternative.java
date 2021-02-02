@@ -22,6 +22,7 @@ public class TacticalAlternative {
 	private RepastEdge<Junction> currentEdge = null;
 	private Junction endJunction = null;
 	private Junction outsideJunction = null;
+	private Junction finalJunction = null;
 	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<RepastEdge<Junction>> routePath = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
@@ -101,31 +102,51 @@ public class TacticalAlternative {
 			// do not update the current junction
 			
 		}
+		
 		else {
-			// Update the current junction
-			updateCurrentEdge();
+			// Update the current edge
+			this.routePath.pollFirst();
+			this.currentEdge = this.routePath.peekFirst();
 			
+			// Identify the next junction
 			Junction nextJunction = null;
 			if (this.currentEdge == null) {
+				this.finalJunction = this.currentJunction;
 				nextJunction = null;
 			}
-			else if (this.currentEdge.getSource().equals(this.currentJunction)) {
-				nextJunction = this.currentEdge.getTarget();
-			}
 			else {
-				nextJunction = this.currentEdge.getSource();
+				if (this.currentEdge.getSource().equals(this.currentJunction)) {
+					nextJunction = this.currentEdge.getTarget();
+				}
+				else {
+					nextJunction = this.currentEdge.getSource();
+				}
+				
+				// Check if this edge requires crossing a primary link. If it does, initialise an accumulator to choose crossing location
+				int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(this.currentJunction.getGeom().getCoordinate(), nextJunction.getGeom().getCoordinate(), sP);
+				if (primaryCrossingParity == 1) {
+					
+					Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
+					
+					// Record the desired route path, and overwrite route path with the now default route path
+					LinkedList<RepastEdge<Junction>> targetRoutePath = this.routePath;
+					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, nextJunction);
+					this.routePath = new LinkedList<RepastEdge<Junction>>();
+					this.routePath.add(defaultEdge);
+					
+					// Identify crossing alternatives
+					List<CrossingAlternative> cas = getCrossingAlternatives(caG, tSP, p, rG);
+					
+					// Initialise accumulator crossing choice model
+					this.accumulator = new AccumulatorRoute(p, pHLength, tr, defaultDest, targetJunction, targetRoutePath);
+					
+					// Set target junction to be the default, no crossing, junction while agent chooses crossing location
+					nextJunction = this.accumulator.getDefaultJunction();			
+				}
 			}
-			this.currentJunction = nextJunction;	
+			
+			this.currentJunction = nextJunction;
 		}
-	}
-	
-	/*
-	 * Set the current edge to be either the next edge in the initial path or the next edge in the tactical path that goes up to the end of the 
-	 * current strategic road link.
-	 */
-	public void updateCurrentEdge() {
-		this.routePath.pollFirst();
-		this.currentEdge = this.routePath.peekFirst();
 	}
 	
 	public List<RepastEdge<Junction>> getPathToEnd() {
