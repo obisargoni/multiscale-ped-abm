@@ -192,32 +192,7 @@ public class TacticalAlternative {
 	public List<CrossingAlternative> getCrossingAlternatives() {
 		return this.crossingAlternatives;
 	}
-
-	public void updatePathToEnd(Junction j) {
-		// Get the earliest route junction that is connected to input junction j and belongs to the same road network node as j
-		// Use this as the new starting junction.
-		String roadNodeID = j.getjuncNodeID();
-		boolean breakLoop = false;
-		
-		// Start at first route coord and continue searching along route until match found
-		for (Junction rj:this.getRouteJunctions()) {
-			
-			// Get adjacent junctions and find the one that belongs to the same road node and matches the route junction
-			for (Junction aj: this.nP.getNet().getAdjacent(j)) {
-				if ( (aj.getjuncNodeID().contentEquals(roadNodeID)) & (aj.getFID().contentEquals(rj.getFID())) ) {
-					this.currentJunction = aj;
-					breakLoop = true;
-					break;
-				}
-			}
-			if (breakLoop) {
-				break;
-			}
-		}
-		
-		// Get path from this junction to the end junction and set route junctions to null so that they will be re calculated
-		this.setPathToEnd();
-		this.routeJunctions = null;
+	
 	/*
 	 * Given the source and target junctions of an edge of the tactical network, return the junction that belongs to the same road node
 	 * as the target junction, is not the target junction itself, and does not require a road crossing to get to. If no such junction is 
