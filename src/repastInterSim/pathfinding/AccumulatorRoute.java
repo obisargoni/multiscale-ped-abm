@@ -26,7 +26,7 @@ public class AccumulatorRoute {
 	private TacticalAlternative tacticalRoute = null;
 	
 	private double roadLength;
-	private List<CrossingAlternative> cas;
+	private List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 	private double[] caActivations;
 	
 	private LinkedList<RepastEdge<Junction>> targetRoutePath = null;
