@@ -175,6 +175,45 @@ public class TacticalAlternative {
 	public void setAlternativeRemainderPath(List<RepastEdge<Junction>> path) {
 		this.pathRemainder = path;
 	}
+	
+	/*
+	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
+	 * for use in the accumulator choice model.
+	 * 
+	 * @param Geography<CrossingAlternative> caG
+	 * 		The geography containing all crossing alternative objects
+	 * @param List<RoadLink> rls
+	 * 		The road links to identify crossing alternatives along, typically the tactical planning horizon section of the strategic path.
+	 * @param Ped p
+	 * 		The pedestrian agent perceiving the crossing alternatives
+	 * @param Geography<Road> rG
+	 * 		The Geography containing Road objects
+	 */
+	public static List<CrossingAlternative> getCrossingAlternatives(Geography<CrossingAlternative> caG, List<RoadLink> rls, Ped p, Geography<Road> rG){
+		
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		
+		// Agent identifies crossing locations on the road links passed in
+		// Loop through these and get crossing alternatives that belong to these road links
+		for (RoadLink rl: rls) {
+			for (CrossingAlternative ca: caG.getAllObjects()) {
+				if (ca.getRoadLinkID().contentEquals(rl.getFID())) {
+					// Add to list
+					cas.add(ca);
+				}
+			}
+		}
+		
+		// Add unmarked crossing alternative to list
+		// Don't set road for unmarked crossings
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setPed(p);
+		caU.setRoadGeography(rG);
+		caU.setStrategicPathSection(rls);
+		cas.add(caU);
+		
+		return cas;		
+	}
 
 	public void setCrossingAlternatives(List<CrossingAlternative> cas) {
 		this.crossingAlternatives = cas;
