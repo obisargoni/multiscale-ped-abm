@@ -32,7 +32,6 @@ public class TacticalAlternative {
 	private RepastEdge<Junction> currentEdge = null;
 	private Junction endJunction = null;
 	private Junction finalJunction = null;
-	private List<CrossingAlternative> crossingAlternatives;
 	private LinkedList<RepastEdge<Junction>> routePath = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
 	private Coordinate destCoordinate = null;
@@ -227,14 +226,6 @@ public class TacticalAlternative {
 		cas.add(caU);
 		
 		return cas;		
-	}
-
-	public void setCrossingAlternatives(List<CrossingAlternative> cas) {
-		this.crossingAlternatives = cas;
-	}
-	
-	public List<CrossingAlternative> getCrossingAlternatives() {
-		return this.crossingAlternatives;
 	}
 	
 	/*
