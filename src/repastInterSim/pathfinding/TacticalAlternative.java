@@ -49,7 +49,7 @@ public class TacticalAlternative {
 		this.isBlank = true;
 	}
 	
-	public TacticalAlternative(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction) {
+	public TacticalAlternative(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG) {
 		this.ped = p;
 		this.caG = caG;
 		this.rG = rG;

@@ -280,7 +280,7 @@ public class PedPathFinder {
 
 		
 		// Initialise the tactical alternative - sets the path
-		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ);
+		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG);
 		tr.updateCurrentJunction();
 		
 		return tr;
