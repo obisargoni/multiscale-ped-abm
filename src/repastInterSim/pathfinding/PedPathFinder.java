@@ -320,7 +320,15 @@ public class PedPathFinder {
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
 	 * crossing locations at those points
 	 */
-	public static void setupChosenTacticalAlternative(List<RoadLink> tacticalStrategicPath, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, List<Junction> endFirstLinkHorizonJunctions, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalAlternative setupChosenTacticalAlternative(List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, List<Junction> endFirstLinkHorizonJunctions, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+		
+		List<RoadLink> tacticalStrategicPath = sP.subList(0, tacticalNLinks);
+		
+		// Get length of the planning horizon, this is used in the accumulator route
+		double pHLength = 0;
+		for (int i = 0; i<tacticalNLinks; i++) {
+			pHLength += sP.get(i).getGeom().getLength();
+		}
 		
 		// Need to split the chosen tactical path into three section sections
 		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 
@@ -366,10 +374,10 @@ public class PedPathFinder {
 
 		
 		// Initialise the tactical alternative - sets the path
-		//TacticalAlternative tr = new TacticalAlternative(tacticalStrategicPath, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath);
-		//tr.updateCurrentJunction();
+		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath);
+		tr.updateCurrentJunction();
 		
-		//return tr;
+		return tr;
 		
 	}
 	
