@@ -265,49 +265,7 @@ public class PedPathFinder {
 		
 	}
 	
-	/*
-	 * Sets up the tactical alternative which includes only the route to the end junction. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
-	 * route and add these to the tactical alternative.
-	 */
-	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, Junction currentJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
-		
-		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, eJ, currentJ);
-		
-		// Finally identify the crossing alternatives available in order to complete this tactical route
-		// If chosen to cross road, identify crossing options and initialise accumulator route
-		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(currentJ.getGeom().getCoordinate(), eJ.getGeom().getCoordinate(), sP);
-		if (primaryCrossingParity == 1) {
-			// Get crossing alternatives within planning horizon
-			cas = getCrossingAlternatives(caG, tSP, p, rG);
-		}
-		
-		tr.setCrossingAlternatives(cas);
-		
-		return tr;
-	}
 	
-	/*
-	 * Sets up the tactical alternative route. If the route requires a primary crossing to reach the end junction identify the possible crossing alternatives along the tactical
-	 * route and add these to the tactical alternative.
-	 */
-	public static TacticalAlternative setupTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, List<RoadLink> tSP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
-		
-		TacticalAlternative tr = setupTacticalAlternativeRoute(nP, sP, eJ, outsideJunctions, currentJ, destJ);
-		
-		// Finally identify the crossing alternatives available in order to complete this tactical route
-		// If chosen to cross road, identify crossing options and initialise accumulator route
-		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
-		int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(currentJ.getGeom().getCoordinate(), eJ.getGeom().getCoordinate(), sP);
-		if (primaryCrossingParity == 1) {
-			// Get crossing alternatives within planning horizon
-			cas = getCrossingAlternatives(caG, tSP, p, rG);
-		}
-		
-		tr.setCrossingAlternatives(cas);
-		
-		return tr;
-	}
 	
 	
 	public static TacticalAlternative tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
@@ -339,37 +297,7 @@ public class PedPathFinder {
 		return tr;
 	}
 	
-	/*
-	 * Alternative method for setting up the tactical route alternatives to be use when the destination lies within the tactical planning horizon. In this case
-	 * a different method is required for setting up the tactical alternatives that includes the destination within the route and a default option that doesn't involde crossing
-	 * or progressing past the strategic path as it is assumed the ped agent does not have a tactical route choice at this stage, ie the ped is committed to walking to its destination.
-	 */
-	public static List<TacticalAlternative> destinationTacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
-		
-		// Find the default end junction by finding the junctions at the end of the strategic path and selecting the one that is not the destination junction
-		Junction nonDestJ = null;
-		String endNodeID = destJ.getjuncNodeID();
-		RoadLink endRL = sP.get(sP.size()-1);
-		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, endRL, endNodeID);
-		List<Junction> endJunctions = horizonJunctions.get("end");
-		List<Junction> defaultJunctions = endJunctions.stream().filter(j -> !j.getFID().contentEquals(destJ.getFID())).collect(Collectors.toList());
-		assert defaultJunctions.size() == 1;
-		nonDestJ = defaultJunctions.get(0);
-		
-		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
-		
-		// Set up tactical alternative that includes the destination coordinate
-		TacticalAlternative targetTA = setupTacticalAlternative(nP, sP, sP, destJ, currentJ, caG, rG, p);
-		
-		// Now set up the tactical alternative to the other end junction
-		TacticalAlternative nonDestTA = setupTacticalAlternative(nP, sP, sP, nonDestJ, currentJ, caG, rG, p);
-		
-		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
-		tacticalRoutes.add(targetTA);
-		tacticalRoutes.add(nonDestTA);
-		
-		return tacticalRoutes;
-	}
+
 	
 	private static boolean containsPrimaryCrossing(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
 		boolean cPC = false;
