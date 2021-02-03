@@ -133,17 +133,8 @@ public class PedPathFinder {
 	public int planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
-		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-
-		// Identify tactical route
-		TacticalAlternative tr = tacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
+		int tacticalNLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
 		
-		this.tacticalPath = tr;
-		
-		return nLinks;
-	}
-	
-	public static TacticalAlternative tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
 		RoadLink rlOutHorz = sP.get(tacticalNLinks);
@@ -168,8 +159,10 @@ public class PedPathFinder {
 		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
 		
 		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
-
-		return tr;
+		
+		this.tacticalPath = tr;
+		
+		return tacticalNLinks;
 	}
 	
 	/*
