@@ -9,11 +9,15 @@ import java.util.stream.Stream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
+import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
 
 public class TacticalAlternative {
 	
