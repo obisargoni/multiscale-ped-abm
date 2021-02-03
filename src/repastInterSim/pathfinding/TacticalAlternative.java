@@ -128,9 +128,9 @@ public class TacticalAlternative {
 					nextJunction = this.currentEdge.getSource();
 				}
 				
-				// Check if this edge requires crossing a primary link. If it does, initialise an accumulator to choose crossing location
-				int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(this.currentJunction.getGeom().getCoordinate(), nextJunction.getGeom().getCoordinate(), this.strategicPath);
-				if (primaryCrossingParity == 1) {
+				// Check if this edge requires crossing a primary link. If it does, initialise an accumulator to choose crossing location				
+				List<RoadLink> crossingLinks = tacticalPathPrimaryCrossingLinks(this.currentEdge, this.strategicPath); 
+				if (crossingLinks.size()>0) {
 					
 					Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
 					
@@ -139,14 +139,6 @@ public class TacticalAlternative {
 					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, nextJunction);
 					this.routePath = new LinkedList<RepastEdge<Junction>>();
 					this.routePath.add(defaultEdge);
-					
-					// Get the road link that the edge crosses
-					List<RoadLink> crossingLinks = new ArrayList<RoadLink>();
-					for (RoadLink rl: this.strategicPath) {
-						if (rl.getFID().contentEquals(this.currentEdge.getRoadLinkID())) {
-							crossingLinks.add(rl);
-						}
-					}
 					
 					// Get road length - the length of the road that crossing alternatives are being considered for
 					double roadLength = 0;
@@ -286,5 +278,24 @@ public class TacticalAlternative {
 	
 	public boolean isBlank() {
 		return this.isBlank;
+	}
+	
+	private List<RoadLink> tacticalPathPrimaryCrossingLinks(RepastEdge<Junction> edge, List<RoadLink> sP) {
+		List<RepastEdge<Junction>> path = new ArrayList<RepastEdge<Junction>>();
+		path.add(edge);
+		return tacticalPathPrimaryCrossingLinks(path, sP);
+	}
+	
+	private List<RoadLink> tacticalPathPrimaryCrossingLinks(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
+		List<RoadLink> crossedLinks = new ArrayList<RoadLink>();
+		for (RepastEdge<Junction> e: path) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
+			for (RoadLink rl : sP) {
+				if (rl.getPedRLID().contentEquals(ne.getRoadLink().getPedRLID())) {
+					crossedLinks.add(rl);
+				}
+			}
+		}		
+		return crossedLinks;
 	}
 }
