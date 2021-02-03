@@ -143,6 +143,35 @@ public class PedPathFinder {
 		return nLinks;
 	}
 	
+	public static TacticalAlternative tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
+		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
+		RoadLink rlOutHorz = sP.get(tacticalNLinks);
+		
+		// Get horizon junctions
+		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		
+		// get path to each of the junctions at the end of the planning horizon
+		List<Junction> endJunctions = horizonJunctions.get("end");
+		
+		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
+		
+		// Choose path to end of tactical horizon
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, currentJ, endJunctions, heuristic1, heuristic2);
+		
+		// Create tactical alternative from this path
+		
+		// Need to get two junctions at the end of the first link in strategic path
+		HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
+		List<Junction> endFirstLinkJunctions = firstLinkJunctions.get("end");
+		
+		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
+		
+		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
+
+		return tr;
+	}
+	
 	/*
 	 * Method that chooses the tactical path. Does by finding all simple paths to the junction(s) at the end of the
 	 * planning horizon using a filtered version of the pavement graph. 
@@ -264,40 +293,6 @@ public class PedPathFinder {
 		return tr;
 		
 	}
-	
-	
-	
-	
-	public static TacticalAlternative tacticalAlternatives(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
-		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
-		RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
-		RoadLink rlOutHorz = sP.get(tacticalNLinks);
-		
-		// Get horizon junctions
-		HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
-		
-		// get path to each of the junctions at the end of the planning horizon
-		List<Junction> endJunctions = horizonJunctions.get("end");
-		
-		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
-		
-		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, currentJ, endJunctions, heuristic1, heuristic2);
-		
-		// Create tactical alternative from this path
-		
-		// Need to get two junctions at the end of the first link in strategic path
-		HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
-		List<Junction> endFirstLinkJunctions = firstLinkJunctions.get("end");
-		
-		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
-		
-		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
-
-		return tr;
-	}
-	
-
 	
 	private static boolean containsPrimaryCrossing(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
 		boolean cPC = false;
