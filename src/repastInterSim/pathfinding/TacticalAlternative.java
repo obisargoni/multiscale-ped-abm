@@ -21,6 +21,13 @@ import repastInterSim.environment.UnmarkedCrossingAlternative;
 
 public class TacticalAlternative {
 	
+	private Ped ped;
+	private Geography<CrossingAlternative> caG;
+	private Geography<Road> rG;
+	
+	private List<RoadLink> strategicPath;
+	private double phLength;
+	
 	private NetworkPath<Junction> nP;
 	private Junction currentJunction = null;
 	private RepastEdge<Junction> currentEdge = null;
@@ -43,12 +50,20 @@ public class TacticalAlternative {
 		this.isBlank = true;
 	}
 	
-	public TacticalAlternative(List<RoadLink> tacticalStrategicPath, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction) {
+	public TacticalAlternative(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction) {
+		this.ped = p;
+		this.caG = caG;
+		this.rG = rG;
+		
+		this.strategicPath = sP;
+		this.phLength = phL;
+		
 		this.currentJunction = startJunction;
-		this.endJunction = ; // Is this needed?
+		this.endJunction = null; // Is this needed?
 		this.initPath = initTacticalPath;
 		this.pathToEnd = firstLinkTacticalPath;
 		this.pathRemainder = remainderTacticalPath;
+		
 		this.routePath = (LinkedList<RepastEdge<Junction>>) Stream.of(this.initPath, this.pathToEnd).flatMap(Collection::stream).collect(Collectors.toList());
 		
 	}
