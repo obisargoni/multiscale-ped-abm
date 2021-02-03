@@ -173,20 +173,8 @@ public class TacticalAlternative {
 		return pathToEnd;
 	}
 	
-	public void setPathToEnd(List<RepastEdge<Junction>> path) {
-		this.pathToEnd = path;
-	}
-	
-	public void setPathToEnd() {
-		this.pathToEnd = nP.getShortestPath(this.currentJunction, this.endJunction);
-	}
-	
 	public List<RepastEdge<Junction>> getAlternativeRemainderPath() {
 		return this.pathRemainder;
-	}
-	
-	public void setAlternativeRemainderPath(List<RepastEdge<Junction>> path) {
-		this.pathRemainder = path;
 	}
 	
 	/*
