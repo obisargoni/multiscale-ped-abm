@@ -287,19 +287,6 @@ public class PedPathFinder {
 		
 	}
 	
-	private static boolean containsPrimaryCrossing(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
-		boolean cPC = false;
-		for (RepastEdge<Junction> e: path) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
-			for (RoadLink rl : sP) {
-				if (rl.getPedRLID().contentEquals(ne.getRoadLink().getPedRLID())) {
-					cPC = true;
-				}
-			}
-		}		
-		return cPC;
-	}
-	
 	/*
 	 * Get the pavement network junctions that are at the end of the tactical planning horizon.
 	 * 
