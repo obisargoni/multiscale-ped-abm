@@ -141,7 +141,7 @@ public class TacticalAlternative {
 				}
 				
 				// Check if this edge requires crossing a primary link. If it does, initialise an accumulator to choose crossing location
-				int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(this.currentJunction.getGeom().getCoordinate(), nextJunction.getGeom().getCoordinate(), sP);
+				int primaryCrossingParity = RoadNetworkRoute.calculateRouteParity(this.currentJunction.getGeom().getCoordinate(), nextJunction.getGeom().getCoordinate(), this.strategicPath);
 				if (primaryCrossingParity == 1) {
 					
 					Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
@@ -152,11 +152,20 @@ public class TacticalAlternative {
 					this.routePath = new LinkedList<RepastEdge<Junction>>();
 					this.routePath.add(defaultEdge);
 					
+					// Get the road link that the edge crosses
+					List<RoadLink> crossingLinks = new ArrayList<RoadLink>();
+					for (RoadLink rl: this.strategicPath) {
+						if (rl.getFID().contentEquals(this.currentEdge.getRoadLinkID())) {
+							crossingLinks.add(rl);
+						}
+					}
+					
 					// Identify crossing alternatives
-					List<CrossingAlternative> cas = getCrossingAlternatives(caG, tSP, p, rG);
+					
+					List<CrossingAlternative> cas = getCrossingAlternatives(caG, crossingLinks, ped, rG);
 					
 					// Initialise accumulator crossing choice model
-					this.accumulator = new AccumulatorRoute(p, pHLength, tr, defaultDest, targetJunction, targetRoutePath);
+					this.accumulator = new AccumulatorRoute(this.ped, this.phLength, defaultJunction, nextJunction, cas, targetRoutePath);
 					
 					// Set target junction to be the default, no crossing, junction while agent chooses crossing location
 					nextJunction = this.accumulator.getDefaultJunction();			
