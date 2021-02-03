@@ -130,68 +130,6 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public int planTacticaAccumulatorPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
-		
-		// Calculate number of links in planning horizon
-		int nLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-		
-		// Get length of the planning horizon, this is used in the accumulator route
-		double pHLength = 0;
-		for (int i = 0; i<nLinks; i++) {
-			pHLength += sP.get(i).getGeom().getLength();
-		}
-		
-		boolean endOfJourney = false;
-		if (nLinks == sP.size()) {
-			endOfJourney = true;
-		}
-		
-		// First identify tactical route alternatives
-		List<TacticalAlternative> trs = new ArrayList<TacticalAlternative>();
-		if (endOfJourney) {
-			trs = destinationTacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
-		}
-		else {
-			trs = tacticalAlternatives(pavementNetwork, sP, nLinks, currentJ, destJ, caG, rG, p);
-		}
-		
-		
-		// Sort routes based on the length of the path to the end of tactical horizon
-		List<String> strategiRoadLinkIDs = sP.stream().map(rl->rl.getPedRLID()).collect(Collectors.toList());
-		PavementRoadLinkTransformer<Junction> transformer = new PavementRoadLinkTransformer<Junction>(strategiRoadLinkIDs, Double.MAX_VALUE);
-		List<Double> pathLengths = trs.stream().map(tr -> NetworkPath.getPathLength(tr.getRoutePath(), transformer)).collect(Collectors.toList());
-		
-		// Identify default and chosen tactical route alternatives
-		// Default tactical route is the one with the fewest primary crossings
-		TacticalAlternative defaultTR = trs.get(pathLengths.indexOf(Collections.min(pathLengths)));
-		
-		// Choose the target tactical alternative differently depending on whether end of route has been reached
-		TacticalAlternative chosenTR = null;
-		if (endOfJourney) {
-			// Target tactical alternative is one with dest junction as end junction
-			chosenTR = trs.stream().filter(tr -> tr.getEndJunction().getFID().contentEquals(destJ.getFID())).collect(Collectors.toList()).get(0);
-			
-			// Include the destination coordinate in the tactical route
-			chosenTR.setDestinationCoordinate(this.destination.getGeom().getCoordinate());
-			// Used to keep pedestrian agent end end junction
-			defaultTR.setRecurringEndJunction(true);
-		}
-		else {
-			// Default to choosing alternative with fewest primary crossings required to complete tactical horizon
-			chosenTR = defaultTR;
-		}
-		
-		// Initialise Accumulator route with the chosen tactical route also set as the default.
-		AccumulatorRoute accRoute = new AccumulatorRoute(p, pHLength, defaultTR, chosenTR);
-		
-		this.tacticalPath = accRoute;
-		
-		return nLinks;
-	}
-	
-	/*
-	 * Plan a tactical level path using the accumulator crossing choice path finding model.
-	 */
 	public int planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
 		
 		// Calculate number of links in planning horizon
@@ -203,69 +141,6 @@ public class PedPathFinder {
 		this.tacticalPath = tr;
 		
 		return nLinks;
-	}
-	
-	/*
-	 * Create a tactical alternative which contains the route from the current junction to the end junction.
-	 */
-	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, Junction eJ, Junction currentJ) {
-		
-		// Now that paths identified, initialise the tactical route object
-		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
-		tr.setPathToEnd();
-		// Update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
-		tr.updateCurrentJunction();
-		
-		return tr;
-	}
-	
-	/*
-	 * Create a tactical alternative which contains the route from the current jucntion to the end junction, from the end junction to the outside junction and from the outside
-	 * junction to the final destination.
-	 */
-	public static TacticalAlternative setupTacticalAlternativeRoute(NetworkPath<Junction> nP, List<RoadLink> sP, Junction eJ, List<Junction> outsideJunctions, Junction currentJ, Junction destJ) {
-		
-		// Get the tactical alternative with the route to the end junction planned
-		TacticalAlternative tr = new TacticalAlternative(nP, currentJ, eJ);
-		tr.setPathToEnd();
-
-		// Get path from end junction to the junction at the start of the first link outside the tactical planning horizon
-		List<RepastEdge<Junction>> pathToOutside = new ArrayList<RepastEdge<Junction>>();
-		Junction outsideJunction = null;
-		double minLength = Double.MAX_VALUE;
-				
-		// Calculate path from the end junction to each possible outside junction. Select the shortest path that does not involve a primary crossing
-		// This is the path that stays on the same side of the road and moves to the start of the next route section
-		Predicate<Junction> nodeFilter = n -> n.getjuncNodeID().contentEquals(eJ.getjuncNodeID());
-		for (Junction j: outsideJunctions) {
-			List<Stack<RepastEdge<Junction>>> edgePaths = nP.getSimplePaths(eJ, j, nodeFilter);
-			
-			// Loop through these paths and find the shortest one that does not make a primary crossing
-			for (Stack<RepastEdge<Junction>> edgePath : edgePaths) {
-				if (containsPrimaryCrossing(edgePath, sP) == false) {
-					double pathLength = nP.getPathLength(edgePath);
-					if (pathLength < minLength) {
-						pathToOutside = edgePath;
-						minLength = pathLength;
-						outsideJunction = j;
-					}
-				}
-			}
-		}
-		
-		tr.setPathEndToOutside(pathToOutside);
-		tr.setOutsideJunction(outsideJunction);
-		
-		// If the destination junction is known, calculate the path from the last junction added to the tactical route to the destination junction
-		// This is recorded separately as the path required to complete the journey
-		if (destJ != null) {
-			tr.setAlternativeRemainderPath(nP.getShortestPath(outsideJunction, destJ));
-		}
-		
-		// Update the current junction so that the first junction the ped agent walks towards is not their current junction but the next one in the route
-		tr.updateCurrentJunction();
-		
-		return tr;
 	}
 	
 	/*
