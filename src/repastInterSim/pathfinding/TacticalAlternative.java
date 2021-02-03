@@ -66,14 +66,6 @@ public class TacticalAlternative {
 		
 	}
 	
-	public TacticalAlternative(NetworkPath<Junction> nP, Junction startJunction, Junction endJunction) {
-		this.nP = nP;
-		this.currentJunction = startJunction;
-		this.endJunction = endJunction;
-		this.pathToEnd = new ArrayList<RepastEdge<Junction>>();
-		this.pathRemainder = new ArrayList<RepastEdge<Junction>>();
-	}
-	
 	public Junction getCurrentJunction() {
 		return this.currentJunction;
 	}
