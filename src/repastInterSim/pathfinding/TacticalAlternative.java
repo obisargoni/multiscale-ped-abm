@@ -26,7 +26,6 @@ public class TacticalAlternative {
 	private Geography<Road> rG;
 	
 	private List<RoadLink> strategicPath;
-	private double phLength;
 	
 	private NetworkPath<Junction> nP;
 	private Junction currentJunction = null;
@@ -56,7 +55,6 @@ public class TacticalAlternative {
 		this.rG = rG;
 		
 		this.strategicPath = sP;
-		this.phLength = phL;
 		
 		this.currentJunction = startJunction;
 		this.endJunction = null; // Is this needed?
@@ -160,12 +158,17 @@ public class TacticalAlternative {
 						}
 					}
 					
-					// Identify crossing alternatives
+					// Get road length - the length of the road that crossing alternatives are being considered for
+					double roadLength = 0;
+					for (RoadLink rl: crossingLinks) {
+						roadLength += rl.getGeom().getLength();
+					}
 					
+					// Identify crossing alternatives
 					List<CrossingAlternative> cas = getCrossingAlternatives(caG, crossingLinks, ped, rG);
 					
 					// Initialise accumulator crossing choice model
-					this.accumulator = new AccumulatorRoute(this.ped, this.phLength, defaultJunction, nextJunction, cas, targetRoutePath);
+					this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRoutePath);
 					
 					// Set target junction to be the default, no crossing, junction while agent chooses crossing location
 					nextJunction = this.accumulator.getDefaultJunction();			
