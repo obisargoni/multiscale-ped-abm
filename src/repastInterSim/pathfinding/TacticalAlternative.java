@@ -54,7 +54,6 @@ public class TacticalAlternative {
 		this.currentJunction = startJunction;
 		this.endJunction = endJunction;
 		this.pathToEnd = new ArrayList<RepastEdge<Junction>>();
-		this.pathEndToOutside = new ArrayList<RepastEdge<Junction>>();
 		this.pathRemainder = new ArrayList<RepastEdge<Junction>>();
 	}
 	
@@ -159,14 +158,6 @@ public class TacticalAlternative {
 	
 	public void setPathToEnd() {
 		this.pathToEnd = nP.getShortestPath(this.currentJunction, this.endJunction);
-	}
-	
-	public List<RepastEdge<Junction>> getPathEndToOutside() {
-		return pathEndToOutside;
-	}
-	
-	public void setPathEndToOutside(List<RepastEdge<Junction>> path) {
-		this.pathEndToOutside = path;
 	}
 	
 	public void setOutsideJunction(Junction j) {
