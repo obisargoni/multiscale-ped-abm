@@ -152,12 +152,7 @@ public class PedPathFinder {
 			endJunctions = new ArrayList<Junction>();
 			endJunctions.add(destJ);
 		}
-		
-		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
-		
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, currentJ, endJunctions, heuristic1, heuristic2);
-		
 		// Need to get two junctions at the end of the first link in strategic path
 		List<Junction> endFirstLinkJunctions = null;
 		if (sP.size()>1) {
@@ -168,6 +163,7 @@ public class PedPathFinder {
 			endFirstLinkJunctions = new ArrayList<Junction>();
 			endFirstLinkJunctions.add(destJ);
 		}
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(pavementNetwork, currentJ, endJunctions, heuristic1, heuristic2);
 		
 		// Create tactical alternative from this path		
 		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
@@ -197,8 +193,10 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Double> heuristic1, Transformer<RepastEdge<Junction>,Double> heuristic2) {
+	public List<RepastEdge<Junction>> chooseTacticalPath(Network<Junction> pavementNetwork, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Double> heuristic1, Transformer<RepastEdge<Junction>,Double> heuristic2) {
 		
+		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
+
 		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
 		
 		// Loop through simple paths to target junctions. Identify those with shortest path length and add to the licat of candicate paths
