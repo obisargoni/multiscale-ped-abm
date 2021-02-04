@@ -158,14 +158,18 @@ public class PedPathFinder {
 		// Choose path to end of tactical horizon
 		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, currentJ, endJunctions, heuristic1, heuristic2);
 		
-		// Create tactical alternative from this path
-		
 		// Need to get two junctions at the end of the first link in strategic path
-		HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
-		List<Junction> endFirstLinkJunctions = firstLinkJunctions.get("end");
+		List<Junction> endFirstLinkJunctions = null;
+		if (sP.size()>1) {
+			HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
+			endFirstLinkJunctions = firstLinkJunctions.get("end");
+		}
+		else {
+			endFirstLinkJunctions = new ArrayList<Junction>();
+			endFirstLinkJunctions.add(destJ);
+		}
 		
-		List<TacticalAlternative> tacticalRoutes = new ArrayList<TacticalAlternative>();
-		
+		// Create tactical alternative from this path		
 		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
 		
 		this.tacticalPath = tr;
