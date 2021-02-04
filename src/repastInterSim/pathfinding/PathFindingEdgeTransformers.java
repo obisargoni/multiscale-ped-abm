@@ -11,11 +11,12 @@ import repastInterSim.environment.NetworkEdge;
 public abstract class PathFindingEdgeTransformers {
 
 	
-	public class CrossesRoadTransformer<T> implements Transformer<RepastEdge<T>,Double> {
+	public class CrossesRoadTransformer<T> implements Transformer<RepastEdge<T>,Integer> {
 		
 		// The road link id to return a different weight value for if the edge crosses them
 		private List<String> roadLinkIDs = new ArrayList<String>();;
-		private double crossesRoadLinkWeight = Double.MAX_VALUE;
+		private int crossesRoadLinkWeight = 1;
+		private int notCrossesRoadLinkWeight = 0;
 		
 		public CrossesRoadTransformer() {
 			// TODO Auto-generated constructor stub
@@ -25,13 +26,14 @@ public abstract class PathFindingEdgeTransformers {
 			this.roadLinkIDs = rlIDs;
 		}
 		
-		public CrossesRoadTransformer(List<String> rlIDs, double w) {
+		public CrossesRoadTransformer(List<String> rlIDs, int crossesWeight, int notCrossesWeight) {
 			this.roadLinkIDs = rlIDs;
-			this.crossesRoadLinkWeight = w;
+			this.crossesRoadLinkWeight = crossesWeight;
+			this.notCrossesRoadLinkWeight = notCrossesWeight;
 		}
 		
 		@Override
-		public Double transform(RepastEdge<T> edge) {
+		public Integer transform(RepastEdge<T> edge) {
 			NetworkEdge<T> ne = (NetworkEdge<T>) edge;
 			
 			boolean intersectsPedRoad = roadLinkIDs.stream().anyMatch(id -> id.contentEquals(ne.getRoadLink().getPedRLID()));
@@ -39,7 +41,7 @@ public abstract class PathFindingEdgeTransformers {
 				return this.crossesRoadLinkWeight;
 			}
 			else {
-				return edge.getWeight();
+				return this.notCrossesRoadLinkWeight;
 			}
 		}
 	}
