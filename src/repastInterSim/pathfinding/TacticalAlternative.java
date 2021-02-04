@@ -114,6 +114,12 @@ public class TacticalAlternative {
 			this.routePath.pollFirst();
 			this.currentEdge = this.routePath.peekFirst();
 			
+			// If ped is now at the end of their journey, set the destination coordinate attribute and set recurring end junction to true
+			if ((this.strategicPath.size() == 1) & (this.routePath.size()==1)) {
+				this.recurringEndJunction = true;
+				this.destCoordinate = this.ped.getDestination().getGeom().getCoordinate();
+			}
+			
 			// Identify the next junction
 			Junction nextJunction = null;
 			if (this.currentEdge == null) {
