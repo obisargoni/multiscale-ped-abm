@@ -135,14 +135,14 @@ public class PedPathFinder {
 		// Calculate number of links in planning horizon
 		int tacticalNLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
 		
-		boolean endOfJourney = false;
+		boolean destInPlanningHorizon = false;
 		if (tacticalNLinks == sP.size()) {
-			endOfJourney = true;
+			destInPlanningHorizon = true;
 		}
 		
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		List<Junction> endJunctions = null;
-		if (endOfJourney==false) {
+		if (destInPlanningHorizon==false) {
 			RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
 			RoadLink rlOutHorz = sP.get(tacticalNLinks);
 			HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
