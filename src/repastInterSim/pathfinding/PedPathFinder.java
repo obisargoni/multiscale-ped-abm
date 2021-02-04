@@ -242,24 +242,51 @@ public class PedPathFinder {
 		List<RepastEdge<Junction>> firstLinkTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		List<RepastEdge<Junction>> remainderTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		
-		// Need to get two junctions at the end of the first link in strategic path
+		// Get the junctions at the start of the first link of the strategic path
+		// used this to identify the initial section of the tacticla path that gets agent to the next strategic link
+		String startRoadNodeID = currentJ.getjuncNodeID();
+		List<Junction> startFirstLinkJunctions = tacticalHorizonJunctions(pavementNetwork, sP.get(0), startRoadNodeID).get("end");
+		
+		
+		// Need to get the junctions at the end of the first link in strategic path
 		List<Junction> endFirstLinkJunctions = null;
 		if (sP.size()>1) {
-			HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
-			endFirstLinkJunctions = firstLinkJunctions.get("end");
+			endFirstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1)).get("end");
 		}
 		else {
 			endFirstLinkJunctions = new ArrayList<Junction>();
 			endFirstLinkJunctions.add(destJ);
 		}
 		
+		int indexEndInitPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, startFirstLinkJunctions);
+		int indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
 		
-		// Split firstLinkTacticalPath from remainderTacticalPath using endFirstLinkHorizonJunctions
-		Junction prev = currentJ;
+		for (int i=0;i<tacticalPath.size();i++) {
+			if (i<indexEndInitPath) {
+				initTacticalPath.add(tacticalPath.get(i));
+			}
+			else if (i<indexEndFirstLinkPath) {
+				firstLinkTacticalPath.add(tacticalPath.get(i));
+			}
+			else {
+				remainderTacticalPath.add(tacticalPath.get(i));
+			}
+		}
+		
+		// Initialise the tactical alternative - sets the path
+		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG);
+		tr.updateCurrentJunction();
+		
+		return tr;
+		
+	}
+	
+	public static int getIndexOfEdgeThatReachesTargetJunctions(List<RepastEdge<Junction>> path, Junction startJunction, List<Junction> targetJunctions) {
+		Junction prev = startJunction;
 		boolean reachedEndJunction = false;
 		int i = 0;
 		while (reachedEndJunction == false) {
-			RepastEdge<Junction> e = tacticalPath.get(i);
+			RepastEdge<Junction> e = path.get(i);
 			
 			Junction next = null;
 			if (e.getSource().equals(prev)) {
@@ -269,34 +296,31 @@ public class PedPathFinder {
 				next = e.getSource();
 			}
 			
+			final Junction prevFinal = prev;
+			final Junction nextFinal = next;
+			
 			// Check whether previous node / next node is one of the end junctions
-			boolean matchPrev = endFirstLinkJunctions.stream().anyMatch(j -> j.getFID().contentEquals(prev.getFID()));
-			boolean matchNext = endFirstLinkJunctions.stream().anyMatch(j -> j.getFID().contentEquals(next.getFID()));
+			boolean matchPrev = targetJunctions.stream().anyMatch(j -> j.getFID().contentEquals(prevFinal.getFID()));
+			boolean matchNext = targetJunctions.stream().anyMatch(j -> j.getFID().contentEquals(nextFinal.getFID()));
 			
 			// Based on these matches decide whether to include the current edge in the path section that goes to the end of the first link
 			if (matchPrev & !matchNext) {
 				reachedEndJunction = true;
 			}
 			else if (matchPrev & matchNext) {
-				firstLinkTacticalPath.add(e);
+				//firstLinkTacticalPath.add(e);
 				i++;
 				reachedEndJunction = true;
 			}
 			else {
-				firstLinkTacticalPath.add(e);
+				//firstLinkTacticalPath.add(e);
 				i++;
 			}
+			
+			prev = next;
 		}
 		
-		remainderTacticalPath = tacticalPath.subList(i, tacticalPath.size()-1);
-
-		
-		// Initialise the tactical alternative - sets the path
-		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG);
-		tr.updateCurrentJunction();
-		
-		return tr;
-		
+		return i;
 	}
 	
 	/*
