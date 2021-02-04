@@ -11,21 +11,21 @@ import repastInterSim.environment.NetworkEdge;
 public abstract class PathFindingEdgeTransformers {
 
 	
-	public class PavementRoadLinkTransformer<T> implements Transformer<RepastEdge<T>,Double> {
+	public class CrossesRoadTransformer<T> implements Transformer<RepastEdge<T>,Double> {
 		
 		// The road link id to return a different weight value for if the edge crosses them
 		private List<String> roadLinkIDs = new ArrayList<String>();;
 		private double crossesRoadLinkWeight = Double.MAX_VALUE;
 		
-		public PavementRoadLinkTransformer() {
+		public CrossesRoadTransformer() {
 			// TODO Auto-generated constructor stub
 		}
 		
-		public PavementRoadLinkTransformer(List<String> rlIDs) {
+		public CrossesRoadTransformer(List<String> rlIDs) {
 			this.roadLinkIDs = rlIDs;
 		}
 		
-		public PavementRoadLinkTransformer(List<String> rlIDs, double w) {
+		public CrossesRoadTransformer(List<String> rlIDs, double w) {
 			this.roadLinkIDs = rlIDs;
 			this.crossesRoadLinkWeight = w;
 		}
@@ -42,10 +42,7 @@ public abstract class PathFindingEdgeTransformers {
 				return edge.getWeight();
 			}
 		}
-
 	}
-	
-	
 	
 	
 
