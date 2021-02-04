@@ -152,21 +152,12 @@ public class PedPathFinder {
 			endJunctions = new ArrayList<Junction>();
 			endJunctions.add(destJ);
 		}
+				
 		// Choose path to end of tactical horizon
-		// Need to get two junctions at the end of the first link in strategic path
-		List<Junction> endFirstLinkJunctions = null;
-		if (sP.size()>1) {
-			HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
-			endFirstLinkJunctions = firstLinkJunctions.get("end");
-		}
-		else {
-			endFirstLinkJunctions = new ArrayList<Junction>();
-			endFirstLinkJunctions.add(destJ);
-		}
 		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(pavementNetwork, currentJ, endJunctions, heuristic1, heuristic2);
 		
 		// Create tactical alternative from this path		
-		TacticalAlternative tr = setupChosenTacticalAlternative(sP, tacticalNLinks, tacticalPath, currentJ, endFirstLinkJunctions, caG, rG, p);
+		TacticalAlternative tr = setupChosenTacticalAlternative(pavementNetwork, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
 		
 		this.tacticalPath = tr;
 		
@@ -180,8 +171,8 @@ public class PedPathFinder {
 	 * These paths are then ranked, first using heurisitc 1 then heuristic 2. The joint shortest paths by these measures are added to a list
 	 * and the chosen path is selected at random from that list.
 	 * 
-	 * @param networkpath<Junction> nP
-	 * 		NetworkPath instance used for finding simple paths. Graph paths found on is stored internally.
+	 * @param Network<Junction> pavementNetwork
+	 * 		The network used for tactical routing
 	 * @param Junction currentJunction
 	 * 		The junction to start paths from.
 	 * @param colelction<Junction> targetJunctions
@@ -244,12 +235,23 @@ public class PedPathFinder {
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
 	 * crossing locations at those points
 	 */
-	public static TacticalAlternative setupChosenTacticalAlternative(List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, List<Junction> endFirstLinkHorizonJunctions, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalAlternative setupChosenTacticalAlternative(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 				
 		// Need to split the chosen tactical path into three section sections
 		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 
 		List<RepastEdge<Junction>> firstLinkTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		List<RepastEdge<Junction>> remainderTacticalPath = new ArrayList<RepastEdge<Junction>>();
+		
+		// Need to get two junctions at the end of the first link in strategic path
+		List<Junction> endFirstLinkJunctions = null;
+		if (sP.size()>1) {
+			HashMap<String, List<Junction>> firstLinkJunctions = tacticalHorizonJunctions(pavementNetwork,  sP.get(0), sP.get(1));
+			endFirstLinkJunctions = firstLinkJunctions.get("end");
+		}
+		else {
+			endFirstLinkJunctions = new ArrayList<Junction>();
+			endFirstLinkJunctions.add(destJ);
+		}
 		
 		
 		// Split firstLinkTacticalPath from remainderTacticalPath using endFirstLinkHorizonJunctions
@@ -268,8 +270,8 @@ public class PedPathFinder {
 			}
 			
 			// Check whether previous node / next node is one of the end junctions
-			boolean matchPrev = endFirstLinkHorizonJunctions.stream().anyMatch(j -> j.getFID().contentEquals(prev.getFID()));
-			boolean matchNext = endFirstLinkHorizonJunctions.stream().anyMatch(j -> j.getFID().contentEquals(next.getFID()));
+			boolean matchPrev = endFirstLinkJunctions.stream().anyMatch(j -> j.getFID().contentEquals(prev.getFID()));
+			boolean matchNext = endFirstLinkJunctions.stream().anyMatch(j -> j.getFID().contentEquals(next.getFID()));
 			
 			// Based on these matches decide whether to include the current edge in the path section that goes to the end of the first link
 			if (matchPrev & !matchNext) {
