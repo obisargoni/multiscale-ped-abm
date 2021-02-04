@@ -46,6 +46,20 @@ public abstract class PathFindingEdgeTransformers {
 		}
 	}
 	
-	
+	public class EdgeWeightTransformer<T> implements Transformer<RepastEdge<T>,Integer> {
+		
+		
+		public EdgeWeightTransformer() {
+			// TODO Auto-generated constructor stub
+		}
+		
+		
+		@Override
+		public Integer transform(RepastEdge<T> edge) {
+			NetworkEdge<T> ne = (NetworkEdge<T>) edge;
+			
+			return (int) ne.getWeight();
+		}
+	}
 
 }
