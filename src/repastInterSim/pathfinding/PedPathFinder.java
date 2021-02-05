@@ -2,15 +2,12 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -23,21 +20,23 @@ import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.SpaceBuilder;
+import repastInterSim.pathfinding.transformers.CrossesRoadTransformer;
+import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
 public class PedPathFinder {
 	
 	private Ped ped;
+    private Transformer<RepastEdge<Junction>,Integer> primaryCostHeuristic;
+    private Transformer<RepastEdge<Junction>,Integer> secondaryCostHeuristic;
 	
 	private OD origin;
 	private OD destination;
-		
+	
 	private List<RoadLink> strategicPath;
 	int tacticalHorizonLinks = 0;
 	private Junction startPavementJunction;
@@ -60,6 +59,23 @@ public class PedPathFinder {
 		this.destination = d;
 				
 		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveG, paveNetwork);
+	}
+	
+	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+		this.origin = o;
+		this.destination = d;
+				
+		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveG, paveNetwork);
+		
+		List<String> sPIDs = this.strategicPath.stream().map(rl -> rl.getFID()).collect(Collectors.toList());
+		if (minimiseCrossings) {
+			this.primaryCostHeuristic = new CrossesRoadTransformer<Junction>(sPIDs);
+			this.secondaryCostHeuristic = new EdgeWeightTransformer<Junction>();
+		}
+		else {
+			this.primaryCostHeuristic = new EdgeWeightTransformer<Junction>();
+			this.secondaryCostHeuristic = new CrossesRoadTransformer<Junction>(sPIDs);
+		}
 	}
 	
 	public void step() {
