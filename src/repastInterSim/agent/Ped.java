@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.collections15.Transformer;
 import org.geotools.coverage.grid.GridCoordinates2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -19,6 +20,7 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
@@ -84,7 +86,7 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
     	super(geography, rG, o, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
@@ -113,7 +115,7 @@ public class Ped extends MobileAgent {
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
         this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
 
-		this.pathFinder = new PedPathFinder(this, rlG, orNetwork, odG, paveG, paveNetwork);
+		this.pathFinder = new PedPathFinder(this, rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
 		
 		
     }

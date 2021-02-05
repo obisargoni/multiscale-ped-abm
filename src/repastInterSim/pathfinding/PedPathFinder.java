@@ -45,13 +45,13 @@ public class PedPathFinder {
 	
 	private Coordinate nextCrossingCoord;	
 
-	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-		init(o, d, rlG, orNetwork, odG, paveG, paveNetwork);
+	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+		init(o, d, rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
 	}
 	
-	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
 		this.ped = p;
-		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveG, paveNetwork);
+		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
 	}
 	
 	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
