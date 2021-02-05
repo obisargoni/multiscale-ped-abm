@@ -86,7 +86,7 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(geography, rG, o, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
