@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.commons.collections15.Transformer;
 import org.geotools.coverage.grid.GridCoordinates2D;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -20,7 +19,6 @@ import repast.simphony.context.Context;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
-import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
@@ -31,7 +29,6 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
-import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {    
@@ -66,13 +63,9 @@ public class Ped extends MobileAgent {
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
     
     private String roadLinkFID = null;
-
-    private HashMap<Integer, Double> gridSummandPriorityMap = new HashMap<Integer, Double>(); // Used to get grid cell summand value when running flood fill algorithm for routing
     
     private Double pHorizon = 20.0; // Tactical planning horizon of ped agent in degrees
-    
-    private double vehiclePriorityCostRatio; // The ratio of pedestrian priority cell cost to vehicle priority cell cost. Represents pedestrian's perception of cost of moving in vehicle priority space.
-    
+        
     private int yieldTime = 0;
     
     private Color col; // Colour of the pedestrian
@@ -107,17 +100,8 @@ public class Ped extends MobileAgent {
 		this.lambda = lambda;
 		this.gamma = gamma;
 		this.epsilon = epsilon;
-        
-		// Set pedestrian perception of cost of moving in vehicle priority areas. 1 = same cost as pavement. 10 = ten times more costly than pavement
-        this.vehiclePriorityCostRatio =  1; 
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian"), 1.0);
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("pedestrian_crossing"), 1.0);
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), this.vehiclePriorityCostRatio);
-        this.gridSummandPriorityMap.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), this.vehiclePriorityCostRatio);
-
+		
 		this.pathFinder = new PedPathFinder(this, rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
-		
-		
     }
     
     
@@ -508,61 +492,7 @@ public class Ped extends MobileAgent {
     	else {
     		this.enteringCrossing = false;
     	}
-    }
-        
-    public HashMap<Integer, Double> calculateDynamicGridSummandPriorityMap(String roadLinkID) {
-    	// perceive the space taken up by vehicles on the road links that pass by/though this road
-    	double vehicleRoadSpace = estimateVehicleRoadSpace(roadLinkID);
-    	double gridCellCostParam = 1;
-    	double updatedVehicleGridCellCostRatio = this.vehiclePriorityCostRatio + gridCellCostParam * vehicleRoadSpace;
-    	
-    	// Using vehicle dominance figure, update pedestrian perception of costs of moving in vehicle priority areas
-    	// Use this updated perception of costs when calculating updated Route
-    	HashMap<Integer, Double> dGSPM = this.gridSummandPriorityMap;
-    	dGSPM.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("vehicle"), updatedVehicleGridCellCostRatio);
-    	dGSPM.put(GlobalVars.GRID_PARAMS.getPriorityValueMap().get("road_link"), updatedVehicleGridCellCostRatio);
-    	
-    	return dGSPM;
-    }
-	
-    
-    private double estimateVehicleRoadSpace(String roadLinkID) {
-    	
-    	// Find the road with the corresponding road link id
-    	Road r = null;
-    	for (Road ri: SpaceBuilder.roadGeography.getAllObjects()) {
-    		if (ri.getRoadLinkID().contentEquals(roadLinkID)){
-    			r = ri;
-    		}
-    	}
-    	int vehicleNumber = r.getRoadLinksVehicleCount();
-    	int nRoadLinks = r.getRoadLinks().size();
-    	double roadLinkLength = r.getRoadLinks().get(0).getGeom().getLength();
-    	
-    	double roadArea = roadLinkLength * GlobalVars.MOBILE_AGENT_PARAMS.laneWidth * nRoadLinks;
-    	double vehicleDensity = vehicleNumber/roadArea;
-    	
-    	// Proportion of road taken up by physical presence of vehicles
-    	double stationaryVehicleSpace = vehicleDensity * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleLength;
-    	
-    	// Proportion of road taken up by spacing between vehicles (assuming time separated by driver reaction time)
-    	double vehicleSeparationSpace = vehicleDensity * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleSpeed * GlobalVars.MOBILE_AGENT_PARAMS.vehicleReactionTime;
-    	
-    	// Proportion of road space taken up by space in front of lead vehicle required for pedestrian to cross
-    	double pedestrianGapSpace;
-        if (vehicleDensity == 0) {
-        	pedestrianGapSpace = 0;
-        } 
-        else {
-        	// Total width is given by number of road links * lane width (assuming each link is only one lane)
-        	double tGap = nRoadLinks*GlobalVars.MOBILE_AGENT_PARAMS.laneWidth / this.v0;
-        	
-        	// A pedestrian gap space is added for each leader vehicle (1 if only one road link has vehicles on it. 2 if two road likes have vehicles on them)
-        	pedestrianGapSpace = r.getNumberLeadVehicles() * GlobalVars.MOBILE_AGENT_PARAMS.vehicleWidth * GlobalVars.MOBILE_AGENT_PARAMS.vehicleSpeed * tGap /roadArea;
-        }
-        
-        return stationaryVehicleSpace + vehicleSeparationSpace + pedestrianGapSpace;
-    }
+    }	
     
     /**
      * Method to be run when agent is removed from the context.
