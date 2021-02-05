@@ -1,7 +1,5 @@
 package repastInterSim.main;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -63,9 +61,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
-	
-	private static Integer gridResolution = 1; // Sets grid coverage cells to be 1m by 1m
-	
+		
 	private static Context<Object> context;
 	private static Geography<Object> geography; 
 	
@@ -307,37 +303,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			d.setRootContext(context);
 			d.setRootGeography(geography);
 			d.setDestinationGeography(pedestrianDestinationGeography);
-		}
-		
-		
-		// Now that shapefiles have been read and loaded as agents get the envelope that covers 
-		// all fixed geography agents and use to create grid coverage 
-		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
-		
-		// Creates GIS grid with 1mx1m cells and adds to the geography projection
-		int width = (int) Math.ceil(fixedGeographyEnvelope.getWidth()*gridResolution);
-		int height = (int) Math.ceil(fixedGeographyEnvelope.getHeight()*gridResolution);
-		
-		HashMap<String, Integer> priorityValueMap = GlobalVars.GRID_PARAMS.getPriorityValueMap();
-		
-		// 2-category coverage (pedestrian priority areas and vehicle priority areas)
-		// This is only used for exporting images, and there are alternative ways to visualise grid so not essential
-		 Category[] valueCategories	= new Category[] {	
-	        new Category("No data", Color.BLACK, GlobalVars.GRID_PARAMS.defaultGridValue),
-	        new Category("Pedestrian area", Color.GREEN, priorityValueMap.get("pedestrian")),
-	        new Category("Pedestrian crossing area", Color.PINK, priorityValueMap.get("pedestrian_crossing")),
-	        new Category("Vehicle area", Color.RED, priorityValueMap.get("vehicle")),
-	        new Category("Road Link area", Color.CYAN, priorityValueMap.get("road_link"))
-	    };
-
-		WritableGridCoverage2D baseGrid = RepastCoverageFactory.createWritableByteIndexedCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, width, height, fixedGeographyEnvelope, valueCategories, null, GlobalVars.GRID_PARAMS.defaultGridValue);
-		geography.addCoverage(GlobalVars.CONTEXT_NAMES.BASE_COVERAGE, baseGrid);
-
-		// Loop over coverage grid cells to check values and number of cells
-		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, Road.class, roadGeography, "priority", priorityValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, RoadLink.class, roadLinkGeography, "priority", priorityValueMap);
-		GISFunctions.setGridCoverageValuesFromGeography(baseGrid, PedObstruction.class, pedObstructGeography, "priority", priorityValueMap);
-		
+		}		
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + IO.getProperty("vehicleODFlowsFile"));
