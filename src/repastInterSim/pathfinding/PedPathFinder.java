@@ -170,7 +170,7 @@ public class PedPathFinder {
 		}
 				
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(pavementNetwork, currentJ, endJunctions, heuristic1, heuristic2);
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(pavementNetwork, currentJ, endJunctions, this.primaryCostHeuristic, this.secondaryCostHeuristic);
 		
 		// Create tactical alternative from this path		
 		TacticalAlternative tr = setupChosenTacticalAlternative(pavementNetwork, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
@@ -200,7 +200,7 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public List<RepastEdge<Junction>> chooseTacticalPath(Network<Junction> pavementNetwork, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Double> heuristic1, Transformer<RepastEdge<Junction>,Double> heuristic2) {
+	public List<RepastEdge<Junction>> chooseTacticalPath(Network<Junction> pavementNetwork, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 		
 		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
 
@@ -214,18 +214,18 @@ public class PedPathFinder {
 			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ);
 			
 			for (Stack<RepastEdge<Junction>> path : simplePaths) {
-				Integer pathLength1 = (int) NetworkPath.getPathLength(path, heuristic1);
+				Integer pathLength1 = (int) NetworkPath.getIntPathLength(path, heuristic1);
 				
 				if (pathLength1 < minPathLength1) {
 					candidatePaths.clear();
 					minPathLength1 = pathLength1;
 					candidatePaths.add(path);
 					
-					minPathLength2 = (int) NetworkPath.getPathLength(path, heuristic2);
+					minPathLength2 = (int) NetworkPath.getIntPathLength(path, heuristic2);
 				}
 				// If paths are tied on 1st distance heuristic, use 2nd to discriminate
 				else if (pathLength1 == minPathLength1) {
-					Integer pathLength2 = (int) NetworkPath.getPathLength(path, heuristic2);
+					Integer pathLength2 = (int) NetworkPath.getIntPathLength(path, heuristic2);
 					if (pathLength2 < minPathLength2) {
 						candidatePaths.clear();
 						minPathLength2 = pathLength2;
