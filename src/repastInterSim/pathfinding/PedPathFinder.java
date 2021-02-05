@@ -54,13 +54,6 @@ public class PedPathFinder {
 		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
 	}
 	
-	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-		this.origin = o;
-		this.destination = d;
-				
-		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveG, paveNetwork);
-	}
-	
 	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
 		this.origin = o;
 		this.destination = d;
