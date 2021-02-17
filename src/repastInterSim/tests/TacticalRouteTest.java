@@ -45,7 +45,7 @@ import repastInterSim.pathfinding.AccumulatorRoute;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
-class AccumulatorRouteTest {
+class TacticalRouteTest {
 
 	Context<Object> context = new DefaultContext<Object>();;
 	Geography<Object> geography; 
