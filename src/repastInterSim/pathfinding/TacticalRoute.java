@@ -47,12 +47,14 @@ public class TacticalRoute {
 		this.isBlank = true;
 	}
 	
-	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG) {
+	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG, NetworkPath<Junction> nP) {
 		this.ped = p;
 		this.caG = caG;
 		this.rG = rG;
 		
 		this.strategicPath = sP;
+		
+		this.nP = nP;
 		
 		this.currentJunction = startJunction;
 		this.endJunction = null; // Is this needed?
