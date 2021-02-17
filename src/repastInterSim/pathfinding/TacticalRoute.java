@@ -177,6 +177,15 @@ public class TacticalRoute {
 		return this.pathRemainder;
 	}
 	
+	public List<RepastEdge<Junction>> getRoutePath(){
+		return this.routePath;
+	}
+	
+	public List<Junction> getRouteNodes() {
+		List<Junction> routeNodes = this.nP.nodePathFromEdges(this.routePath, currentJunction);
+		return routeNodes;
+	}
+	
 	/*
 	 * Identify the crossing alternatives that lie on the given road links. Prepare these crossing alternatives
 	 * for use in the accumulator choice model.
@@ -255,6 +264,10 @@ public class TacticalRoute {
 
 	public void setDestinationCoordinate(Coordinate dC) {
 		this.destCoordinate = dC;
+	}
+	
+	public AccumulatorRoute getAccumulatorRoute() {
+		return this.accumulator;
 	}
 	
 	public void step() {
