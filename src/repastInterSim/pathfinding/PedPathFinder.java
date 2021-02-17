@@ -41,7 +41,7 @@ public class PedPathFinder {
 	int tacticalHorizonLinks = 0;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
-	private TacticalAlternative tacticalPath = new TacticalAlternative();
+	private TacticalRoute tacticalPath = new TacticalRoute();
 	
 	private Coordinate nextCrossingCoord;	
 
@@ -166,7 +166,7 @@ public class PedPathFinder {
 		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(pavementNetwork, currentJ, endJunctions, this.primaryCostHeuristic, this.secondaryCostHeuristic);
 		
 		// Create tactical alternative from this path		
-		TacticalAlternative tr = setupChosenTacticalAlternative(pavementNetwork, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
+		TacticalRoute tr = setupChosenTacticalAlternative(pavementNetwork, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
 		
 		this.tacticalPath = tr;
 		
@@ -244,7 +244,7 @@ public class PedPathFinder {
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
 	 * crossing locations at those points
 	 */
-	public static TacticalAlternative setupChosenTacticalAlternative(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalRoute setupChosenTacticalAlternative(Network<Junction> pavementNetwork, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 				
 		// Need to split the chosen tactical path into three section sections
 		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 
@@ -283,7 +283,7 @@ public class PedPathFinder {
 		}
 		
 		// Initialise the tactical alternative - sets the path
-		TacticalAlternative tr = new TacticalAlternative(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG);
+		TacticalRoute tr = new TacticalRoute(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG);
 		tr.updateCurrentJunction();
 		
 		return tr;
@@ -510,7 +510,7 @@ public class PedPathFinder {
 		return this.strategicPath;
 	}
 	
-	public TacticalAlternative getTacticalPath() {
+	public TacticalRoute getTacticalPath() {
 		return this.tacticalPath;
 	}
 	

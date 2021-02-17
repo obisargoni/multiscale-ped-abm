@@ -43,7 +43,7 @@ import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.NetworkPath;
-import repastInterSim.pathfinding.TacticalAlternative;
+import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
 	
@@ -908,7 +908,7 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_87";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
+		TacticalRoute tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
 
 		// Now validate the tactical route
 		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
@@ -1019,7 +1019,7 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_81";
 		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+		TacticalRoute tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
 		
 		// Now validate the tactical route
 		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
@@ -1133,13 +1133,13 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String defaultEndID = "pave_node_81";
 		Junction defaultEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(defaultEndID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative trDefault = PedPathFinder.setupTacticalAlternativeRoute(p, sP, defaultEndJ, outsideJunctions, oJ, dJ);
+		TacticalRoute trDefault = PedPathFinder.setupTacticalAlternativeRoute(p, sP, defaultEndJ, outsideJunctions, oJ, dJ);
 		
 		
 		// Test for other end junction
 		final String targetEndID = "pave_node_79";
 		Junction targetEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(targetEndID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
+		TacticalRoute trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
 		
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
 		String[] expectedInitialTargetRouteJunctions =  {"pave_node_88", targetEndID, "pave_node_80", "pave_node_82"};
@@ -1215,13 +1215,13 @@ class PedPathFinderTest {
 		// Select which end junction to find tactical path to
 		final String defaultEndID = "pave_node_107";
 		Junction defaultEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(defaultEndID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative trDefault = PedPathFinder.setupTacticalAlternativeRoute(p, sP, defaultEndJ, outsideJunctions, oJ, dJ);
+		TacticalRoute trDefault = PedPathFinder.setupTacticalAlternativeRoute(p, sP, defaultEndJ, outsideJunctions, oJ, dJ);
 		
 		
 		// Test for other end junction
 		final String targetEndID = "pave_node_106";
 		Junction targetEndJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(targetEndID)).collect(Collectors.toList()).get(0);
-		TacticalAlternative trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
+		TacticalRoute trTarget = PedPathFinder.setupTacticalAlternativeRoute(p, sP, targetEndJ, outsideJunctions, oJ, dJ);
 		
 		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
 		String[] expectedInitialTargetRouteJunctions =  {"pave_node_105", targetEndID};
@@ -1379,10 +1379,10 @@ class PedPathFinderTest {
 		Junction currentJ = p.getPathFinder().getStartPavementJunction();
 		Junction destJ = p.getPathFinder().getDestPavementJunction();
 		
-		List<TacticalAlternative> trs = PedPathFinder.destinationTacticalAlternatives(pavementNetwork, p.getPathFinder().getStrategicPath(), nLinks, currentJ, destJ, this.caGeography, this.roadGeography, p);
+		List<TacticalRoute> trs = PedPathFinder.destinationTacticalAlternatives(pavementNetwork, p.getPathFinder().getStrategicPath(), nLinks, currentJ, destJ, this.caGeography, this.roadGeography, p);
 		
-		TacticalAlternative targetTA = trs.get(0);
-		TacticalAlternative nonDestTA = trs.get(1);
+		TacticalRoute targetTA = trs.get(0);
+		TacticalRoute nonDestTA = trs.get(1);
 		
 		// Now run checks
 		assert nonDestTA.getEndJunction().getFID().contentEquals("pave_node_119");

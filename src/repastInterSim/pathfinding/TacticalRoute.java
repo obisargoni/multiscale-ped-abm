@@ -19,7 +19,7 @@ import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 
-public class TacticalAlternative {
+public class TacticalRoute {
 	
 	private Ped ped;
 	private Geography<CrossingAlternative> caG;
@@ -42,12 +42,12 @@ public class TacticalAlternative {
 	private boolean isBlank = false;
 	private AccumulatorRoute accumulator = new AccumulatorRoute();
 	
-	public TacticalAlternative() {
+	public TacticalRoute() {
 		// Blank constructor
 		this.isBlank = true;
 	}
 	
-	public TacticalAlternative(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG) {
+	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG) {
 		this.ped = p;
 		this.caG = caG;
 		this.rG = rG;
