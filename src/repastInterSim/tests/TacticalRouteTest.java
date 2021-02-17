@@ -1,7 +1,5 @@
 package repastInterSim.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -41,7 +39,6 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
-import repastInterSim.pathfinding.AccumulatorRoute;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
@@ -306,13 +303,14 @@ class TacticalRouteTest {
 		
 		
 		// Set up ped path finder
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		boolean minimiseCrossings = true;
+		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork, minimiseCrossings);
 		
 		// Check the start and end pavement junctions are as expected
 		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_87");
 		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -322,16 +320,19 @@ class TacticalRouteTest {
         p.setLoc();
 		
 		// Now test planning the first tactical path with this ped path finder object
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+        ppf.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
 		
-		// Check the current (default) and target tactical alternatives are as expected
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_92");
-		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_93");
+		// Check the end junctions of the chosen tactical path
+        List<Junction> tacticalPathNodes = ppf.getTacticalPath().getRouteNodes();
+		assert tacticalPathNodes.get(tacticalPathNodes.size()-1).getFID().contentEquals("pave_node_93");
 		
-		AccumulatorRoute ar = ppf.getTacticalPath();
+		// Update current junction. Because first edge requires crossing this will initialise and accumulator route
+		ppf.getTacticalPath().updateTargetCoordiante();
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_92"); // This is the default junction
+		assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_93");
 		
 		// Now test accumulating activation
-		ar.step();
+		ppf.getTacticalPath().step();
 	}
 
 }
