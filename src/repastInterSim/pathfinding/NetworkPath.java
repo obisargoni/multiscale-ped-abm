@@ -281,6 +281,10 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			return net;
 		}
 		
+		public Graph<T, RepastEdge<T>> getGraph() {
+			return this.graph;
+		}
+		
 		private Graph<T, RepastEdge<T>> netToGraph(Network<T> net) {
 			Graph<T, RepastEdge<T>> graph = null;
 
