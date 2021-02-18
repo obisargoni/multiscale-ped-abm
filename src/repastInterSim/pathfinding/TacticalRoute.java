@@ -180,7 +180,7 @@ public class TacticalRoute {
 		return pathToEnd;
 	}
 	
-	public List<RepastEdge<Junction>> getAlternativeRemainderPath() {
+	public List<RepastEdge<Junction>> getRemainderPath() {
 		return this.pathRemainder;
 	}
 	
