@@ -188,9 +188,6 @@ public class TacticalRoute {
 		return this.routePath;
 	}
 	
-	public List<Junction> getRouteNodes() {
-		List<Junction> routeNodes = this.nP.nodePathFromEdges(this.routePath, currentJunction);
-		return routeNodes;
 	}
 	
 	/*
