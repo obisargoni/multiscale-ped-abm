@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -164,9 +165,17 @@ public class PedPathFinder {
 			endJunctions = new ArrayList<Junction>();
 			endJunctions.add(destJ);
 		}
-				
+		
+		// Get filter to use for selecting pavement network nodes that lie in the planning horizon only
+		List<Junction> horizonStrategicNodes = new ArrayList<Junction>();
+		for( int i=0; i<tacticalNLinks; i++ ) {
+			sP.get(i).getJunctions().stream().forEach(horizonStrategicNodes::add);
+		}
+		
+		Predicate<Junction> tacticalFilter = j -> horizonStrategicNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+						
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, currentJ, endJunctions, this.primaryCostHeuristic, this.secondaryCostHeuristic);
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalFilter, currentJ, endJunctions, this.primaryCostHeuristic, this.secondaryCostHeuristic);
 		
 		// Create tactical alternative from this path		
 		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
@@ -196,7 +205,7 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
 		
@@ -205,7 +214,7 @@ public class PedPathFinder {
 		Integer minPathLength2 = Integer.MAX_VALUE;
 		for (Junction tJ: targetJunctions) {
 			
-			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ);
+			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ, filter);
 			
 			for (Stack<RepastEdge<Junction>> path : simplePaths) {
 				Integer pathLength1 = (int) NetworkPath.getIntPathLength(path, heuristic1);
@@ -252,8 +261,8 @@ public class PedPathFinder {
 		List<RepastEdge<Junction>> firstLinkTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		List<RepastEdge<Junction>> remainderTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		
-		// Get the junctions at the start of the first link of the strategic path
-		// used this to identify the initial section of the tacticla path that gets agent to the next strategic link
+		// Get the road junctions at the start of the first link of the strategic path
+		// use this to identify the initial section of the tactical path that gets agent to the next strategic link
 		String startRoadNodeID = currentJ.getjuncNodeID();
 		List<Junction> startFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(), sP.get(0), startRoadNodeID).get("end");
 		
