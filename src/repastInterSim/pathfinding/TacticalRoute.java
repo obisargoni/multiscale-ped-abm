@@ -62,7 +62,8 @@ public class TacticalRoute {
 		this.pathToEnd = firstLinkTacticalPath;
 		this.pathRemainder = remainderTacticalPath;
 		
-		this.routePath = (LinkedList<RepastEdge<Junction>>) Stream.of(this.initPath, this.pathToEnd).flatMap(Collection::stream).collect(Collectors.toList());
+		List<RepastEdge<Junction>> rP = Stream.of(this.initPath, this.pathToEnd).flatMap(Collection::stream).collect(Collectors.toList());		
+		this.routePath = rP.stream().collect(Collectors.toCollection(LinkedList::new)); 
 		
 	}
 	
