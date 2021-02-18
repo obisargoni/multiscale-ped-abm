@@ -260,9 +260,13 @@ class TacticalRouteTest {
 		return sP;
 	}
 
-	
+	/*
+	 * This tests a scenario where the strategic path is 2 links long.
+	 * 
+	 * The test checks that TacticalRoute object is initialised with the expected currentJunction and that the remainderPath leads to the end pavement junction
+	 */
 	@Test
-	void testAccumulatorRouteUnmarkedCAOnly(){
+	void testTacticalRouteSetup1(){
 		
 		
 		// Setup environment
@@ -301,9 +305,8 @@ class TacticalRouteTest {
 			}
 		}
 		
-		
 		// Set up ped path finder
-		boolean minimiseCrossings = true;
+		boolean minimiseCrossings = false;
 		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork, minimiseCrossings);
 		
 		// Check the start and end pavement junctions are as expected
@@ -320,19 +323,22 @@ class TacticalRouteTest {
         p.setLoc();
 		
 		// Now test planning the first tactical path with this ped path finder object
-        ppf.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+        ppf.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());        
+         
+        List<RepastEdge<Junction>> remainderPath = ppf.getTacticalPath().getRemainderPath();
+        List<Junction> remainderPathNodes = ppf.getTacticalPath().getNetworkPathFinder().nodePathFromEdges(remainderPath, ppf.getTacticalPath().getCurrentJunction());
+        
+		// Check the end junctions of the chosen remainder path - planning horizon extends to the desitination so end junction is the same as destination junction
+		assert remainderPathNodes.get(remainderPathNodes.size()-1).getFID().contentEquals("pave_node_93");
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_79") | ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_81");
 		
-		// Check the end junctions of the chosen tactical path
-        List<Junction> tacticalPathNodes = ppf.getTacticalPath().getRouteNodes();
-		assert tacticalPathNodes.get(tacticalPathNodes.size()-1).getFID().contentEquals("pave_node_93");
-		
-		// Update current junction. Because first edge requires crossing this will initialise and accumulator route
-		ppf.getTacticalPath().updateTargetCoordiante();
-		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_92"); // This is the default junction
-		assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_93");
+		//assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_92"); // This is the default junction
+		//assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_93");
 		
 		// Now test accumulating activation
-		ppf.getTacticalPath().step();
+		//ppf.getTacticalPath().step();
 	}
+	
+
 
 }
