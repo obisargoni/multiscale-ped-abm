@@ -188,6 +188,8 @@ public class TacticalRoute {
 		return this.routePath;
 	}
 	
+	public NetworkPath<Junction> getNetworkPathFinder() {
+		return this.nP;
 	}
 	
 	/*
