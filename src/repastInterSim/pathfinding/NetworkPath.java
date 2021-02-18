@@ -239,11 +239,15 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			else {
 				// Then find valid children nodes
 				Collection<T> adj = graph.getNeighbors(node);
-			    for (T nextNode : adj) {
-			    	if (!nodePath.contains(nextNode)) {
-			           calcSimplePaths(nextNode, targetNode);
-			           nodePath.pop(); // Clears connection path on the way out
-				    }
+				
+				// If node if not contained in the graph (this happens when filter excludes starting node) adj is null
+				if (adj != null) {
+				    for (T nextNode : adj) {
+				    	if (!nodePath.contains(nextNode)) {
+				           calcSimplePaths(nextNode, targetNode);
+				           nodePath.pop(); // Clears connection path on the way out
+					    }
+					}
 				}
 			}
 		}
