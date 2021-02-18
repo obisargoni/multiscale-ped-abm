@@ -921,7 +921,7 @@ class PedPathFinderTest {
 		assert tr.getRoutePath().size() == 1;
 		
 		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getAlternativeRemainderPath();
+		List<RepastEdge<Junction>> rP = tr.getRemainderPath();
 		int count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -949,7 +949,7 @@ class PedPathFinderTest {
 		// Primary crossing required to reach this end junction so expect additional link in path
 		assert tr.getRoutePath().size() == 2;
 		
-		rP = tr.getAlternativeRemainderPath();
+		rP = tr.getRemainderPath();
 		count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -1032,7 +1032,7 @@ class PedPathFinderTest {
 		assert tr.getRoutePath().size() == 1;
 		
 		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getAlternativeRemainderPath();
+		List<RepastEdge<Junction>> rP = tr.getRemainderPath();
 		int count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
@@ -1062,7 +1062,7 @@ class PedPathFinderTest {
 		// Primary crossing required to reach this end junction so expect additional link in path
 		assert tr.getRoutePath().size() == 4;
 		
-		rP = tr.getAlternativeRemainderPath();
+		rP = tr.getRemainderPath();
 		count = 0;
 		for (RepastEdge<Junction> re: rP) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
