@@ -130,12 +130,7 @@ public class TacticalRoute {
 				nextJunction = null;
 			}
 			else {
-				if (this.currentEdge.getSource().equals(this.currentJunction)) {
-					nextJunction = this.currentEdge.getTarget();
-				}
-				else {
-					nextJunction = this.currentEdge.getSource();
-				}
+				nextJunction = edgeAdjacentJunction(this.currentEdge, this.currentJunction);
 				
 				// Check if this edge requires crossing a primary link. If it does, initialise an accumulator to choose crossing location				
 				List<RoadLink> crossingLinks = tacticalPathPrimaryCrossingLinks(this.currentEdge, this.strategicPath); 
@@ -168,6 +163,17 @@ public class TacticalRoute {
 			
 			this.currentJunction = nextJunction;
 		}
+	}
+	
+	private Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
+		Junction adj = null;
+		if (e.getSource().equals(j)) {
+			adj = e.getTarget();
+		}
+		else {
+			adj = e.getSource();
+		}
+		return adj;
 	}
 	
 	public List<RepastEdge<Junction>> getPathToEnd() {
