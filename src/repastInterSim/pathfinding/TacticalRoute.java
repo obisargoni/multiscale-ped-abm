@@ -38,7 +38,6 @@ public class TacticalRoute {
 	private List<RepastEdge<Junction>> initPath; // Path that gets agent from the end of the previous road link they were on to the start of the next. Empty when last junction agent reached boarders previous and next road link.
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
-	private boolean recurringEndJunction = false;
 	private boolean isBlank = false;
 	private AccumulatorRoute accumulator = new AccumulatorRoute();
 	
