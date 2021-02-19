@@ -80,10 +80,12 @@ public class TacticalRoute {
 	 * the route.
 	 */
 	public Coordinate getTargetCoordinate() {
+		// route coordinates storde coordinates of crossing location
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		else if ((this.destCoordinate != null) & (this.routePath.size()==0)) {
+		// If caChosen is either null or true (meaning ped is no longer trying to cross the road) and ped is at end of journey (hence destCoordinate is not null) then walk towards dest coordinate
+		else if ((this.destCoordinate != null) & (this.accumulator.caChosen() != false) ) {
 			return this.destCoordinate;
 		}
 		else {
@@ -107,8 +109,9 @@ public class TacticalRoute {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if (this.recurringEndJunction & (this.routePath.size()==0)) {
-			// do not update the current junction
+		if ((this.accumulator.caChosen() == false) & (this.strategicPath.size()==1)) {
+			// do not update the current junction if crossing location is not chosen and ped is at the end of their route
+			// caChosen returns null is accumulator has not been initialised, false only if initialised and ca not chosen
 			
 		}
 		
@@ -116,9 +119,8 @@ public class TacticalRoute {
 			// Update the current edge			
 			this.currentEdge = this.routePath.poll();
 			
-			// If ped is now at the end of their journey, set the destination coordinate attribute and set recurring end junction to true
+			// If ped is now at the end of their journey, set the destination coordinate attribute
 			if ((this.strategicPath.size() == 1) & (this.routePath.size()==0)) {
-				this.recurringEndJunction = true;
 				this.destCoordinate = this.ped.getDestination().getGeom().getCoordinate();
 			}
 			
