@@ -56,6 +56,8 @@ public class TacticalRoute {
 		
 		this.nP = nP;
 		
+		this.currentJunction = startJunction;
+		this.endJunction = null; // Is this needed?
 		this.initPath = initTacticalPath;
 		this.pathToEnd = firstLinkTacticalPath;
 		this.pathRemainder = remainderTacticalPath;
@@ -63,8 +65,6 @@ public class TacticalRoute {
 		List<RepastEdge<Junction>> rP = Stream.of(this.initPath, this.pathToEnd).flatMap(Collection::stream).collect(Collectors.toList());		
 		this.routePath = rP.stream().collect(Collectors.toCollection(LinkedList::new)); 
 		
-		this.endJunction = null; // Is this needed?
-		this.currentJunction = this.edgeAdjacentJunction(this.routePath.peekFirst(), startJunction);
 	}
 	
 	public Junction getCurrentJunction() {
