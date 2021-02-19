@@ -83,7 +83,7 @@ public class TacticalRoute {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		else if ((this.destCoordinate != null) & (this.routePath.size()==1)) {
+		else if ((this.destCoordinate != null) & (this.routePath.size()==0)) {
 			return this.destCoordinate;
 		}
 		else {
@@ -107,18 +107,17 @@ public class TacticalRoute {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if (this.recurringEndJunction & (this.routePath.size()==1)) {
+		if (this.recurringEndJunction & (this.routePath.size()==0)) {
 			// do not update the current junction
 			
 		}
 		
 		else {
-			// Update the current edge
-			this.routePath.pollFirst();
-			this.currentEdge = this.routePath.peekFirst();
+			// Update the current edge			
+			this.currentEdge = this.routePath.poll();
 			
 			// If ped is now at the end of their journey, set the destination coordinate attribute and set recurring end junction to true
-			if ((this.strategicPath.size() == 1) & (this.routePath.size()==1)) {
+			if ((this.strategicPath.size() == 1) & (this.routePath.size()==0)) {
 				this.recurringEndJunction = true;
 				this.destCoordinate = this.ped.getDestination().getGeom().getCoordinate();
 			}
