@@ -324,9 +324,13 @@ class TacticalRouteTest {
 		
 		// Now test planning the first tactical path with this ped path finder object
         ppf.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());        
-         
+        
+        // Test needs to get end junction of route path and use that rather than current junction, current junction could not connect to remainder path if first link is a crossing link
+        List<RepastEdge<Junction>> routePath = ppf.getTacticalPath().getRoutePath();
+        List<Junction> routePathNodes = ppf.getTacticalPath().getNetworkPathFinder().nodePathFromEdges(routePath, ppf.getStartPavementJunction());
+        
         List<RepastEdge<Junction>> remainderPath = ppf.getTacticalPath().getRemainderPath();
-        List<Junction> remainderPathNodes = ppf.getTacticalPath().getNetworkPathFinder().nodePathFromEdges(remainderPath, ppf.getTacticalPath().getCurrentJunction());
+        List<Junction> remainderPathNodes = ppf.getTacticalPath().getNetworkPathFinder().nodePathFromEdges(remainderPath, routePathNodes.get(routePathNodes.size()-1));
         
 		// Check the end junctions of the chosen remainder path - planning horizon extends to the desitination so end junction is the same as destination junction
 		assert remainderPathNodes.get(remainderPathNodes.size()-1).getFID().contentEquals("pave_node_93");
