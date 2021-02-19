@@ -343,6 +343,77 @@ class TacticalRouteTest {
 		//ppf.getTacticalPath().step();
 	}
 	
+	/*
+	 * This tests a scenario where the strategic path is 1 link long and primary crossing is required o reach destination.
+	 * 
+	 * This means the setting of up an AccumulatorRoute is tested.
+	 * 
+	 */
+	@Test
+	void testTacticalRouteSetup2(){
+		
+		
+		// Setup environment
+		try {
+			setUpObjectGeography();
+			
+			setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
 
+			setUpRoads();
+
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpCrossingAlternatives();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : this.odGeography.getAllObjects()) {
+			if (i.getId() == 6) {
+				o = i;
+			}
+			else if (i.getId() == 3) {
+				d = i;
+			}
+		}
+		
+		// Set up ped path finder
+		boolean minimiseCrossings = false;
+		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork, minimiseCrossings);
+		
+		// Check the start and end pavement junctions are as expected
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_89");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_108");
+		
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		
+        context.add(p);        
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(p.getRad());		
+		GISFunctions.moveAgentToGeometry(geography, circle, p);
+        p.setLoc();
+		
+		// Now test planning the first tactical path with this ped path finder object
+        ppf.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());        
+        
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_106"); // This is the default junction
+		assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_108");
+		
+		// Now test accumulating activation
+		ppf.getTacticalPath().step();
+	}
 
 }
