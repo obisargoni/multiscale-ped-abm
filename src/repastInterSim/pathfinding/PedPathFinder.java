@@ -178,6 +178,7 @@ public class PedPathFinder {
 		
 		// Create tactical alternative from this path		
 		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+		tr.updateCurrentJunction();
 
 		return tr;
 	}
@@ -291,7 +292,6 @@ public class PedPathFinder {
 		
 		// Initialise the tactical alternative - sets the path
 		TacticalRoute tr = new TacticalRoute(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG, nP);
-		tr.updateCurrentJunction();
 		
 		return tr;
 		
