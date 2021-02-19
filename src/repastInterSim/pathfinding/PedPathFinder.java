@@ -134,30 +134,29 @@ public class PedPathFinder {
 		}
 		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
-		tacticalHorizonLinks = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.ped, this.strategicPath, startJunction, this.destPavementJunction);
+		// Calculate number of links in planning horizon
+		tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
+		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);;
     }
 	
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public int planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ) {
+	public static TacticalRoute planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, int nTL, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 		
 		// NetworkPath object is used to find paths on the pavement network
 		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
 		
-		// Calculate number of links in planning horizon
-		int tacticalNLinks = getNLinksWithinAngularDistance(sP, p.getpHorizon());
-		
 		boolean destInPlanningHorizon = false;
-		if (tacticalNLinks == sP.size()) {
+		if (nTL == sP.size()) {
 			destInPlanningHorizon = true;
 		}
 		
 		// Get road link ID of link at end of planning horizon and first strategic path road link outside of planning horizon
 		List<Junction> endJunctions = null;
 		if (destInPlanningHorizon==false) {
-			RoadLink rlEndHorz = sP.get(tacticalNLinks-1);
-			RoadLink rlOutHorz = sP.get(tacticalNLinks);
+			RoadLink rlEndHorz = sP.get(nTL-1);
+			RoadLink rlOutHorz = sP.get(nTL);
 			HashMap<String, List<Junction>> horizonJunctions = tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 			endJunctions = horizonJunctions.get("end");
 		}
@@ -168,21 +167,19 @@ public class PedPathFinder {
 		
 		// Get filter to use for selecting pavement network nodes that lie in the planning horizon only
 		List<Junction> horizonStrategicNodes = new ArrayList<Junction>();
-		for( int i=0; i<tacticalNLinks; i++ ) {
+		for( int i=0; i<nTL; i++ ) {
 			sP.get(i).getJunctions().stream().forEach(horizonStrategicNodes::add);
 		}
 		
 		Predicate<Junction> tacticalFilter = j -> horizonStrategicNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 						
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalFilter, currentJ, endJunctions, this.primaryCostHeuristic, this.secondaryCostHeuristic);
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalFilter, currentJ, endJunctions, heuristic1, heuristic2);
 		
 		// Create tactical alternative from this path		
-		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, tacticalNLinks, tacticalPath, currentJ, destJ, caG, rG, p);
-		
-		this.tacticalPath = tr;
-		
-		return tacticalNLinks;
+		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+
+		return tr;
 	}
 	
 	/*
@@ -205,7 +202,7 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
 		
