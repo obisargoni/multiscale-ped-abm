@@ -24,7 +24,7 @@ public class AccumulatorRoute {
 	private List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 	private double[] caActivations;
 	
-	private LinkedList<RepastEdge<Junction>> targetRoutePath = null;
+	private RepastEdge<Junction> targetRouteEdge = null;
 	private Junction targetJunction;
 	private Junction defaultJunction;
 		
@@ -39,7 +39,7 @@ public class AccumulatorRoute {
 		this.caChosen = true;
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, LinkedList<RepastEdge<Junction>> tRP) {
+	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, RepastEdge<Junction> tRE) {
 		this.ped = p;
 		this.roadLength = rL;
 		
@@ -49,7 +49,7 @@ public class AccumulatorRoute {
 			this.caActivations[i]=0;
 		}
 		
-		this.targetRoutePath = tRP;
+		this.targetRouteEdge = tRE;
 		this.targetJunction = tJ;
 		this.defaultJunction = dJ;
 		this.caChosen = false;
@@ -246,8 +246,8 @@ public class AccumulatorRoute {
 		return this.targetJunction;
 	}
 	
-	public LinkedList<RepastEdge<Junction>> getTargetRoutePath() {
-		return this.targetRoutePath;
+	public RepastEdge<Junction> getTargetRouteEdge() {
+		return this.targetRouteEdge;
 	}
 	
 	public Junction getDefaultJunction() {

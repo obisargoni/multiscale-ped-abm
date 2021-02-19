@@ -132,11 +132,10 @@ public class TacticalRoute {
 					
 					Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
 					
-					// Record the desired route path, and overwrite route path with the now default route path
-					LinkedList<RepastEdge<Junction>> targetRoutePath = this.routePath;
+					// Record the desired route edge, and overwrite route edge with the default route edge the ped follows while choosing crossing position
+					RepastEdge<Junction> targetRouteEdge = this.currentEdge;
 					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, nextJunction);
-					this.routePath = new LinkedList<RepastEdge<Junction>>();
-					this.routePath.add(defaultEdge);
+					this.currentEdge = defaultEdge;
 					
 					// Get road length - the length of the road that crossing alternatives are being considered for
 					double roadLength = 0;
@@ -148,7 +147,7 @@ public class TacticalRoute {
 					List<CrossingAlternative> cas = getCrossingAlternatives(caG, crossingLinks, ped, rG);
 					
 					// Initialise accumulator crossing choice model
-					this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRoutePath);
+					this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge);
 					
 					// Set target junction to be the default, no crossing, junction while agent chooses crossing location
 					nextJunction = this.accumulator.getDefaultJunction();			
@@ -279,7 +278,7 @@ public class TacticalRoute {
 			
 			// Set the current junction to be the target junction - this
 			this.currentJunction = this.accumulator.getTargetJunction();
-			this.routePath = this.accumulator.getTargetRoutePath();			
+			this.currentEdge = this.accumulator.getTargetRouteEdge();
 			
 			// Finally record which crossing type the pedestrian agent chose
 			this.ped.setChosenCrossingType(ca.getType());
