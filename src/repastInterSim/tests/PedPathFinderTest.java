@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -856,10 +858,8 @@ class PedPathFinderTest {
 	/*
 	 * Test the creation of a TacticalRoute object
 	 * 
-	 * The tactical route provides a path to a pavement junction the end of the pedestrian agents planning horizon and then from that junction
-	 * to their destination.
-	 * 
-	 * This tests whether the expected path is created.
+	 * This method tests that the tactical routes produces with a tactical horizon of one link are expected when
+	 * using the minimise crossings and minimise distance heuristics
 	 */
 	@Test
 	public void testSetupTacticalRoute1() {
@@ -870,6 +870,10 @@ class PedPathFinderTest {
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -896,6 +900,17 @@ class PedPathFinderTest {
 			}
 		}
 		
+		OD o = null;
+		OD d = null;
+		for (OD od : this.odGeography.getAllObjects()) {
+			if (od.getId() == 4) {
+				o = od;
+			}
+			else if (od.getId() == 7) {
+				d = od;
+			}
+		}
+		
 		int horizonNLinks = 1;
 		RoadLink rlEndHorz = sP.get(horizonNLinks-1);
 		RoadLink rlOutHorz = sP.get(horizonNLinks);
@@ -904,64 +919,52 @@ class PedPathFinderTest {
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
 		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+						
+		boolean minimiseCrossings = true;
+		Ped pMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        context.add(pMinCross);
+        
+        minimiseCrossings = false;
+        Ped pMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        context.add(pMinCross);
+        
+        
+        /*
+        Coordinate oCoord = oJ.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(p.getRad());		
+		GISFunctions.moveAgentToGeometry(geography, circle, p);
+        p.setLoc();
+		*/
+        
+        TacticalRoute tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, oJ, dJ, pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+
+		// Now validate the tactical route
+		// Check that target junction is the no crossing junction as expected
 		
 		// Select which end junction to find tactical path to
 		final String end1ID = "pave_node_87";
-		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalRoute tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
+        assert tr.getCurrentJunction().getFID().contentEquals(end1ID);
 
-		// Now validate the tactical route
-		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
-		String[] expectedJunctions1 = {end1ID};
-		List<Junction> rJs =  tr.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
-			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
-		}
+		// Route path of size zero now means that path only ever had one link in
+		assert tr.getRoutePath().size() == 0;
 		
-		assert tr.getRoutePath().size() == 1;
-		
-		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getRemainderPath();
-		int count = 0;
-		for (RepastEdge<Junction> re: rP) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
-			for (RoadLink rl : sP) {
-				String rlid = ne.getRoadLink().getPedRLID();
-				if (rlid.contentEquals(rl.getPedRLID())){
-					count++;
-				}
-			}
-		}
-		
-		assert (count % 2) == 0; 
+		// Since planning horizon is one link expect the remainder path to be empty also
+		assert tr.getRemainderPath().size() == 0;
 		
 		
-		// Test for other end junction, again should include the starting junction, junctions path passes along and end junction
-		final String end2ID = "pave_node_88";
-		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
-		tr = PedPathFinder.setupTacticalAlternativeRoute(np, sP, endJ, outsideJunctions, oJ, dJ);
-		String[] expectedJunctions2 =  {end1ID, end2ID};
-		rJs =  tr.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
-			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
-		}
+		// Produce tactical route for min distance ped 
+        tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, oJ, dJ, pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+
 		
-		// Primary crossing required to reach this end junction so expect additional link in path
-		assert tr.getRoutePath().size() == 2;
+		final String end2ID = "pave_node_88";		
 		
-		rP = tr.getRemainderPath();
-		count = 0;
-		for (RepastEdge<Junction> re: rP) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
-			for (RoadLink rl : sP) {
-				if (ne.getRoadLink().getPedRLID().contentEquals(rl.getPedRLID())){
-					count++;
-				}
-			}
-		}
-		
-		assert (count % 2) == 1; 
-		
+		// In this case, because current edge contains a primary crossing the current junction will be the default, no cross junction
+		// The accumulator target junction will be the crossing junction
+		assert tr.getCurrentJunction().getFID().contentEquals(end1ID);
+		assert tr.getAccumulatorRoute().getTargetJunction().getFID().contentEquals(end2ID);
+		assert tr.getRoutePath().size() == 0;
+		assert tr.getRemainderPath().size() == 0;		
 	}
 	
 	/*
