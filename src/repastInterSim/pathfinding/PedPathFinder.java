@@ -569,6 +569,14 @@ public class PedPathFinder {
 	
 	public Junction getDestPavementJunction() {
 		return destPavementJunction;
-	}	
+	}
+	
+	public Transformer<RepastEdge<Junction>,Integer> getPrimaryCostHeuristic() {
+		return this.primaryCostHeuristic;
+	}
+	
+	public Transformer<RepastEdge<Junction>,Integer> getSecondaryCostHeuristic() {
+		return this.secondaryCostHeuristic;
+	}
 	
 }
