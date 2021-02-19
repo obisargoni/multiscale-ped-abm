@@ -28,7 +28,7 @@ public class AccumulatorRoute {
 	private Junction targetJunction;
 	private Junction defaultJunction;
 		
-	private Boolean caChosen = null;
+	private boolean caChosen;
 	private CrossingAlternative chosenCA = null;
 	
 	private boolean isBlank = false;
@@ -36,6 +36,7 @@ public class AccumulatorRoute {
 	public AccumulatorRoute() {
 		// Blank constructor allows ped agent to be initialised with an AccumulatorRoute object which returns a null initial coordinate
 		this.isBlank = true;
+		this.caChosen = true;
 	}
 	
 	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, LinkedList<RepastEdge<Junction>> tRP) {
@@ -257,7 +258,7 @@ public class AccumulatorRoute {
 		return this.isBlank;
 	}
 	
-	public Boolean caChosen() {
+	public boolean caChosen() {
 		return this.caChosen;
 	}
 
