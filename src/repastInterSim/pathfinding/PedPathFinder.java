@@ -326,13 +326,12 @@ public class PedPathFinder {
 			if (matchPrev & !matchNext) {
 				reachedEndJunction = true;
 			}
-			else if (matchPrev & matchNext) {
-				//firstLinkTacticalPath.add(e);
+			// If next junction matches target and the end of the path has been reached then include this link and end loop
+			else if ( (i == path.size()-1) & matchNext) {
 				i++;
 				reachedEndJunction = true;
 			}
 			else {
-				//firstLinkTacticalPath.add(e);
 				i++;
 			}
 			
