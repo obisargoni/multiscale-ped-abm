@@ -28,7 +28,7 @@ public class AccumulatorRoute {
 	private Junction targetJunction;
 	private Junction defaultJunction;
 		
-	private boolean caChosen = false;
+	private Boolean caChosen = null;
 	private CrossingAlternative chosenCA = null;
 	
 	private boolean isBlank = false;
@@ -51,6 +51,7 @@ public class AccumulatorRoute {
 		this.targetRoutePath = tRP;
 		this.targetJunction = tJ;
 		this.defaultJunction = dJ;
+		this.caChosen = false;
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -221,6 +222,7 @@ public class AccumulatorRoute {
 			
 			// With crossing alternative chosen, update the tactical path
 			this.chosenCA = this.cas.get(choseni);
+			this.caChosen = true;
 		}
 	}
 	
@@ -253,6 +255,10 @@ public class AccumulatorRoute {
 	
 	public boolean isBlank() {
 		return this.isBlank;
+	}
+	
+	public Boolean caChosen() {
+		return this.caChosen;
 	}
 
 }
