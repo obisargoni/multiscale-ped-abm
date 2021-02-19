@@ -34,7 +34,6 @@ public class TacticalRoute {
 	private Junction finalJunction = null;
 	private LinkedList<RepastEdge<Junction>> routePath = null;
 	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
-	private Coordinate destCoordinate = null;
 	private List<RepastEdge<Junction>> initPath; // Path that gets agent from the end of the previous road link they were on to the start of the next. Empty when last junction agent reached boarders previous and next road link.
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
@@ -83,9 +82,9 @@ public class TacticalRoute {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		// If caChosen is either null or true (meaning ped is no longer trying to cross the road) and ped is at end of journey (hence destCoordinate is not null) then walk towards dest coordinate
-		else if ((this.destCoordinate != null) & (this.accumulator.caChosen() != false) ) {
-			return this.destCoordinate;
+		// If caChosen is true (meaning ped is no longer trying to cross the road) and ped is at end of journey (last strategic link and no remaining edges in route path) then walk towards dest coordinate
+		else if ( (this.strategicPath.size() == 1) & (this.routePath.size()==0) & (this.accumulator.caChosen()) ) {
+			return this.ped.getDestination().getGeom().getCoordinate();
 		}
 		else {
 			return this.currentJunction.getGeom().getCoordinate();
@@ -117,11 +116,6 @@ public class TacticalRoute {
 		else {
 			// Update the current edge			
 			this.currentEdge = this.routePath.poll();
-			
-			// If ped is now at the end of their journey, set the destination coordinate attribute
-			if ((this.strategicPath.size() == 1) & (this.routePath.size()==0)) {
-				this.destCoordinate = this.ped.getDestination().getGeom().getCoordinate();
-			}
 			
 			// Identify the next junction
 			Junction nextJunction = null;
