@@ -307,13 +307,7 @@ class TacticalRouteTest {
 		}
 		
 		// Set up ped path finder
-		boolean minimiseCrossings = false;
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork, minimiseCrossings);
-		
-		// Check the start and end pavement junctions are as expected
-		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_87");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
-		
+		boolean minimiseCrossings = false;		
 		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
         context.add(p);        
@@ -322,6 +316,12 @@ class TacticalRouteTest {
 		Geometry circle = pt.buffer(p.getRad());		
 		GISFunctions.moveAgentToGeometry(geography, circle, p);
         p.setLoc();
+        
+        PedPathFinder ppf = p.getPathFinder();
+        
+		// Check the start and end pavement junctions are as expected
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_87");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
@@ -343,12 +343,6 @@ class TacticalRouteTest {
 		// Check the end junctions of the chosen remainder path - planning horizon extends to the desitination so end junction is the same as destination junction
 		assert remainderPathNodes.get(remainderPathNodes.size()-1).getFID().contentEquals("pave_node_93");
 		assert tr.getCurrentJunction().getFID().contentEquals("pave_node_79") | tr.getCurrentJunction().getFID().contentEquals("pave_node_81");
-		
-		//assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_92"); // This is the default junction
-		//assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_93");
-		
-		// Now test accumulating activation
-		//ppf.getTacticalPath().step();
 	}
 	
 	/*
@@ -399,11 +393,6 @@ class TacticalRouteTest {
 		
 		// Set up ped path finder
 		boolean minimiseCrossings = false;
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork, minimiseCrossings);
-		
-		// Check the start and end pavement junctions are as expected
-		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_89");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_108");
 		
 		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
@@ -413,6 +402,12 @@ class TacticalRouteTest {
 		Geometry circle = pt.buffer(p.getRad());		
 		GISFunctions.moveAgentToGeometry(geography, circle, p);
         p.setLoc();
+        
+        PedPathFinder ppf = p.getPathFinder();
+		
+		// Check the start and end pavement junctions are as expected
+		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_89");
+		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_108");
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
