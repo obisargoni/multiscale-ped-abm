@@ -268,10 +268,6 @@ public class TacticalRoute {
 	public Junction getFinalJunction() {
 		return this.finalJunction;
 	}
-
-	public void setDestinationCoordinate(Coordinate dC) {
-		this.destCoordinate = dC;
-	}
 	
 	public AccumulatorRoute getAccumulatorRoute() {
 		return this.accumulator;
