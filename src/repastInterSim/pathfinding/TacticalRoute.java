@@ -158,7 +158,7 @@ public class TacticalRoute {
 		}
 	}
 	
-	private Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
+	public Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
 		Junction adj = null;
 		if (e.getSource().equals(j)) {
 			adj = e.getTarget();
@@ -306,5 +306,9 @@ public class TacticalRoute {
 			}
 		}		
 		return crossedLinks;
+	}
+
+	public RepastEdge<Junction> getCurrentEdge() {
+		return this.currentEdge;
 	}
 }
