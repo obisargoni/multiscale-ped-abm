@@ -44,7 +44,7 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
-import repastInterSim.pathfinding.NetworkPath;
+import repastInterSim.pathfinding.NetworkPathFinder;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
@@ -1086,7 +1086,7 @@ class PedPathFinderTest {
 		// Identify the end and outside junctions
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> p = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
 		final String defaultEndID = "pave_node_81";
@@ -1168,7 +1168,7 @@ class PedPathFinderTest {
 		// Identify the end and outside junctions
 		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
 		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> p = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		// Select which end junction to find tactical path to
 		final String defaultEndID = "pave_node_107";

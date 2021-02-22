@@ -30,12 +30,12 @@ import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
-import repastInterSim.pathfinding.NetworkPath;
+import repastInterSim.pathfinding.NetworkPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
-class NetworkPathTest {
+class NetworkPathFinderTest {
 	
 	Geography<RoadLink> roadLinkGeography = null;
 	Network<Junction> roadNetwork = null;
@@ -168,7 +168,7 @@ class NetworkPathTest {
 		}
 		
 		// Initialise the path finder
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		// Get the start and end nodes to find paths between
 		String sourceID = "pave_node_111";
@@ -220,7 +220,7 @@ class NetworkPathTest {
 		}
 		
 		// Initialise the path finder
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		// Get the start and end nodes to find paths between
 		String sourceID = "pave_node_114";
@@ -255,7 +255,7 @@ class NetworkPathTest {
 			e.printStackTrace();
 		}
 		
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		// Check initial number of nodes
 		int nNodes = 0;
@@ -286,7 +286,7 @@ class NetworkPathTest {
 		
 		assert tacticalPavementNodes.size() == tacticalPavementNodeIDs.size();
 		
-		np = new NetworkPath<Junction>(this.pavementNetwork);
+		np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		np.filterGraph(tacticalPavementNodes);
 		assert np.getGraph().getVertexCount() == tacticalPavementNodes.size();
 	}
@@ -331,7 +331,7 @@ class NetworkPathTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 
 		// First test that when filter excludes target node, zero simple paths returned
 		String firstJunctionID = sPNodes.get(0).getFID();
@@ -389,7 +389,7 @@ class NetworkPathTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
@@ -456,7 +456,7 @@ class NetworkPathTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
@@ -491,8 +491,8 @@ class NetworkPathTest {
 		assert containsExpected;
 		
 		// Now compare path length of the expected path to path length of returned shortest path
-		int expectedLength = NetworkPath.getIntPathLength(expectedMinCrossPath, crossingTransformer);
-		int returnedLength = NetworkPath.getIntPathLength(leastCrossingPath, crossingTransformer);
+		int expectedLength = NetworkPathFinder.getIntPathLength(expectedMinCrossPath, crossingTransformer);
+		int returnedLength = NetworkPathFinder.getIntPathLength(leastCrossingPath, crossingTransformer);
 		assert expectedLength==returnedLength;
 		
         // But rest of path will differ

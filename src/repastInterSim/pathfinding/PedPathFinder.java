@@ -145,7 +145,7 @@ public class PedPathFinder {
 	public static TacticalRoute planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, int nTL, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 		
 		// NetworkPath object is used to find paths on the pavement network
-		NetworkPath<Junction> nP = new NetworkPath<Junction>(pavementNetwork);
+		NetworkPathFinder<Junction> nP = new NetworkPathFinder<Junction>(pavementNetwork);
 		
 		boolean destInPlanningHorizon = false;
 		if (nTL == sP.size()) {
@@ -203,7 +203,7 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPath<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
 		
@@ -215,18 +215,18 @@ public class PedPathFinder {
 			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ, filter);
 			
 			for (Stack<RepastEdge<Junction>> path : simplePaths) {
-				Integer pathLength1 = (int) NetworkPath.getIntPathLength(path, heuristic1);
+				Integer pathLength1 = (int) NetworkPathFinder.getIntPathLength(path, heuristic1);
 				
 				if (pathLength1 < minPathLength1) {
 					candidatePaths.clear();
 					minPathLength1 = pathLength1;
 					candidatePaths.add(path);
 					
-					minPathLength2 = (int) NetworkPath.getIntPathLength(path, heuristic2);
+					minPathLength2 = (int) NetworkPathFinder.getIntPathLength(path, heuristic2);
 				}
 				// If paths are tied on 1st distance heuristic, use 2nd to discriminate
 				else if (pathLength1 == minPathLength1) {
-					Integer pathLength2 = (int) NetworkPath.getIntPathLength(path, heuristic2);
+					Integer pathLength2 = (int) NetworkPathFinder.getIntPathLength(path, heuristic2);
 					if (pathLength2 < minPathLength2) {
 						candidatePaths.clear();
 						minPathLength2 = pathLength2;
@@ -252,7 +252,7 @@ public class PedPathFinder {
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
 	 * crossing locations at those points
 	 */
-	public static TacticalRoute setupChosenTacticalAlternative(NetworkPath<Junction> nP, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public static TacticalRoute setupChosenTacticalAlternative(NetworkPathFinder<Junction> nP, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 				
 		// Need to split the chosen tactical path into three section sections
 		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 

@@ -27,7 +27,7 @@ public class TacticalRoute {
 	
 	private List<RoadLink> strategicPath;
 	
-	private NetworkPath<Junction> nP;
+	private NetworkPathFinder<Junction> nP;
 	private Junction currentJunction = null;
 	private RepastEdge<Junction> currentEdge = null;
 	private Junction endJunction = null;
@@ -45,7 +45,7 @@ public class TacticalRoute {
 		this.isBlank = true;
 	}
 	
-	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG, NetworkPath<Junction> nP) {
+	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG, NetworkPathFinder<Junction> nP) {
 		this.ped = p;
 		this.caG = caG;
 		this.rG = rG;
@@ -181,7 +181,7 @@ public class TacticalRoute {
 		return this.routePath;
 	}
 	
-	public NetworkPath<Junction> getNetworkPathFinder() {
+	public NetworkPathFinder<Junction> getNetworkPathFinder() {
 		return this.nP;
 	}
 	

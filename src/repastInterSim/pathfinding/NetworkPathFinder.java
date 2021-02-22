@@ -24,7 +24,7 @@ import repast.simphony.space.projection.ProjectionListener;
 /*
  * An amended version of the Repast Simphony ShortestPath class that allows bespoke transformers to be used in the shortest path calculation
  */
-public class NetworkPath<T> implements ProjectionListener<T> {
+public class NetworkPathFinder<T> implements ProjectionListener<T> {
 	
 		private Network<T> net;
 		private Graph<T, RepastEdge<T>> graph;
@@ -41,11 +41,11 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 	   * @param net the Network
 	   */
 	  
-	    public NetworkPath(){
+	    public NetworkPathFinder(){
 	    	
 	    }
 
-		public NetworkPath(Network<T> net){
+		public NetworkPathFinder(Network<T> net){
 			init(net);
 		}
 		
@@ -351,7 +351,7 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 		 * Null the object so that the Garbage Collector recognizes to remove 
 		 * the object from the jvm.
 		 */
-		public static NetworkPath<?> finished(NetworkPath<?> sp){
+		public static NetworkPathFinder<?> finished(NetworkPathFinder<?> sp){
 			sp.finalize();
 			sp=null;
 			return sp;
