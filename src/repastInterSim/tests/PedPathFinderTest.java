@@ -880,26 +880,7 @@ class PedPathFinderTest {
 			e.printStackTrace();
 		}
 		
-		// Set the IDs of the road network junctions to travel to and get strategic path between these
-		String originRoadJunctionID = "node_id_64";
-		String destRoadJunctionID = "node_id_73";
-		List<RoadLink> sP = planStrategicPath(new Coordinate(), new Coordinate(), originRoadJunctionID, destRoadJunctionID);
-		
-		
-		// Produce strategic path between pavement junctions
-		Junction oJ = null;
-		Junction dJ = null;
-		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
-			if (j.getFID().contentEquals("pave_node_85")) {
-				oJ = j;
-				continue;
-			}
-			else if (j.getFID().contentEquals("pave_node_112")) {
-				dJ = j;
-				continue;
-			}
-		}
-		
+		// Initialise orign-destination pair to test
 		OD o = null;
 		OD d = null;
 		for (OD od : this.odGeography.getAllObjects()) {
@@ -910,34 +891,26 @@ class PedPathFinderTest {
 				d = od;
 			}
 		}
-		
-		int horizonNLinks = 1;
-		RoadLink rlEndHorz = sP.get(horizonNLinks-1);
-		RoadLink rlOutHorz = sP.get(horizonNLinks);
-		
-		// Identify the end and outside junctions
-		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
-		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
 						
 		boolean minimiseCrossings = true;
 		Ped pMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
-        context.add(pMinCross);
+		context.add(pMinCross);
         
         minimiseCrossings = false;
         Ped pMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
         context.add(pMinCross);
         
-        
-        /*
-        Coordinate oCoord = oJ.getGeom().getCentroid().getCoordinate();
-		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
-		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(geography, circle, p);
-        p.setLoc();
-		*/
-        
-        TacticalRoute tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, oJ, dJ, pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        // Get the strategic path - will be the same for both pedestrians
+        List<RoadLink> sP = pMinCross.getPathFinder().getStrategicPath();
+		int horizonNLinks = 1;
+		
+		// Check the start and end pavement junctions of the route
+		assert pMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
+		assert pMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
+		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
+		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
+		
+        TacticalRoute tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		// Now validate the tactical route
 		// Check that target junction is the no crossing junction as expected
@@ -952,9 +925,8 @@ class PedPathFinderTest {
 		// Since planning horizon is one link expect the remainder path to be empty also
 		assert tr.getRemainderPath().size() == 0;
 		
-		
 		// Produce tactical route for min distance ped 
-        tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, oJ, dJ, pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		
 		final String end2ID = "pave_node_88";		
