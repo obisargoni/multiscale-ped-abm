@@ -1013,25 +1013,26 @@ class PedPathFinderTest {
 		// Now re-plan with planning horizon equal to the whole strategic path
 		horizonNLinks = sP.size();
         trMinCross = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
-        trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinDist.getPathFinder().getSecondaryCostHeuristic());                
         
         // Initial section of the path should be the same for both peds
+        // Need to starting junction using the accumulator route since first link is a crossing link
 		final String end2ID = "pave_node_81";
-        assert trMinCross.getCurrentJunction().getFID().contentEquals(end1ID);
-        assert trMinDist.getCurrentJunction().getFID().contentEquals(end1ID);
+        assert trMinCross.getAccumulatorRoute().getTargetJunction().getFID().contentEquals(end2ID);
+        assert trMinDist.getAccumulatorRoute().getTargetJunction().getFID().contentEquals(end2ID);
         
         // But rest of path will differ
         String [] expectedNodesMinCross = {end2ID, "pave_node_89", "pave_node_91", pMinCross.getPathFinder().getDestPavementJunction().getFID()};
         String [] expectedNodesMinDist = {end2ID, "pave_node_90", pMinCross.getPathFinder().getDestPavementJunction().getFID()};
-        List<Junction> remainderPathNodesMinCross = trMinCross.getNetworkPathFinder().nodePathFromEdges(trMinCross.getRemainderPath(), trMinCross.getCurrentJunction());
-        List<Junction> remainderPathNodesMinDist = trMinDist.getNetworkPathFinder().nodePathFromEdges(trMinCross.getRemainderPath(), trMinDist.getCurrentJunction());
+        List<Junction> remainderPathNodesMinCross = trMinCross.getNetworkPathFinder().nodePathFromEdges(trMinCross.getRemainderPath(), trMinCross.getAccumulatorRoute().getTargetJunction());
+        List<Junction> remainderPathNodesMinDist = trMinDist.getNetworkPathFinder().nodePathFromEdges(trMinDist.getRemainderPath(), trMinDist.getAccumulatorRoute().getTargetJunction());
 		
 		for (int i=0; i<Math.max(expectedNodesMinCross.length, remainderPathNodesMinCross.size()); i++) {
 			assert remainderPathNodesMinCross.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
 		}
 		
 		for (int i=0; i<expectedNodesMinDist.length; i++) {
-			assert remainderPathNodesMinDist.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
+			assert remainderPathNodesMinDist.get(i).getFID().contentEquals(expectedNodesMinDist[i]);
 		}
 	}
 	
