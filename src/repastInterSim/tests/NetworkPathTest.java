@@ -411,5 +411,104 @@ class NetworkPathTest {
 			assert e1.getRoadLink().getFID().contentEquals(e2.getRoadLink().getFID());
 		}
 	}
+	
+	/*
+	 * Test choosing the shortest of a collection of simple paths based on heruistic.
+	 * 
+	 * This test compares shortest paths selected using distance based and crossing based heuristics.
+	 */
+	@Test
+	public void testGetShortestOfMultiplePaths2() {
+		// setup road network and pavement network
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_87";
+		String targetID = "pave_node_112";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		List<RoadLink> sP = planStrategicPath(o, d, startJunctionID, endJunctionID);
+		
+		List<Junction> sPNodes = new ArrayList<Junction>();
+		for (RoadLink rl: sP) {
+			rl.getJunctions().stream().forEach(sPNodes::add);
+		}
+		
+		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		
+		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
+		
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		Transformer<RepastEdge<Junction>, Integer> crossingTransformer = new EdgeRoadLinkIDTransformer<Junction>();
+		
+		
+		List<Stack<RepastEdge<Junction>>> shortestDistancePaths = np.getShortestOfMultiplePaths(paths, distanceTransformer);
+		List<Stack<RepastEdge<Junction>>> leastCrossingsPaths = np.getShortestOfMultiplePaths(paths, crossingTransformer);
+		
+		assert shortestDistancePaths.size() == 1;
+		assert leastCrossingsPaths.size() == 1;
+		
+		Stack<RepastEdge<Junction>> shortestDistancePath = shortestDistancePaths.get(0);
+		Stack<RepastEdge<Junction>> leastCrossingPath = leastCrossingsPaths.get(0);
+		
+		// First, get edges of expected path and check that the expected path is included in the collection of simple paths
+		Stack<RepastEdge<Junction>> expectedMinCrossPath = new Stack<RepastEdge<Junction>>();
+		String [] expectedEdgesMinCross = {"pave_link_87_81", "pave_link_81_89","pave_link_89_91","pave_link_91_112"};
+		for (int i=0; i<expectedEdgesMinCross.length; i++) {
+			String rlID = expectedEdgesMinCross[i];
+			for (RepastEdge<Junction> re: this.pavementNetwork.getEdges()) {
+				NetworkEdge<Junction> e = (NetworkEdge<Junction>) re;
+				if (e.getRoadLink().getFID().contentEquals(rlID)) {
+					expectedMinCrossPath.add(e);
+				}
+			}
+		}
+		
+		boolean containsExpected = paths.stream().anyMatch(p -> p.containsAll(expectedMinCrossPath));
+		assert containsExpected;
+		
+		// Now compare path length of the expected path to path length of returned shortest path
+		int expectedLength = NetworkPath.getIntPathLength(expectedMinCrossPath, crossingTransformer);
+		int returnedLength = NetworkPath.getIntPathLength(leastCrossingPath, crossingTransformer);
+		assert expectedLength==returnedLength;
+		
+        // But rest of path will differ
+        String [] expectedNodesMinDist = {"pave_node_87", "pave_node_81", "pave_node_90", "pave_node_112"};
+        String [] expectedNodesMinCross = {"pave_node_87", "pave_node_81", "pave_node_89", "pave_node_91", "pave_node_112"};
 
+        List<Junction> pathNodesMinDist = np.nodePathFromEdges(shortestDistancePath, source);
+        List<Junction> pathNodesMinCross = np.nodePathFromEdges(leastCrossingPath, source);
+		
+		for (int i=0; i<Math.max(expectedNodesMinDist.length, pathNodesMinDist.size()); i++) {
+			assert pathNodesMinDist.get(i).getFID().contentEquals(expectedNodesMinDist[i]);
+		}
+		
+		for (int i=0; i<Math.max(expectedNodesMinCross.length, pathNodesMinCross.size()); i++) {
+			assert pathNodesMinCross.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
+		}
+		
+	}
 }
