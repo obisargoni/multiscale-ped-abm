@@ -198,6 +198,26 @@ public class NetworkPath<T> implements ProjectionListener<T> {
 			return getPathLength(edgePath, this.transformer);
 		}
 		
+		/*
+		 * Given a list of paths return the shortest. Can include multiple paths if they have equal shortest lengths.
+		 */
+		public List<Stack<RepastEdge<T>>> getShortestOfMultiplePaths(List<Stack<RepastEdge<T>>> paths, Transformer<RepastEdge<T>, Integer> t) {
+			int minLength = Integer.MAX_VALUE;
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			for (Stack<RepastEdge<T>> path: paths) {
+				int pathLength = getIntPathLength(path, t);
+				if (pathLength < minLength) {
+					output.clear();
+					minLength = pathLength;
+					output.add(path);
+				}
+				else if (pathLength == minLength) {
+					output.add(path);
+				}
+			}
+			return output;
+		}
+		
 		/**
 		 * Creates shortest path info  nodes using the Jung Dijkstra algorithm
 		 */
