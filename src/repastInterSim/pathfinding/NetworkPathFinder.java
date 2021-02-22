@@ -122,6 +122,29 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 		}
 		
 		/*
+		 * Returned a list of all paths of nodes connecting source node to any one of the target nodes. paths containing duplicated nodes are excluded.
+		 * 
+		 * @param T node
+		 * 		The starting node of the path
+		 * @param Collection<T> targetNodes
+		 * 		Paths must terminate at one of these nodes
+		 * @param Predicate<? super T> nodeFilter
+		 * 		Used to filter which nodes can be including in the paths
+		 * 
+		 * @return List<Stack<T>>
+		 * 		The paths
+		 */
+		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, Collection<T> targetNodes, Predicate<T> nodeFilter){
+			this.filterGraph(nodeFilter);
+			List<Stack<RepastEdge<T>>> paths = new ArrayList<Stack<RepastEdge<T>>>();
+			for (T tN: targetNodes) {
+				getSimplePaths(node, tN).stream().forEach(paths::add);
+			}
+			return paths;
+		}
+		
+		
+		/*
 		 * Returns a list of all paths of nodes connecting two nodes in the network. Paths containing duplicated nodes are excluded.
 		 * 
 		 * @param T node
