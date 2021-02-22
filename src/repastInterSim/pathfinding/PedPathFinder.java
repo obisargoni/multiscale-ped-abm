@@ -26,7 +26,7 @@ import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.SpaceBuilder;
-import repastInterSim.pathfinding.transformers.CrossesRoadTransformer;
+import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
 public class PedPathFinder {
@@ -63,12 +63,12 @@ public class PedPathFinder {
 		
 		List<String> sPIDs = this.strategicPath.stream().map(rl -> rl.getFID()).collect(Collectors.toList());
 		if (minimiseCrossings) {
-			this.primaryCostHeuristic = new CrossesRoadTransformer<Junction>(sPIDs);
+			this.primaryCostHeuristic = new EdgeRoadLinkIDTransformer<Junction>();
 			this.secondaryCostHeuristic = new EdgeWeightTransformer<Junction>();
 		}
 		else {
 			this.primaryCostHeuristic = new EdgeWeightTransformer<Junction>();
-			this.secondaryCostHeuristic = new CrossesRoadTransformer<Junction>(sPIDs);
+			this.secondaryCostHeuristic = new EdgeRoadLinkIDTransformer<Junction>();
 		}
 	}
 	
