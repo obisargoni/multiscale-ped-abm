@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
 import org.apache.commons.collections15.Predicate;
-
+import org.apache.commons.collections15.Transformer;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -32,6 +32,8 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.pathfinding.NetworkPath;
 import repastInterSim.pathfinding.RoadNetworkRoute;
+import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
+import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
 class NetworkPathTest {
 	
@@ -341,6 +343,73 @@ class NetworkPathTest {
 		filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		paths = np.getSimplePaths(source, target, filter);
 		assert paths.size() == 2076; // python +networkx gives me 2076
+	}
+	
+	/*
+	 * Test choosing the shortest of a collection of simple paths based on heruistic.
+	 * 
+	 * This test uses the edge length cost function and compares shortest path to the Dijkstras shortest path
+	 */
+	@Test
+	public void testGetShortestOfMultiplePaths1() {
+		// setup road network and pavement network
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_85";
+		String targetID = "pave_node_112";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		List<RoadLink> sP = planStrategicPath(o, d, startJunctionID, endJunctionID);
+		
+		List<Junction> sPNodes = new ArrayList<Junction>();
+		for (RoadLink rl: sP) {
+			rl.getJunctions().stream().forEach(sPNodes::add);
+		}
+		
+		NetworkPath<Junction> np = new NetworkPath<Junction>(this.pavementNetwork);
+		
+		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
+		
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		List<Stack<RepastEdge<Junction>>> shortestPaths = np.getShortestOfMultiplePaths(paths, distanceTransformer);
+		
+		assert shortestPaths.size() == 1;
+		
+		Stack<RepastEdge<Junction>> shortestPath = shortestPaths.get(0);
+		
+		// Check that this gives the same paths as dijkstras on the filtered network
+		np.filterGraph(filter);
+		List<RepastEdge<Junction>> shortestPathDijkstra = np.getShortestPath(source, target);
+		
+		for (int i=0; i<Math.max(shortestPath.size(), shortestPathDijkstra.size()); i++) {
+			NetworkEdge<Junction> e1 = (NetworkEdge<Junction>) shortestPath.get(i);
+			NetworkEdge<Junction> e2 = (NetworkEdge<Junction>) shortestPathDijkstra.get(i);
+			assert e1.getRoadLink().getFID().contentEquals(e2.getRoadLink().getFID());
+		}
 	}
 
 }
