@@ -1072,8 +1072,9 @@ class PedPathFinderTest {
 				d = i;
 			}
 		}
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
-		
+        boolean minimiseCrossings = false;
+        Ped ped = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
 		String[] roadLinkIDs = {"A8675945-DE94-4E22-9905-B0623A326221_0", "9745D155-3C95-4CCD-BC65-0908D57FA83A_0"};
@@ -1086,7 +1087,7 @@ class PedPathFinderTest {
 		}
 		
 		// Get crossing alternatives
-		List<CrossingAlternative> cas = PedPathFinder.getCrossingAlternatives(this.caGeography, rls, p, this.roadGeography);
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(this.caGeography, rls, ped, this.roadGeography);
 		
 		// Validate crossing alternatives by checking types are as expected
 		String[] expectedTypes = {"unsignalised", "unsignalised", "unmarked"};
@@ -1106,7 +1107,7 @@ class PedPathFinderTest {
 		}
 		
 		// Get crossing alternatives
-		cas = PedPathFinder.getCrossingAlternatives(this.caGeography, rls, p, this.roadGeography);
+		cas = TacticalRoute.getCrossingAlternatives(this.caGeography, rls, ped, this.roadGeography);
 		
 		String[] expectedTypes2 = {"unsignalised", "unmarked"};
 		for (int i=0;i<expectedTypes2.length; i++) {
