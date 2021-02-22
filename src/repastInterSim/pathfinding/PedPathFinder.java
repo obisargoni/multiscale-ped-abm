@@ -205,41 +205,15 @@ public class PedPathFinder {
 	 */
 	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
-		List<Stack<RepastEdge<Junction>>> candidatePaths = new ArrayList<Stack<RepastEdge<Junction>>>();
+		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getSimplePaths(currentJ, targetJunctions, filter);
 		
-		// Loop through simple paths to target junctions. Identify those with shortest path length and add to the licat of candicate paths
-		Integer minPathLength1 = Integer.MAX_VALUE;
-		Integer minPathLength2 = Integer.MAX_VALUE;
-		for (Junction tJ: targetJunctions) {
+		candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);	
 			
-			List<Stack<RepastEdge<Junction>>> simplePaths = nP.getSimplePaths(currentJ, tJ, filter);
-			
-			for (Stack<RepastEdge<Junction>> path : simplePaths) {
-				Integer pathLength1 = (int) NetworkPathFinder.getIntPathLength(path, heuristic1);
-				
-				if (pathLength1 < minPathLength1) {
-					candidatePaths.clear();
-					minPathLength1 = pathLength1;
-					candidatePaths.add(path);
-					
-					minPathLength2 = (int) NetworkPathFinder.getIntPathLength(path, heuristic2);
-				}
-				// If paths are tied on 1st distance heuristic, use 2nd to discriminate
-				else if (pathLength1 == minPathLength1) {
-					Integer pathLength2 = (int) NetworkPathFinder.getIntPathLength(path, heuristic2);
-					if (pathLength2 < minPathLength2) {
-						candidatePaths.clear();
-						minPathLength2 = pathLength2;
-						candidatePaths.add(path);
-					}
-					
-					else if (pathLength2 == minPathLength2) {
-						candidatePaths.add(path);
-					}
-				}
-			}
+		// If multiple paths have same length by this heuristic filter again using second heuristic
+		if (candidatePaths.size()>1) {
+			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic2);
 		}
-		
+			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
 	    Random rand = new Random();
