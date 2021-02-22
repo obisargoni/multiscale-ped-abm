@@ -880,7 +880,7 @@ class PedPathFinderTest {
 			e.printStackTrace();
 		}
 		
-		// Initialise orign-destination pair to test
+		// Initialise origin-destination pair to test
 		OD o = null;
 		OD d = null;
 		for (OD od : this.odGeography.getAllObjects()) {
