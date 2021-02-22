@@ -940,12 +940,11 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Test the creation of a TacticalRoute object
+	 * Test the combined effect of cost heuristics and planning horizon.
 	 * 
-	 * The tactical route provides a path to a pavement junction the end of the pedestrian agents planning horizon and then from that junction
-	 * to their destination.
+	 * With short planning horizon both cost heuristics should give the same path.
 	 * 
-	 * This tests tactical route when turning left at 4 way junc
+	 * With a longer planning horizon cost heuristics should give a different paths. 
 	 */
 	@Test
 	public void testSetupTacticalRoute2() {
@@ -957,99 +956,83 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		// Set the IDs of the road network junctions to travel to and get strategic path between these
-		String originRoadJunctionID = "node_id_66";
-		String destRoadJunctionID = "node_id_73";
-		List<RoadLink> sP = planStrategicPath(new Coordinate(), new Coordinate(), originRoadJunctionID, destRoadJunctionID);
-		
-		
-		// Produce strategic path between pavement junctions
-		Junction oJ = null;
-		Junction dJ = null;
-		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
-			if (j.getFID().contentEquals("pave_node_87")) {
-				oJ = j;
-				continue;
+		// Initialise origin-destination pair to test
+		OD o = null;
+		OD d = null;
+		for (OD od : this.odGeography.getAllObjects()) {
+			if (od.getId() == 8) {
+				o = od;
 			}
-			else if (j.getFID().contentEquals("pave_node_112")) {
-				dJ = j;
-				continue;
+			else if (od.getId() == 7) {
+				d = od;
 			}
 		}
 		
-		List<RoadLink> tacticalPlanHorz = PedPathFinder.getLinksWithinAngularDistance(sP, 20.00);
-		RoadLink rlEndHorz = tacticalPlanHorz.get(tacticalPlanHorz.size()-1);
-		RoadLink rlOutHorz = sP.get(tacticalPlanHorz.size());
+		boolean minimiseCrossings = true;
+		Ped pMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		context.add(pMinCross);
+        
+        minimiseCrossings = false;
+        Ped pMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        context.add(pMinCross);
+        
+        // Get the strategic path - will be the same for both pedestrians
+        List<RoadLink> sP = pMinCross.getPathFinder().getStrategicPath();
+		int horizonNLinks = 1;
 		
-		// Identify the end and outside junctions
-		HashMap<String, List<Junction>> tacticalJunctions = PedPathFinder.tacticalHorizonJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
-		List<Junction> outsideJunctions = tacticalJunctions.get("outside");
-		NetworkPath<Junction> p = new NetworkPath<Junction>(this.pavementNetwork);
+		// Check the start and end pavement junctions of the route
+		assert pMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_88");
+		assert pMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_88");
+		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
+		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		
-		// Select which end junction to find tactical path to
-		final String end1ID = "pave_node_81";
-		Junction endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end1ID)).collect(Collectors.toList()).get(0);
-		TacticalRoute tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
+        TacticalRoute trMinCross = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+
+        // With tactical planning horizon of one link, min distance and min crossing tactical paths should be the same
+		final String end1ID = "pave_node_79";
+        assert trMinCross.getCurrentJunction().getFID().contentEquals(end1ID);
+        assert trMinDist.getCurrentJunction().getFID().contentEquals(end1ID);
+
+		// Route path of size zero now means that path only ever had one link in.
+		// Since planning horizon is one link expect the remainder path to be empty also
+		assert trMinCross.getRoutePath().size() == 0;
+		assert trMinDist.getRoutePath().size() == 0;
+		assert trMinCross.getRemainderPath().size() == 0;
+		assert trMinDist.getRemainderPath().size() == 0;
 		
-		// Now validate the tactical route
-		// Check expected junctions - should include the starting junction, junctions path passes along and end junction
-		String[] expectedJunctions1 = {end1ID};
-		List<Junction> rJs =  tr.getRouteJunctions();
-		for (int i=0; i<rJs.size(); i++) {
-			assert rJs.get(i).getFID().contentEquals(expectedJunctions1[i]);
+		// Now re-plan with planning horizon equal to the whole strategic path
+		horizonNLinks = sP.size();
+        trMinCross = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        
+        // Initial section of the path should be the same for both peds
+		final String end2ID = "pave_node_81";
+        assert trMinCross.getCurrentJunction().getFID().contentEquals(end1ID);
+        assert trMinDist.getCurrentJunction().getFID().contentEquals(end1ID);
+        
+        // But rest of path will differ
+        String [] expectedNodesMinCross = {end2ID, "pave_node_89", "pave_node_91", pMinCross.getPathFinder().getDestPavementJunction().getFID()};
+        String [] expectedNodesMinDist = {end2ID, "pave_node_90", pMinCross.getPathFinder().getDestPavementJunction().getFID()};
+        List<Junction> remainderPathNodesMinCross = trMinCross.getNetworkPathFinder().nodePathFromEdges(trMinCross.getRemainderPath(), trMinCross.getCurrentJunction());
+        List<Junction> remainderPathNodesMinDist = trMinDist.getNetworkPathFinder().nodePathFromEdges(trMinCross.getRemainderPath(), trMinDist.getCurrentJunction());
+		
+		for (int i=0; i<Math.max(expectedNodesMinCross.length, remainderPathNodesMinCross.size()); i++) {
+			assert remainderPathNodesMinCross.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
 		}
 		
-		assert tr.getRoutePath().size() == 1;
-		
-		// Check remainder path by counting number of times a primary crossing is performed
-		List<RepastEdge<Junction>> rP = tr.getRemainderPath();
-		int count = 0;
-		for (RepastEdge<Junction> re: rP) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
-			for (RoadLink rl : sP) {
-				String rlid = ne.getRoadLink().getPedRLID();
-				if (rlid.contentEquals(rl.getPedRLID())){
-					count++;
-				}
-			}
+		for (int i=0; i<expectedNodesMinDist.length; i++) {
+			assert remainderPathNodesMinDist.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
 		}
-		
-		assert (count % 2) == 0; 
-		
-		
-		// Test for other end junction
-		final String end2ID = "pave_node_79";
-		endJ = tacticalJunctions.get("end").stream().filter(j -> j.getFID().contentEquals(end2ID)).collect(Collectors.toList()).get(0);
-		tr = PedPathFinder.setupTacticalAlternativeRoute(p, sP, endJ, outsideJunctions, oJ, dJ);
-		
-		// In this case expect that the route goes to end junction and then from end junction to outside junction - the first junction outside the planning horizon - without making a primary crossing.
-		String[] expectedJunctions2 =  {"pave_node_88", end2ID, "pave_node_80", "pave_node_82"};
-		rJs =  tr.getRouteJunctions();
-		for (int i=0; i<expectedJunctions2.length; i++) {
-			assert rJs.get(i).getFID().contentEquals(expectedJunctions2[i]);
-		}
-		
-		// Primary crossing required to reach this end junction so expect additional link in path
-		assert tr.getRoutePath().size() == 4;
-		
-		rP = tr.getRemainderPath();
-		count = 0;
-		for (RepastEdge<Junction> re: rP) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
-			for (RoadLink rl : sP) {
-				if (ne.getRoadLink().getPedRLID().contentEquals(rl.getPedRLID())){
-					count++;
-				}
-			}
-		}
-		
-		assert (count % 2) == 1; 
-		
 	}
 	
 	/*
