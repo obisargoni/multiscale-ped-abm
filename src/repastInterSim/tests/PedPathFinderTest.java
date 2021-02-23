@@ -42,6 +42,7 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.NetworkPathFinder;
@@ -92,7 +93,6 @@ class PedPathFinderTest {
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
 		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
 		roadGeography.setCRS(GlobalVars.geographyCRSString);
-
 		
 		// Load vehicle origins and destinations
 		try {
@@ -103,6 +103,8 @@ class PedPathFinderTest {
 			e.printStackTrace();
 		}
 		SpatialIndexManager.createIndex(roadGeography, Road.class);
+		
+		SpaceBuilder.roadGeography = roadGeography;
 
 	}
 	
@@ -173,6 +175,8 @@ class PedPathFinderTest {
 		String testCAFile = testGISDir + "crossing_lines.shp";
 		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, caGeography, caContext);
 		SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
+		
+		SpaceBuilder.caGeography = caGeography;
 	}
 	
 	void setUpRoadNetwork(boolean isDirected) {
@@ -194,6 +198,8 @@ class PedPathFinderTest {
 		pavementNetwork = builder.buildNetwork();
 		
 		GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
+		
+		SpaceBuilder.pavementNetwork = pavementNetwork;
 	}
 	
 	void setUpPedJunctions() throws Exception {
