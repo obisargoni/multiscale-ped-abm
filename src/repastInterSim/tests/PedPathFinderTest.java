@@ -52,17 +52,6 @@ class PedPathFinderTest {
 	
 	Context<Object> context = new DefaultContext<Object>();;
 	Geography<Object> geography; 
-	Geography<Road> roadGeography = null;
-	Geography<OD> odGeography = null;
-	Geography<CrossingAlternative> caGeography = null;
-	Geography<PedObstruction> pedObstructGeography = null;
-	Geography<RoadLink> roadLinkGeography = null;
-	Geography<RoadLink> pavementLinkGeography = null;
-	Network<Junction> roadNetwork = null;
-	Context<Junction> pavementJunctionContext = null;
-	Geography<Junction> pavementJunctionGeography = null;
-	Network<Junction> pavementNetwork = null;
-	
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
@@ -91,21 +80,18 @@ class PedPathFinderTest {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		roadGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SpatialIndexManager.createIndex(roadGeography, Road.class);
-		
-		SpaceBuilder.roadGeography = roadGeography;
-
+		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
 	}
 	
 	Geography<RoadLink> setUpLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
@@ -124,7 +110,7 @@ class PedPathFinderTest {
 	}
 	
 	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		roadLinkGeography = setUpLinks(roadLinkFile);
+		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
 	}
 	
 	void setUpRoadLinks() throws Exception {
@@ -132,7 +118,7 @@ class PedPathFinderTest {
 	}
 	
 	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
-		pavementLinkGeography = setUpLinks(linkFile);
+		SpaceBuilder.pavementLinkGeography = setUpLinks(linkFile);
 	}
 		
 	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
@@ -140,43 +126,43 @@ class PedPathFinderTest {
 		// Initialise OD context and geography
 		Context<OD> ODContext = new PedestrianDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		odGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
-		odGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
+		SpaceBuilder.pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
 		String testODFile = testGISDir + odFile;
-		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
-		SpatialIndexManager.createIndex(odGeography, OD.class);
+		GISFunctions.readShapefile(OD.class, testODFile, SpaceBuilder.pedestrianDestinationGeography, ODContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pedestrianDestinationGeography, OD.class);
 	}
 	
 	void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
 		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
-		pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
-		pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
+		SpaceBuilder.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		
 		// Load ped obstructions data
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
-		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
-		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
 	}
 	
 	void setUpCrossingAlternatives() throws MalformedURLException, FileNotFoundException {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<CrossingAlternative> caContext = new CAContext();
 		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
-		caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
-		caGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
+		SpaceBuilder.caGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		
 		// Load ped obstructions data
 		String testCAFile = testGISDir + "crossing_lines.shp";
-		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, caGeography, caContext);
-		SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
+		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, SpaceBuilder.caGeography, caContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
 		
-		SpaceBuilder.caGeography = caGeography;
+		SpaceBuilder.caGeography = SpaceBuilder.caGeography;
 	}
 	
 	void setUpRoadNetwork(boolean isDirected) {
@@ -187,19 +173,17 @@ class PedPathFinderTest {
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		roadNetwork = builder.buildNetwork();
+		SpaceBuilder.roadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext, junctionGeography, roadNetwork);
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
 	}
 	
 	void setUpPavementNetwork() {
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", pavementJunctionContext, false);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", SpaceBuilder.pavementJunctionContext, false);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		pavementNetwork = builder.buildNetwork();
+		SpaceBuilder.pavementNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
-		
-		SpaceBuilder.pavementNetwork = pavementNetwork;
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.pavementLinkGeography, SpaceBuilder.pavementJunctionContext, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 	}
 	
 	void setUpPedJunctions() throws Exception {
@@ -207,13 +191,13 @@ class PedPathFinderTest {
 		pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
 		
 		// Initialise test road link geography and context
-		pavementJunctionContext = new JunctionContext();
+		SpaceBuilder.pavementJunctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
-		pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", pavementJunctionContext, GeoParams);
-		pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", SpaceBuilder.pavementJunctionContext, GeoParams);
+		SpaceBuilder.pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
-		SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
+		GISFunctions.readShapefile(Junction.class, pedJPath, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementJunctionContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pavementJunctionGeography, Junction.class);
 	}
 	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
@@ -227,7 +211,7 @@ class PedPathFinderTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: roadNetwork.getNodes()) {
+		for(Junction j: SpaceBuilder.roadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(j1ID)) {
@@ -245,7 +229,7 @@ class PedPathFinderTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -268,7 +252,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path1.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -305,7 +289,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path2.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -332,7 +316,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path3.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -359,7 +343,7 @@ class PedPathFinderTest {
 		}
 		
 		// Get a ped junction and check its attributes are not null
-		for (Junction pJ: this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction pJ: SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			assert pJ.getp1pID() != null;
 			assert pJ.getp1rlID() != null;
 			assert pJ.getp2pID() != null;
@@ -387,7 +371,7 @@ class PedPathFinderTest {
 		
 		// Check all the junctions but this time via the network nodes.
 		// Get a ped junction and check its attributes are not null
-		for (Junction pJ: this.pavementNetwork.getNodes()) {
+		for (Junction pJ: SpaceBuilder.pavementNetwork.getNodes()) {
 			assert pJ.getp1pID() != null;
 			assert pJ.getp1rlID() != null;
 			assert pJ.getp2pID() != null;
@@ -424,7 +408,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -436,7 +420,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -477,7 +461,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -489,7 +473,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -530,7 +514,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -542,7 +526,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -583,7 +567,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -595,7 +579,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -636,7 +620,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -648,7 +632,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -689,7 +673,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -701,7 +685,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		assert tacticalEndJunctions.size() > 0;
 	}
@@ -731,7 +715,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -743,7 +727,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -784,7 +768,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -796,7 +780,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -837,7 +821,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : this.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -849,7 +833,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected - only one junction returned in this case due to complicated junction
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -889,7 +873,7 @@ class PedPathFinderTest {
 		// Initialise origin-destination pair to test
 		OD o = null;
 		OD d = null;
-		for (OD od : this.odGeography.getAllObjects()) {
+		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (od.getId() == 4) {
 				o = od;
 			}
@@ -899,11 +883,11 @@ class PedPathFinderTest {
 		}
 						
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped pMinCross = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        Ped pMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -916,7 +900,7 @@ class PedPathFinderTest {
 		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		
-        TacticalRoute tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		// Now validate the tactical route
 		// Check that target junction is the no crossing junction as expected
@@ -932,7 +916,7 @@ class PedPathFinderTest {
 		assert tr.getRemainderPath().size() == 0;
 		
 		// Produce tactical route for min distance ped 
-        tr = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		
 		final String end2ID = "pave_node_88";		
@@ -974,7 +958,7 @@ class PedPathFinderTest {
 		// Initialise origin-destination pair to test
 		OD o = null;
 		OD d = null;
-		for (OD od : this.odGeography.getAllObjects()) {
+		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (od.getId() == 8) {
 				o = od;
 			}
@@ -984,11 +968,11 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped pMinCross = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+        Ped pMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -1001,8 +985,8 @@ class PedPathFinderTest {
 		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		
-        TacticalRoute trMinCross = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
-        TacticalRoute trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute trMinCross = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute trMinDist = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
         // With tactical planning horizon of one link, min distance and min crossing tactical paths should be the same
 		final String end1ID = "pave_node_79";
@@ -1018,8 +1002,8 @@ class PedPathFinderTest {
 		
 		// Now re-plan with planning horizon equal to the whole strategic path
 		horizonNLinks = sP.size();
-        trMinCross = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
-        trMinDist = PedPathFinder.planTacticalPath(this.pavementNetwork, this.caGeography, this.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinDist.getPathFinder().getSecondaryCostHeuristic());                
+        trMinCross = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        trMinDist = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinDist.getPathFinder().getSecondaryCostHeuristic());                
         
         // Initial section of the path should be the same for both peds
         // Need to starting junction using the accumulator route since first link is a crossing link
@@ -1073,7 +1057,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : this.odGeography.getAllObjects()) {
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 4) {
 				o = i;
 			}
@@ -1084,7 +1068,7 @@ class PedPathFinderTest {
 				
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped pedMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 	 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -1101,7 +1085,7 @@ class PedPathFinderTest {
 		
 		// Repeat test for ped that minimises crossings
 		minimiseCrossings = true;
-		Ped pedMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped pedMinCross = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -1151,7 +1135,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : this.odGeography.getAllObjects()) {
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 2) {
 				o = i;
 			}
@@ -1162,7 +1146,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped pedMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "56CF7BBA-28E4-4ACA-9F58-E096E88094FB_0", "B2B9D137-2BA4-4864-8350-2EDAA5910747_0"};
@@ -1214,7 +1198,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : this.odGeography.getAllObjects()) {
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 2) {
 				o = i;
 			}
@@ -1225,7 +1209,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = true;
-		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);		
+		Ped pedMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};
@@ -1308,7 +1292,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : this.odGeography.getAllObjects()) {
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 3) {
 				o = i;
 			}
@@ -1319,7 +1303,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);		
+		Ped pedMinDist = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
         context.add(pedMinDist);        
@@ -1423,7 +1407,7 @@ class PedPathFinderTest {
 		// origin and destination don't matter, just choose arbitrarily
 		OD o = null;
 		OD d = null;
-		for (OD i : this.odGeography.getAllObjects()) {
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId()==7) {
 				o = i;
 			}
@@ -1433,7 +1417,7 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		Ped p = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
 		Junction startJ = p.getPathFinder().getStartPavementJunction();
 		Junction destJ = p.getPathFinder().getDestPavementJunction();
