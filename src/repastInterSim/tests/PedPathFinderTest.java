@@ -1317,9 +1317,20 @@ class PedPathFinderTest {
 			}
 		}
 		
+		// Initialise a pedestrian, this internally initialises a ped path finder
+		boolean minimiseCrossings = false;
+		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);		
+		
+		// Need to give ped location in order to test updating tactical path following crossing choice
+        context.add(pedMinDist);        
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(pedMinDist.getRad());		
+		GISFunctions.moveAgentToGeometry(geography, circle, pedMinDist);
+		pedMinDist.setLoc();
 		
 		// Set up ped path finder
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		PedPathFinder ppf = pedMinDist.getPathFinder();
 		
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"9745D155-3C95-4CCD-BC65-0908D57FA83A_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_1"};
@@ -1330,54 +1341,54 @@ class PedPathFinderTest {
 		// Check the start and end pavement junctions are as expected
 		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_108");
 		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_85");
-		
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
-		
+				
 		// Now test planning the first tactical path with this ped path finder object
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+		ppf.updateTacticalPath();
 		
 		// Check the current (default) and target tactical alternatives are as expected
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_91");
-		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_91");
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_91");
+		assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_89");
+		
+		assert ppf.getTacticalPath().getRemainderPath().size() == 0;
+		
+		// Test updating route where a choice of crossing alternative is involved
+		// Manually set which crossing is chosen to test that tactical route is updated as expected
+		List<CrossingAlternative> cas = ppf.getTacticalPath().getAccumulatorRoute().getCAs();
+		ppf.getTacticalPath().getAccumulatorRoute().setChosenCA(cas.get(0));
+		ppf.getTacticalPath().caChosenUpdateCurrentJunction();
 		
 		// Test planning the second tactical path
-		String[] expectedRouteJunctions = {"pave_node_91", "pave_node_90"};
-		for (int i=0;i<expectedRouteJunctions.length;i++) {
-			assert ppf.getTacticalPath().getTargetTA().getRouteJunctions().get(i).getFID().contentEquals(expectedRouteJunctions[i]);
-		}
+		ppf.getTacticalPath().updateCurrentJunction();
+		ppf.updateTacticalPath();
 		
-		Junction updatedStart = ppf.getTacticalPath().getTargetTA().getOutsideJunction();
-		List<RoadLink> updatedSP = ppf.getStrategicPath().subList(1, ppf.getStrategicPath().size());
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, updatedSP, updatedStart, ppf.getDestPavementJunction());
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_82");
-		assert ppf.getTacticalPath().getCurrentTA().getOutsideJunction().getFID().contentEquals("pave_node_79");
+		// This time no remainder path but two junctions in route path
+		assert ppf.getTacticalPath().getRemainderPath().size() == 0;		
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_81");
+		ppf.getTacticalPath().updateCurrentJunction();
+		assert ppf.getTacticalPath().getCurrentJunction() == null;
 		
 		// Update again
-		updatedStart = ppf.getTacticalPath().getTargetTA().getOutsideJunction();
-		updatedSP = updatedSP.subList(1, updatedSP.size());
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, updatedSP, updatedStart, ppf.getDestPavementJunction());
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_88");
-		assert ppf.getTacticalPath().getCurrentTA().getOutsideJunction().getFID().contentEquals("pave_node_88");
+		ppf.updateTacticalPath();
 		
-		// Update a final time
-		// Should get difference between target and current TA because now on final link
-		updatedStart = ppf.getTacticalPath().getTargetTA().getOutsideJunction();
-		updatedSP = updatedSP.subList(1, updatedSP.size());
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, updatedSP, updatedStart, ppf.getDestPavementJunction());
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_83");
-		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_85");
+		assert ppf.getTacticalPath().getRemainderPath().size() == 0;		
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_87");
+		assert ppf.getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_88");
+		ppf.getTacticalPath().updateCurrentJunction();
+		assert ppf.getTacticalPath().getCurrentJunction() == null;
 		
-		assert ppf.getTacticalPath().getCurrentTA().getOutsideJunction() == null;
-		assert ppf.getTacticalPath().getTargetTA().getOutsideJunction() == null;
+		// Update tactical path for the last time (should not reach destination)
+		ppf.updateTacticalPath();
 		
-		// Finally test updating the targetTA as if it were chosen
+		// This time, because a crossing wasn't chosen tactical route should be non-crossing
+		// Had the ped chosen a crossing location previously would expect them to choose a crossing link for the last section of the journey 
+		assert ppf.getTacticalPath().getRemainderPath().size() == 0;		
+		assert ppf.getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_85");
+		assert ppf.getTacticalPath().getAccumulatorRoute().isBlank();
 		
-		// First check the current junction
-		assert ppf.getTacticalPath().getCurrentTA().getCurrentJunction().getFID().contentEquals("pave_node_83");
-		
-		// Then update the target TA
-		ppf.getTacticalPath().getTargetTA().updatePathToEnd(ppf.getTacticalPath().getCurrentTA().getCurrentJunction());
-		assert ppf.getTacticalPath().getTargetTA().getCurrentJunction().getFID().contentEquals("pave_node_85");
+		// Check the target coordiante is the destination
+		assert ppf.getTacticalPath().getTargetCoordinate().equals2D(d.getGeom().getCoordinate());
+		ppf.getTacticalPath().updateCurrentJunction();
+		assert ppf.getTacticalPath().getCurrentJunction() == null;
 		
 	}
 }
