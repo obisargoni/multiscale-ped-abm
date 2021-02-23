@@ -18,7 +18,6 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
@@ -30,20 +29,13 @@ import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.NetworkPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
 class NetworkPathFinderTest {
-	
-	Geography<RoadLink> roadLinkGeography = null;
-	Network<Junction> roadNetwork = null;
-	
-	Context<Junction> pavementJunctionContext = null;
-	Geography<RoadLink> pavementLinkGeography = null;
-	Geography<Junction> pavementJunctionGeography = null;
-	Network<Junction> pavementNetwork = null;
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String roadLinkPath;
@@ -70,11 +62,11 @@ class NetworkPathFinderTest {
 	}
 	
 	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		roadLinkGeography = setUpLinks(roadLinkFile);
+		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
 	}
 	
 	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
-		pavementLinkGeography = setUpLinks(linkFile);
+		SpaceBuilder.pavementLinkGeography = setUpLinks(linkFile);
 	}
 	
 	void setUpRoadNetwork(boolean isDirected) {
@@ -85,17 +77,17 @@ class NetworkPathFinderTest {
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		roadNetwork = builder.buildNetwork();
+		SpaceBuilder.roadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext, junctionGeography, roadNetwork);
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
 	}
 	
 	void setUpPavementNetwork() {
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", pavementJunctionContext, false);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", SpaceBuilder.pavementJunctionContext, false);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		pavementNetwork = builder.buildNetwork();
+		SpaceBuilder.pavementNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.pavementLinkGeography, SpaceBuilder.pavementJunctionContext, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 	}
 	
 	void setUpPavementJunctions() throws Exception {
@@ -103,13 +95,13 @@ class NetworkPathFinderTest {
 		pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
 		
 		// Initialise test road link geography and context
-		pavementJunctionContext = new JunctionContext();
+		SpaceBuilder.pavementJunctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
-		pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", pavementJunctionContext, GeoParams);
-		pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", SpaceBuilder.pavementJunctionContext, GeoParams);
+		SpaceBuilder.pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
-		SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
+		GISFunctions.readShapefile(Junction.class, pedJPath, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementJunctionContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pavementJunctionGeography, Junction.class);
 	}
 	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
@@ -123,7 +115,7 @@ class NetworkPathFinderTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: roadNetwork.getNodes()) {
+		for(Junction j: SpaceBuilder.roadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(j1ID)) {
@@ -141,7 +133,7 @@ class NetworkPathFinderTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -168,14 +160,14 @@ class NetworkPathFinderTest {
 		}
 		
 		// Initialise the path finder
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		// Get the start and end nodes to find paths between
 		String sourceID = "pave_node_111";
 		String targetID = "pave_node_112";
 		Junction source = null;
 		Junction target = null;
-		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (j.getFID().contentEquals(sourceID)) {
 				source = j;
 			}
@@ -220,12 +212,12 @@ class NetworkPathFinderTest {
 		}
 		
 		// Initialise the path finder
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		// Get the start and end nodes to find paths between
 		String sourceID = "pave_node_114";
 		Junction source = null;
-		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (j.getFID().contentEquals(sourceID)) {
 				source = j;
 			}
@@ -255,11 +247,11 @@ class NetworkPathFinderTest {
 			e.printStackTrace();
 		}
 		
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		// Check initial number of nodes
 		int nNodes = 0;
-		for (Junction n : this.pavementNetwork.getNodes()) {
+		for (Junction n : SpaceBuilder.pavementNetwork.getNodes()) {
 			nNodes++;
 		}
 		assert nNodes == 125;
@@ -278,7 +270,7 @@ class NetworkPathFinderTest {
 		
 		// Filter again this time using a collection
 		List<Junction> tacticalPavementNodes = new ArrayList<Junction>();
-		for (Junction j: this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j: SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (tacticalPavementNodeIDs.stream().anyMatch(n -> n.contentEquals(j.getFID()))) {
 				tacticalPavementNodes.add(j);
 			}
@@ -286,7 +278,7 @@ class NetworkPathFinderTest {
 		
 		assert tacticalPavementNodes.size() == tacticalPavementNodeIDs.size();
 		
-		np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		np.filterGraph(tacticalPavementNodes);
 		assert np.getGraph().getVertexCount() == tacticalPavementNodes.size();
 	}
@@ -311,7 +303,7 @@ class NetworkPathFinderTest {
 		String targetID = "pave_node_112";
 		Junction source = null;
 		Junction target = null;
-		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (j.getFID().contentEquals(sourceID)) {
 				source = j;
 			}
@@ -331,7 +323,7 @@ class NetworkPathFinderTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 
 		// First test that when filter excludes target node, zero simple paths returned
 		String firstJunctionID = sPNodes.get(0).getFID();
@@ -369,7 +361,7 @@ class NetworkPathFinderTest {
 		String targetID = "pave_node_112";
 		Junction source = null;
 		Junction target = null;
-		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (j.getFID().contentEquals(sourceID)) {
 				source = j;
 			}
@@ -389,7 +381,7 @@ class NetworkPathFinderTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
@@ -436,7 +428,7 @@ class NetworkPathFinderTest {
 		String targetID = "pave_node_112";
 		Junction source = null;
 		Junction target = null;
-		for (Junction j : this.pavementJunctionGeography.getAllObjects()) {
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
 			if (j.getFID().contentEquals(sourceID)) {
 				source = j;
 			}
@@ -456,7 +448,7 @@ class NetworkPathFinderTest {
 			rl.getJunctions().stream().forEach(sPNodes::add);
 		}
 		
-		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(this.pavementNetwork);
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
@@ -479,7 +471,7 @@ class NetworkPathFinderTest {
 		String [] expectedEdgesMinCross = {"pave_link_87_81", "pave_link_81_89","pave_link_89_91","pave_link_91_112"};
 		for (int i=0; i<expectedEdgesMinCross.length; i++) {
 			String rlID = expectedEdgesMinCross[i];
-			for (RepastEdge<Junction> re: this.pavementNetwork.getEdges()) {
+			for (RepastEdge<Junction> re: SpaceBuilder.pavementNetwork.getEdges()) {
 				NetworkEdge<Junction> e = (NetworkEdge<Junction>) re;
 				if (e.getRoadLink().getFID().contentEquals(rlID)) {
 					expectedMinCrossPath.add(e);
