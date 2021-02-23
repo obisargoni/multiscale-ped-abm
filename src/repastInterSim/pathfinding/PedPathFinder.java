@@ -39,7 +39,7 @@ public class PedPathFinder {
 	private OD destination;
 	
 	private List<RoadLink> strategicPath;
-	int tacticalHorizonLinks = 0;
+	private static int nLinksPerTacticalUpdate = 0; // Initialised as zero to prevent removal of links in first update
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
 	private TacticalRoute tacticalPath = new TacticalRoute();
@@ -120,8 +120,13 @@ public class PedPathFinder {
 	public void updateTacticalPath() {
 		
 		// First update the strategic path by removing the links that formed part of the previous tactical planning horizon
-		for (int i = 0; i < tacticalHorizonLinks; i++) {
+		for (int i = 0; i < PedPathFinder.nLinksPerTacticalUpdate; i++) {
 			this.strategicPath.remove(0);
+		}
+		
+		// Set nLinks to 1 only after first update, avoids prematurely removing links
+		if (PedPathFinder.nLinksPerTacticalUpdate==0) {
+			PedPathFinder.nLinksPerTacticalUpdate=1;
 		}
 		
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
@@ -135,8 +140,8 @@ public class PedPathFinder {
 		
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
 		// Calculate number of links in planning horizon
-		tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
-		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, this.tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);;
+		int tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
+		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);;
     }
 	
 	/*
@@ -241,8 +246,8 @@ public class PedPathFinder {
 		
 		// Need to get the junctions at the end of the first link in strategic path
 		List<Junction> endFirstLinkJunctions = null;
-		if (sP.size()>1) {
-			endFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(),  sP.get(0), sP.get(1)).get("end");
+		if (sP.size()>PedPathFinder.nLinksPerTacticalUpdate) {
+			endFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(),  sP.get(PedPathFinder.nLinksPerTacticalUpdate-1), sP.get(PedPathFinder.nLinksPerTacticalUpdate)).get("end");
 		}
 		else {
 			endFirstLinkJunctions = new ArrayList<Junction>();
