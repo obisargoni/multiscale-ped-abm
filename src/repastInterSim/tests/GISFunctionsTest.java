@@ -37,19 +37,11 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 class GISFunctionsTest {
-	
-	Geography<Road> roadGeography = null;
-	Geography<RoadLink> roadLinkGeography = null;
-	Geography<OD> odGeography = null;
-	Geography<PedObstruction> pedObstructGeography = null;
-	Network<Junction> roadNetwork = null;
-	Geography<Junction> junctionGeography = null;
-	private Context<RoadLink> roadLinkContext;
-	private Context<OD> pedestrianDestinationContext;
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
@@ -62,23 +54,23 @@ class GISFunctionsTest {
 	void setUp(String lineDataFile) throws Exception {
 		
 	    // Initialise contexts and geographies used by all tests	
-		roadLinkContext = new RoadLinkContext();
+		SpaceBuilder.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		pedestrianDestinationContext = new PedestrianDestinationContext();
+		SpaceBuilder.pedestrianDestinationContext = new PedestrianDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		Geography<OD> pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedestrianDestinationGeography", pedestrianDestinationContext, GeoParamsOD);
+		Geography<OD> pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedestrianDestinationGeography", SpaceBuilder.pedestrianDestinationContext, GeoParamsOD);
 		pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// 1. Load road network data
 		String roadLinkFile = TestDataDir + lineDataFile;
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		String testODFile = TestDataDir + "parity_test_OD.shp";
-		GISFunctions.readShapefile(OD.class, testODFile, pedestrianDestinationGeography, pedestrianDestinationContext);
+		GISFunctions.readShapefile(OD.class, testODFile, pedestrianDestinationGeography, SpaceBuilder.pedestrianDestinationContext);
 		SpatialIndexManager.createIndex(pedestrianDestinationGeography, OD.class);
 	}
 	
@@ -94,19 +86,19 @@ class GISFunctionsTest {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		roadGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
 
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SpatialIndexManager.createIndex(roadGeography, Road.class);
+		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
 
 	}
 	
@@ -121,11 +113,11 @@ class GISFunctionsTest {
 		// Initialise test road link geography and context
 		Context<RoadLink> roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
-		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		SpaceBuilder.roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, roadLinkGeography, roadLinkContext);
-		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, SpaceBuilder.roadLinkGeography, roadLinkContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.roadLinkGeography, RoadLink.class);
 		
 	}
 		
@@ -134,40 +126,40 @@ class GISFunctionsTest {
 		// Initialise OD context and geography
 		Context<OD> ODContext = new PedestrianDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		odGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
-		odGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
+		SpaceBuilder.pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
 		String testODFile = testGISDir + odFile;
-		GISFunctions.readShapefile(OD.class, testODFile, odGeography, ODContext);
-		SpatialIndexManager.createIndex(odGeography, OD.class);
+		GISFunctions.readShapefile(OD.class, testODFile, SpaceBuilder.pedestrianDestinationGeography, ODContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pedestrianDestinationGeography, OD.class);
 	}
 	
 	void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
 		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
-		pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
-		pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		SpaceBuilder.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
+		SpaceBuilder.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		
 		// Load ped obstructions data
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
-		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, pedObstructGeography, pedObstructContext);
-		SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
+		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
 	}
 	
 	void setUpRoadNetwork() {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
+		SpaceBuilder.junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		SpaceBuilder.junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 2. Build road network
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+		SpaceBuilder.roadNetwork = builder.buildNetwork();
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext,SpaceBuilder.junctionGeography, SpaceBuilder.roadNetwork);
 	}
 	
 	int getNumberIntersectingCoords(String lineDataFile) {
@@ -179,9 +171,9 @@ class GISFunctionsTest {
 		}
 		
 		// Get number of intersecting points and compare to expected value
-		Coordinate[] odCoords = new Coordinate[pedestrianDestinationContext.getObjects(OD.class).size()];
+		Coordinate[] odCoords = new Coordinate[SpaceBuilder.pedestrianDestinationContext.getObjects(OD.class).size()];
 		int i = 0;
-		for (OD od : pedestrianDestinationContext.getObjects(OD.class)) {
+		for (OD od : SpaceBuilder.pedestrianDestinationContext.getObjects(OD.class)) {
 			odCoords[i] = od.getGeom().getCoordinate();
 			i++;
 		}
@@ -190,9 +182,9 @@ class GISFunctionsTest {
 
 		
 		// Loop through road links in the rout and count number of times the ODLine intersects
-		Geometry[] rlGeoms = new Geometry[roadLinkContext.getObjects(RoadLink.class).size()];
+		Geometry[] rlGeoms = new Geometry[SpaceBuilder.roadLinkContext.getObjects(RoadLink.class).size()];
 		i = 0;
-		for (RoadLink rl: roadLinkContext.getObjects(RoadLink.class)) {
+		for (RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
 			rlGeoms[i] = rl.getGeom();
 			i++;
 		}
@@ -224,7 +216,7 @@ class GISFunctionsTest {
 		
 		setUp("parity_test_lines1.shp");
 		
-		IndexedIterable<RoadLink> lines = roadLinkContext.getObjects(RoadLink.class);
+		IndexedIterable<RoadLink> lines = SpaceBuilder.roadLinkContext.getObjects(RoadLink.class);
 		
 		l1 = (LineString) lines.get(0).getGeom();
 		l2 = (LineString) lines.get(1).getGeom();
@@ -273,12 +265,12 @@ class GISFunctionsTest {
 		
 		// Select origin coordinate and pedestrian road geometry
 		List<OD> ods = new ArrayList<OD>();
-		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		SpaceBuilder.pedestrianDestinationGeography.getAllObjects().iterator().forEachRemaining(ods::add);
 		Coordinate o = ods.get(0).getGeom().getCoordinate();
 		
 		String roadLinkID = "osgb4000000030238946";
 		
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Expected coords
 		Coordinate c1 = new Coordinate(530507.95, 180893.35);
@@ -292,7 +284,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.farthestUnobstructedGeomCoordinate(o, r.getGeom(), pedObstructGeography);			
+			destCoord = GISFunctions.farthestUnobstructedGeomCoordinate(o, r.getGeom(), SpaceBuilder.pedObstructGeography);			
 			assert expectedCoords.contains(destCoord);
 		}
 	}
@@ -310,12 +302,12 @@ class GISFunctionsTest {
 		
 		// Select origin coordinate and pedestrian road geometry
 		List<OD> ods = new ArrayList<OD>();
-		odGeography.getAllObjects().iterator().forEachRemaining(ods::add);
+		SpaceBuilder.pedestrianDestinationGeography.getAllObjects().iterator().forEachRemaining(ods::add);
 		Coordinate o = ods.get(0).getGeom().getCoordinate();
 		
 		String roadLinkID = "osgb4000000030238946";
 		
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Expected coords
 		Coordinate c1 = new Coordinate(530506.8,180891.45);
@@ -329,7 +321,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.nearestUnobstructedGeomCoordinate(o, r.getGeom(), pedObstructGeography);
+			destCoord = GISFunctions.nearestUnobstructedGeomCoordinate(o, r.getGeom(), SpaceBuilder.pedObstructGeography);
 			assert expectedCoords.contains(destCoord);
 		}
 	}
