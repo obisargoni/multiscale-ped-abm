@@ -1268,10 +1268,12 @@ class PedPathFinderTest {
 		pedMinDist.getPathFinder().updateTacticalPath();
 
 		// Again expect zero remainder path but multiple nodes in route path
+		// In this case there are two equal distance candidate paths and so the chosen path is random.
+		// Account for this by checking for the different possible junctions
 		assert pedMinDist.getPathFinder().getTacticalPath().getRemainderPath().size() == 0;
-		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_89");
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_89") | pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_90");
 		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
-		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_81");
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_81") | pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_82");
 	}
 	
 	/*
