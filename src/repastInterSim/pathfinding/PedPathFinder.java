@@ -39,7 +39,8 @@ public class PedPathFinder {
 	private OD destination;
 	
 	private List<RoadLink> strategicPath;
-	private static int nLinksPerTacticalUpdate = 0; // Initialised as zero to prevent removal of links in first update
+	private static int nLinksPerTacticalUpdate = 1;
+	private boolean firstUpdateDone = false;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
 	private TacticalRoute tacticalPath = new TacticalRoute();
@@ -120,13 +121,14 @@ public class PedPathFinder {
 	public void updateTacticalPath() {
 		
 		// First update the strategic path by removing the links that formed part of the previous tactical planning horizon
-		for (int i = 0; i < PedPathFinder.nLinksPerTacticalUpdate; i++) {
-			this.strategicPath.remove(0);
+		// Only remove links from strategic path after first update
+		if (firstUpdateDone==false) {
+			firstUpdateDone = true;
 		}
-		
-		// Set nLinks to 1 only after first update, avoids prematurely removing links
-		if (PedPathFinder.nLinksPerTacticalUpdate==0) {
-			PedPathFinder.nLinksPerTacticalUpdate=1;
+		else {
+			for (int i = 0; i < PedPathFinder.nLinksPerTacticalUpdate; i++) {
+				this.strategicPath.remove(0);
+			}
 		}
 		
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
