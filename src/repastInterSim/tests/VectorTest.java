@@ -1,7 +1,5 @@
 package repastInterSim.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 
 import repastInterSim.environment.Vector;
