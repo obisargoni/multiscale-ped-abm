@@ -1223,40 +1223,55 @@ class PedPathFinderTest {
 			}
 		}
 		
-		
-		// Set up ped path finder
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
-		
+		// Initialise a pedestrian, this internally initialises a ped path finder
+		boolean minimiseCrossings = true;
+		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);		
+				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};
-		for (int i=0;i<ppf.getStrategicPath().size(); i++) {
-			assert ppf.getStrategicPath().get(i).getFID().contentEquals(expectedRoadIDs[i]);
+		for (int i=0;i<pedMinDist.getPathFinder().getStrategicPath().size(); i++) {
+			assert pedMinDist.getPathFinder().getStrategicPath().get(i).getFID().contentEquals(expectedRoadIDs[i]);
 		}
 		
 		// Check the start and end pavement junctions are as expected
-		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_121");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_87");
-		
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
-		
+		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_121");
+		assert pedMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_87");
+				
 		// Now test planning the first tactical path with this ped path finder object
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
+		pedMinDist.getPathFinder().updateTacticalPath();
 		
-		// Check the current (default) and target tactical alternatives are as expected
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_91");
-		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_91");
+		// Check target junction is as expected
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_114");
 		
-		// Test planning the second tactical path
-		String[] expectedRouteJunctions = {"pave_node_114", "pave_node_112", "pave_node_91", "pave_node_89"};
-		for (int i=0;i<expectedRouteJunctions.length;i++) {
-			assert ppf.getTacticalPath().getTargetTA().getRouteJunctions().get(i).getFID().contentEquals(expectedRouteJunctions[i]);
+		// Check remainder path is as expected
+        List<RepastEdge<Junction>> remainderPath = pedMinDist.getPathFinder().getTacticalPath().getRemainderPath();
+        List<Junction> remainderPathNodes = pedMinDist.getPathFinder().getTacticalPath().getNetworkPathFinder().nodePathFromEdges(remainderPath, pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction());
+		
+        String[] expectedRouteJunctions = {"pave_node_114", "pave_node_112", "pave_node_91"};
+		for (int i=0;i< Math.max(expectedRouteJunctions.length, remainderPathNodes.size());i++) {
+			assert remainderPathNodes.get(i).getFID().contentEquals(expectedRouteJunctions[i]);
 		}
 		
-		Junction secondStart = ppf.getTacticalPath().getTargetTA().getOutsideJunction();
-		List<RoadLink> updatedSP = ppf.getStrategicPath().subList(2, ppf.getStrategicPath().size());
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, updatedSP, secondStart, ppf.getDestPavementJunction());
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_81");
+		// Test planning the second tactical path
+		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
+		pedMinDist.getPathFinder().updateTacticalPath();
 		
+		// This time no remainder path but two junctions in route path
+		assert pedMinDist.getPathFinder().getTacticalPath().getRemainderPath().size() == 0;		
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_112");
+		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_91");
+		
+		// Update tactical path again
+		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction() == null;
+		pedMinDist.getPathFinder().updateTacticalPath();
+
+		// Again expect zero remainder path but multiple nodes in route path
+		assert pedMinDist.getPathFinder().getTacticalPath().getRemainderPath().size() == 0;
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_89");
+		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_81");
 	}
 	
 	/*
