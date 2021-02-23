@@ -1043,7 +1043,9 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Testing the initialisation of a PedPathFinder object. O Id = 4 D id = 1.
+	 * Testing the initialisation of a PedPathFinder object and initial update of tactical path via path finder. 
+	 * 
+	 * O Id = 4 D id = 1.
 	 */
 	@Test
 	public void testPedPathFinder1() {
@@ -1079,23 +1081,40 @@ class PedPathFinderTest {
 				d = i;
 			}
 		}
+				
+		// Initialise a pedestrian, this internally initialises a ped path finder
+		boolean minimiseCrossings = false;
+		Ped pedMinDist = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+	 		
+		// Check the start and end pavement junctions are as expected
+		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
+		assert pedMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
+		// Check that current junction is initially null
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction() == null;
+				
+		// Update tactical path and check the expected path is produced
+		pedMinDist.getPathFinder().updateTacticalPath();
 		
-		// Set up ped path finder
-		PedPathFinder ppf = new PedPathFinder(o, d, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_87");
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_88");
+		
+		// Repeat test for ped that minimises crossings
+		minimiseCrossings = true;
+		Ped pedMinCross = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
-		assert ppf.getStartPavementJunction().getFID().contentEquals("pave_node_85");
-		assert ppf.getDestPavementJunction().getFID().contentEquals("pave_node_93");
+		assert pedMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
+		assert pedMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_93");
 		
-		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		// Check that current junction is initially null
+		assert pedMinCross.getPathFinder().getTacticalPath().getCurrentJunction() == null;
+				
+		// Update tactical path and check the expected path is produced
+		pedMinCross.getPathFinder().updateTacticalPath();
 		
-		// Now test planning the first tactical path with this ped path finder object
-		ppf.planTacticaAccumulatorPath(this.pavementNetwork, this.caGeography, this.roadGeography, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction());
-		
-		// Check the current (default) and target tactical alternatives are as expected
-		assert ppf.getTacticalPath().getCurrentTA().getEndJunction().getFID().contentEquals("pave_node_87");
-		assert ppf.getTacticalPath().getTargetTA().getEndJunction().getFID().contentEquals("pave_node_87");
+		assert pedMinCross.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_87");
+		assert pedMinCross.getPathFinder().getTacticalPath().getAccumulatorRoute().getTargetJunction() == null;
 	}
 	
 	/*
