@@ -1391,4 +1391,69 @@ class PedPathFinderTest {
 		assert ppf.getTacticalPath().getCurrentJunction() == null;
 		
 	}
+	
+	/*
+	 * Test updating the tactical route when at the final link of a strategic path in order to check that the destination coordinate is correctly returned
+	 * 
+	 * Test fails due to issues with identifying starting junction where starting coordinate is near the end of the current road link.
+	 * 
+	 */
+	@Test
+	public void testPedPathFinder5() {
+		
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpRoads();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// origin and destination don't matter, just choose arbitrarily
+		OD o = null;
+		OD d = null;
+		for (OD i : this.odGeography.getAllObjects()) {
+			if (i.getId()==7) {
+				o = i;
+			}
+			else if (i.getId()==2) {
+				d = i;
+			}
+		}
+		
+		boolean minimiseCrossings = true;
+		Ped p = new Ped(geography, this.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, this.roadLinkGeography, this.roadNetwork, this.odGeography, this.pavementJunctionGeography, this.pavementNetwork);
+		
+		Junction startJ = p.getPathFinder().getStartPavementJunction();
+		Junction destJ = p.getPathFinder().getDestPavementJunction();
+		
+		assert startJ.getFID().contentEquals("pave_node_91");
+		assert destJ.getFID().contentEquals("pave_node_121");
+		
+		
+		// Initialise tactical paths and test path junctions are correct as path gets updated.
+		p.getPathFinder().updateTacticalPath();
+		
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_112");
+		
+		p.getPathFinder().getTacticalPath().updateCurrentJunction();
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction() == null;
+
+		p.getPathFinder().updateTacticalPath();
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_114");
+		p.getPathFinder().getTacticalPath().updateCurrentJunction();
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals(destJ.getFID());
+		assert p.getPathFinder().getTacticalPath().getTargetCoordinate().equals2D(d.getGeom().getCoordinate());	
+	}
 }
