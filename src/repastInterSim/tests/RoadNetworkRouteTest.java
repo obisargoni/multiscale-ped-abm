@@ -32,6 +32,7 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class RoadNetworkRouteTest {
@@ -40,37 +41,30 @@ public class RoadNetworkRouteTest {
 		
 	private Boolean isDirected = true;
 	
-	private Context<RoadLink> roadLinkContext;
-	
-	private Context<Junction> junctionContext;
-	private Network<Junction> roadNetwork;
-	
-	private Geography<Road> testRoadGeography = null;
-	
 	@BeforeEach
     public void setUp() throws Exception {
 		
 	    // Initialise contexts and geographies used by all tests	
-		roadLinkContext = new RoadLinkContext();
+		SpaceBuilder.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		junctionContext = new JunctionContext();
+		SpaceBuilder.junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", SpaceBuilder.junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 1. Load road network data
 		String roadLinkFile = TestDataDir + "mastermap-itn RoadLink Intersect Within with orientation.shp";
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		// 2. Build road network
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,SpaceBuilder.junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+		SpaceBuilder.roadNetwork = builder.buildNetwork();
+		GISFunctions.buildGISRoadNetwork(roadLinkGeography, SpaceBuilder.junctionContext,junctionGeography, SpaceBuilder.roadNetwork);
 		
     }
 
@@ -99,7 +93,7 @@ public class RoadNetworkRouteTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: junctionContext.getObjects(Junction.class)) {
+		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals("osgb4000000029971605")) {
@@ -117,7 +111,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,7 +154,7 @@ public class RoadNetworkRouteTest {
 		List<Junction> destJunctions = new ArrayList<Junction>();
 		String currentJunctionFID = "osgb4000000029970684";
 		String destJunctionFID = "osgb4000000029970684";
-		for(Junction j: junctionContext.getObjects(Junction.class)) {
+		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(currentJunctionFID)) {
@@ -178,7 +172,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -213,7 +207,7 @@ public class RoadNetworkRouteTest {
 		List<Junction> destJunctions = new ArrayList<Junction>();
 		String currentJunctionFID = "osgb4000000029970684";
 		String destJunctionFID = "osgb4000000029970447";
-		for(Junction j: junctionContext.getObjects(Junction.class)) {
+		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(currentJunctionFID)) {
@@ -231,7 +225,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -261,13 +255,13 @@ public class RoadNetworkRouteTest {
 		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
 				
 		// Initialise test road link geography and context
-		roadLinkContext = new RoadLinkContext();
+		SpaceBuilder.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		String roadLinkFile = TestDataDir + "parity_test_lines3.shp";
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		List<RoadLink> roads = new ArrayList<RoadLink>();
@@ -285,13 +279,13 @@ public class RoadNetworkRouteTest {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		testRoadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		testRoadGeography.setCRS(GlobalVars.geographyCRSString);		
+		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadGeography", testRoadContext, GeoParamsRoad);
+		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaVehicle.shp", testRoadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaPedestrian.shp", testRoadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaVehicle.shp", SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaPedestrian.shp", SpaceBuilder.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -310,7 +304,7 @@ public class RoadNetworkRouteTest {
 		
 		String roadLinkID = "osgb4000000030343774";
 		
-		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
 		assert roads.size() == 3;
@@ -328,7 +322,7 @@ public class RoadNetworkRouteTest {
 		String roadLinkID = "osgb4000000030343774";
 		
 		
-		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(testRoadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
 		assert pedRoads.size() == 2;
