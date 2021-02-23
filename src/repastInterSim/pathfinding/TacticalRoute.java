@@ -158,6 +158,21 @@ public class TacticalRoute {
 		}
 	}
 	
+	public void caChosenUpdateCurrentJunction() {
+		CrossingAlternative ca = this.accumulator.getChosenCA();
+		
+		// Add the coordinates of the start and end of the crossing to the route
+		this.addCoordinate(ca.nearestCoord(this.ped.getLoc()));
+		this.addCoordinate(ca.farthestCoord(this.ped.getLoc()));
+		
+		// Set the current junction to be the target junction - this
+		this.currentJunction = this.accumulator.getTargetJunction();
+		this.currentEdge = this.accumulator.getTargetRouteEdge();
+		
+		// Finally record which crossing type the pedestrian agent chose
+		this.ped.setChosenCrossingType(ca.getType());
+	}
+	
 	public Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
 		Junction adj = null;
 		if (e.getSource().equals(j)) {
@@ -270,18 +285,7 @@ public class TacticalRoute {
 		
 		// If a crossing has been chosen, update the tactical path to reflect this
 		if (this.accumulator.getChosenCA() != null) {
-			CrossingAlternative ca = this.accumulator.getChosenCA();
-			
-			// Add the coordinates of the start and end of the crossing to the route
-			this.addCoordinate(ca.nearestCoord(this.ped.getLoc()));
-			this.addCoordinate(ca.farthestCoord(this.ped.getLoc()));
-			
-			// Set the current junction to be the target junction - this
-			this.currentJunction = this.accumulator.getTargetJunction();
-			this.currentEdge = this.accumulator.getTargetRouteEdge();
-			
-			// Finally record which crossing type the pedestrian agent chose
-			this.ped.setChosenCrossingType(ca.getType());
+			caChosenUpdateCurrentJunction();
 		}
 	}
 	
