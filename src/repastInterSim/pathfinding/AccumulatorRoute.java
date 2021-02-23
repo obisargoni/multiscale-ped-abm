@@ -242,6 +242,10 @@ public class AccumulatorRoute {
 		return this.chosenCA;
 	}
 	
+	public void setChosenCA(CrossingAlternative ca) {
+		this.chosenCA = ca;
+	}
+	
 	public Junction getTargetJunction() {
 		return this.targetJunction;
 	}
@@ -260,6 +264,10 @@ public class AccumulatorRoute {
 	
 	public boolean caChosen() {
 		return this.caChosen;
+	}
+	
+	public List<CrossingAlternative> getCAs() {
+		return this.cas;
 	}
 
 }
