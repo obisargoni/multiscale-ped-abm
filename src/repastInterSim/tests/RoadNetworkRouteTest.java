@@ -2,6 +2,7 @@ package repastInterSim.tests;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
@@ -41,8 +43,14 @@ public class RoadNetworkRouteTest {
 		
 	private Boolean isDirected = true;
 	
+	void setUpProperties() throws IOException {
+		IO.readProperties();
+	}
+	
 	@BeforeEach
     public void setUp() throws Exception {
+		
+		setUpProperties();
 		
 	    // Initialise contexts and geographies used by all tests	
 		SpaceBuilder.roadLinkContext = new RoadLinkContext();
