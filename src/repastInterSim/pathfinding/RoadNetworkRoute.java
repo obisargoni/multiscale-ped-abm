@@ -181,7 +181,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			this.routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(SpaceBuilder.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
