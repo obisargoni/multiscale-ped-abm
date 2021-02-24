@@ -18,12 +18,11 @@ import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
+import repastInterSim.main.SpaceBuilder;
 
 public class TacticalRoute {
 	
 	private Ped ped;
-	private Geography<CrossingAlternative> caG;
-	private Geography<Road> rG;
 	
 	private List<RoadLink> strategicPath;
 	
@@ -45,10 +44,8 @@ public class TacticalRoute {
 		this.isBlank = true;
 	}
 	
-	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, Geography<CrossingAlternative> caG, Geography<Road> rG, NetworkPathFinder<Junction> nP) {
+	public TacticalRoute(Ped p, List<RoadLink> sP, int tNL, List<RepastEdge<Junction>> initTacticalPath, List<RepastEdge<Junction>> firstLinkTacticalPath, List<RepastEdge<Junction>> remainderTacticalPath, Junction startJunction, NetworkPathFinder<Junction> nP) {
 		this.ped = p;
-		this.caG = caG;
-		this.rG = rG;
 		
 		this.strategicPath = sP;
 		
@@ -144,7 +141,7 @@ public class TacticalRoute {
 					}
 					
 					// Identify crossing alternatives
-					List<CrossingAlternative> cas = getCrossingAlternatives(caG, crossingLinks, ped, rG);
+					List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, SpaceBuilder.roadGeography);
 					
 					// Initialise accumulator crossing choice model
 					this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge);

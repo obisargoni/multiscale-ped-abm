@@ -272,7 +272,7 @@ public class PedPathFinder {
 		}
 		
 		// Initialise the tactical alternative - sets the path
-		TacticalRoute tr = new TacticalRoute(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, caG, rG, nP);
+		TacticalRoute tr = new TacticalRoute(p, sP, tacticalNLinks, initTacticalPath, firstLinkTacticalPath, remainderTacticalPath, currentJ, nP);
 		
 		return tr;
 		
