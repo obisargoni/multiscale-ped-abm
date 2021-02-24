@@ -24,11 +24,11 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.PedObstruction;
-import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {    
@@ -79,8 +79,8 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(Geography<Object> geography, Geography<Road> rG, OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-    	super(geography, rG, o, d);
+    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    	super(o, d);
         this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
         this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
         this.rad = m / 320; // As per Moussaid
@@ -177,7 +177,7 @@ public class Ped extends MobileAgent {
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        GISFunctions.moveAgentToGeometry(this.geography, pGeomNew, this);
+        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, this);
         
         // Update the coordinate after moving the pedestrian
         setLoc();
@@ -236,7 +236,7 @@ public class Ped extends MobileAgent {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
+    	Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
         Context<Object> context = ContextUtils.getContext(this);
     	
     	
@@ -246,7 +246,7 @@ public class Ped extends MobileAgent {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(geography, P);
+               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
                	if (agentG.intersects((thisGeom))) {
                		double[] pCA = pedestrianContactAcceleration(this, P, agentG);
                		cATotal = Vector.sumV(cATotal, pCA);
@@ -338,7 +338,7 @@ public class Ped extends MobileAgent {
         for (Object agent :context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(geography, P);
+               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -587,7 +587,7 @@ public class Ped extends MobileAgent {
     @Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate pL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    	Coordinate pL = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this).getCentroid().getCoordinate();
     	this.maLoc = pL;
     }
     
@@ -609,7 +609,7 @@ public class Ped extends MobileAgent {
     
     @Override
     public Geography<Object> getGeography() {
-    	return this.geography;
+    	return SpaceBuilder.geography;
     }
     
     public String getPrimaryRouteCoordinatesString() {    	

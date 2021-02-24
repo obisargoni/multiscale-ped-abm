@@ -532,7 +532,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			minimiseCrossing = true;
 		}
 		
-    	Ped newPed = new Ped(geography, SpaceBuilder.roadGeography, o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+    	Ped newPed = new Ped(o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.
@@ -555,7 +555,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(OD o, OD d) {
-		Vehicle V = new Vehicle(geography, SpaceBuilder.roadGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
+		Vehicle V = new Vehicle(GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
 		context.add(V);
 		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = fac.createPoint(oCoord);

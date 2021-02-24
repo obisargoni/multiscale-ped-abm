@@ -30,8 +30,8 @@ public class Vehicle extends MobileAgent {
 	private Route route;
 
 
-	public Vehicle(Geography<Object> geography, Geography<Road> rG, int mS, double a, double s, OD o, OD d) {
-		super(geography, rG, o, d);
+	public Vehicle(int mS, double a, double s, OD o, OD d) {
+		super(o, d);
 		this.maxSpeed = mS;
 		this.acc = a;
 		this.speed = s;
@@ -39,7 +39,7 @@ public class Vehicle extends MobileAgent {
 		
 		this.destination = d;
 		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
-		this.route = new Route(geography, this, dCoord);
+		this.route = new Route(SpaceBuilder.geography, this, dCoord);
 	}
 
 	/*
@@ -89,7 +89,7 @@ public class Vehicle extends MobileAgent {
         for (Object agent :context.getObjects(Vehicle.class)) {
         	Vehicle V = (Vehicle)agent;
         	if (V != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(geography, V);
+               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, V);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -223,7 +223,7 @@ public class Vehicle extends MobileAgent {
 			m = 0;
 			l = 0; // Parameters for the car following model. Needs refactor.
 			
-			Coordinate vifPt = GISFunctions.getAgentGeometry(geography, objectInFront).getCentroid().getCoordinate();
+			Coordinate vifPt = GISFunctions.getAgentGeometry(SpaceBuilder.geography, objectInFront).getCentroid().getCoordinate();
 
 			// Acceleration is negative since in order to have caught up to car in front
 			// will have been travelling faster
@@ -301,7 +301,7 @@ public class Vehicle extends MobileAgent {
 				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-				GISFunctions.moveAgentToGeometry(geography, g, this);
+				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
 				distanceAlongRoute += disp;
 			}
 			// The vehicle is able to travel up to or beyond its next route coordinate
@@ -309,7 +309,7 @@ public class Vehicle extends MobileAgent {
 				// Move to the coordinate and repeat with next coordinate along
 				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
 				Geometry g = p.buffer(1);
-				GISFunctions.moveAgentToGeometry(geography, g, this);
+				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
 				
 				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
 				// since the vehicle has now reached the destination and can't go any further
@@ -420,7 +420,7 @@ public class Vehicle extends MobileAgent {
 	@Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate vL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
+    	Coordinate vL = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this).getCentroid().getCoordinate();
     	DecimalFormat newFormat = new DecimalFormat("#.#######");
     	vL.x = Double.valueOf(newFormat.format(vL.x));
     	vL.y = Double.valueOf(newFormat.format(vL.y));
@@ -450,7 +450,7 @@ public class Vehicle extends MobileAgent {
     
     @Override
     public Geography<Object> getGeography() {
-    	return this.geography;
+    	return SpaceBuilder.geography;
     }
 
 }

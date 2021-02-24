@@ -296,7 +296,7 @@ class TacticalRouteTest {
 		
 		// Set up ped path finder
 		boolean minimiseCrossings = false;		
-		Ped p = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -382,7 +382,7 @@ class TacticalRouteTest {
 		// Set up ped path finder
 		boolean minimiseCrossings = false;
 		
-		Ped p = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -445,7 +445,7 @@ class TacticalRouteTest {
 			}
 		}
         boolean minimiseCrossings = false;
-        Ped ped = new Ped(geography, SpaceBuilder.roadGeography, o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
