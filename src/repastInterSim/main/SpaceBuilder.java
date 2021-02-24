@@ -56,8 +56,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
 		
-	private static Context<Object> context;
-	private static Geography<Object> geography; 
+	public static Context<Object> context;
+	public static Geography<Object> geography; 
 	
 	public static Context<Road> roadContext;
 	public static Geography<Road> roadGeography;
