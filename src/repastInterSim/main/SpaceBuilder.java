@@ -555,7 +555,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(OD o, OD d) {
-		Vehicle V = new Vehicle(geography, this.roadGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
+		Vehicle V = new Vehicle(geography, SpaceBuilder.roadGeography, GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
 		context.add(V);
 		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = fac.createPoint(oCoord);
@@ -575,7 +575,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         	
         	// Get the geometries in the CRS used for spatial calculations
         	Geometry dGeom =  mA.getDestination().getGeom();
-        	Geometry mAGeom = GISFunctions.getAgentGeometry(this.geography, mA);
+        	Geometry mAGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, mA);
         	
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
         	if (dGeom.isWithinDistance(mAGeom, GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance)) {
