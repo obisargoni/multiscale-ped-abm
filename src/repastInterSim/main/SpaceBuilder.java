@@ -532,7 +532,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			minimiseCrossing = true;
 		}
 		
-    	Ped newPed = new Ped(o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.orRoadLinkGeography, SpaceBuilder.orRoadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+    	Ped newPed = new Ped(o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

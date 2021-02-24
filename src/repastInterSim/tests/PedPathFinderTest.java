@@ -876,11 +876,11 @@ class PedPathFinderTest {
 		}
 						
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -961,11 +961,11 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -1061,7 +1061,7 @@ class PedPathFinderTest {
 				
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 	 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -1078,7 +1078,7 @@ class PedPathFinderTest {
 		
 		// Repeat test for ped that minimises crossings
 		minimiseCrossings = true;
-		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -1139,7 +1139,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "56CF7BBA-28E4-4ACA-9F58-E096E88094FB_0", "B2B9D137-2BA4-4864-8350-2EDAA5910747_0"};
@@ -1202,7 +1202,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = true;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};
@@ -1296,7 +1296,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
         context.add(pedMinDist);        
@@ -1410,7 +1410,7 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.roadLinkGeography, SpaceBuilder.roadNetwork, SpaceBuilder.pedestrianDestinationGeography, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 		
 		Junction startJ = p.getPathFinder().getStartPavementJunction();
 		Junction destJ = p.getPathFinder().getDestPavementJunction();

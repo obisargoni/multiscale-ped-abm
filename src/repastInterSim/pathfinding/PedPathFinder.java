@@ -47,20 +47,20 @@ public class PedPathFinder {
 	
 	private Coordinate nextCrossingCoord;	
 
-	public PedPathFinder(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
-		init(o, d, rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
+	public PedPathFinder(OD o, OD d, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+		init(o, d, paveG, paveNetwork, minimiseCrossings);
 	}
 	
-	public PedPathFinder(Ped p, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+	public PedPathFinder(Ped p, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
 		this.ped = p;
-		init(p.getOrigin(), p.getDestination(), rlG, orNetwork, odG, paveG, paveNetwork, minimiseCrossings);
+		init(p.getOrigin(), p.getDestination(), paveG, paveNetwork, minimiseCrossings);
 	}
 	
-	private void init(OD o, OD d, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+	private void init(OD o, OD d, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
 		this.origin = o;
 		this.destination = d;
 				
-		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), rlG, orNetwork, odG, paveG, paveNetwork);
+		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), paveG, paveNetwork);
 		
 		List<String> sPIDs = this.strategicPath.stream().map(rl -> rl.getFID()).collect(Collectors.toList());
 		if (minimiseCrossings) {
@@ -87,7 +87,7 @@ public class PedPathFinder {
 	 * Use this to identify the shortest path through the network and assign this path to this classes' strategic path attribute.
 	 * 
 	 */
-	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<Junction> paveG, Network<Junction> paveNetwork) {
 		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC);
 		
 		// initialise object to record the start and end pavement junctions of the route
