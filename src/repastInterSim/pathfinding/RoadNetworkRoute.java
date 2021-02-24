@@ -83,10 +83,6 @@ public class RoadNetworkRoute implements Cacheable {
 		// Route.routeCache = new Hashtable<CachedRoute, CachedRoute>();
 	}
 	
-	private Geography<RoadLink> roadLinkGeography;
-	private Network<Junction> roadNetwork;
-	private Geography<OD> destinationGeography;
-
 	protected Coordinate origin;
 	protected Coordinate destination;
 	
@@ -153,40 +149,7 @@ public class RoadNetworkRoute implements Cacheable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
-		}
-		
-		this.roadLinkGeography = SpaceBuilder.roadLinkGeography;
-		this.roadNetwork = SpaceBuilder.roadNetwork;
-		this.destinationGeography = SpaceBuilder.vehicleDestinationGeography;
-		
-		
-		this.origin = origin;
-		this.destination = destination;
-	}
-	
-	/**
-	 * Create a new route object
-	 * 
-	 * @param origin
-	 * 		The origin coordinate of the route
-	 * @param destination
-	 * 		The destination coordinate of the route
-	 */
-	public RoadNetworkRoute(Coordinate origin, Coordinate destination, Geography<RoadLink> rlG, Network<Junction> rN, Geography<OD> dG) {
-		
-		// Assert that origin and destination coordinates are not null
-		try {
-			checkNotNull(origin, destination);
-		} catch (RoutingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-		
-		this.roadLinkGeography = rlG;
-		this.roadNetwork = rN;
-		this.destinationGeography = dG;
-		
+		}		
 		
 		this.origin = origin;
 		this.destination = destination;
@@ -218,7 +181,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			this.routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(this.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
@@ -274,7 +237,7 @@ public class RoadNetworkRoute implements Cacheable {
 			 */
 
 			// Start by Finding the road that this coordinate is on
-			RoadLink currentRoad = findNearestObject(currentCoord, this.roadLinkGeography, null,
+			RoadLink currentRoad = findNearestObject(currentCoord, SpaceBuilder.roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction is closest to us on the road.
 			List<Junction> currentJunctions = currentRoad.getJunctions();
@@ -282,7 +245,7 @@ public class RoadNetworkRoute implements Cacheable {
 			/* Find the nearest Junctions to our destination (road endpoints) */
 
 			// Find the road that this coordinate is on
-			RoadLink destRoad = findNearestObject(destCoord, this.roadLinkGeography, null,
+			RoadLink destRoad = findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction connected to the edge is closest to the coordinate.
 			List<Junction> destJunctions = destRoad.getJunctions();
@@ -339,8 +302,8 @@ public class RoadNetworkRoute implements Cacheable {
 			currentPaveJ = findNearestObject(currentCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			destPaveJ = findNearestObject(destCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			
-			currentRoad = findNearestObject(currentCoord, this.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			destRoad = findNearestObject(destCoord, this.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			currentRoad = findNearestObject(currentCoord, SpaceBuilder.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			destRoad = findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			
 			// Get start and end road network junctions from IDs
 			List<Junction> currentORJ = currentRoad.getJunctions().stream().filter(j -> j.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList());
@@ -535,8 +498,8 @@ public class RoadNetworkRoute implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(this.destinationGeography,
-						odsFile, this.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
+				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography,
+						odsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
@@ -904,7 +867,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	private List<RoadLink> getRoadFromCoordCache(Coordinate coord) {
 
-		populateCoordCache(this.roadLinkGeography); // Check the cache has been populated
+		populateCoordCache(SpaceBuilder.roadLinkGeography); // Check the cache has been populated
 		return coordCache.get(coord);
 	}
 
@@ -916,7 +879,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return True if the coordinate is part of a road segment
 	 */
 	private boolean coordOnRoad(Coordinate coord) {
-		populateCoordCache(this.roadLinkGeography); // check the cache has been populated
+		populateCoordCache(SpaceBuilder.roadLinkGeography); // check the cache has been populated
 		return coordCache.containsKey(coord);
 	}
 

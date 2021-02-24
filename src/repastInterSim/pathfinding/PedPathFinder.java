@@ -88,7 +88,7 @@ public class PedPathFinder {
 	 * 
 	 */
 	public void planStrategicPath(Coordinate oC, Coordinate dC, Geography<RoadLink> rlG, Network<Junction> orNetwork, Geography<OD> odG, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC, rlG, orNetwork, odG);
+		RoadNetworkRoute rnr = new RoadNetworkRoute(oC, dC);
 		
 		// initialise object to record the start and end pavement junctions of the route
 		Junction[] routeEnds = null;
