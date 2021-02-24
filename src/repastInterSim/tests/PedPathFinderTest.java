@@ -95,7 +95,7 @@ class PedPathFinderTest {
 		// Initialise test road link geography and context
 		Context<RoadLink> roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("orRoadLinkGeography", roadLinkContext, GeoParams);
 		rlG.setCRS(GlobalVars.geographyCRSString);
 				
 		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, roadLinkContext);
@@ -105,7 +105,7 @@ class PedPathFinderTest {
 	}
 	
 	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
+		SpaceBuilder.orRoadLinkGeography = setUpLinks(roadLinkFile);
 	}
 	
 	void setUpRoadLinks() throws Exception {
@@ -166,9 +166,9 @@ class PedPathFinderTest {
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.roadNetwork = builder.buildNetwork();
+		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.orRoadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.orRoadNetwork);
 	}
 	
 	void setUpPavementNetwork() {
@@ -204,7 +204,7 @@ class PedPathFinderTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: SpaceBuilder.roadNetwork.getNodes()) {
+		for(Junction j: SpaceBuilder.orRoadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(j1ID)) {
@@ -222,7 +222,7 @@ class PedPathFinderTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -245,7 +245,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path1.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -282,7 +282,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path2.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -309,7 +309,7 @@ class PedPathFinderTest {
 		setUpRoadLinks("test_strategic_path3.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
-		SpaceBuilder.roadLinkGeography.getAllObjects().forEach(sP::add);
+		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
 		//Collections.reverse(sP);
 		
 		Collections.sort(sP, (rl1, rl2) -> rl1.getFID().compareTo(rl2.getFID()));
@@ -401,7 +401,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -454,7 +454,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -507,7 +507,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -560,7 +560,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -613,7 +613,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -666,7 +666,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -708,7 +708,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -761,7 +761,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
@@ -814,7 +814,7 @@ class PedPathFinderTest {
 		
 		RoadLink rlEndHorz = null;
 		RoadLink rlOutHorz = null;
-		for (RoadLink rl : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl : SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			if (rl.getPedRLID().contentEquals(rlEndHorzID)) {
 				rlEndHorz = rl;
 				continue;
