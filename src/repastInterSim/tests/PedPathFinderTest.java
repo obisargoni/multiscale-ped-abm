@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +19,6 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
@@ -45,7 +42,6 @@ import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
-import repastInterSim.pathfinding.NetworkPathFinder;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
