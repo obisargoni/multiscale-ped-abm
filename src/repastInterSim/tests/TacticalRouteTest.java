@@ -47,7 +47,6 @@ import repastInterSim.pathfinding.TacticalRoute;
 class TacticalRouteTest {
 
 	Context<Object> context = new DefaultContext<Object>();;
-	Geography<Object> geography; 
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
@@ -63,9 +62,9 @@ class TacticalRouteTest {
 	
 	void setUpObjectGeography() {
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
-		geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(geography);
+		SpaceBuilder.geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		SpaceBuilder.geography.setCRS(GlobalVars.geographyCRSString);
+		context.add(SpaceBuilder.geography);
 	}
 	
 	void setUpRoads() throws Exception {
@@ -304,7 +303,7 @@ class TacticalRouteTest {
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(geography, circle, p);
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
         p.setLoc();
         
         PedPathFinder ppf = p.getPathFinder();
@@ -390,7 +389,7 @@ class TacticalRouteTest {
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(geography, circle, p);
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
         p.setLoc();
         
         PedPathFinder ppf = p.getPathFinder();
