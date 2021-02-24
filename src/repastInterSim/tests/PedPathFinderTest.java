@@ -161,8 +161,6 @@ class PedPathFinderTest {
 		String testCAFile = testGISDir + "crossing_lines.shp";
 		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, SpaceBuilder.caGeography, caContext);
 		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
-		
-		SpaceBuilder.caGeography = SpaceBuilder.caGeography;
 	}
 	
 	void setUpRoadNetwork(boolean isDirected) {
