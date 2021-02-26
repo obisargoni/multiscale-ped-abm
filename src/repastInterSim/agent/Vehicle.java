@@ -55,7 +55,7 @@ public class Vehicle extends MobileAgent {
     		this.route.setRoute();
     		
     		// Increase the vehicle count of the first road link
-    		this.route.getRoadsX().get(0).addVehicleToCount();
+    		this.route.getRoadsX().get(0).addVehicleToQueue(this);
     		currentRoadLink = this.route.getRoadsX().get(0);
 		}
     	
@@ -83,6 +83,8 @@ public class Vehicle extends MobileAgent {
     	Coordinate[] lineCoords = {maLoc, rayEnd};
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
+    	
+    	
     	
     	// Check to see if this line intersects with any pedestrian agents
         Context<Object> context = ContextUtils.getContext(this);
@@ -280,8 +282,8 @@ public class Vehicle extends MobileAgent {
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
 	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-	        	nextRoadLink.addVehicleToCount();
-	        	currentRoadLink.removeVehicleFromCount();
+	        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
+	        	currentRoadLink.removeVehicleFromQueue();
 	        }
 	        
 	        
@@ -323,7 +325,7 @@ public class Vehicle extends MobileAgent {
 				
 				this.route.routeX.remove(routeCoord);
 				currentRoadLink = nextRoadLink;
-				this.route.getRoadsX().remove(0);
+				this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
 			}
 			
 		}
@@ -386,7 +388,7 @@ public class Vehicle extends MobileAgent {
 	 */
 	@Override
 	public void tidyForRemoval() {
-		this.currentRoadLink.removeVehicleFromCount();
+		this.currentRoadLink.removeVehicleFromQueue();
 	}
 	
 	/*
