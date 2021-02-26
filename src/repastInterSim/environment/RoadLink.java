@@ -4,11 +4,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections15.buffer.CircularFifoBuffer;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
+
+import repastInterSim.agent.Vehicle;
+import repastInterSim.main.GlobalVars;
+import repastInterSim.util.RingBufferFillCount;
 
 public class RoadLink implements FixedGeography, Serializable {
 	
@@ -26,7 +32,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	private String direction = null;
 	private String MNodeFID = null;
 	private String PNodeFID = null;
-	private int vehicleCount = 0;
+	private RingBufferFillCount<Vehicle> queue;
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -46,6 +52,12 @@ public class RoadLink implements FixedGeography, Serializable {
 		this.junctions = new ArrayList<Junction>();
 		this.edge = null;
 	}
+	
+	private void initQueue(double roadLength) {
+		int capacity = (int) (roadLength / GlobalVars.vehicleLength);
+		Vehicle[] queueArr = new Vehicle[capacity];
+		this.queue = new RingBufferFillCount<Vehicle>(queueArr);
+	}
 
 	@Override
 	public Geometry getGeom() {
@@ -55,6 +67,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	@Override
 	public void setGeom(Geometry g) {
 		this.geom = g;
+		initQueue(this.geom.getLength());
 	}
 	
 	public void addJunction(Junction j) {
@@ -118,15 +131,15 @@ public class RoadLink implements FixedGeography, Serializable {
 	}
 	
 	public int getVehicleCount() {
-		return this.vehicleCount;
+		return this.queue.count();
 	}
 	
-	public void addVehicleToCount() {
-		this.vehicleCount++;
+	public boolean addVehicleToQueue(Vehicle v) {
+		return this.queue.put(v);
 	}
 	
-	public void removeVehicleFromCount() {
-		this.vehicleCount--;
+	public Vehicle removeVehicleFromQueue() {
+		return this.queue.take();
 	}
 	
 	public String getPriority() {
