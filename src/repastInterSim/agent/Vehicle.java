@@ -26,7 +26,8 @@ public class Vehicle extends MobileAgent {
 	private double speed;
 	private double acc;
 	private double dmax;	    
-	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another	
+	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
+	private int queuePos;
 	private Route route;
 
 
@@ -55,8 +56,9 @@ public class Vehicle extends MobileAgent {
     		this.route.setRoute();
     		
     		// Increase the vehicle count of the first road link
-    		this.route.getRoadsX().get(0).addVehicleToQueue(this);
     		currentRoadLink = this.route.getRoadsX().get(0);
+    		this.queuePos = currentRoadLink.getQueue().writePos();
+    		currentRoadLink.addVehicleToQueue(this);
 		}
     	
 		// Check for nearby cars
@@ -282,6 +284,7 @@ public class Vehicle extends MobileAgent {
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
 	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
+	        	this.queuePos = nextRoadLink.getQueue().writePos();
 	        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
 	        	currentRoadLink.removeVehicleFromQueue();
 	        }
