@@ -80,6 +80,9 @@ public abstract class GlobalVars {
 	public static double defaultVehicleAcceleration = 0.1;
 	public static double initialVehicleSpeed = 0.5;
 	public static Integer maxVehicleSpeed = 3;
+	public static double vehicleLength = 3.5; // 3.5m
+	public static double vehicleWidth = 1.7; // 1.7m
+	
 	
 	public static final class GEOGRAPHY_PARAMS {
 		
