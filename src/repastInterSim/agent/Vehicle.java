@@ -1,7 +1,6 @@
 package repastInterSim.agent;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -14,7 +13,6 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.Road;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
