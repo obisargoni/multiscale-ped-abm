@@ -164,7 +164,7 @@ class PedPathFinderTest {
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
 		
