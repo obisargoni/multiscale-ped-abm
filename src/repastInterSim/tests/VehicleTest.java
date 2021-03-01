@@ -160,7 +160,7 @@ class VehicleTest {
 		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0));
 		
 		// Check that no vehicle is in front and that acceleration is equal to the default acceleration value
-		Vehicle vinfront = v.getVehicleInFront(0); 
+		Vehicle vinfront = v.getVehicleInFront(); 
 		assert vinfront == null;
 		assert v.setAccFollowing(vinfront) == GlobalVars.defaultVehicleAcceleration;
 		
@@ -224,7 +224,7 @@ class VehicleTest {
 		vFollower.setCurrentRoadLinkAndQueuePos(vFollower.getRoute().getRoadsX().get(0));
 		
 		// Check vehicle in front is the leader vehicle.
-		Vehicle vinfront = vFollower.getVehicleInFront(0);
+		Vehicle vinfront = vFollower.getVehicleInFront();
 		assert vinfront.getID() == vLeader.getID();
 		
 		// Acceleration is greater than default bc driver speeds up to catch up with vehicle ahead
@@ -244,7 +244,7 @@ class VehicleTest {
 		vLeader.setSpeed(0.0);
 		
 		// Check vehicle in front is the leader vehicle.
-		vinfront = vFollower.getVehicleInFront(0);
+		vinfront = vFollower.getVehicleInFront();
 		assert vinfront.getID() == vLeader.getID();
 		
 		// Acceleration should still be default because car in front is moving at a higher speed. No need for this vehicle to slow down.

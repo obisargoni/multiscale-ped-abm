@@ -56,7 +56,7 @@ public class Vehicle extends MobileAgent {
 		}
     	
 		// Check for nearby cars
-		Vehicle vehicleInFront = getVehicleInFront(0);
+		Vehicle vehicleInFront = getVehicleInFront();
 
 		// Drive
 		drive(vehicleInFront);
@@ -64,18 +64,8 @@ public class Vehicle extends MobileAgent {
 	}
 	
 	
-    public Vehicle getVehicleInFront(double alpha)  {
-    	
-    	// Get unit vector in the direction of the sampled angle
-    	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
-    	
-    	// Get the coordinate of the end of the field of vision in this direction
-    	Coordinate rayEnd = new Coordinate(maLoc.x + rayVector[0]*this.dmax, maLoc.y + rayVector[1]*this.dmax);
-    	
-    	Coordinate[] lineCoords = {maLoc, rayEnd};
-    	// Create a line from the pedestrian to the end of the field of vision in this direction
-    	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
-    	
+    public Vehicle getVehicleInFront()  {
+    	    	
     	// Use road link queue to check for any vehicles in front on the current link
     	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
     	
