@@ -410,6 +410,10 @@ public class Vehicle extends MobileAgent {
 
 	}
 	
+	public void setSpeed(double s) {
+		this.speed = s;
+	}
+	
 	public double getSpeed() {
 		return this.speed;
 	}
