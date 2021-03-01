@@ -453,5 +453,9 @@ public class Vehicle extends MobileAgent {
     public Geography<Object> getGeography() {
     	return SpaceBuilder.geography;
     }
+    
+    public void setCurrentRoadLink(RoadLink rl) {
+    	this.currentRoadLink = rl;
+    }
 
 }
