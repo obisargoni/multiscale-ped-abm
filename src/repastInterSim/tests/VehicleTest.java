@@ -174,5 +174,91 @@ class VehicleTest {
 		assert v.getSpeed() == GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration;
 	}
 	
+	/*
+	 * Test 
+	 */
+	@Test
+	void testVehicleDriveFollower1() {
+		
+		// Set up environment
+		try {
+			IO.readProperties();
+			setUpObjectGeography();
+			setUpITNRoadLinkGeography();
+			setUpODs("OD_vehicle_nodes_intersect_within.shp");
+			setUpRoadNetwork(true);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Choose origin and destination
+		String originID = "osgb4000000029970681";
+		String destID = "osgb4000000029971717";
+		
+		// Create leader vehicle and step forward for some ticks
+		Vehicle vLeader = createVehicle(originID, destID);
+		
+		// Step the leader vehicle ahead a few ticks
+		for (int i=0; i<5; i++) {
+			try {
+				vLeader.step();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		// Now add follower vehicle
+		Vehicle vFollower = createVehicle(originID, destID);
+		
+		try {
+			vFollower.getRoute().setRoute();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		vFollower.setCurrentRoadLinkAndQueuePos(vFollower.getRoute().getRoadsX().get(0));
+		
+		// Check vehicle in front is the leader vehicle.
+		Vehicle vinfront = vFollower.getVehicleInFront(0);
+		assert vinfront.getID() == vLeader.getID();
+		
+		// Acceleration is greater than default bc driver speeds up to catch up with vehicle ahead
+		assert vFollower.setAccFollowing(vinfront) > GlobalVars.defaultVehicleAcceleration;
+		
+		// Check speed after one step
+		try {
+			vFollower.step();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		assert vFollower.getSpeed() > (GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration);
+		
+		
+		// Now reduce speed of leader vehicle and check that follower vehicle also responds
+		vLeader.setSpeed(0.0);
+		
+		// Check vehicle in front is the leader vehicle.
+		vinfront = vFollower.getVehicleInFront(0);
+		assert vinfront.getID() == vLeader.getID();
+		
+		// Acceleration should still be default because car in front is moving at a higher speed. No need for this vehicle to slow down.
+		assert vFollower.setAccFollowing(vinfront) < 0.0;
+		
+		// Check speed after one step
+		try {
+			vFollower.step();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		assert vFollower.getSpeed() - vLeader.getSpeed() < 0.0000001;
+	}
+	
 
 }
