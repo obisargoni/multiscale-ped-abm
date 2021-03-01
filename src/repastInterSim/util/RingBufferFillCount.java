@@ -61,4 +61,17 @@ public class RingBufferFillCount<T> {
         count--;
         return nextObj;
     }
+
+	public T getElementAhead(int elemPos) {
+		if (this.readPos() == elemPos) {
+			return null;
+		}
+		else {
+			int inFront = elemPos - 1;
+			if (inFront < 0) {
+				inFront = capacity-1;
+			}
+			return elements[inFront];
+		}
+	}
 }
