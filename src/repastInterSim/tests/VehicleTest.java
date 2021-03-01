@@ -57,12 +57,12 @@ class VehicleTest {
 		roadLinkPath = testGISDir + roadLinkFile;
 		
 		// Initialise test road link geography and context
-		Context<RoadLink> roadLinkContext = new RoadLinkContext();
+		SpaceBuilder.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("orRoadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("orRoadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
 		rlG.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, SpaceBuilder.roadLinkContext);
 		SpatialIndexManager.createIndex(rlG, RoadLink.class);
 		
 		return rlG;
