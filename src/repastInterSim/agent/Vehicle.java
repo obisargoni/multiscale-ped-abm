@@ -278,13 +278,6 @@ public class Vehicle extends MobileAgent {
 	        Coordinate routeCoord = this.route.routeX.get(0);
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
-	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-	        	this.queuePos = nextRoadLink.getQueue().writePos();
-	        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
-	        	currentRoadLink.removeVehicleFromQueue();
-	        }
-	        
-	        
 	        // Is this the final destination?
 	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
 	        boolean isFinal = (routeCoord.equals2D(destC));
@@ -310,6 +303,14 @@ public class Vehicle extends MobileAgent {
 				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
 				Geometry g = p.buffer(1);
 				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+				
+				// If vehicle has been moved onto a different road link update the road link queues
+		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
+		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
+		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
+		        	currentRoadLink.removeVehicleFromQueue();
+		        }
 				
 				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
 				// since the vehicle has now reached the destination and can't go any further
