@@ -70,10 +70,6 @@ public class Vehicle extends MobileAgent {
 	
     public Vehicle getVehicleInFront(double alpha)  {
     	
-    	// Initialise distance to nearest object as the max distance in the field of vision
-    	double d = this.dmax;
-    	Vehicle vInFront = null;
-    	
     	// Get unit vector in the direction of the sampled angle
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
     	
