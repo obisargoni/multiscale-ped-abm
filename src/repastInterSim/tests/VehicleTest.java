@@ -171,7 +171,7 @@ class VehicleTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert v.getSpeed() == GlobalVars.defaultVehicleAcceleration;
+		assert v.getSpeed() == GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration;
 	}
 	
 
