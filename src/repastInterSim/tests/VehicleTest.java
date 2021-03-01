@@ -157,7 +157,7 @@ class VehicleTest {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		v.setCurrentRoadLink(v.getRoute().getRoadsX().get(0));
+		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0));
 		
 		// Check that no vehicle is in front and that acceleration is equal to the default acceleration value
 		Vehicle vinfront = v.getVehicleInFront(0); 
