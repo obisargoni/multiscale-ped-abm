@@ -52,11 +52,7 @@ public class Vehicle extends MobileAgent {
     	// Check that a route has been generated
     	if (this.route.getRouteX() == null) {
     		this.route.setRoute();
-    		
-    		// Increase the vehicle count of the first road link
-    		currentRoadLink = this.route.getRoadsX().get(0);
-    		this.queuePos = currentRoadLink.getQueue().writePos();
-    		currentRoadLink.addVehicleToQueue(this);
+    		this.setCurrentRoadLinkAndQueuePos(this.route.getRoadsX().get(0));
 		}
     	
 		// Check for nearby cars
@@ -458,8 +454,10 @@ public class Vehicle extends MobileAgent {
     	return SpaceBuilder.geography;
     }
     
-    public void setCurrentRoadLink(RoadLink rl) {
+    public void setCurrentRoadLinkAndQueuePos(RoadLink rl) {
     	this.currentRoadLink = rl;
+		this.queuePos = currentRoadLink.getQueue().writePos();
+		currentRoadLink.addVehicleToQueue(this);
     }
 
 }
