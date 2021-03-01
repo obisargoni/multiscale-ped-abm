@@ -1,7 +1,6 @@
 package repastInterSim.agent;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -14,7 +13,6 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.Road;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -26,7 +24,8 @@ public class Vehicle extends MobileAgent {
 	private double speed;
 	private double acc;
 	private double dmax;	    
-	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another	
+	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
+	private int queuePos;
 	private Route route;
 
 
@@ -55,8 +54,9 @@ public class Vehicle extends MobileAgent {
     		this.route.setRoute();
     		
     		// Increase the vehicle count of the first road link
-    		this.route.getRoadsX().get(0).addVehicleToCount();
     		currentRoadLink = this.route.getRoadsX().get(0);
+    		this.queuePos = currentRoadLink.getQueue().writePos();
+    		currentRoadLink.addVehicleToQueue(this);
 		}
     	
 		// Check for nearby cars
@@ -70,10 +70,6 @@ public class Vehicle extends MobileAgent {
 	
     public Vehicle getVehicleInFront(double alpha)  {
     	
-    	// Initialise distance to nearest object as the max distance in the field of vision
-    	double d = this.dmax;
-    	Vehicle vInFront = null;
-    	
     	// Get unit vector in the direction of the sampled angle
     	double[] rayVector = {Math.sin(alpha), Math.cos(alpha)};
     	
@@ -84,28 +80,31 @@ public class Vehicle extends MobileAgent {
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
     	
-    	// Check to see if this line intersects with any pedestrian agents
-        Context<Object> context = ContextUtils.getContext(this);
-        for (Object agent :context.getObjects(Vehicle.class)) {
-        	Vehicle V = (Vehicle)agent;
-        	if (V != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, V);
-               	if (agentG.intersects(sampledRay)) {
-               		// The intersection geometry could be multiple points.
-               		// Iterate over them find the distance to the nearest pedestrian
-               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
-               		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = maLoc.distance(c);
-                   		if (dAgent < d) {
-                   			d = dAgent;
-                   			vInFront = V;
-                   		}
-               		}
-               	}
-        	}
-        }
-        
-        return vInFront;    	
+    	// Use road link queue to check for any vehicles in front on the current link
+    	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
+    	
+    	if (vInFront == null) {
+    		// Check the next road link in the route
+    		// Do this by looping over roads in route until the next road link is reached and check this queue
+    		int i = 0;
+    		String nextRoadID = this.route.getRoadsX().get(i).getFID();
+    		while (this.currentRoadLink.getFID() == nextRoadID) {
+    			i++;
+    			nextRoadID = this.route.getRoadsX().get(i).getFID();
+    		}        	
+    		vInFront = this.route.getRoadsX().get(i).getQueue().getElementAhead(this.queuePos);
+    	}
+    	
+    	// If still no vehicle in front return null, otherwise check distance to vehicle in front
+    	if (vInFront==null) {
+    		return null;
+    	}
+    	else if (maLoc.distance(vInFront.getLoc()) < this.dmax) {
+    		return vInFront;
+    	}
+    	else {
+    		return null;
+    	}
     }
 
 
@@ -279,12 +278,6 @@ public class Vehicle extends MobileAgent {
 	        Coordinate routeCoord = this.route.routeX.get(0);
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
 	        
-	        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-	        	nextRoadLink.addVehicleToCount();
-	        	currentRoadLink.removeVehicleFromCount();
-	        }
-	        
-	        
 	        // Is this the final destination?
 	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
 	        boolean isFinal = (routeCoord.equals2D(destC));
@@ -311,6 +304,14 @@ public class Vehicle extends MobileAgent {
 				Geometry g = p.buffer(1);
 				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
 				
+				// If vehicle has been moved onto a different road link update the road link queues
+		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
+		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
+		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
+		        	currentRoadLink.removeVehicleFromQueue();
+		        }
+				
 				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
 				// since the vehicle has now reached the destination and can't go any further
 				if (isFinal) {
@@ -323,7 +324,7 @@ public class Vehicle extends MobileAgent {
 				
 				this.route.routeX.remove(routeCoord);
 				currentRoadLink = nextRoadLink;
-				this.route.getRoadsX().remove(0);
+				this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
 			}
 			
 		}
@@ -386,7 +387,7 @@ public class Vehicle extends MobileAgent {
 	 */
 	@Override
 	public void tidyForRemoval() {
-		this.currentRoadLink.removeVehicleFromCount();
+		this.currentRoadLink.removeVehicleFromQueue();
 	}
 	
 	/*
