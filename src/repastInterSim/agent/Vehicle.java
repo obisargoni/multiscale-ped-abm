@@ -84,30 +84,31 @@ public class Vehicle extends MobileAgent {
     	// Create a line from the pedestrian to the end of the field of vision in this direction
     	LineString sampledRay = new GeometryFactory().createLineString(lineCoords);
     	
+    	// Use road link queue to check for any vehicles in front on the current link
+    	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
     	
+    	if (vInFront == null) {
+    		// Check the next road link in the route
+    		// Do this by looping over roads in route until the next road link is reached and check this queue
+    		int i = 0;
+    		String nextRoadID = this.route.getRoadsX().get(i).getFID();
+    		while (this.currentRoadLink.getFID() == nextRoadID) {
+    			i++;
+    			nextRoadID = this.route.getRoadsX().get(i).getFID();
+    		}        	
+    		vInFront = this.route.getRoadsX().get(i).getQueue().getElementAhead(this.queuePos);
+    	}
     	
-    	// Check to see if this line intersects with any pedestrian agents
-        Context<Object> context = ContextUtils.getContext(this);
-        for (Object agent :context.getObjects(Vehicle.class)) {
-        	Vehicle V = (Vehicle)agent;
-        	if (V != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, V);
-               	if (agentG.intersects(sampledRay)) {
-               		// The intersection geometry could be multiple points.
-               		// Iterate over them find the distance to the nearest pedestrian
-               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
-               		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = maLoc.distance(c);
-                   		if (dAgent < d) {
-                   			d = dAgent;
-                   			vInFront = V;
-                   		}
-               		}
-               	}
-        	}
-        }
-        
-        return vInFront;    	
+    	// If still no vehicle in front return null, otherwise check distance to vehicle in front
+    	if (vInFront==null) {
+    		return null;
+    	}
+    	else if (maLoc.distance(vInFront.getLoc()) < this.dmax) {
+    		return vInFront;
+    	}
+    	else {
+    		return null;
+    	}
     }
 
 
