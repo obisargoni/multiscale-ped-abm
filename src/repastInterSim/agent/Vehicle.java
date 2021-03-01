@@ -251,7 +251,7 @@ public class Vehicle extends MobileAgent {
 			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
 			setAccFollowing(vehicleInFront);
 			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			setSpeed();
+			updateSpeed();
 
 			// setAcc(vehicleInFront);
 		} 
@@ -396,7 +396,7 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 * @return The new speed
 	 */
-	public double setSpeed() {
+	public double updateSpeed() {
 		// Update velocity
 		this.speed = this.speed + this.acc * GlobalVars.stepToTimeRatio;
 		
