@@ -78,8 +78,8 @@ public class TacticalRoute {
 		if(this.routeCoordinates.size()>0) {
 			return routeCoordinates.getLast();
 		}
-		// If caChosen is true (meaning ped is no longer trying to cross the road) and ped is at end of journey (last strategic link and no remaining edges in route path) then walk towards dest coordinate
-		else if ( (this.strategicPath.size() == 1) & (this.routePath.size()==0) & (this.accumulator.caChosen()) ) {
+		// If a crossing is not required (no neeed to cross or ped has completed crossing) and ped is at end of journey (last strategic link and no remaining edges in route path) then walk towards dest coordinate
+		else if ( (this.strategicPath.size() == 1) & (this.routePath.size()==0) & (this.accumulator.crossingRequired()==false) ) {
 			return this.ped.getDestination().getGeom().getCoordinate();
 		}
 		else {
@@ -103,10 +103,8 @@ public class TacticalRoute {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if ((this.accumulator.caChosen() == false) & (this.strategicPath.size()==1)) {
-			// do not update the current junction if crossing location is not chosen and ped is at the end of their route
-			// caChosen returns null is accumulator has not been initialised, false only if initialised and ca not chosen
-			
+		if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & (this.strategicPath.size()==1)) {
+			// do not update the current junction if crossing is required but crossing location is not chosen and ped is at the end of their route			
 		}
 		
 		else {
