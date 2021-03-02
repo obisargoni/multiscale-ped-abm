@@ -6,9 +6,12 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
@@ -28,14 +31,17 @@ public class AccumulatorRoute {
 	private Junction defaultJunction;
 		
 	private boolean caChosen;
+	private boolean crossingRequired;
 	private CrossingAlternative chosenCA = null;
+	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
 	
 	private boolean isBlank = false;
 	
 	public AccumulatorRoute() {
 		// Blank constructor allows ped agent to be initialised with an AccumulatorRoute object which returns a null initial coordinate
 		this.isBlank = true;
-		this.caChosen = true;
+		this.caChosen = false;
+		this.crossingRequired = false;
 	}
 	
 	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, RepastEdge<Junction> tRE) {
@@ -52,6 +58,7 @@ public class AccumulatorRoute {
 		this.targetJunction = tJ;
 		this.defaultJunction = dJ;
 		this.caChosen = false;
+		this.crossingRequired = true;
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
