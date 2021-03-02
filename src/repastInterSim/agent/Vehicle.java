@@ -82,15 +82,8 @@ public class Vehicle extends MobileAgent {
     	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
     	
     	if (vInFront == null) {
-    		// Check the next road link in the route
-    		// Do this by looping over roads in route until the next road link is reached and check this queue
-    		int i = 0;
-    		String nextRoadID = this.route.getRoadsX().get(i).getFID();
-    		while (this.currentRoadLink.getFID() == nextRoadID) {
-    			i++;
-    			nextRoadID = this.route.getRoadsX().get(i).getFID();
-    		}        	
-    		vInFront = this.route.getRoadsX().get(i).getQueue().getElementAhead(this.queuePos);
+    		// Get vehicle at the back of the road link ahead
+    		vInFront = getVehicleAtEndOfNextRoadLink();
     	}
     	
     	// If still no vehicle in front return null, otherwise check distance to vehicle in front
