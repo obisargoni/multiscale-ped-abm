@@ -276,6 +276,10 @@ public class AccumulatorRoute {
 		return this.caChosen;
 	}
 	
+	public boolean crossingRequired() {
+		return this.crossingRequired;
+	}
+	
 	public List<CrossingAlternative> getCAs() {
 		return this.cas;
 	}
