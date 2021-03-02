@@ -59,6 +59,22 @@ public class Vehicle extends MobileAgent {
 		// moveForward();
 	}
 	
+	/*
+	 * Get vehicle at the end of the next road link  by looping over roads in route until the 
+	 * next road link is reached and check this queue.
+	 */
+	public Vehicle getVehicleAtEndOfNextRoadLink() {
+		int i = 0;
+		String nextRoadID = this.route.getRoadsX().get(i).getFID();
+		while (this.currentRoadLink.getFID() == nextRoadID) {
+			i++;
+			nextRoadID = this.route.getRoadsX().get(i).getFID();
+		}
+		
+		// Get vehicle at the back of the road link ahead
+		return this.route.getRoadsX().get(i).getQueue().getEndElement();
+	}
+	
 	
     public Vehicle getVehicleInFront()  {
     	    	
