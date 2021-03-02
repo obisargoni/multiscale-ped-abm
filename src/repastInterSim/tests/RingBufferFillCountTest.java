@@ -171,5 +171,42 @@ class RingBufferFillCountTest {
 		assert ea.contentEquals("t");
 	}
 	
+	/*
+	 * Tests getting element at end of buffer
+	 */
+	@Test
+	void testGetEndElement() {
+		
+		// Initialise a Ring Buffer
+		int length = 20;
+		String[] a = new String[length];
+		RingBufferFillCount<String> rb = new RingBufferFillCount<String>(a);
+		
+		// Add some elements
+		int nElems = length-1;
+		for (int i=0; i<nElems; i++) {
+			assert rb.put(alphabet[i]);
+		}
+		
+		// get element at end, 19ths character of alphabet
+		assert rb.getEndElement().contentEquals("s");
+		
+		// take one and add two elems
+		rb.take();
+		assert rb.put(alphabet[nElems]);
+		
+		assert rb.writePos() == 0;
+		
+		// Get element at end, should now have looped around
+		String ea = rb.getEndElement();
+		assert ea.contentEquals("t");
+		
+		assert rb.put(alphabet[nElems+1]);
+		
+		ea = rb.getEndElement();
+		assert ea.contentEquals("u");
+
+	}
+	
 	
 }
