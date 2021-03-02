@@ -74,4 +74,20 @@ public class RingBufferFillCount<T> {
 			return elements[inFront];
 		}
 	}
+	
+	private int endPos() {
+		int end = this.writePos - 1;
+		if (end<0) {
+			end+=capacity;
+		}
+		return end;
+	}
+	
+	public T getEndElement() {
+		if (this.count==0) {
+			return null;
+		}
+		int end = this.endPos();
+		return this.elements[end];
+	}
 }
