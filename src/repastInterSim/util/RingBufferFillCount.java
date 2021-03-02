@@ -40,11 +40,11 @@ public class RingBufferFillCount<T> {
     public boolean put(T element){
 
         if(count < capacity){
+            elements[writePos] = element;
+            writePos++;
             if(writePos >= capacity){
                 writePos = 0;
             }
-            elements[writePos] = element;
-            writePos++;
             count++;
             return true;
         }
