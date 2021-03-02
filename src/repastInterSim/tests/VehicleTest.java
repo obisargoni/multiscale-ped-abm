@@ -175,7 +175,10 @@ class VehicleTest {
 	}
 	
 	/*
-	 * Test 
+	 * Test that leader vehicle is identified when on the same link as follower vehicle. Test that acceleration is set so that follower vehicle
+	 * matches speed of leader after one tick - this is an overly simplistic car following model.
+	 * 
+	 * Check that follower vehicle decelerates when leader vehicle has stopped.
 	 */
 	@Test
 	void testVehicleDriveFollower1() {
@@ -260,5 +263,111 @@ class VehicleTest {
 		assert vFollower.getSpeed() - vLeader.getSpeed() < 0.0000001;
 	}
 	
+	
+	/*
+	 * Test vehicle following across road links.
+	 */
+	@Test
+	void testVehicleDriveFollower2() {
+		
+		// Set up environment
+		try {
+			IO.readProperties();
+			setUpObjectGeography();
+			setUpITNRoadLinkGeography();
+			setUpODs("OD_vehicle_nodes_intersect_within.shp");
+			setUpRoadNetwork(true);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Choose origin and destination
+		String originID = "osgb4000000029970681";
+		String destID = "osgb4000000029971717";
+		
+		// Create leader vehicle and step forward for some ticks
+		Vehicle vLeader = createVehicle(originID, destID);
+		
+		// Step once to initialise route
+		try {
+			vLeader.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Step the leader vehicle ahead until it moves onto the next road link
+		String currentRLID = vLeader.getRoute().getRoadsX().get(0).getFID();
+		while (vLeader.getRoute().getRoadsX().get(0).getFID().contentEquals(currentRLID)) {
+			try {
+				vLeader.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert vLeader.getRoute().getRoadsX().get(0).getFID().contentEquals(currentRLID) == false;
+		
+		// Now add follower vehicle
+		Vehicle vFollower = createVehicle(originID, destID);
+		
+		try {
+			vFollower.getRoute().setRoute();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		vFollower.setCurrentRoadLinkAndQueuePos(vFollower.getRoute().getRoadsX().get(0));
+		
+		// Check vehicle at end of next link is the leader, but that vehicle in front is null bc leader vehicle is too far away
+		Vehicle vEnd = vFollower.getVehicleAtEndOfNextRoadLink();
+		assert vEnd.getID() == vLeader.getID();
+		
+		Vehicle vinfront = vFollower.getVehicleInFront();
+		assert vinfront == null;
+		
+		// Acceleration should be the default value bc leader vehicle is far enough away not to follow
+		assert vFollower.setAccFollowing(vinfront) == GlobalVars.defaultVehicleAcceleration;
+		
+		// Check speed after one step
+		try {
+			vFollower.step();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		assert vFollower.getSpeed() == (GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration);
+		
+		
+		// Now step follower vehicle until it is about to enter next road link and check that it adjusts speed to match leader vehicle
+		currentRLID = vFollower.getRoute().getRoadsX().get(0).getFID();
+		boolean keepStepping = true;
+		while (keepStepping) {
+			try {
+				vFollower.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			// Stop stepping if about to enter next road link
+			if (vFollower.getRoute().getRoadsX().get(1).getFID().contentEquals(currentRLID)==false) {
+				keepStepping = false;
+			}
+		}
+		
+		// Set leader vehicle speed to that follower has to slow down
+		vLeader.setSpeed(0);
+		
+		// Check vehicle in front is the leader vehicle.
+		vinfront = vFollower.getVehicleInFront();
+		assert vinfront.getID() == vLeader.getID();
+		
+		// Acceleration should be -ve bc follower vehicle needs to slow down.
+		assert vFollower.setAccFollowing(vinfront) < 0;
+		
+	}
 
 }
