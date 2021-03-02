@@ -665,4 +665,11 @@ public class Ped extends MobileAgent {
 		this.chosenCrossingType = chosenCrossingType;
 	}
 	
+	/*
+	 * Flag that indicates whether this pedestrian has chosen a crossing and is therefore attempting to cross the road
+	 */
+	public boolean isCrossing() {
+		return this.pathFinder.getTacticalPath().getAccumulatorRoute().isCrossing();
+	}
+	
 }

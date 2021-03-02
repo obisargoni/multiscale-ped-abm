@@ -32,6 +32,7 @@ public class AccumulatorRoute {
 		
 	private boolean caChosen;
 	private boolean crossingRequired;
+	private boolean isCrossing = false;
 	private CrossingAlternative chosenCA = null;
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
 	
@@ -291,10 +292,19 @@ public class AccumulatorRoute {
 	public void removeCrossingCoordinate() {
 		this.crossingCoordinates.removeLast();
 		
+		// Once crossing coordinates have been updated once, ped has started to cross.
+		this.isCrossing = true;
+		
 		// if all crossing coordinates have been passed then agent has finished crossing the road and a crossing is no longer required.
 		if(this.crossingCoordinates.size()==0) {
 			this.crossingRequired = false;
+			this.caChosen = false;
+			this.isCrossing = false;
 		}
+	}
+	
+	public boolean isCrossing() {
+		return this.isCrossing;
 	}
 
 }
