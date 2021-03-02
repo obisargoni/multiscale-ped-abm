@@ -93,17 +93,19 @@ class TacticalRouteTest {
 		 * that this Road object is associated, allow for multiple RoadLink objects to be associated.
 		 */
 		
-		for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
-			List<RoadLink> roadLinks = new ArrayList<RoadLink>();
-			for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
-				// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
-				if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
-					roadLinks.add(rl);
+		// Only do this bit if the ITN road link geography is not null
+		if(SpaceBuilder.roadLinkGeography != null) {
+			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
+				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
+				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+					// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+					if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
+						roadLinks.add(rl);
+					}
 				}
+				r.setRoadLinks(roadLinks);
 			}
-			r.setRoadLinks(roadLinks);
 		}
-
 	}
 	
 	Geography<RoadLink> setUpLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
@@ -121,8 +123,12 @@ class TacticalRouteTest {
 		return rlG;
 	}
 	
-	void setUpRoadLinks(String roadLinkFile) throws Exception {
+	void setUpITNRoadLinks(String roadLinkFile) throws Exception {
 		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
+	}
+	
+	void setUpORRoadLinks(String roadLinkFile) throws Exception {
+		SpaceBuilder.orRoadLinkGeography = setUpLinks(roadLinkFile);
 	}
 	
 	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
@@ -171,7 +177,20 @@ class TacticalRouteTest {
 		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
 	}
 	
-	void setUpRoadNetwork(boolean isDirected) {
+	void setUpORRoadNetwork(boolean isDirected) {
+		Context<Junction> junctionContext = new JunctionContext();
+		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		junctionGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
+		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
+		
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.orRoadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.orRoadNetwork);
+	}
+	
+	void setUpITNRoadNetwork(boolean isDirected) {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
@@ -262,12 +281,12 @@ class TacticalRouteTest {
 		try {
 			setUpObjectGeography();
 			
-			setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
 
 			setUpRoads();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -347,12 +366,13 @@ class TacticalRouteTest {
 		try {
 			setUpObjectGeography();
 			
-			setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+			setUpITNRoadNetwork(true);
 
 			setUpRoads();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -415,8 +435,11 @@ class TacticalRouteTest {
 		try {
 			setUpObjectGeography();
 			
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+			setUpITNRoadNetwork(true);
+			
+			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -450,7 +473,7 @@ class TacticalRouteTest {
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
 		String[] roadLinkIDs = {"A8675945-DE94-4E22-9905-B0623A326221_0", "9745D155-3C95-4CCD-BC65-0908D57FA83A_0"};
-		for (RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			for (int i=0;i<roadLinkIDs.length; i++) {
 				if(rl.getFID().contentEquals(roadLinkIDs[i])) {
 					rls.add(rl);
@@ -470,7 +493,7 @@ class TacticalRouteTest {
 		// Repeat with just one road link
 		rls = new ArrayList<RoadLink>();
 		String[] roadLinkIDs2 = {"A8675945-DE94-4E22-9905-B0623A326221_0"};
-		for (RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+		for (RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 			for (int i=0;i<roadLinkIDs2.length; i++) {
 				if(rl.getFID().contentEquals(roadLinkIDs2[i])) {
 					rls.add(rl);
