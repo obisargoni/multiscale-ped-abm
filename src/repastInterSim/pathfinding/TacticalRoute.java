@@ -75,8 +75,8 @@ public class TacticalRoute {
 	 */
 	public Coordinate getTargetCoordinate() {
 		// route coordinates storde coordinates of crossing location
-		if(this.routeCoordinates.size()>0) {
-			return routeCoordinates.getLast();
+		if(this.getAccumulatorRoute().getCrossingCoordinates().size()>0) {
+			return this.getAccumulatorRoute().getCrossingCoordinates().getLast();
 		}
 		// If a crossing is not required (no neeed to cross or ped has completed crossing) and ped is at end of journey (last strategic link and no remaining edges in route path) then walk towards dest coordinate
 		else if ( (this.strategicPath.size() == 1) & (this.routePath.size()==0) & (this.accumulator.crossingRequired()==false) ) {
@@ -91,8 +91,8 @@ public class TacticalRoute {
 	 * First tries to remove the top coordiante from the coordinates stack. If the coordinates stack is empty then the top junction is removed from the junction stack.
 	 */
 	public void updateTargetCoordiante() {
-		if (this.routeCoordinates.size()>0) {
-			this.routeCoordinates.removeLast();
+		if (this.getAccumulatorRoute().getCrossingCoordinates().size()>0) {
+			this.getAccumulatorRoute().removeCrossingCoordinate();
 		}
 		else {
 			updateCurrentJunction();
