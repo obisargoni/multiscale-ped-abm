@@ -227,11 +227,11 @@ public class AccumulatorRoute {
 				}
 			}
 			
-			// With crossing alternative chosen, update the tactical path
-			this.chosenCA = this.cas.get(choseni);
-			this.caChosen = true;
+			// With crossing alternative chosen, set caChosen to true and add the crossing coordinates to the list. Record which crossing the pedestrian chose
+			this.setChosenCA(this.cas.get(choseni));
 		}
 	}
+	
 	
 	/*
 	 *  Update the crossing alternative activations and choose a crossing alternative
@@ -250,6 +250,10 @@ public class AccumulatorRoute {
 	
 	public void setChosenCA(CrossingAlternative ca) {
 		this.chosenCA = ca;
+		this.caChosen = true;
+		this.crossingCoordinates.push(this.chosenCA.nearestCoord(this.ped.getLoc()));
+		this.crossingCoordinates.push(this.chosenCA.farthestCoord(this.ped.getLoc()));
+		this.ped.setChosenCrossingType(this.chosenCA.getType());
 	}
 	
 	public Junction getTargetJunction() {

@@ -32,7 +32,6 @@ public class TacticalRoute {
 	private Junction endJunction = null;
 	private Junction finalJunction = null;
 	private LinkedList<RepastEdge<Junction>> routePath = null;
-	private LinkedList<Coordinate> routeCoordinates = new LinkedList<Coordinate>();
 	private List<RepastEdge<Junction>> initPath; // Path that gets agent from the end of the previous road link they were on to the start of the next. Empty when last junction agent reached boarders previous and next road link.
 	private List<RepastEdge<Junction>> pathToEnd; // Path that gets agent from start of tactical horizon to end of tactical horizon
 	private List<RepastEdge<Junction>> pathRemainder; // Path that gets agent from first link outside tactical horizon to the end of their destination
@@ -156,18 +155,9 @@ public class TacticalRoute {
 	}
 	
 	public void caChosenUpdateCurrentJunction() {
-		CrossingAlternative ca = this.accumulator.getChosenCA();
-		
-		// Add the coordinates of the start and end of the crossing to the route
-		this.addCoordinate(ca.nearestCoord(this.ped.getLoc()));
-		this.addCoordinate(ca.farthestCoord(this.ped.getLoc()));
-		
 		// Set the current junction to be the target junction - this
 		this.currentJunction = this.accumulator.getTargetJunction();
 		this.currentEdge = this.accumulator.getTargetRouteEdge();
-		
-		// Finally record which crossing type the pedestrian agent chose
-		this.ped.setChosenCrossingType(ca.getType());
 	}
 	
 	public Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
@@ -259,10 +249,6 @@ public class TacticalRoute {
 		}
 		
 		return noCrossJ;
-	}
-
-	void addCoordinate(Coordinate c) {
-		this.routeCoordinates.push(c);
 	}
 	
 	public Junction getEndJunction() {
