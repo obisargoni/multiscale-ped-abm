@@ -38,6 +38,8 @@ class VehicleTest {
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String roadLinkPath = null;
+	String pedestrianRoadsPath = null;
+	String vehicleRoadsPath = null;
 	String pavementLinkPath = null;
 	String pedJPath = null;
 	String serialisedLookupPath = null;
@@ -51,6 +53,28 @@ class VehicleTest {
 		SpaceBuilder.geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		SpaceBuilder.geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(SpaceBuilder.geography);
+	}
+	
+	void setUpRoads() throws Exception {
+		pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
+		vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
+		serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
+		
+		// Get road geography
+		Context<Road> testRoadContext = new RoadContext();
+		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
+		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		// Load vehicle origins and destinations
+		try {
+			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
 	}
 	
 	Geography<RoadLink> setUpRoadLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
