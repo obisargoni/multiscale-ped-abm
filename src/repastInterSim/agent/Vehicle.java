@@ -160,56 +160,6 @@ public class Vehicle extends MobileAgent {
 		
 	}
 	
-    public Vehicle getVehicleInFront()  {
-    	
-    	// Use road link queue to check for any vehicles in front on the current link
-    	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
-    	
-    	if (vInFront == null) {
-    		// Get vehicle at the back of the road link ahead
-    		vInFront = getVehicleAtEndOfNextRoadLink();
-    	}
-    	
-    	// If still no vehicle in front return null, otherwise check distance to vehicle in front
-    	if (vInFront==null) {
-    		return null;
-    	}
-    	else if (maLoc.distance(vInFront.getLoc()) < this.dmax) {
-    		return vInFront;
-    	}
-    	else {
-    		return null;
-    	}
-    }
-	
-	/*
-	 * Get vehicle at the end of the next road link  by looping over roads in route until the 
-	 * next road link is reached and check this queue.
-	 */
-	public Vehicle getVehicleAtEndOfNextRoadLink() {
-		int i = 0;
-		String nextRoadID = this.route.getRoadsX().get(i).getFID();
-		while (this.currentRoadLink.getFID() == nextRoadID) {
-			i++;
-			nextRoadID = this.route.getRoadsX().get(i).getFID();
-		}
-		
-		// Get vehicle at the back of the road link ahead
-		return this.route.getRoadsX().get(i).getQueue().getEndElement();
-	}
-	
-    
-    /*
-     * Gets the pedestrians on the current road link that are crossing the road.
-     */
-    public List<Ped> getCrossingPedestrians() {
-    	// Get peds on current road by getting the OR road link associated to the vehicle's current ITN road link
-    	RoadLink currentITNLink = this.route.getRoadsX().get(0);
-    	List<Ped> crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
-    	return crossingPedsOnRoad;
-    }
-
-
 	/*
 	 * Simply sets speed to be the speed of the vehicle in front accounting for the
 	 * acceleration or deceleration required to get to that speed in the next
@@ -335,6 +285,55 @@ public class Vehicle extends MobileAgent {
 
 		return this.acc;
 	}
+	
+    public Vehicle getVehicleInFront()  {
+    	
+    	// Use road link queue to check for any vehicles in front on the current link
+    	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
+    	
+    	if (vInFront == null) {
+    		// Get vehicle at the back of the road link ahead
+    		vInFront = getVehicleAtEndOfNextRoadLink();
+    	}
+    	
+    	// If still no vehicle in front return null, otherwise check distance to vehicle in front
+    	if (vInFront==null) {
+    		return null;
+    	}
+    	else if (maLoc.distance(vInFront.getLoc()) < this.dmax) {
+    		return vInFront;
+    	}
+    	else {
+    		return null;
+    	}
+    }
+	
+	/*
+	 * Get vehicle at the end of the next road link  by looping over roads in route until the 
+	 * next road link is reached and check this queue.
+	 */
+	public Vehicle getVehicleAtEndOfNextRoadLink() {
+		int i = 0;
+		String nextRoadID = this.route.getRoadsX().get(i).getFID();
+		while (this.currentRoadLink.getFID() == nextRoadID) {
+			i++;
+			nextRoadID = this.route.getRoadsX().get(i).getFID();
+		}
+		
+		// Get vehicle at the back of the road link ahead
+		return this.route.getRoadsX().get(i).getQueue().getEndElement();
+	}
+	
+    
+    /*
+     * Gets the pedestrians on the current road link that are crossing the road.
+     */
+    public List<Ped> getCrossingPedestrians() {
+    	// Get peds on current road by getting the OR road link associated to the vehicle's current ITN road link
+    	RoadLink currentITNLink = this.route.getRoadsX().get(0);
+    	List<Ped> crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
+    	return crossingPedsOnRoad;
+    }
 
 
 	/*
