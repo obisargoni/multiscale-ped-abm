@@ -203,6 +203,26 @@ public class Vehicle extends MobileAgent {
 		}
 		return this.speed;
 	}
+	
+	/*
+	 * Set the acceleration of the vehicle with respect to any vehicle, pedestrian or signal obstacles in the immediate vicinity. 
+	 */
+	public double setAcceleration(Vehicle vif, List<Ped> cPeds, Object signal) {
+		
+		// Get car following acceleration
+		double cfa = carFollowingAcceleration(vif);
+		
+		// Get pedestrian yielding acceleration
+		double pya = pedYieldingAcceleration(cPeds);
+		
+		// Get traffic signal acceleration
+		double tsa = signalAcceleration(signal, vif);
+		
+		// Choose the lowest of these as the vehicle's acceleration		
+		this.acc = Math.min(cfa, Math.min(pya, tsa));
+		
+		return this.acc;
+	}
 
 	/*
 	 * Set the speed and acceleration of the vehicle agent such that it will come to
