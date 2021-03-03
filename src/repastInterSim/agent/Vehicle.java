@@ -62,6 +62,105 @@ public class Vehicle extends MobileAgent {
 	}
 	
 	/*
+	 * Drive the vehicle agent. Set the vehicle agent's speed and update the
+	 * x-coordinate of the vehicle using its current speed and acceleration and
+	 * preventing overtaking. Move the vehicle agent to its new location.
+	 * 
+	 * Prevention of overtaking is not currently working.
+	 * 
+	 * @param vehicleInFront Vehicle. The vehicle in front of the agent vehicle
+	 * 
+	 */
+	public void drive(Vehicle vehicleInFront) {
+
+		// Check for a traffic signal
+		boolean sigState = true;
+		double disp = 0; // Initialise the amount to move the vehicle by
+
+		if (sigState == true) {
+			// Continue driving by following car ahead
+			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
+			setAccFollowing(vehicleInFront);
+			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
+			updateSpeed();
+
+			// setAcc(vehicleInFront);
+		} 
+		/*
+		else if (sigState == false) {
+			// Set speed based on distance from signal
+			// In this case signal will be within a certain distance of the vehicle
+			Signal sig = getSignal();
+			setAccSignal(sig, vehicleInFront);
+			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
+			setSpeed();
+		}
+		*/
+		
+		// get the next coordinate along the route
+		double distanceAlongRoute = 0;
+		
+		while (disp > distanceAlongRoute) {
+			// Get next coordinate along the route
+	        Coordinate routeCoord = this.route.routeX.get(0);
+	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
+	        
+	        // Is this the final destination?
+	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
+	        boolean isFinal = (routeCoord.equals2D(destC));
+	        
+	        // Calculate the distance to this coordinate
+			double distToCoord = maLoc.distance(routeCoord);
+			
+			// Calculate the angle
+			double angleToCoord = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			
+			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
+			if (distToCoord > disp) {
+				// Move agent in the direction of the route coordinate the amount it is able to travel
+				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
+				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
+				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
+				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+				distanceAlongRoute += disp;
+			}
+			// The vehicle is able to travel up to or beyond its next route coordinate
+			else {
+				// Move to the coordinate and repeat with next coordinate along
+				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
+				Geometry g = p.buffer(1);
+				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+				
+				// If vehicle has been moved onto a different road link update the road link queues
+		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
+		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
+		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
+		        	currentRoadLink.removeVehicleFromQueue();
+		        }
+				
+				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
+				// since the vehicle has now reached the destination and can't go any further
+				if (isFinal) {
+					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
+					distanceAlongRoute = disp;
+				}
+				else {
+					distanceAlongRoute += distToCoord;	
+				}
+				
+				this.route.routeX.remove(routeCoord);
+				currentRoadLink = nextRoadLink;
+				this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
+			}
+			
+		}
+		
+		setLoc();
+		
+	}
+	
+	/*
 	 * Get vehicle at the end of the next road link  by looping over roads in route until the 
 	 * next road link is reached and check this queue.
 	 */
@@ -236,106 +335,6 @@ public class Vehicle extends MobileAgent {
 
 		return this.acc;
 	}
-
-	/*
-	 * Drive the vehicle agent. Set the vehicle agent's speed and update the
-	 * x-coordinate of the vehicle using its current speed and acceleration and
-	 * preventing overtaking. Move the vehicle agent to its new location.
-	 * 
-	 * Prevention of overtaking is not currently working.
-	 * 
-	 * @param vehicleInFront Vehicle. The vehicle in front of the agent vehicle
-	 * 
-	 */
-	public void drive(Vehicle vehicleInFront) {
-
-		// Check for a traffic signal
-		boolean sigState = true;
-		double disp = 0; // Initialise the amount to move the vehicle by
-
-		if (sigState == true) {
-			// Continue driving by following car ahead
-			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
-			setAccFollowing(vehicleInFront);
-			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			updateSpeed();
-
-			// setAcc(vehicleInFront);
-		} 
-		/*
-		else if (sigState == false) {
-			// Set speed based on distance from signal
-			// In this case signal will be within a certain distance of the vehicle
-			Signal sig = getSignal();
-			setAccSignal(sig, vehicleInFront);
-			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			setSpeed();
-		}
-		*/
-		
-		// get the next coordinate along the route
-		double distanceAlongRoute = 0;
-		
-		while (disp > distanceAlongRoute) {
-			// Get next coordinate along the route
-	        Coordinate routeCoord = this.route.routeX.get(0);
-	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
-	        
-	        // Is this the final destination?
-	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
-	        boolean isFinal = (routeCoord.equals2D(destC));
-	        
-	        // Calculate the distance to this coordinate
-			double distToCoord = maLoc.distance(routeCoord);
-			
-			// Calculate the angle
-			double angleToCoord = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
-			
-			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
-			if (distToCoord > disp) {
-				// Move agent in the direction of the route coordinate the amount it is able to travel
-				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
-				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
-				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
-				distanceAlongRoute += disp;
-			}
-			// The vehicle is able to travel up to or beyond its next route coordinate
-			else {
-				// Move to the coordinate and repeat with next coordinate along
-				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
-				Geometry g = p.buffer(1);
-				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
-				
-				// If vehicle has been moved onto a different road link update the road link queues
-		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-		        	this.queuePos = nextRoadLink.getQueue().writePos();
-		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
-		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
-		        	currentRoadLink.removeVehicleFromQueue();
-		        }
-				
-				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
-				// since the vehicle has now reached the destination and can't go any further
-				if (isFinal) {
-					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
-					distanceAlongRoute = disp;
-				}
-				else {
-					distanceAlongRoute += distToCoord;	
-				}
-				
-				this.route.routeX.remove(routeCoord);
-				currentRoadLink = nextRoadLink;
-				this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
-			}
-			
-		}
-		
-		setLoc();
-		
-	}
-
 
 
 	/*
