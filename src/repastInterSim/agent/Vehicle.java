@@ -321,8 +321,6 @@ public class Vehicle extends MobileAgent {
 	public double carFollowingAcceleration(Vehicle vehicleInFront) {
 		// Update acceleration based on the position and velocity of the vehicle in
 		// front.
-		
-		double objV = 0;
 	
 		// Only do this if there is a vehicle in front to follow
 		if (vehicleInFront != null) {
@@ -335,7 +333,7 @@ public class Vehicle extends MobileAgent {
 
 			// Acceleration is negative since in order to have caught up to car in front
 			// will have been travelling faster
-			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(vifPt),l)) * (objV - this.speed));
+			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(vifPt),l)) * (vehicleInFront.getSpeed() - this.speed));
 		} else {
 			this.acc = GlobalVars.defaultVehicleAcceleration; // Default acceleration
 		}
