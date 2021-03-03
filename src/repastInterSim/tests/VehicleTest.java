@@ -101,6 +101,10 @@ class VehicleTest {
 	void setUpITNRoadLinkGeography() throws Exception {
 		SpaceBuilder.roadLinkGeography = setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
 	}
+	
+	void setUpORRoadLinkGeography() throws Exception {
+		SpaceBuilder.orRoadLinkGeography = setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+	}
 
 	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
 		
