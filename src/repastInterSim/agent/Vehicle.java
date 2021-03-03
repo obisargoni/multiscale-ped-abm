@@ -113,12 +113,12 @@ public class Vehicle extends MobileAgent {
 			double distToCoord = maLoc.distance(routeCoord);
 			
 			// Calculate the angle
-			double angleToCoord = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (distToCoord > disp) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
-				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(angleToCoord), maLoc.y + disp*Math.cos(angleToCoord));
+				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(this.bearing), maLoc.y + disp*Math.cos(this.bearing));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
 				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
