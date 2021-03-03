@@ -470,6 +470,11 @@ public class Ped extends MobileAgent {
     	}
     }
     
+    /*
+     * Use ray that extends ahead of pedestrian to check whether pedestrian is about to enter the carriageway.
+     * 
+     * The method not needed because AccumulatorRoute records when pedestrian is entering the carriadgeway using the route crossing coordinates.
+     */
     public void checkIfEnteringCrossing() {    	
     	// Crossing coord could be null if there isn't a crossing coming up on the route
     	if (pathFinder.getNextCrossingCoord() != null) {
