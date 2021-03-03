@@ -210,8 +210,32 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 * Doesn't account for leaving space for other cars.
 	 */
-	/*
-	public double setAccSignal(Signal s, Vehicle vehicleInFront) {
+	public double signalAcceleration(Object s, Vehicle vehicleInFront) {
+		/*
+		
+		// Check for a traffic signal
+		boolean sigState = true;
+		// sigState = signal.getState();
+		
+		if (sigState == true) {
+			// Continue driving by following car ahead
+			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
+			setAccFollowing(vif);
+
+
+		} 
+
+		else if (sigState == false) {
+			// Set speed based on distance from signal
+			// In this case signal will be within a certain distance of the vehicle
+			Signal sig = getSignal();
+			setAccSignal(sig, vehicleInFront);
+			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
+			setSpeed();
+		}
+		*/
+		
+		/*
 		double d; // initialise the distance the vehicle must stop in
 		double sigX = this.geography.getLocation(s).getX();
 		double vX = this.geography.getLocation(this).getX();
@@ -232,6 +256,12 @@ public class Vehicle extends MobileAgent {
 			} else {
 				//d = sigX - vX - this.buffer;
 				setAccFollowing(s);
+			}	
+		}
+		*/
+		return Double.MAX_VALUE;
+	}
+	
 	/*
 	 * Get acceleration required to avoid collision with crossing pedestrians, assuming pedestrians are not going to yield.
 	 * 
