@@ -1,6 +1,8 @@
 package repastInterSim.agent;
 
 import java.text.DecimalFormat;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -96,6 +98,16 @@ public class Vehicle extends MobileAgent {
     	else {
     		return null;
     	}
+    }
+    
+    /*
+     * Gets the pedestrians on the current road link that are crossing the road.
+     */
+    public List<Ped> getCrossingPedestrians() {
+    	// Get peds on current road by getting the OR road link associated to the vehicle's current ITN road link
+    	RoadLink currentITNLink = this.route.getRoadsX().get(0);
+    	List<Ped> crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
+    	return crossingPedsOnRoad;
     }
 
 
