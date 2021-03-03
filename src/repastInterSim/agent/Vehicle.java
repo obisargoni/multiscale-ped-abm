@@ -52,50 +52,30 @@ public class Vehicle extends MobileAgent {
     		this.route.setRoute();
     		this.setCurrentRoadLinkAndQueuePos(this.route.getRoadsX().get(0));
 		}
-    	
-		// Check for nearby cars
-		Vehicle vehicleInFront = getVehicleInFront();
 
 		// Drive
-		drive(vehicleInFront);
+		drive();
 		// moveForward();
 	}
 	
 	/*
-	 * Drive the vehicle agent. Set the vehicle agent's speed and update the
-	 * x-coordinate of the vehicle using its current speed and acceleration and
-	 * preventing overtaking. Move the vehicle agent to its new location.
+	 * Drive the vehicle agent. 
 	 * 
-	 * Prevention of overtaking is not currently working.
+	 * Identify obstacles and set vehicle accelaration with respect to these obstacles.
 	 * 
-	 * @param vehicleInFront Vehicle. The vehicle in front of the agent vehicle
+	 * Get the displacement of the vehicle this time step. Update the vehicle's position and speed.  
 	 * 
 	 */
-	public void drive(Vehicle vehicleInFront) {
-
-		// Check for a traffic signal
-		boolean sigState = true;
-		double disp = 0; // Initialise the amount to move the vehicle by
-
-		if (sigState == true) {
-			// Continue driving by following car ahead
-			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
-			setAccFollowing(vehicleInFront);
-			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			updateSpeed();
-
-			// setAcc(vehicleInFront);
-		} 
-		/*
-		else if (sigState == false) {
-			// Set speed based on distance from signal
-			// In this case signal will be within a certain distance of the vehicle
-			Signal sig = getSignal();
-			setAccSignal(sig, vehicleInFront);
-			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			setSpeed();
-		}
-		*/
+	public void drive() {
+		
+		// Check for nearby cars
+		Vehicle vehicleInFront = getVehicleInFront();
+		List<Ped> crossingPeds = this.getCrossingPedestrians();
+		
+		// Set accelaration based on vehicle ahead, crossing pedestrians and traffic signal.
+		setAcceleration(vehicleInFront, crossingPeds, null);
+		double disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
+		updateSpeed();
 		
 		// get the next coordinate along the route
 		double distanceAlongRoute = 0;
