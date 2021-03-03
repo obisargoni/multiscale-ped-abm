@@ -190,6 +190,49 @@ class VehicleTest {
 		}
 	}
 	
+	/*
+	 * Test that get crossing pedestrians returns an empty list when there are no pedestrians
+	 */
+	@Test
+	void testGetCrossingPedestrians1() {
+		// Set up environment
+		try {
+			IO.readProperties();
+			setUpObjectGeography();
+			setUpRoads();
+			setUpITNRoadLinkGeography();
+			setUpORRoadLinkGeography();
+			setUpODs("OD_vehicle_nodes_intersect_within.shp");
+			setUpRoadNetwork(true);
+			
+			assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Choose origin and destination
+		String originID = "osgb4000000029970681";
+		String destID = "osgb4000000029971717";
+		
+		// Create vehicle
+		Vehicle v = createVehicle(originID, destID);
+		
+		// Initialise route and current link of vehicle		
+		try {
+			v.getRoute().setRoute();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0));
+		
+		assert v.getCrossingPedestrians().size()==0; 
+	}
+	
 	@Test
 	void testVehicleDriveLeader() {
 		
