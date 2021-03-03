@@ -256,7 +256,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
 			
-			// Link road with itn road links
+			// Link road with itn and OR road links
 			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
 				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
 				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
@@ -265,6 +265,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 						roadLinks.add(rl);
 					}
 				}
+				
+				RoadLink orLink = null;
+				for(RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+					// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+					if (rl.getFID().contentEquals(r.getRoadLinkID())) {
+						orLink = rl;
+						orLink.getRoads().add(r);
+						break;
+					}
+				}
+				
 				r.setRoadLinks(roadLinks);
 			}
 
