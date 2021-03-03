@@ -10,6 +10,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
+import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.util.RingBufferFillCount;
