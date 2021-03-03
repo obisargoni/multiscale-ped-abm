@@ -4,6 +4,9 @@ package repastInterSim.tests;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,15 +21,18 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
+import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
