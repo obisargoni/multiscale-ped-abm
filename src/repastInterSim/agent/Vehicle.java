@@ -232,15 +232,51 @@ public class Vehicle extends MobileAgent {
 			} else {
 				//d = sigX - vX - this.buffer;
 				setAccFollowing(s);
+	/*
+	 * Get acceleration required to avoid collision with crossing pedestrians, assuming pedestrians are not going to yield.
+	 * 
+	 * @param List<Ped> cPeds
+	 * 		A list of pedestrian agents that are crossing the road the vehicle is on.
+	 */
+	public double pedYieldingAcceleration(List<Ped> cPeds) {
+		
+		// Initialise acceleration as max value, since vehicle chooses minimum acceleration this ensure default acceleration is not chosen.
+		double pedYieldAcc = Double.MAX_VALUE;
+		
+		// Check for pedestrians that are in front of the vehicle and within perception distance
+		Ped nearestPed = null;
+		double pedDist = Double.MAX_VALUE;
+		for (int i=0; i<cPeds.size(); i++) {
+			
+			// Get bearing to pedestrian in order to see if it is in front or behind vehicle
+			double bearingToPed = GISFunctions.bearingBetweenCoordinates(maLoc, cPeds.get(i).getLoc());
+			
+			// If difference between bearings is > 90 degs then ped is behind vehicle, move onto next ped
+			if (Math.abs(this.bearing - bearingToPed) > Math.PI/2) {
+				continue;
+			}
+			
+			// Find nearest ped within vehicle's perception distance
+			double pDist = this.maLoc.distance(cPeds.get(i).getLoc());
+			if ( (pDist<pedDist) & (pDist<this.dmax) ) {
+				nearestPed = cPeds.get(i);
+				pedDist = pDist;
 			}
 		}
 		
-		// Assumes vehicles come to complete stop in a single time step - might be cause of bunching
-		//this.acc = - Math.pow(this.speed, 2) / (2 * d); // Get required deceleration using eqns of constant a
-
-		return this.acc;
+		// Finally if crossing ped within perception distance identified get acceleration required to avoid collision with this ped
+		if (nearestPed != null) {
+			int alpha, m, l;
+			alpha = 1;
+			m = 0;
+			l = 0; // Parameters for the car following model. Needs refactor.
+			
+			double objectiveVelocity = 0;
+			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestPed.getLoc()),l)) * (objectiveVelocity - this.speed));
+		}
+		
+		return pedYieldAcc;
 	}
-	*/
 
 	/*
 	 * Updates the vehicle's acceleration using the General Motors car following
