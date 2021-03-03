@@ -17,6 +17,7 @@ public class MobileAgent {
     protected OD origin; // The origin agent this agent starts at
     protected OD destination; // The destination agent that this agents is heading towards.
     protected Coordinate defaultDestination;
+    protected double bearing;
     
     MobileAgent(OD o, OD d){
     	this.id = MobileAgent.uniqueID++;
@@ -105,5 +106,13 @@ public class MobileAgent {
 	
 	public void setDefaultDestination(Coordinate c) {
 		this.defaultDestination = c;
+	}
+	
+	public double getBearing() {
+		return this.bearing;
+	}
+	
+	public void setBearing(double b) {
+		this.bearing = b;
 	}
 }
