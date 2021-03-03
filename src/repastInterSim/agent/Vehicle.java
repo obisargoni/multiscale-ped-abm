@@ -252,29 +252,20 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 * @return The updated acceleration
 	 */
-	public double setAccFollowing(Object objectInFront) {
+	public double carFollowingAcceleration(Vehicle vehicleInFront) {
 		// Update acceleration based on the position and velocity of the vehicle in
 		// front.
 		
 		double objV = 0;
-		if (objectInFront instanceof Vehicle) {
-			objV = ((Vehicle) objectInFront).getSpeed();
-		}
-		
-		/*
-		else if (objectInFront instanceof Signal) {
-			objV = 0;
-		}
-		*/
 	
 		// Only do this if there is a vehicle in front to follow
-		if (objectInFront != null) {
+		if (vehicleInFront != null) {
 			int alpha, m, l;
 			alpha = 1;
 			m = 0;
 			l = 0; // Parameters for the car following model. Needs refactor.
 			
-			Coordinate vifPt = GISFunctions.getAgentGeometry(SpaceBuilder.geography, objectInFront).getCentroid().getCoordinate();
+			Coordinate vifPt = GISFunctions.getAgentGeometry(SpaceBuilder.geography, vehicleInFront).getCentroid().getCoordinate();
 
 			// Acceleration is negative since in order to have caught up to car in front
 			// will have been travelling faster
