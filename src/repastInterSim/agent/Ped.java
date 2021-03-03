@@ -44,7 +44,6 @@ public class Ped extends MobileAgent {
     private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
     private double v0; // Desired walking speed of pedestrian agent
     private double a0; // Angle to the destination
-    private double aP; // Angle of pedestrian direction
     private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
     private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
@@ -314,8 +313,8 @@ public class Ped extends MobileAgent {
     	// Initialise a list to hole the sampled field of vision vectors
     	List<Double> sampledAngles = new ArrayList<Double>();
     	
-    	double sampleAngle = this.aP-this.theta; // First angle to sample
-    	double sampleAnglemax = this.aP + this.theta;
+    	double sampleAngle = this.bearing-this.theta; // First angle to sample
+    	double sampleAnglemax = this.bearing + this.theta;
     	while (sampleAngle <= sampleAnglemax) {
     		sampledAngles.add(sampleAngle);
     		sampleAngle+=this.angres;
@@ -530,23 +529,15 @@ public class Ped extends MobileAgent {
     	
     	// If velocity is 0 then don't update the pedestrian direction
     	if (Vector.mag(v)==0) {
-    		return this.aP;
+    		return this.bearing;
     	}
     	
     	double[] unitV = Vector.unitV(v);
     	
-    	this.aP = Vector.angleBetweenNorthAndUnitVector(unitV);
+    	this.bearing = Vector.angleBetweenNorthAndUnitVector(unitV);
     	
-    	return this.aP;
+    	return this.bearing;
     	
-    }
-    
-    public void setPedestrianBearing(double aP) {
-    	this.aP = aP;
-    }
-    
-    public double getPedestrianBearing() {
-    	return this.aP;
     }
     
     /**
@@ -561,8 +552,8 @@ public class Ped extends MobileAgent {
     	// To get expected location in n timesteps multiply the distance covered in three timesteps
     	// by the bearing resolved in the x and y directions
     	
-    	double dx = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.sin(this.aP);
-    	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.aP);
+    	double dx = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.sin(this.bearing);
+    	double dy = this.v0*nTimeSteps*GlobalVars.stepToTimeRatio*Math.cos(this.bearing);
     	
     	Coordinate newLookAhead = new Coordinate(this.maLoc.x + dx, this.maLoc.y + dy);
     	return newLookAhead;

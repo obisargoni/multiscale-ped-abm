@@ -91,8 +91,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		}
 		
 		// Get rays perpendicular to agent's bearing to find crossing coordinate
-		LineString ray1 = GISFunctions.linestringRay(c, this.ped.getPedestrianBearing() - (Math.PI/2), 50.0);
-		LineString ray2 = GISFunctions.linestringRay(c, this.ped.getPedestrianBearing() + (Math.PI/2), 50.0);
+		LineString ray1 = GISFunctions.linestringRay(c, this.ped.getBearing() - (Math.PI/2), 50.0);
+		LineString ray2 = GISFunctions.linestringRay(c, this.ped.getBearing() + (Math.PI/2), 50.0);
 		
 		LineString[] rays = {ray1, ray2};
 		
