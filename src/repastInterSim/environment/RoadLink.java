@@ -31,6 +31,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	private String MNodeFID = null;
 	private String PNodeFID = null;
 	private RingBufferFillCount<Vehicle> queue;
+	private List<Ped> peds = new ArrayList<Ped>();
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -167,6 +168,10 @@ public class RoadLink implements FixedGeography, Serializable {
 	
 	public RingBufferFillCount<Vehicle> getQueue() {
 		return this.queue;
+	}
+	
+	public List<Ped> getPeds() {
+		return this.peds;
 	}
 
 }

@@ -127,9 +127,13 @@ public class PedPathFinder {
 		}
 		else {
 			for (int i = 0; i < PedPathFinder.nLinksPerTacticalUpdate; i++) {
+				this.strategicPath.get(0).getPeds().remove(this.ped);
 				this.strategicPath.remove(0);
 			}
 		}
+		
+		// Add ped to next road link it is walking along
+		this.strategicPath.get(0).getPeds().add(this.ped);
 		
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
 		Junction startJunction = null;
