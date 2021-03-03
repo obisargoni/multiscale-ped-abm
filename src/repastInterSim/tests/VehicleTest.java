@@ -240,9 +240,13 @@ class VehicleTest {
 		try {
 			IO.readProperties();
 			setUpObjectGeography();
+			setUpRoads();
 			setUpITNRoadLinkGeography();
+			setUpORRoadLinkGeography();
 			setUpODs("OD_vehicle_nodes_intersect_within.shp");
 			setUpRoadNetwork(true);
+			
+			assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -270,7 +274,7 @@ class VehicleTest {
 		// Check that no vehicle is in front and that acceleration is equal to the default acceleration value
 		Vehicle vinfront = v.getVehicleInFront(); 
 		assert vinfront == null;
-		assert v.setAccFollowing(vinfront) == GlobalVars.defaultVehicleAcceleration;
+		assert v.carFollowingAcceleration(vinfront) == GlobalVars.defaultVehicleAcceleration;
 		
 		// Check speed after one step
 		try {
@@ -295,9 +299,13 @@ class VehicleTest {
 		try {
 			IO.readProperties();
 			setUpObjectGeography();
+			setUpRoads();
 			setUpITNRoadLinkGeography();
+			setUpORRoadLinkGeography();
 			setUpODs("OD_vehicle_nodes_intersect_within.shp");
 			setUpRoadNetwork(true);
+			
+			assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -339,7 +347,7 @@ class VehicleTest {
 		assert vinfront.getID() == vLeader.getID();
 		
 		// Acceleration is greater than default bc driver speeds up to catch up with vehicle ahead
-		assert vFollower.setAccFollowing(vinfront) > GlobalVars.defaultVehicleAcceleration;
+		assert vFollower.carFollowingAcceleration(vinfront) > GlobalVars.defaultVehicleAcceleration;
 		
 		// Check speed after one step
 		try {
@@ -359,7 +367,7 @@ class VehicleTest {
 		assert vinfront.getID() == vLeader.getID();
 		
 		// Acceleration should still be default because car in front is moving at a higher speed. No need for this vehicle to slow down.
-		assert vFollower.setAccFollowing(vinfront) < 0.0;
+		assert vFollower.carFollowingAcceleration(vinfront) < 0.0;
 		
 		// Check speed after one step
 		try {
@@ -382,9 +390,13 @@ class VehicleTest {
 		try {
 			IO.readProperties();
 			setUpObjectGeography();
+			setUpRoads();
 			setUpITNRoadLinkGeography();
+			setUpORRoadLinkGeography();
 			setUpODs("OD_vehicle_nodes_intersect_within.shp");
 			setUpRoadNetwork(true);
+			
+			assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -438,7 +450,7 @@ class VehicleTest {
 		assert vinfront == null;
 		
 		// Acceleration should be the default value bc leader vehicle is far enough away not to follow
-		assert vFollower.setAccFollowing(vinfront) == GlobalVars.defaultVehicleAcceleration;
+		assert vFollower.carFollowingAcceleration(vinfront) == GlobalVars.defaultVehicleAcceleration;
 		
 		// Check speed after one step
 		try {
@@ -474,7 +486,7 @@ class VehicleTest {
 		assert vinfront.getID() == vLeader.getID();
 		
 		// Acceleration should be -ve bc follower vehicle needs to slow down.
-		assert vFollower.setAccFollowing(vinfront) < 0;
+		assert vFollower.carFollowingAcceleration(vinfront) < 0;
 		
 	}
 
