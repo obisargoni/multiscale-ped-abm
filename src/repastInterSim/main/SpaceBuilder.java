@@ -263,6 +263,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 					// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
 					if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
 						roadLinks.add(rl);
+						rl.getRoads().add(r);
 					}
 				}
 				
@@ -277,9 +278,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				}
 				
 				r.setRoadLinks(roadLinks);
+				r.setORRoadLink(orLink);
 			}
-
-			
+						
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GISDataDir + IO.getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
