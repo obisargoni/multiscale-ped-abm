@@ -257,6 +257,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
 			
 			// Link road with itn and OR road links
+			// Also assigns the Road objects to the road links. This enables lookups between OR and ITN road links, through the road objects.
 			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
 				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
 				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
