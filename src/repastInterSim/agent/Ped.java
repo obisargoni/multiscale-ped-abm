@@ -250,8 +250,8 @@ public class Ped extends MobileAgent {
                	}
         	}
         }
-        
-        for (Object obstr :context.getObjects(PedObstruction.class)) {
+
+        for (Object obstr :SpaceBuilder.pedObstructGeography.getAllObjects()) {
         	PedObstruction Obstr = (PedObstruction)obstr;
            	Geometry obstrGeom = Obstr.getGeom();
            	if (obstrGeom.intersects((thisGeom))) {
@@ -350,7 +350,7 @@ public class Ped extends MobileAgent {
         }
         
     	// Check to see if this line intersects with any obstacle agents
-        for (Object obstr :context.getObjects(PedObstruction.class)) {
+        for (Object obstr :SpaceBuilder.pedObstructGeography.getAllObjects()) {
         	PedObstruction Obstr = (PedObstruction)obstr;
            	Geometry obstG = Obstr.getGeom();
            	if (obstG.intersects(sampledRay)) {
