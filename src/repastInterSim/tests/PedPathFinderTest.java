@@ -248,6 +248,37 @@ class PedPathFinderTest {
 		return sP;
 	}
 	
+	/*
+	 * Code taken from SpaceBuilder that connects Roads with Road Links and visa versa.
+	 */
+	private void assocaiteRoadsWithRoadLinks() {
+		// Link road with itn and OR road links
+		// Also assigns the Road objects to the road links. This enables lookups between OR and ITN road links, through the road objects.
+		for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
+			List<RoadLink> roadLinks = new ArrayList<RoadLink>();
+			for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+				// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+				if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
+					roadLinks.add(rl);
+					rl.getRoads().add(r);
+				}
+			}
+			
+			RoadLink orLink = null;
+			for(RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+				// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
+				if (rl.getFID().contentEquals(r.getRoadLinkID())) {
+					orLink = rl;
+					orLink.getRoads().add(r);
+					break;
+				}
+			}
+			
+			r.setRoadLinks(roadLinks);
+			r.setORRoadLink(orLink);
+		}
+	}
+	
 
 	
 	@Test
