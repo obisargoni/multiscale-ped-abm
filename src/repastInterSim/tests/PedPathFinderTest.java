@@ -47,7 +47,7 @@ import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
 	
-	Context<Object> context = new DefaultContext<Object>();;
+	Context<Object> context = new DefaultContext<Object>();
 	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
@@ -62,10 +62,11 @@ class PedPathFinderTest {
 	}
 	
 	void setUpObjectGeography() {
+		SpaceBuilder.context = new DefaultContext<Object>();
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		SpaceBuilder.geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		SpaceBuilder.geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(SpaceBuilder.geography);
+		SpaceBuilder.context.add(SpaceBuilder.geography);
 	}
 	
 	void setUpRoads() throws Exception {
