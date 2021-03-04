@@ -236,13 +236,11 @@ public class Ped extends MobileAgent {
     	
     	// Get the geometry  and context of the ego agent
     	Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
-        Context<Object> context = ContextUtils.getContext(this);
-    	
     	
     	// Iterate over all other pedestrian agents and for those that touch the 
     	// ego agent calculate the interaction force
     	// Check to see if this line intersects with any agents
-        for (Object agent :context.getObjects(Ped.class)) {
+        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
                	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
@@ -333,8 +331,7 @@ public class Ped extends MobileAgent {
     	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
     	
     	// Check to see if this line intersects with any pedestrian agents
-        Context<Object> context = ContextUtils.getContext(this);
-        for (Object agent :context.getObjects(Ped.class)) {
+        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
         	Ped P = (Ped)agent;
         	if (P != this) {
                	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
