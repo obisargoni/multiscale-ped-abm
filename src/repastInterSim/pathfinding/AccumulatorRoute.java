@@ -59,7 +59,15 @@ public class AccumulatorRoute {
 		this.targetJunction = tJ;
 		this.defaultJunction = dJ;
 		this.caChosen = false;
-		this.crossingRequired = true;
+		
+		// Expect that cas will always contain elements but adding in this check just in case
+		if(cas.size()>0) {
+			this.crossingRequired = true;
+		}
+		else {
+			this.crossingRequired = false;
+		}
+		
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
@@ -239,7 +247,7 @@ public class AccumulatorRoute {
 	 */
 	public void step() {
 		// Accumulate activation and chooses a crossing alternative if choice not made yet
-		if ((isBlank == false) & (this.caChosen==false) & (this.cas.size()>0)) {
+		if ((isBlank == false) & (this.caChosen==false) & (this.crossingRequired==true)) {
 			this.accumulateCAActivation();
 			this.chooseCA();
 		}
