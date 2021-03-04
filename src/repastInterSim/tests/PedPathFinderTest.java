@@ -19,6 +19,7 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
@@ -89,7 +90,7 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
 	}
 	
-	Geography<RoadLink> setUpLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
+	Geography<RoadLink> setUpRoadLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
 		roadLinkPath = testGISDir + roadLinkFile;
 		
 		// Initialise test road link geography and context
@@ -104,16 +105,16 @@ class PedPathFinderTest {
 		return rlG;
 	}
 	
-	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		SpaceBuilder.orRoadLinkGeography = setUpLinks(roadLinkFile);
+	void setUpORRoadLinks() throws Exception {
+		SpaceBuilder.orRoadLinkGeography = setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
 	}
 	
-	void setUpRoadLinks() throws Exception {
-		setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+	void setUpITNRoadLinks() throws Exception {
+		SpaceBuilder.roadLinkGeography = setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
 	}
 	
 	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
-		SpaceBuilder.pavementLinkGeography = setUpLinks(linkFile);
+		SpaceBuilder.pavementLinkGeography = setUpRoadLinks(linkFile);
 	}
 		
 	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
@@ -158,17 +159,27 @@ class PedPathFinderTest {
 		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
 	}
 	
-	void setUpRoadNetwork(boolean isDirected) {
+	Network<Junction> setUpRoadNetwork(boolean isDirected, Geography<RoadLink> rlG, String name) {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
 		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(name,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
+		Network<Junction> rN = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.orRoadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.orRoadNetwork);
+		GISFunctions.buildGISRoadNetwork(rlG, junctionContext, junctionGeography, rN);
+		
+		return rN;
+	}
+	
+	void setUpORRoadNetwork(boolean isDirected) {		
+		SpaceBuilder.orRoadNetwork = setUpRoadNetwork(isDirected, SpaceBuilder.orRoadLinkGeography, GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+	}
+	
+	void setUpITNRoadNetwork(boolean isDirected) {
+		SpaceBuilder.roadNetwork = setUpRoadNetwork(isDirected, SpaceBuilder.roadLinkGeography, GlobalVars.CONTEXT_NAMES.ROAD_NETWORK);
 	}
 	
 	void setUpPavementNetwork() {
@@ -242,7 +253,7 @@ class PedPathFinderTest {
 	void testGetLinksWithinAngularDistance() throws Exception {
 		
 		// Load links
-		setUpRoadLinks("test_strategic_path1.shp");
+		SpaceBuilder.orRoadLinkGeography = setUpRoadLinks("test_strategic_path1.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
 		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
@@ -279,7 +290,7 @@ class PedPathFinderTest {
 	void testGetLinksWithinAngularDistance2() throws Exception {
 		
 		// Load links
-		setUpRoadLinks("test_strategic_path2.shp");
+		SpaceBuilder.orRoadLinkGeography = setUpRoadLinks("test_strategic_path2.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
 		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
@@ -306,7 +317,7 @@ class PedPathFinderTest {
 		// compared to the others. This tests that angle is still correctly calculated.
 		
 		// Load links
-		setUpRoadLinks("test_strategic_path3.shp");
+		SpaceBuilder.orRoadLinkGeography = setUpRoadLinks("test_strategic_path3.shp");
 		
 		List<RoadLink> sP = new ArrayList<RoadLink>();
 		SpaceBuilder.orRoadLinkGeography.getAllObjects().forEach(sP::add);
@@ -384,8 +395,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions1() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -436,8 +447,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions2() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -489,8 +500,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions3() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -542,8 +553,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions4() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -595,8 +606,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions5() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -648,8 +659,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions6() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -690,8 +701,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions1() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -743,8 +754,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions2() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -796,8 +807,8 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions3() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -847,8 +858,8 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute1() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -932,8 +943,8 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute2() {
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1031,8 +1042,8 @@ class PedPathFinderTest {
 		try {
 			setUpObjectGeography();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1109,8 +1120,8 @@ class PedPathFinderTest {
 		try {
 			setUpObjectGeography();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1172,8 +1183,8 @@ class PedPathFinderTest {
 		try {
 			setUpObjectGeography();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1266,8 +1277,8 @@ class PedPathFinderTest {
 		try {
 			setUpObjectGeography();
 
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1379,8 +1390,8 @@ class PedPathFinderTest {
 	public void testPedPathFinder5() {
 		
 		try {
-			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpRoadNetwork(false);
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
 			
 			setUpPedJunctions();
 			setUpPavementLinks("pedNetworkLinks.shp");
@@ -1397,7 +1408,6 @@ class PedPathFinderTest {
 			e.printStackTrace();
 		}
 		
-		// origin and destination don't matter, just choose arbitrarily
 		OD o = null;
 		OD d = null;
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
