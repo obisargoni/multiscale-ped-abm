@@ -1477,4 +1477,92 @@ class PedPathFinderTest {
 		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals(destJ.getFID());
 		assert p.getPathFinder().getTacticalPath().getTargetCoordinate().equals2D(d.getGeom().getCoordinate());	
 	}
+	
+	/*
+	 * Test that pedestrian gets added and removed from list of pedestrians on a road link as it progresses on its route.
+	 */
+	@Test
+	void testPedsOnRoadLinkList() {
+		// Setup the environment
+		try {
+			setUpObjectGeography();
+			
+			setUpPedObstructions();
+
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
+			
+			setUpITNRoadLinks();
+			setUpITNRoadNetwork(true);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpRoads();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
+			
+			assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Choose origin and destination and initialise pedestrian
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+			if (i.getId() == 3) {
+				o = i;
+			}
+			else if (i.getId() == 4) {
+				d = i;
+			}
+		}
+		
+		// Initialise a pedestrian, this internally initialises a ped path finder
+		boolean minimiseCrossings = false;
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		
+		// Need to give ped location in order to test updating tactical path following crossing choice
+        SpaceBuilder.context.add(pedMinDist);        
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(pedMinDist.getRad());		
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, pedMinDist);
+		pedMinDist.setLoc();
+		
+		
+		// Before peds first step there should be no peds assigns to first road link in route
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==0;
+		
+		// Then after steeping the ped the ped should be added to the road link
+		try {
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==1;
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().get(0) == pedMinDist;
+		
+		// Now record first road link and keep stepping until ped has moved onto next road link. Check that record of which peds are on which links is updates
+		RoadLink firstRL = pedMinDist.getPathFinder().getStrategicPath().get(0);
+		while (pedMinDist.getPathFinder().getStrategicPath().get(0).getFID().contentEquals(firstRL.getFID())) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}			
+		}
+		
+		assert firstRL.getPeds().size()==0;
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==1;
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().get(0) == pedMinDist;
+	}
 }
