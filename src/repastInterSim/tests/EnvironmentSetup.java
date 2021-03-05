@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -16,6 +19,8 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
+import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
@@ -277,6 +282,57 @@ public class EnvironmentSetup {
 			r.setRoadLinks(roadLinks);
 			r.setORRoadLink(orLink);
 		}
+	}
+	
+	static Vehicle createVehicle(OD o, OD d) {
+		Vehicle V = new Vehicle(GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
+		SpaceBuilder.context.add(V);
+		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		GeometryFactory fac = new GeometryFactory();
+		Point pt = fac.createPoint(oCoord);
+		Geometry vehicleCircle = pt.buffer(2);
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, vehicleCircle, V);
+		V.setLoc();
+		return V;
+	}
+	
+	static Vehicle createVehicle(String oID, String dID) {
+		OD o = null;
+		OD d = null;
+		for (OD od: SpaceBuilder.vehicleDestinationGeography.getAllObjects()) {
+			if (od.getFID().contentEquals(oID)) {
+				o = od;
+			}
+			else if (od.getFID().contentEquals(dID)) {
+				d = od;
+			}
+		}
+		return createVehicle(o,d);
+	}
+	
+	static Ped createPedestrian(int oID, int dID, boolean minimisesCrossing) {
+		
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+			if (i.getId() == oID) {
+				o = i;
+			}
+			else if (i.getId() == dID) {
+				d = i;
+			}
+		}
+		
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimisesCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+
+        SpaceBuilder.context.add(p);        
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(p.getRad());		
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
+		p.setLoc();
+		return p;
 	}
 	
 	
