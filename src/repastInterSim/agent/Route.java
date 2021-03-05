@@ -1057,7 +1057,7 @@ public class Route implements Cacheable {
 			LOGGER.log(Level.FINER, "Route.populateCoordCache: is empty, creating new cache of all Road coordinates.");
 			*/
 
-			for (RoadLink r : SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
+			for (RoadLink r : SpaceBuilder.roadLinkGeography.getAllObjects()) {
 				for (Coordinate c : r.getGeom().getCoordinates()) {
 					if (coordCache.containsKey(c)) {
 						coordCache.get(c).add(r);
