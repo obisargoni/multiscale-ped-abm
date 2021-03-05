@@ -302,7 +302,7 @@ public class Vehicle extends MobileAgent {
 			l = 0; // Parameters for the car following model. Needs refactor.
 			
 			double objectiveVelocity = 0;
-			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestPed.getLoc()),l)) * (objectiveVelocity - this.speed));
+			pedYieldAcc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestPed.getLoc()),l)) * (objectiveVelocity - this.speed));
 		}
 		
 		return pedYieldAcc;
