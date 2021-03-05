@@ -524,5 +524,9 @@ public class Vehicle extends MobileAgent {
 		this.queuePos = currentRoadLink.getQueue().writePos();
 		currentRoadLink.addVehicleToQueue(this);
     }
+    
+    public double getDMax() {
+    	return this.dmax;
+    }
 
 }
