@@ -347,7 +347,7 @@ public class Vehicle extends MobileAgent {
     	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
     	
     	if (vInFront == null) {
-    		// Get vehicle at the back of the road link ahead
+    		// Get vehicle at the back of the road link ahead, returns null if there are no road links ahead.
     		vInFront = getVehicleAtEndOfNextRoadLink();
     	}
     	
@@ -370,13 +370,18 @@ public class Vehicle extends MobileAgent {
 	public Vehicle getVehicleAtEndOfNextRoadLink() {
 		int i = 0;
 		String nextRoadID = this.route.getRoadsX().get(i).getFID();
-		while (this.currentRoadLink.getFID() == nextRoadID) {
-			i++;
+		while ( (this.currentRoadLink.getFID() == nextRoadID) & (i<this.route.getRoadsX().size())) {
 			nextRoadID = this.route.getRoadsX().get(i).getFID();
+			i++;
 		}
 		
-		// Get vehicle at the back of the road link ahead
-		return this.route.getRoadsX().get(i).getQueue().getEndElement();
+		// Get vehicle at the back of the road link ahead if there is a link ahead
+		if (nextRoadID.contentEquals(this.currentRoadLink.getFID())==false) {
+			return this.route.getRoadsX().get(i).getQueue().getEndElement();
+		}
+		else {
+			return null;
+		}
 	}
 	
     
