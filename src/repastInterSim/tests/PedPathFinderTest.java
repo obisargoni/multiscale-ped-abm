@@ -279,6 +279,15 @@ class PedPathFinderTest {
 		}
 	}
 	
+	public void addPedToWorld(Ped p, OD o) {
+        SpaceBuilder.context.add(p);        
+        Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
+		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
+		Geometry circle = pt.buffer(p.getRad());		
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
+		p.setLoc();
+	}
+	
 
 	
 	@Test
