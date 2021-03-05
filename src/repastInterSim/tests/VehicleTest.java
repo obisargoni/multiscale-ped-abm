@@ -579,5 +579,104 @@ class VehicleTest {
 		pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
 		assert pedAcc < GlobalVars.defaultVehicleAcceleration;		
 	}
+	
+	/*
+	 * Test that a vehicle agents identifies a crossing pedestrian but does not yield when pedestrian is behind the vehicle
+	 */
+	@Test
+	void testVehicleYieldsCrossingPedestrian2() {
+		
+		// Setup the environment
+		try {
+			IO.readProperties();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped pedMinDist = createPedestrian(3,4,false);
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = createVehicle("osgb4000000029970447", "osgb4000000029970446");
+		
+		// Step the vehicle and pedestrian once to initialise them
+		try {
+			v.step();
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Check that the vehicle doesn't yet perceive any peds crossing
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Step the path finder until a crossing is chosen. This keeps the ped stationary so creates a situation where the ped is not next to the crossing coord
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen() == false) {
+			try {
+				pedMinDist.getPathFinder().step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Now walk pedestrian along until it is about to start crossing
+		while (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) > 2.5) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Vehicle still shouldn't perceive any crossing pedestrians
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Now step vehicle along until it passes the pedestrian
+		double prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		double distDiff = 0.0; 
+		while (distDiff != 1.0) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			distDiff = Math.signum(v.getLoc().distance(pedMinDist.getLoc()) - prevDist);
+			prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		}
+		
+		// Now update ped's current coordinate, which means that ped has reach first crossing coordinate and therefore has started crossing
+		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		assert v.getCrossingPedestrians().size() == 1;
+		
+		// Now vehicle should not yield to ped despite being close enough to detect ped
+		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
+		double pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
+		assert pedAcc == Double.MAX_VALUE;		
+	}
 
 }
