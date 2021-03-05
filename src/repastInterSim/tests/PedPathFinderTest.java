@@ -1574,4 +1574,103 @@ class PedPathFinderTest {
 		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==1;
 		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().get(0) == pedMinDist;
 	}
+	
+	
+	/*
+	 * Test that flags that indicate whether pedestrian requires crossing, has chosen a crossing location
+	 * and is crossing work as expected.
+	 * 
+	 * These are used by vehicle agents to identify which pedestrians to yield to.
+	 */
+	@Test
+	void testPedCrossingFlags1() {
+		// Setup the environment
+		try {
+			setUpObjectGeography();
+			
+			setUpPedObstructions();
+
+			setUpORRoadLinks();
+			setUpORRoadNetwork(false);
+			
+			setUpITNRoadLinks();
+			setUpITNRoadNetwork(true);
+			
+			setUpPedJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+			
+			setUpRoads();
+			
+			setUpODs("OD_pedestrian_nodes.shp");
+			
+			setUpCrossingAlternatives();
+			
+			assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Choose origin and destination and initialise pedestrian
+		// Set the IDs of the road network junctions to travel to and get strategic path between these
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+			if (i.getId() == 3) {
+				o = i;
+			}
+			else if (i.getId() == 4) {
+				d = i;
+			}
+		}
+		
+		// Create distance minimising and crossing minimising pedestrians
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, false, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		addPedToWorld(pedMinDist, o);
+		
+		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, true, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		addPedToWorld(pedMinCross, o);
+		
+		// Step the peds once to initiase their routes
+		try {
+			pedMinDist.step();
+			pedMinCross.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == true;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen() == false;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
+		
+		assert pedMinCross.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == false;
+		assert pedMinCross.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen() == false;
+		assert pedMinCross.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
+		
+		// Step the path finder until a crossing is chosen. This keeps the ped stationary so creates a situation where the ped is not next to the crossing coord
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen() == false) {
+			try {
+				pedMinDist.getPathFinder().step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// At this point crossing is chosen but ped hasn't started crossing yet
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
+		
+		// Once target coordinate is updated, that means ped has started crossing since next target coordinate is the crossing
+		assert pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate().equals2D(pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast());
+		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == true;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == true;
+		
+		// Update target coordinate again and check that ped is no longer crossing
+		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == false;
+	}
 }
