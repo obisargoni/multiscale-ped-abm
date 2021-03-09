@@ -1,7 +1,9 @@
 package repastInterSim.environment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -19,7 +21,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	private String roadLinkID;
 
 	public CrossingAlternative(){
-				
+		super();
 	}
 	
 	/*
@@ -64,6 +66,41 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	public String getRoadLinkID() {
 		return this.roadLinkID;
+	}
+	
+	/*
+	 * This method uses the shape file data to set the list of road link ID this crossing alternative's signal controls
+	 */
+	public void setITNLinkIDs(String ids) {
+		String[] itnRLIDs = ids.split(",");
+		this.itnLinkIDs = itnRLIDs;
+	}
+	
+	public void setSigPhases(String phases) {
+		String[] phaseArray = phases.split(",");
+		List<char[]> pl = new ArrayList<char[]>();
+		
+		for (int i=0; i<phaseArray.length; i++) {
+			char[] phaseChar = new char[phaseArray[i].length()];
+			for(int j=0; j<phaseArray[i].length(); j++) {
+				phaseChar[j] = phaseArray[i].charAt(j);
+			}
+			pl.add(phaseChar);
+		}
+		
+		// Initialise complete phase array
+		char[][] finalPhaseArray = (char[][]) pl.stream().toArray();
+		
+		this.phases = finalPhaseArray;
+	}
+	
+	public void setPhaseDurs(String dursString) {
+		String[] dursArray = dursString.split(",");
+		int[] finalDursArray = new int[dursArray.length];
+		for(int i=0; i<dursArray.length; i++) {
+			finalDursArray[i] = Integer.parseInt(dursArray[i]);
+		}
+		this.phaseDurations = finalDursArray;
 	}
 
 	public Coordinate getC1() {
