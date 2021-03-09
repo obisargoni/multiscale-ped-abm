@@ -2,23 +2,20 @@ package repastInterSim.environment;
 
 import java.util.HashMap;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 import repast.simphony.engine.schedule.ScheduledMethod;
 
-public class Signal implements FixedGeography {
+public class Signal {
 	
-	private String signalID; // The id of the road link this road object should be linked with
-	private Geometry geom;
+	protected String signalID; // The id of the road link this road object should be linked with
 	
 	// The state of the signal will indicate which road links cars can progress on
-	private HashMap<String, Boolean> state = new HashMap<String, Boolean>();;
+	protected HashMap<String, Boolean> state = new HashMap<String, Boolean>();;
 	
-	private HashMap<String, Boolean>[] phases;
-	private int[] phaseDurations; 
-	private int phaseIndex;
+	protected HashMap<String, Boolean>[] phases;
+	protected int[] phaseDurations; 
+	protected int phaseIndex;
 	
-	private int ticksSincePhaseChange = 0;
+	protected int ticksSincePhaseChange = 0;
 	
 	/*
 	 * Blank instance method.
@@ -101,16 +98,6 @@ public class Signal implements FixedGeography {
 		else {
 			this.ticksSincePhaseChange+=1;
 		}
-	}
-
-	@Override
-	public Geometry getGeom() {
-		return this.geom;
-	}
-
-	@Override
-	public void setGeom(Geometry g) {
-		this.geom = g;
 	}
 	
 	public String getSignalID() {

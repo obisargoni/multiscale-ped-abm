@@ -13,8 +13,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.pathfinding.RoadNetworkRoute;
-
-public class CrossingAlternative implements FixedGeography {
+public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	// Coordinates at which the ca meets pavement
 	private Geometry geom = null;
