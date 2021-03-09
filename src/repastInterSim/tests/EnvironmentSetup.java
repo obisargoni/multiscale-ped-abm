@@ -151,7 +151,7 @@ public class EnvironmentSetup {
 		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
 	}
 	
-	static void setUpCrossingAlternatives() throws MalformedURLException, FileNotFoundException {
+	static void setUpCrossingAlternatives(String caFile) throws MalformedURLException, FileNotFoundException {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<CrossingAlternative> caContext = new CAContext();
 		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
@@ -160,7 +160,7 @@ public class EnvironmentSetup {
 		
 		
 		// Load ped obstructions data
-		String testCAFile = testGISDir + "crossing_lines.shp";
+		String testCAFile = testGISDir + caFile;
 		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, SpaceBuilder.caGeography, caContext);
 		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
 	}

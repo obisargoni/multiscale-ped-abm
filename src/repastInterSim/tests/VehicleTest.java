@@ -338,7 +338,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpPedODs();
 			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
 			
-			EnvironmentSetup.setUpCrossingAlternatives();
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
@@ -428,7 +428,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpPedODs();
 			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
 			
-			EnvironmentSetup.setUpCrossingAlternatives();
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
