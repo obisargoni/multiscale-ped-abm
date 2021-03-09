@@ -2,17 +2,10 @@ package repastInterSim.environment;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
 
-import repast.simphony.space.gis.Geography;
-import repastInterSim.agent.Ped;
-import repastInterSim.exceptions.RoutingException;
-import repastInterSim.main.GlobalVars;
-import repastInterSim.pathfinding.RoadNetworkRoute;
 public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	// Coordinates at which the ca meets pavement
@@ -20,14 +13,10 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
 	
-	// Destination coordinate. This is the destination this crossing alternative leads to
-	private Coordinate destination = null;
-	
 	private String type;
 	
 	// id of the road link this crossing is located on
 	private String roadLinkID;
-	private Road road;
 
 	public CrossingAlternative(){
 				
@@ -75,10 +64,6 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	public String getRoadLinkID() {
 		return this.roadLinkID;
-	}
-
-	public void setRoad(Road r) {
-		this.road = r;
 	}
 
 	public Coordinate getC1() {
