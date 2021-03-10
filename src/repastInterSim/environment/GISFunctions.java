@@ -1026,5 +1026,19 @@ public class GISFunctions {
     	
     	return ray;
 	}
+	
+	/*
+	 * Get the mid point between two coordinates
+	 * 
+	 * @param Coordinate c1
+	 * @param Coordinate c2
+	 * 
+	 * @returns Coordinate
+	 */
+	public static Coordinate midwayBetweenTwoCoordinates(Coordinate c1, Coordinate c2) {
+		double x = c1.x + (c2.x-c1.x)/2;
+		double y = c1.y + (c2.y-c1.y)/2;
+		return new Coordinate(x,y);
+	}
 
 }
