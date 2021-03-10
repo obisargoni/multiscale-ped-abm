@@ -51,6 +51,11 @@ class CrossingAlternativeTest {
 		for (int i=0; i<expectedDurations.length; i++) {
 			assert ca1.getPhaseDurations()[i] == expectedDurations[i];
 		}
+		
+		// Finally check initial state of signal
+		assert ca1.getState("osgb4000000030238817") == 'r';
+		assert ca1.getState("osgb4000000030238818") == 'r';
+		assert ca1.getState("wrong_link_id") == 'u';
 	}
 
 }
