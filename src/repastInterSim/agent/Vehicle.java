@@ -1,6 +1,7 @@
 package repastInterSim.agent;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,7 @@ import com.vividsolutions.jts.geom.Point;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -71,9 +73,10 @@ public class Vehicle extends MobileAgent {
 		// Check for nearby cars
 		Vehicle vehicleInFront = getVehicleInFront();
 		List<Ped> crossingPeds = this.getCrossingPedestrians();
+		List<CrossingAlternative> cas = this.getRoadLinkCrossingAlterantives(this.route.getRoadsX().get(0).getFID());
 		
 		// Set accelaration based on vehicle ahead, crossing pedestrians and traffic signal.
-		setAcceleration(vehicleInFront, crossingPeds, null);
+		setAcceleration(vehicleInFront, crossingPeds, cas);
 		double disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
 		updateSpeed();
 		
@@ -187,7 +190,7 @@ public class Vehicle extends MobileAgent {
 	/*
 	 * Set the acceleration of the vehicle with respect to any vehicle, pedestrian or signal obstacles in the immediate vicinity. 
 	 */
-	public double setAcceleration(Vehicle vif, List<Ped> cPeds, Object signal) {
+	public double setAcceleration(Vehicle vif, List<Ped> cPeds, List<CrossingAlternative> cas) {
 		
 		// Get car following acceleration
 		double cfa = carFollowingAcceleration(vif);
@@ -196,7 +199,7 @@ public class Vehicle extends MobileAgent {
 		double pya = pedYieldingAcceleration(cPeds);
 		
 		// Get traffic signal acceleration
-		double tsa = signalAcceleration(signal, vif);
+		double tsa = crossingAlternativeAcceleration(cas, vif);
 		
 		// Choose the lowest of these as the vehicle's acceleration		
 		this.acc = Math.min(cfa, Math.min(pya, tsa));
@@ -205,8 +208,8 @@ public class Vehicle extends MobileAgent {
 	}
 
 	/*
-	 * Set the speed and acceleration of the vehicle agent such that it will come to
-	 * a complete stop at the signal.
+	 * Set the speed and acceleration of the vehicle agent in response to the traffic signal given by the nearest crossing alternative in front
+	 * of the vehicle agent.
 	 * 
 	 * Doesn't account for leaving space for other cars.
 	 */
@@ -232,52 +235,27 @@ public class Vehicle extends MobileAgent {
 		}
 		
 		// Check for a traffic signal
-		boolean sigState = true;
-		// sigState = signal.getState();
+		char signalState = nearestCAInFront.getState(this.route.getRoadsX().get(0).getFID());
 		
-		if (sigState == true) {
-			// Continue driving by following car ahead
-			// Update acceleration. travel for time step at this acceleration, leading to an updated speed
-			setAccFollowing(vif);
-
-
+		// If signal is green, also return max value so that vehicle ignores signal in its acceleration choice 
+		if (signalState == 'g') {
+			return Double.MAX_VALUE;
 		} 
-
-		else if (sigState == false) {
-			// Set speed based on distance from signal
-			// In this case signal will be within a certain distance of the vehicle
-			Signal sig = getSignal();
-			setAccSignal(sig, vehicleInFront);
-			disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-			setSpeed();
+		// If signal state is red vehicle must yield to it
+		else if (signalState == 'r') {
+			int alpha, m, l;
+			alpha = 1;
+			m = 0;
+			l = 0; // Parameters for the car following model. Needs refactor.
+			
+			// Objective speed is zero if signal is red
+			double objectiveVelocity = 0;
+			double signalAcc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestCAInFront.getSignalLoc()),l)) * (objectiveVelocity - this.speed));
+			return signalAcc;
 		}
-		*/
-		
-		/*
-		double d; // initialise the distance the vehicle must stop in
-		double sigX = this.geography.getLocation(s).getX();
-		double vX = this.geography.getLocation(this).getX();
-		
-		// How to ensure there is some sort of buffer
-		if (vehicleInFront == null) {
-			// Follow the signal
-			setAccFollowing(s);
-		} else {
-			double vifX = this.geography.getLocation(vehicleInFront).getX();
-
-			// Depending on whether the vehicle in front or the signal is closer, set the
-			// stopping distance
-			if (vifX < sigX) {
-				//d = vifX - vX - this.buffer;
-				// Follow the vehicle in front
-				setAccFollowing(vehicleInFront);
-			} else {
-				//d = sigX - vX - this.buffer;
-				setAccFollowing(s);
-			}	
+		else {
+			return Double.MAX_VALUE;
 		}
-		*/
-		return Double.MAX_VALUE;
 	}
 	
 	/*
@@ -296,11 +274,8 @@ public class Vehicle extends MobileAgent {
 		double pedDist = Double.MAX_VALUE;
 		for (int i=0; i<cPeds.size(); i++) {
 			
-			// Get bearing to pedestrian in order to see if it is in front or behind vehicle
-			double bearingToPed = GISFunctions.bearingBetweenCoordinates(maLoc, cPeds.get(i).getLoc());
-			
-			// If difference between bearings is > 90 degs then ped is behind vehicle, move onto next ped
-			if (Math.abs(this.bearing - bearingToPed) > Math.PI/2) {
+			// If pedestrian is not in front of vehicle then continue
+			if (GISFunctions.coordInFront(maLoc, this.bearing, cPeds.get(i).getLoc())==false) {
 				continue;
 			}
 			
