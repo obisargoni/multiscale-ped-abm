@@ -1,9 +1,7 @@
 package repastInterSim.environment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -77,21 +75,20 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	public void setSigPhases(String phases) {
-		String[] phaseArray = phases.split(",");
-		List<char[]> pl = new ArrayList<char[]>();
+		String[] allPhases = phases.split(",");
 		
-		for (int i=0; i<phaseArray.length; i++) {
-			char[] phaseChar = new char[phaseArray[i].length()];
-			for(int j=0; j<phaseArray[i].length(); j++) {
-				phaseChar[j] = phaseArray[i].charAt(j);
+		// Initialise complete phase array. Assume that each phase is of same length as first. 
+		char[][] finalAllPhasesArray = new char[allPhases.length][allPhases[0].length()];
+		
+		for (int i=0; i<allPhases.length; i++) {
+			char[] phaseArray = new char[allPhases[i].length()];
+			for(int j=0; j<allPhases[i].length(); j++) {
+				phaseArray[j] = allPhases[i].charAt(j);
 			}
-			pl.add(phaseChar);
+			finalAllPhasesArray[i] = phaseArray;
 		}
 		
-		// Initialise complete phase array
-		char[][] finalPhaseArray = (char[][]) pl.stream().toArray();
-		
-		this.phases = finalPhaseArray;
+		this.phases = finalAllPhasesArray;
 	}
 	
 	public void setPhaseDurs(String dursString) {
