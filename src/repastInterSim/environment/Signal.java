@@ -1,5 +1,7 @@
 package repastInterSim.environment;
 
+import com.vividsolutions.jts.geom.Coordinate;
+
 import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class Signal {
@@ -15,6 +17,8 @@ public class Signal {
 	protected int phaseIndex;
 	
 	protected int ticksSincePhaseChange = 0;
+	
+	protected Coordinate signalLoc;
 	
 	/*
 	 * Blank instance method.
@@ -106,5 +110,9 @@ public class Signal {
 	
 	public int[] getPhaseDurations() {
 		return this.phaseDurations;
+	}
+	
+	public Coordinate getSignalLoc() {
+		return this.signalLoc;
 	}
 }

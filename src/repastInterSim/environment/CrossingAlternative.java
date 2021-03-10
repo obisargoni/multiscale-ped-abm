@@ -137,6 +137,8 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		int ncoords = g.getCoordinates().length;
 		this.c1 = g.getCoordinates()[0];
 		this.c2 = g.getCoordinates()[ncoords-1];
+		
+		this.signalLoc = GISFunctions.midwayBetweenTwoCoordinates(this.c1, this.c2);
 	}
 	
 	public void setID(long id) {
