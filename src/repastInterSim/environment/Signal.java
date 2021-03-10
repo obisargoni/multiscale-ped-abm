@@ -7,12 +7,11 @@ public class Signal {
 	// The itn road links this signal controls
 	protected String[] itnLinkIDs;
 	
-	// The state of the signal will indicate which road links cars can progress on
-	protected char[] state;
-	
 	// Nested array, each elements contains a phase state
 	protected char[][] phases;
-	protected int[] phaseDurations; 
+	protected int[] phaseDurations;
+	
+	// Used to access the state of the signal, which indicates which road links cars can progress on
 	protected int phaseIndex;
 	
 	protected int ticksSincePhaseChange = 0;
@@ -36,7 +35,6 @@ public class Signal {
 		this.phases = phs;
 		this.phaseDurations = pD;
 		this.phaseIndex = pI;
-		setState(phs[this.phaseIndex]);
 	}
 		
 	/*
@@ -51,7 +49,7 @@ public class Signal {
 		// get index this road link appears at and return state value at this index
 		for(int i=0; i<this.itnLinkIDs.length; i++) {
 			if(this.itnLinkIDs[i].contentEquals(rlID)) {
-				return this.state[i];
+				return this.phases[this.phaseIndex][i];
 			}
 		}
 		// return u for unknown if can't match road link id
@@ -65,7 +63,7 @@ public class Signal {
 	 * 		Array of characters indicating state for each road link this signal controls
 	 */
 	public char[] getState() {
-		return this.state;
+		return this.phases[this.phaseIndex];
 	}
 	
 	
@@ -76,8 +74,8 @@ public class Signal {
 	 * 		The state to set the signal to. Array of characters, each character refers to the state the signal assigns a road link. 
 	 * when the reach the signal.
 	 */
-	public void setState(char[] s) {
-		this.state = s;
+	public void setPhaseIndex(int i) {
+		this.phaseIndex = i;
 	}
 	
 	/*
@@ -92,8 +90,6 @@ public class Signal {
 			if(this.phaseIndex == this.phases.length) {
 				this.phaseIndex = 0;
 			}
-			
-			this.state = this.phases[this.phaseIndex];
 		}
 		else {
 			this.ticksSincePhaseChange+=1;
