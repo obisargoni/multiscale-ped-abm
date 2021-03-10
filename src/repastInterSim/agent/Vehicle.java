@@ -210,8 +210,26 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 * Doesn't account for leaving space for other cars.
 	 */
-	public double signalAcceleration(Object s, Vehicle vehicleInFront) {
-		/*
+	public double crossingAlternativeAcceleration(List<CrossingAlternative> cas, Vehicle vehicleInFront) {
+				
+		// Get nearest ca in front of vehicle
+		double nearestD = Double.MAX_VALUE;
+		CrossingAlternative nearestCAInFront = null;
+		for(int i=0; i<cas.size();i++) {
+			Coordinate signalLoc = cas.get(i).getSignalLoc();
+			if (GISFunctions.coordInFront(this.maLoc, this.bearing, signalLoc)) {
+				double d = this.maLoc.distance(signalLoc);
+				if (d<nearestD) {
+					nearestCAInFront = cas.get(i);
+					nearestD = d;
+				}
+			}
+		}
+		
+		// If no crossing alternative signal in front then return max double value, this prevents vehicle from choosing acceleration due to crossing alternative
+		if (nearestCAInFront==null) {
+			return  Double.MAX_VALUE;
+		}
 		
 		// Check for a traffic signal
 		boolean sigState = true;
