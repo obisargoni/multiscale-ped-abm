@@ -82,7 +82,7 @@ public class Signal {
 	 * Change the current state of the signal to be the next phase when the current phases duration has ended.
 	 */
 	@ScheduledMethod(start = 0, interval = 1)
-	public void changePhase() {
+	public void step() {
 		// Check if it's time to change phase
 		if(this.ticksSincePhaseChange >= this.phaseDurations[this.phaseIndex]) {
 			this.ticksSincePhaseChange = 0;
