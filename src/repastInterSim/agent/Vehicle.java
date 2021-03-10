@@ -415,49 +415,30 @@ public class Vehicle extends MobileAgent {
 
 
 	/*
-	 * Get the signal agent in the space continuous space
+	 * Get the crossings that are located on this road link. These objects are also the traffic lights for vehicles.
 	 * 
-	 * @return Signal. The signal agent
+	 * @param String itnRoadLinkID
+	 * 		The id of the road link the vehicle is travelling along.
+	 *  
+	 * @return List<CrossingAlternative> cas.
+	 * 		The crossing alternatives that control the traffic flow of this road link.
 	 */
-	/*
-	public Signal getSignal() {
-		Signal sig = null;
-		for (Object o : this.geography.getObjects()) {
-			if (o instanceof Signal) {
-				sig = (Signal) o;
+	public List<CrossingAlternative> getRoadLinkCrossingAlterantives(String itnRoadLinkID) {
+		List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
+		
+		// Agent identifies crossing locations on the road links passed in
+		// Loop through these and get crossing alternatives that belong to these road links
+		for (CrossingAlternative ca: SpaceBuilder.caGeography.getAllObjects()) {
+			if (ca.getITNRoadLinkIDs()==null) continue;
+			
+			for(int i=0; i< ca.getITNRoadLinkIDs().length; i++) {
+				if(ca.getITNRoadLinkIDs()[i].contentEquals(itnRoadLinkID)) {
+					cas.add(ca);
+				}
 			}
 		}
-
-		return sig;
+		return cas;
 	}
-	*/
-
-	/*
-	 * Identify the signal agent in the space and how far away it is. If signal
-	 * agent is within a threshold distance get the state of the signal
-	 * 
-	 * @return Boolean. True if there is no need to adjust driving. False if signal
-	 * means stop.
-	 */
-	/*
-	public boolean checkSignal() {
-		double threshDist = 5; // Distance at which drivers will alter behaviour depending on signal
-		Signal sig = getSignal();
-
-		// First check if vehicle has past the signal, in which case there is no signal
-		// to check
-		double sigX = this.geography.getLocation(sig).getX();
-		double vX = this.geography.getLocation(this).getX();
-		if (vX > sigX) {
-			return true;
-		} else if ((sigX - vX) < threshDist) {
-			return sig.getState();
-		} else {
-			return true;
-		}
-
-	}
-	*/
 	
 	/**
 	 * Method to be run when removing the agent from the context. 
