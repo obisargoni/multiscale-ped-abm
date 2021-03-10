@@ -3,9 +3,7 @@ package repastInterSim.environment;
 import repast.simphony.engine.schedule.ScheduledMethod;
 
 public class Signal {
-	
-	protected String signalID; // The id of the road link this road object should be linked with
-	
+		
 	// The itn road links this signal controls
 	protected String[] itnLinkIDs;
 	
@@ -61,6 +59,17 @@ public class Signal {
 	}
 	
 	/*
+	 * Get the start across all itn road links this signal controls
+	 * 
+	 * @return char[]
+	 * 		Array of characters indicating state for each road link this signal controls
+	 */
+	public char[] getState() {
+		return this.state;
+	}
+	
+	
+	/*
 	 * Set the state of the Signal.
 	 * 
 	 * @param char[[ s
@@ -91,11 +100,15 @@ public class Signal {
 		}
 	}
 	
-	public String getSignalID() {
-		return this.signalID;
+	public String[] getITNRoadLinkIDs() {
+		return this.itnLinkIDs;
 	}
 	
-	public void setSignalID(String id) {
-		this.signalID = id;
+	public char[][] getPhases() {
+		return this.phases;
+	}
+	
+	public int[] getPhaseDurations() {
+		return this.phaseDurations;
 	}
 }
