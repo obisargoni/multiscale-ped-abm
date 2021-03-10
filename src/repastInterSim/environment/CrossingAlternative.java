@@ -9,6 +9,7 @@ import com.vividsolutions.jts.geom.Geometry;
 public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	// Coordinates at which the ca meets pavement
+	private long id;
 	private Geometry geom = null;
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
@@ -136,5 +137,13 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		int ncoords = g.getCoordinates().length;
 		this.c1 = g.getCoordinates()[0];
 		this.c2 = g.getCoordinates()[ncoords-1];
+	}
+	
+	public void setID(long id) {
+		this.id = id;
+	}
+	
+	public long getID() {
+		return this.id;
 	}
 }
