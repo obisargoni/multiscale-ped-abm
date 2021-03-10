@@ -1040,5 +1040,26 @@ public class GISFunctions {
 		double y = c1.y + (c2.y-c1.y)/2;
 		return new Coordinate(x,y);
 	}
+	
+	/*
+	 * Given a bearing and a coordinate, check whether another coordinate is in front or not
+	 * 
+	 * @param Coordinate loc
+	 * 		The location of the object with the bearing
+	 * @param double bearing
+	 * 		Bearing from north of the object
+	 * @param Coordinate c
+	 * 		Check if this coordinate is in front
+	 * 
+	 * @returns boolean
+	 */
+	public static boolean coordInFront(Coordinate loc, double bearing, Coordinate c) {
+		
+		// Calculate bearing to object
+		double bearingToC = bearingBetweenCoordinates(loc, c);
+		
+		// If difference between bearings is < 90 degs then coordinate is in front
+		return Math.abs(bearing - bearingToC) < Math.PI/2;
+	}
 
 }
