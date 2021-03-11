@@ -502,5 +502,9 @@ public class Vehicle extends MobileAgent {
     public double getDMax() {
     	return this.dmax;
     }
+    
+    public double getAcc() {
+    	return this.acc;
+    }
 
 }
