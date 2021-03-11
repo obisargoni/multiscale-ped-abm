@@ -215,8 +215,8 @@ public class Vehicle extends MobileAgent {
 	 */
 	public double crossingAlternativeAcceleration(List<CrossingAlternative> cas) {
 				
-		// Get nearest ca in front of vehicle
-		double nearestD = Double.MAX_VALUE;
+		// Get nearest ca in front of vehicle. Crossing alternative has to be closer than dmax to be perceived
+		double nearestD = this.dmax;
 		CrossingAlternative nearestCAInFront = null;
 		for(int i=0; i<cas.size();i++) {
 			Coordinate signalLoc = cas.get(i).getSignalLoc();
