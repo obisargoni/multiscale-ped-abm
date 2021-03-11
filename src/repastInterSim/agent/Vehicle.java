@@ -199,7 +199,7 @@ public class Vehicle extends MobileAgent {
 		double pya = pedYieldingAcceleration(cPeds);
 		
 		// Get traffic signal acceleration
-		double tsa = crossingAlternativeAcceleration(cas, vif);
+		double tsa = crossingAlternativeAcceleration(cas);
 		
 		// Choose the lowest of these as the vehicle's acceleration		
 		this.acc = Math.min(cfa, Math.min(pya, tsa));
@@ -213,7 +213,7 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 * Doesn't account for leaving space for other cars.
 	 */
-	public double crossingAlternativeAcceleration(List<CrossingAlternative> cas, Vehicle vehicleInFront) {
+	public double crossingAlternativeAcceleration(List<CrossingAlternative> cas) {
 				
 		// Get nearest ca in front of vehicle
 		double nearestD = Double.MAX_VALUE;
