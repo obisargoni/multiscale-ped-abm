@@ -1,12 +1,14 @@
 package repastInterSim.tests;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 
@@ -499,6 +501,90 @@ class VehicleTest {
 		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
 		double pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
 		assert pedAcc == Double.MAX_VALUE;		
+	}
+	
+	/*
+	 * Test that a vehicle agent identifies and yields to a crossing alternative when the crossing signals red.
+	 */
+	@Test
+	void testVehicleYieldsCrossingAlternative1() {
+		
+		// Setup the environment
+		try {
+			IO.readProperties();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create a vehicle that travels along a link with a crossing on
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970431", "osgb4000000029971717");
+		
+		// Step the vehicle once to initialise
+		try {
+			v.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Check that vehicle identifies crossing alternative
+		List<CrossingAlternative> cas = v.getRoadLinkCrossingAlterantives(v.getRoute().getRoadsX().get(0).getFID());
+		assert cas.size()==1;
+		CrossingAlternative ca = cas.get(0);
+		
+		// Check that while vehicle is further than perception distance away acceleration crossing alternative does not affect acceleration
+		while (v.getLoc().distance(ca.getSignalLoc())>v.getDMax()) {
+			assert v.crossingAlternativeAcceleration(cas) == Double.MAX_VALUE;
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Now that vehicle is close enough to perceive crossing alternative check that it adjusts its acceleration accordingly
+		double caAcc = v.crossingAlternativeAcceleration(cas); 
+		assert caAcc < GlobalVars.defaultVehicleAcceleration;
+		
+		// Step the vehicle and check that its acceleration is the acceleration due to crossing alternative
+		try {
+			v.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		assert v.getAcc() == caAcc; 
+		
+		// Now step the crossing alternative so that it changes from red to green and check that vehicle acceleration reverts to default value
+		for(int i=0; i<ca.getPhaseDurations()[0]+1; i++){
+			ca.step();
+		}
+		
+		caAcc = v.crossingAlternativeAcceleration(cas); 
+		assert caAcc == Double.MAX_VALUE;
 	}
 
 }
