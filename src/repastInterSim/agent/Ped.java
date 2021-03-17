@@ -41,7 +41,6 @@ public class Ped extends MobileAgent {
     private double dmax; // Maximum distance within which object impact pedestrian movement, can be though of as horizon of field of vision
     private double v0; // Desired walking speed of pedestrian agent
     private double a0; // Angle to the destination
-    private double tau; // Time period in which pedestrian agent is able to come to a complete stop. Used to set acceleration required to avoid collisions.
     private double angres; // Angular resolution used when sampling the field of vision
     private double[] v, newV; // Velocity and direction vectors
     private double rad; // Radius of circle representing pedestrian, metres

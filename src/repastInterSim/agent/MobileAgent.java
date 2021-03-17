@@ -18,6 +18,7 @@ public class MobileAgent {
     protected OD destination; // The destination agent that this agents is heading towards.
     protected Coordinate defaultDestination;
     protected double bearing;
+    protected double tau; // Agent reaction time
     
     MobileAgent(OD o, OD d){
     	this.id = MobileAgent.uniqueID++;
