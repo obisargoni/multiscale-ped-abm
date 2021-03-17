@@ -403,22 +403,17 @@ public class Vehicle extends MobileAgent {
 	 * @return double
 	 * 		The safe following speed
 	 */
-	public Double safeFollowingSpeed(Vehicle vehicleInFront) {
+	public Double safeFollowingSpeed(double leaderSpeed, Coordinate leaderLoc) {
 		
-		Double vSafe = null;
+		Double vSafe = null;			
+		// Get desired distance from vehicle in front - driver's reaction time * leader speed
+		double dDesired = this.tau * leaderSpeed;
+		double d = this.maLoc.distance(leaderLoc);
 		
-		// If no vehicle in front return null
-		if (vehicleInFront != null) {
-			
-			// Get desired distance from vehicle in front - driver's reaction time * leader speed
-			double dDesired = this.tau * vehicleInFront.getSpeed();
-			double d = this.maLoc.distance(vehicleInFront.getLoc());
-			
-			// get characteristic time scale used in model
-			double tauB = (this.speed + vehicleInFront.getSpeed()) / 2.0 / GlobalVars.defaultVehicleDecceleration;
-			
-			vSafe = vehicleInFront.getSpeed() + (d = dDesired) / (tauB + this.tau);
-		}
+		// get characteristic time scale used in model
+		double tauB = (this.speed + leaderSpeed) / 2.0 / GlobalVars.defaultVehicleDecceleration;
+		
+		vSafe = leaderSpeed + (d = dDesired) / (tauB + this.tau);
 
 		return vSafe;
 	}
