@@ -144,37 +144,6 @@ public class Vehicle extends MobileAgent {
 		
 	}
 	
-	/*
-	 * Simply sets speed to be the speed of the vehicle in front accounting for the
-	 * acceleration or deceleration required to get to that speed in the next
-	 * timestep. This assumes a fixed acceleration.
-	 * 
-	 * @param vehicleInFront Vehicle. The vehicle agent in front of this vehicle
-	 * agent
-	 * 
-	 * @return Double. The speed set for this vehicle
-	 */
-	public double setSpeedFollowing(Vehicle vehicleInFront) {
-
-		/*
-		 * Set speed so that after one time step it will be the same as the car in front
-		 * The vehicle in front is not null only if it is within the following distance
-		 * of this agent vehicle.
-		 */
-		if (vehicleInFront != null) {
-			// Get speed of vehicle in front
-			double vifSpeed = vehicleInFront.getSpeed();
-			this.speed = vifSpeed - (this.acc * GlobalVars.stepToTimeRatio);
-
-		}
-		// If there is no vehicle in front just speed up
-		else {
-			this.speed = this.speed + (this.acc * GlobalVars.stepToTimeRatio);
-		}
-
-		enforceSpeedLimit();
-		return this.speed;
-	}
 
 	public double enforceSpeedLimit() {
 		// Enforce speed limits
