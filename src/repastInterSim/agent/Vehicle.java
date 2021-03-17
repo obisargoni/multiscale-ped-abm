@@ -422,6 +422,23 @@ public class Vehicle extends MobileAgent {
 
 		return vSafe;
 	}
+	
+	/*
+	 * Identifies the desired vehicle speed as the minimum speeds between the speed limit, safe following speed and speed if vehicle increased
+	 * speed by default acceleration.
+	 * 
+	 * Based on the SUMO car following model: https://sumo.dlr.de/pdf/KraussDiss.pdf
+	 * 
+	 * @param double sfs
+	 * 		The safe following speed
+	 */
+
+	public double desiredSpeed(double sfs) {
+		
+		double vDes = Math.min(this.maxSpeed, Math.min(sfs, this.speed + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio));
+		return vDes;
+	}
+	
 	/*
 	 * Updates the vehicle's speed using the General Motors car following model
 	 * described here: {@link
