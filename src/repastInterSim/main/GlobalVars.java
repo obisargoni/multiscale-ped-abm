@@ -77,7 +77,8 @@ public abstract class GlobalVars {
 	public static double interactionForceConstant = 100;
 	public static int lookAheadTimeSteps = 3; // The number of timesteps to use when calculating an agents lookahead coordinate, used to identifying upcoming crossings.
 	
-	public static double defaultVehicleAcceleration = 0.1;
+	public static double defaultVehicleAcceleration = 0.8;
+	public static double defaultVehicleDecceleration = 4.5; // These two values taken from SUMO car following model https://sumo.dlr.de/pdf/KraussDiss.pdf
 	public static double initialVehicleSpeed = 0.5;
 	public static Integer maxVehicleSpeed = 3;
 	public static double vehicleLength = 3.5; // 3.5m
