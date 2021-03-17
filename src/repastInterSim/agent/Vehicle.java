@@ -396,6 +396,33 @@ public class Vehicle extends MobileAgent {
 	}
 	
 	/*
+	 * Calculate the safe following speed from the input vehicle using the simple car following model in the SUMO documentation. 
+	 * 
+	 * https://sumo.dlr.de/pdf/KraussDiss.pdf
+	 * 
+	 * @return double
+	 * 		The safe following speed
+	 */
+	public Double safeFollowingSpeed(Vehicle vehicleInFront) {
+		
+		Double vSafe = null;
+		
+		// If no vehicle in front return null
+		if (vehicleInFront != null) {
+			
+			// Get desired distance from vehicle in front - driver's reaction time * leader speed
+			double dDesired = this.tau * vehicleInFront.getSpeed();
+			double d = this.maLoc.distance(vehicleInFront.getLoc());
+			
+			// get characteristic time scale used in model
+			double tauB = (this.speed + vehicleInFront.getSpeed()) / 2.0 / GlobalVars.defaultVehicleDecceleration;
+			
+			vSafe = vehicleInFront.getSpeed() + (d = dDesired) / (tauB + this.tau);
+		}
+
+		return vSafe;
+	}
+	/*
 	 * Updates the vehicle's speed using the General Motors car following model
 	 * described here: {@link
 	 * https://nptel.ac.in/courses/105101008/downloads/cete_14.pdf} In future this
