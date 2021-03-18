@@ -76,29 +76,33 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	public void setSigPhases(String phases) {
-		String[] allPhases = phases.split(",");
-		
-		// Initialise complete phase array. Assume that each phase is of same length as first. 
-		char[][] finalAllPhasesArray = new char[allPhases.length][allPhases[0].length()];
-		
-		for (int i=0; i<allPhases.length; i++) {
-			char[] phaseArray = new char[allPhases[i].length()];
-			for(int j=0; j<allPhases[i].length(); j++) {
-				phaseArray[j] = allPhases[i].charAt(j);
+		if(!phases.contentEquals("")) {
+			String[] allPhases = phases.split(",");
+			
+			// Initialise complete phase array. Assume that each phase is of same length as first. 
+			char[][] finalAllPhasesArray = new char[allPhases.length][allPhases[0].length()];
+			
+			for (int i=0; i<allPhases.length; i++) {
+				char[] phaseArray = new char[allPhases[i].length()];
+				for(int j=0; j<allPhases[i].length(); j++) {
+					phaseArray[j] = allPhases[i].charAt(j);
+				}
+				finalAllPhasesArray[i] = phaseArray;
 			}
-			finalAllPhasesArray[i] = phaseArray;
+			
+			this.phases = finalAllPhasesArray;
 		}
-		
-		this.phases = finalAllPhasesArray;
 	}
 	
 	public void setPhaseDurs(String dursString) {
-		String[] dursArray = dursString.split(",");
-		int[] finalDursArray = new int[dursArray.length];
-		for(int i=0; i<dursArray.length; i++) {
-			finalDursArray[i] = Integer.parseInt(dursArray[i]);
+		if(!dursString.contentEquals("")) {
+			String[] dursArray = dursString.split(",");
+			int[] finalDursArray = new int[dursArray.length];
+			for(int i=0; i<dursArray.length; i++) {
+				finalDursArray[i] = Integer.parseInt(dursArray[i]);
+			}
+			this.phaseDurations = finalDursArray;
 		}
-		this.phaseDurations = finalDursArray;
 	}
 
 	public Coordinate getC1() {
