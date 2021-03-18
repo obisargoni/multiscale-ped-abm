@@ -1,6 +1,7 @@
 package repastInterSim.tests;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpITNRoadNetwork(true);
-			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -98,7 +99,8 @@ class VehicleTest {
 		// Check that no vehicle is in front and that acceleration is equal to the default acceleration value
 		Vehicle vinfront = v.getVehicleInFront(); 
 		assert vinfront == null;
-		assert v.carFollowingAcceleration(vinfront) == GlobalVars.defaultVehicleAcceleration;
+		assert v.carFollowingSafeSpeed(vinfront) == Double.MAX_VALUE;
+		assert v.getDesiredSpeed(vinfront, new ArrayList<Ped>(), new ArrayList<CrossingAlternative>()) == v.getSpeed() + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio;
 		
 		// Check speed after one step
 		try {
@@ -107,7 +109,7 @@ class VehicleTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert v.getSpeed() == GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration;
+		assert v.getSpeed() == GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio;
 	}
 	
 	/*
@@ -128,7 +130,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpITNRoadNetwork(true);
-			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -170,17 +172,23 @@ class VehicleTest {
 		Vehicle vinfront = vFollower.getVehicleInFront();
 		assert vinfront.getID() == vLeader.getID();
 		
-		// Acceleration is greater than default bc driver speeds up to catch up with vehicle ahead
-		assert vFollower.carFollowingAcceleration(vinfront) > GlobalVars.defaultVehicleAcceleration;
+		// Speed is greater than initial value bc driver speeds up to catch up with vehicle ahead
+		double sFollow = vFollower.carFollowingSafeSpeed(vinfront);
+		assert sFollow > vFollower.getSpeed();
 		
-		// Check speed after one step
+		// However, safe car following speed is greater than the speed vehicle can reach in one time step, so desired speed will be current speed + default acceleration
+		double vDes = vFollower.getDesiredSpeed(vinfront, new ArrayList<Ped>(), new ArrayList<CrossingAlternative>()); 
+		assert vDes == vFollower.getSpeed() + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio;
+		
+		
+		// Check speed after one step speed is the desired speed
 		try {
 			vFollower.step();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert vFollower.getSpeed() > (GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration);
+		assert vFollower.getSpeed() ==  vDes;
 		
 		
 		// Now reduce speed of leader vehicle and check that follower vehicle also responds
@@ -190,17 +198,17 @@ class VehicleTest {
 		vinfront = vFollower.getVehicleInFront();
 		assert vinfront.getID() == vLeader.getID();
 		
-		// Acceleration should still be default because car in front is moving at a higher speed. No need for this vehicle to slow down.
-		assert vFollower.carFollowingAcceleration(vinfront) < 0.0;
+		// Safe following speed should now be less than what it was before
+		assert vFollower.carFollowingSafeSpeed(vinfront) < sFollow;
 		
-		// Check speed after one step
+		// However, since safe following speed is still greater than can be achieve in a single time step actual speed increases by default acceleration only.
 		try {
 			vFollower.step();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert vFollower.getSpeed() - vLeader.getSpeed() < 0.0000001;
+		assert vFollower.getSpeed() == vDes + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio;
 	}
 	
 	
@@ -219,7 +227,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpITNRoadNetwork(true);
-			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -253,6 +261,13 @@ class VehicleTest {
 			}
 		}
 		
+		// Need to step once more to move vehicle onto next link
+		try {
+			vLeader.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		assert vLeader.getRoute().getRoadsX().get(0).getFID().contentEquals(currentRLID) == false;
 		
 		// Now add follower vehicle
@@ -273,8 +288,8 @@ class VehicleTest {
 		Vehicle vinfront = vFollower.getVehicleInFront();
 		assert vinfront == null;
 		
-		// Acceleration should be the default value bc leader vehicle is far enough away not to follow
-		assert vFollower.carFollowingAcceleration(vinfront) == GlobalVars.defaultVehicleAcceleration;
+		// Safe following speed should be max value bc leader vehicle is far enough away not to follow
+		assert vFollower.carFollowingSafeSpeed(vinfront) == Double.MAX_VALUE;
 		
 		// Check speed after one step
 		try {
@@ -283,8 +298,7 @@ class VehicleTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		assert vFollower.getSpeed() == (GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration);
-		
+		assert vFollower.getSpeed() == (GlobalVars.initialVehicleSpeed + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio);
 		
 		// Now step follower vehicle until it is about to enter next road link and check that it adjusts speed to match leader vehicle
 		currentRLID = vFollower.getRoute().getRoadsX().get(0).getFID();
@@ -309,8 +323,8 @@ class VehicleTest {
 		vinfront = vFollower.getVehicleInFront();
 		assert vinfront.getID() == vLeader.getID();
 		
-		// Acceleration should be -ve bc follower vehicle needs to slow down.
-		assert vFollower.carFollowingAcceleration(vinfront) < 0;
+		// Speed should be lower than current speed since follower vehicle needs to slow down.
+		assert vFollower.carFollowingSafeSpeed(vinfront) < vFollower.getSpeed();
 		
 	}
 	
@@ -380,13 +394,20 @@ class VehicleTest {
 		// Vehicle still shouldn't perceive any crossing pedestrians
 		assert v.getCrossingPedestrians().size() == 0;
 		
-		// Now update ped's current coordinate, which means that ped has reach first crossing coordinate and therefore has started crossing
-		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		// Now move ped along until it starts to cross
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 2) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}		
+		//pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
 		assert v.getCrossingPedestrians().size() == 1;
 		
-		// Vehicle not yet close enough to pedestrian to yield, so ped yielding acceleration is set to max value
-		double pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
-		assert pedAcc == Double.MAX_VALUE;
+		// Vehicle not yet close enough to pedestrian to yield, so safe ped speed  is set to max value
+		double pedSpd = v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+		assert pedSpd == Double.MAX_VALUE;
 		
 		// Steping vehicle along brings it closer to the pedestrian
 		while (v.getLoc().distance(pedMinDist.getLoc()) > v.getDMax()) {
@@ -397,11 +418,28 @@ class VehicleTest {
 			}
 		}
 		
-		assert v.getLoc().distance(pedMinDist.getLoc())< v.getDMax();
+		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
 		
-		// Now vehicle should yield to ped
-		pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
-		assert pedAcc < GlobalVars.defaultVehicleAcceleration;		
+		// Now safe following speed should be lower
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < pedSpd;
+		
+		// How ever safe following speed still not low enough to make vehicle slow down so remains at current (max) speed
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.getSpeed();		
+		
+		// Step vehicle ahead some more to check that it eventually slows down
+		// Steping vehicle along brings it closer to the pedestrian
+		while (v.getLoc().distance(pedMinDist.getLoc()) > 5) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Desired speed should now be lower than accelerated speed safe following speed still not low enough to prevent vehicle from accelerating
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < v.getSpeed();
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+		
 	}
 	
 	/*
@@ -499,8 +537,8 @@ class VehicleTest {
 		
 		// Now vehicle should not yield to ped despite being close enough to detect ped
 		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
-		double pedAcc = v.pedYieldingAcceleration(v.getCrossingPedestrians());
-		assert pedAcc == Double.MAX_VALUE;		
+		double pedSpd = v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+		assert pedSpd == Double.MAX_VALUE;		
 	}
 	
 	/*
@@ -557,7 +595,7 @@ class VehicleTest {
 		
 		// Check that while vehicle is further than perception distance away acceleration crossing alternative does not affect acceleration
 		while (v.getLoc().distance(ca.getSignalLoc())>v.getDMax()) {
-			assert v.crossingAlternativeAcceleration(cas) == Double.MAX_VALUE;
+			assert v.crossingAlternativeSafeSpeed(cas) == Double.MAX_VALUE;
 			try {
 				v.step();
 			} catch (Exception e) {
@@ -565,26 +603,34 @@ class VehicleTest {
 			}
 		}
 		
-		// Now that vehicle is close enough to perceive crossing alternative check that it adjusts its acceleration accordingly
-		double caAcc = v.crossingAlternativeAcceleration(cas); 
-		assert caAcc < GlobalVars.defaultVehicleAcceleration;
+		// Now that vehicle is close enough to perceive crossing alternative
+		double caSpd = v.crossingAlternativeSafeSpeed(cas); 
+		assert caSpd < Double.MAX_VALUE;
 		
-		// Step the vehicle and check that its acceleration is the acceleration due to crossing alternative
-		try {
-			v.step();
-		} catch (Exception e) {
-			e.printStackTrace();
+		// Safe speed still greater than current speed so vehicle doesn't slow down
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), cas) == v.getSpeed();
+		
+		// Move vehicle along so that it is closer to the crossing
+		while (v.getLoc().distance(ca.getSignalLoc())>5) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
-		assert v.getAcc() == caAcc; 
+		// Now safe speed is lower and is the speed the vehicle must follow
+		assert v.crossingAlternativeSafeSpeed(cas) < caSpd;
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), cas) == v.crossingAlternativeSafeSpeed(cas);
+		 
 		
 		// Now step the crossing alternative so that it changes from red to green and check that vehicle acceleration reverts to default value
 		for(int i=0; i<ca.getPhaseDurations()[0]+1; i++){
 			ca.step();
 		}
 		
-		caAcc = v.crossingAlternativeAcceleration(cas); 
-		assert caAcc == Double.MAX_VALUE;
+		caSpd = v.crossingAlternativeSafeSpeed(cas); 
+		assert caSpd == Double.MAX_VALUE;
 	}
 
 }
