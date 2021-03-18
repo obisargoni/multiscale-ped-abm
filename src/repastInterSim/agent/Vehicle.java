@@ -378,7 +378,13 @@ public class Vehicle extends MobileAgent {
 	 */
 	public Double safeFollowingSpeedObstacle(Coordinate obsLoc) {
 		
-		double safeSpeed = safeFollowingSpeed(GlobalVars.obstacleYieldDistance, 0, obsLoc);
+		// Calculate distance to obstacle as by resolving the direct distance to the obstacle in the direction of the vehicle
+		double obsBearing = GISFunctions.bearingBetweenCoordinates(maLoc, obsLoc);
+		double angleBetweenVehicleObstacle = this.bearing - obsBearing;
+		
+		double d = this.maLoc.distance(obsLoc) * Math.cos(angleBetweenVehicleObstacle);
+		
+		double safeSpeed = safeFollowingSpeed(GlobalVars.obstacleYieldDistance, d, 0);
 		return safeSpeed;	
 	}
 	
@@ -398,7 +404,8 @@ public class Vehicle extends MobileAgent {
 	public Double safeFollowingSpeedVehicle(double leaderSpeed, Coordinate leaderLoc) {
 		// Get desired distance from vehicle in front - driver's reaction time * leader speed
 		double dDesired = this.tau * leaderSpeed;
-		double safeSpeed = safeFollowingSpeed(dDesired, leaderSpeed, leaderLoc);
+		double d = this.maLoc.distance(leaderLoc) - GlobalVars.vehicleLength;
+		double safeSpeed = safeFollowingSpeed(dDesired, d, leaderSpeed);
 		return safeSpeed;
 	}
 	
@@ -416,10 +423,9 @@ public class Vehicle extends MobileAgent {
 	 * @return double
 	 * 		The safe following speed
 	 */
-	public Double safeFollowingSpeed(double dDesired, double leaderSpeed, Coordinate leaderLoc) {
+	public Double safeFollowingSpeed(double dDesired, double d, double leaderSpeed) {
 		
 		Double vSafe = null;			
-		double d = this.maLoc.distance(leaderLoc);
 		
 		// get characteristic time scale used in model
 		double tauB = ((this.speed + leaderSpeed) / 2.0) / GlobalVars.defaultVehicleDecceleration;
