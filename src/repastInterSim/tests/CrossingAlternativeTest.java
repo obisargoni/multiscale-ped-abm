@@ -20,7 +20,7 @@ class CrossingAlternativeTest {
 		}
 		
 		assert SpaceBuilder.caGeography != null;
-		assert SpaceBuilder.caGeography.size() == 3;
+		assert SpaceBuilder.caGeography.size() == 5;
 		
 		CrossingAlternative ca1 = null;
 		for (CrossingAlternative ca_: SpaceBuilder.caGeography.getAllObjects()) {
@@ -68,7 +68,7 @@ class CrossingAlternativeTest {
 		}
 		
 		assert SpaceBuilder.caGeography != null;
-		assert SpaceBuilder.caGeography.size() == 3;
+		assert SpaceBuilder.caGeography.size() == 5;
 		
 		CrossingAlternative ca1030 = null;
 		CrossingAlternative ca530a = null;
@@ -144,5 +144,33 @@ class CrossingAlternativeTest {
 		assert ca530b.getState("osgb4000000030418774") == 'g';
 		
 	}
-
+	
+	@Test
+	void testUnsignalisedCrossings() {
+		try {
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		assert SpaceBuilder.caGeography != null;
+		assert SpaceBuilder.caGeography.size() == 5;
+		
+		CrossingAlternative us1 = null;
+		CrossingAlternative us2 = null;
+		for (CrossingAlternative ca_: SpaceBuilder.caGeography.getAllObjects()) {
+			if(ca_.getID() == 1) {
+				us1 = ca_;
+			}
+			else if (ca_.getID() == 2) {
+				us2 = ca_;
+			}
+		}
+		
+		// Test that these crossing alternatives return 'u' when trying to get their state
+		assert us1.getState("osgb4000000030238839") == 'u';
+		assert us2.getState("osgb4000000030343781") == 'u';
+		
+	}
 }
