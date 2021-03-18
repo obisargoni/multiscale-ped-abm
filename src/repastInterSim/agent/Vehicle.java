@@ -33,6 +33,7 @@ public class Vehicle extends MobileAgent {
 	public Vehicle(int mS, double a, double s, OD o, OD d) {
 		super(o, d);
 		this.maxSpeed = mS;
+		this.tau = 1;
 		this.acc = a;
 		this.speed = s;
 		this.dmax = 20/GlobalVars.spaceScale; // Assuming vehicle drivers adjust their driving according to what's happening 20m in front.
@@ -71,15 +72,16 @@ public class Vehicle extends MobileAgent {
 	 */
 	public void drive() {
 		
-		// Check for nearby cars
+		// Check for nearby cars, pedestrians and signals
 		Vehicle vehicleInFront = getVehicleInFront();
 		List<Ped> crossingPeds = this.getCrossingPedestrians();
 		List<CrossingAlternative> cas = this.getRoadLinkCrossingAlterantives(this.route.getRoadsX().get(0).getFID());
 		
-		// Set accelaration based on vehicle ahead, crossing pedestrians and traffic signal.
-		setAcceleration(vehicleInFront, crossingPeds, cas);
-		double disp = this.speed * GlobalVars.stepToTimeRatio + 0.5 * this.acc * Math.pow(GlobalVars.stepToTimeRatio, 2);
-		updateSpeed();
+		// Set speed based on vehicle ahead, crossing pedestrians and traffic signal.
+		double perturbation = 0;
+		double vDes = getDesiredSpeed(vehicleInFront, crossingPeds, cas); 
+		this.speed = Math.max(0, vDes-perturbation);
+		double disp = this.speed * GlobalVars.stepToTimeRatio;
 		
 		// get the next coordinate along the route
 		double distanceAlongRoute = 0;
@@ -144,46 +146,36 @@ public class Vehicle extends MobileAgent {
 		
 	}
 	
-
-	public double enforceSpeedLimit() {
-		// Enforce speed limits
-		if (this.speed > this.maxSpeed) {
-			this.speed = this.maxSpeed;
-		}
-		// Min speed is zero (no-reversing)
-		if (this.speed < 0) {
-			this.speed = 0;
-		}
-		return this.speed;
-	}
-	
 	/*
-	 * Set the acceleration of the vehicle with respect to any vehicle, pedestrian or signal obstacles in the immediate vicinity. 
+	 * Get the desired speed of the of the vehicle with respect to any vehicle, pedestrian or signal obstacles in the immediate vicinity. 
 	 */
-	public double setAcceleration(Vehicle vif, List<Ped> cPeds, List<CrossingAlternative> cas) {
+	public double getDesiredSpeed(Vehicle vif, List<Ped> cPeds, List<CrossingAlternative> cas) {
 		
 		// Get car following acceleration
-		double cfa = carFollowingAcceleration(vif);
+		double cfs = carFollowingSafeSpeed(vif);
 		
 		// Get pedestrian yielding acceleration
-		double pya = pedYieldingAcceleration(cPeds);
+		double pys = pedYieldingSafeSpeed(cPeds);
 		
 		// Get traffic signal acceleration
-		double tsa = crossingAlternativeAcceleration(cas);
+		double tss = crossingAlternativeSafeSpeed(cas);
 		
 		// Choose the lowest of these as the vehicle's acceleration		
-		this.acc = Math.min(cfa, Math.min(pya, tsa));
+		double safeSpeed = Math.min(cfs, Math.min(pys, tss));
 		
-		return this.acc;
+		// Now choose desired speed as the minimum speed between the speed limit, safe following speed and speed if vehicle increased speed by default acceleration.
+		double vDes = Math.min(this.maxSpeed, Math.min(safeSpeed, this.speed + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio));
+		
+		return vDes;
 	}
 
 	/*
-	 * Set the speed and acceleration of the vehicle agent in response to the traffic signal given by the nearest crossing alternative in front
+	 * Calculate the safe speed of the vehicle agent in response to the traffic signal given by the nearest crossing alternative in front
 	 * of the vehicle agent.
 	 * 
 	 * Doesn't account for leaving space for other cars.
 	 */
-	public double crossingAlternativeAcceleration(List<CrossingAlternative> cas) {
+	public double crossingAlternativeSafeSpeed(List<CrossingAlternative> cas) {
 				
 		// Get nearest ca in front of vehicle. Crossing alternative has to be closer than dmax to be perceived
 		double nearestD = this.dmax;
@@ -199,7 +191,7 @@ public class Vehicle extends MobileAgent {
 			}
 		}
 		
-		// If no crossing alternative signal in front then return max double value, this prevents vehicle from choosing acceleration due to crossing alternative
+		// If no crossing alternative signal in front then return max double value, this prevents vehicle from choosing speed due to crossing alternative
 		if (nearestCAInFront==null) {
 			return  Double.MAX_VALUE;
 		}
@@ -207,21 +199,14 @@ public class Vehicle extends MobileAgent {
 		// Check for a traffic signal
 		char signalState = nearestCAInFront.getState(this.route.getRoadsX().get(0).getFID());
 		
-		// If signal is green, also return max value so that vehicle ignores signal in its acceleration choice 
+		// If signal is green, also return max value so that vehicle ignores signal in its speed choice 
 		if (signalState == 'g') {
 			return Double.MAX_VALUE;
 		} 
 		// If signal state is red vehicle must yield to it
 		else if (signalState == 'r') {
-			int alpha, m, l;
-			alpha = 1;
-			m = 0;
-			l = 0; // Parameters for the car following model. Needs refactor.
-			
-			// Objective speed is zero if signal is red
-			double objectiveVelocity = 0;
-			double signalAcc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestCAInFront.getSignalLoc()),l)) * (objectiveVelocity - this.speed));
-			return signalAcc;
+			double vSafe = safeFollowingSpeedObstacle(nearestCAInFront.getGeom().getCoordinate());
+			return vSafe;
 		}
 		else {
 			return Double.MAX_VALUE;
@@ -229,15 +214,15 @@ public class Vehicle extends MobileAgent {
 	}
 	
 	/*
-	 * Get acceleration required to avoid collision with crossing pedestrians, assuming pedestrians are not going to yield.
+	 * Get safe speed required to avoid collision with crossing pedestrians, assuming pedestrians are not going to yield.
 	 * 
 	 * @param List<Ped> cPeds
 	 * 		A list of pedestrian agents that are crossing the road the vehicle is on.
 	 */
-	public double pedYieldingAcceleration(List<Ped> cPeds) {
+	public double pedYieldingSafeSpeed(List<Ped> cPeds) {
 		
-		// Initialise acceleration as max value, since vehicle chooses minimum acceleration this ensure default acceleration is not chosen.
-		double pedYieldAcc = Double.MAX_VALUE;
+		// Initialise safe speed as max value, since vehicle chooses minimum between speed limit and safe speed this ensures default value is not chosen.
+		double vSafe = Double.MAX_VALUE;
 		
 		// Check for pedestrians that are in front of the vehicle and within perception distance
 		Ped nearestPed = null;
@@ -259,49 +244,34 @@ public class Vehicle extends MobileAgent {
 		
 		// Finally if crossing ped within perception distance identified get acceleration required to avoid collision with this ped
 		if (nearestPed != null) {
-			int alpha, m, l;
-			alpha = 1;
-			m = 0;
-			l = 0; // Parameters for the car following model. Needs refactor.
+
 			
-			double objectiveVelocity = 0;
-			pedYieldAcc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(nearestPed.getLoc()),l)) * (objectiveVelocity - this.speed));
+			// Speed set to zero since vehicle must come to complete stop to avoid collision with peds
+			vSafe = safeFollowingSpeedObstacle(nearestPed.getLoc());
 		}
 		
-		return pedYieldAcc;
+		return vSafe;
 	}
 
 	/*
-	 * Updates the vehicle's acceleration using the General Motors car following
-	 * model described here: {@link
-	 * https://nptel.ac.in/courses/105101008/downloads/cete_14.pdf}. This model
-	 * might not be suitable for this simple exercise.
+	 * Calculates safe following speed to the vehicle in front
 	 * 
 	 * @param vehicleInFront The vehicle immediately in front of the ego vehicle
 	 * 
 	 * @return The updated acceleration
 	 */
-	public double carFollowingAcceleration(Vehicle vehicleInFront) {
-		// Update acceleration based on the position and velocity of the vehicle in
-		// front.
+	public double carFollowingSafeSpeed(Vehicle vehicleInFront) {
+		// initialise safe following speed as Max values, this means that this speed won;t get chosen since it exceeds speed limit
+		double vSafe = Double.MAX_VALUE;
 	
 		// Only do this if there is a vehicle in front to follow
 		if (vehicleInFront != null) {
-			int alpha, m, l;
-			alpha = 1;
-			m = 0;
-			l = 0; // Parameters for the car following model. Needs refactor.
 			
-			Coordinate vifPt = GISFunctions.getAgentGeometry(SpaceBuilder.geography, vehicleInFront).getCentroid().getCoordinate();
-
-			// Acceleration is negative since in order to have caught up to car in front
-			// will have been travelling faster
-			this.acc = (((alpha * Math.pow(this.speed,m)) / Math.pow(maLoc.distance(vifPt),l)) * (vehicleInFront.getSpeed() - this.speed));
-		} else {
-			this.acc = GlobalVars.defaultVehicleAcceleration; // Default acceleration
+			// Get the location and speed of the vehicle in front and use to calculate safe following speed
+			vSafe = safeFollowingSpeedVehicle(vehicleInFront.getSpeed(), vehicleInFront.getLoc());
 		}
 
-		return this.acc;
+		return vSafe;
 	}
 	
     public Vehicle getVehicleInFront()  {
@@ -396,62 +366,67 @@ public class Vehicle extends MobileAgent {
 	}
 	
 	/*
-	 * Calculate the safe following speed from the input vehicle using the simple car following model in the SUMO documentation. 
+	 * Calculate the safe following speed for a stationary obstacle such as a pedestrian or traffic signal.
 	 * 
-	 * https://sumo.dlr.de/pdf/KraussDiss.pdf
+	 * In this case the desired distance is fixed to a value given in GlobalVars. The speed of the obstacle is set to zero.
+	 * 
+	 * @param Coordinate obsLoc
+	 * 		The location of the obstacle the vehicle is yielding to
 	 * 
 	 * @return double
 	 * 		The safe following speed
 	 */
-	public Double safeFollowingSpeed(double leaderSpeed, Coordinate leaderLoc) {
+	public Double safeFollowingSpeedObstacle(Coordinate obsLoc) {
 		
-		Double vSafe = null;			
+		double safeSpeed = safeFollowingSpeed(GlobalVars.obstacleYieldDistance, 0, obsLoc);
+		return safeSpeed;	
+	}
+	
+	/*
+	 * Calculate the safe following speed from the input vehicle using the simple car following model in the SUMO documentation. 
+	 * 
+	 * https://sumo.dlr.de/pdf/KraussDiss.pdf
+	 * 
+	 * @param double leaderSpeed
+	 * 		The speed of the agent the vehicle is following
+	 * @param Coordinate leaderLoc
+	 * 		The location of the agent the vehicle is following
+	 * 
+	 * @return double
+	 * 		The safe following speed
+	 */
+	public Double safeFollowingSpeedVehicle(double leaderSpeed, Coordinate leaderLoc) {
 		// Get desired distance from vehicle in front - driver's reaction time * leader speed
 		double dDesired = this.tau * leaderSpeed;
+		double safeSpeed = safeFollowingSpeed(dDesired, leaderSpeed, leaderLoc);
+		return safeSpeed;
+	}
+	
+	/*
+	 * A more general method for calculating the safe following speed that takes desired distance to be as an input.   
+	 * https://sumo.dlr.de/pdf/KraussDiss.pdf
+	 * 
+	 * @param double dDesired
+	 * 		The desired distance to maintain from agent vehicle is following
+	 * @param double leaderSpeed
+	 * 		The speed of the agent the vehicle is following
+	 * @param Coordinate leaderLoc
+	 * 		The location of the agent the vehicle is following
+	 * 
+	 * @return double
+	 * 		The safe following speed
+	 */
+	public Double safeFollowingSpeed(double dDesired, double leaderSpeed, Coordinate leaderLoc) {
+		
+		Double vSafe = null;			
 		double d = this.maLoc.distance(leaderLoc);
 		
 		// get characteristic time scale used in model
-		double tauB = (this.speed + leaderSpeed) / 2.0 / GlobalVars.defaultVehicleDecceleration;
+		double tauB = ((this.speed + leaderSpeed) / 2.0) / GlobalVars.defaultVehicleDecceleration;
 		
-		vSafe = leaderSpeed + (d = dDesired) / (tauB + this.tau);
+		vSafe = leaderSpeed + (d - dDesired) / (tauB + this.tau);
 
 		return vSafe;
-	}
-	
-	/*
-	 * Identifies the desired vehicle speed as the minimum speeds between the speed limit, safe following speed and speed if vehicle increased
-	 * speed by default acceleration.
-	 * 
-	 * Based on the SUMO car following model: https://sumo.dlr.de/pdf/KraussDiss.pdf
-	 * 
-	 * @param double sfs
-	 * 		The safe following speed
-	 */
-
-	public double desiredSpeed(double sfs) {
-		
-		double vDes = Math.min(this.maxSpeed, Math.min(sfs, this.speed + GlobalVars.defaultVehicleAcceleration*GlobalVars.stepToTimeRatio));
-		return vDes;
-	}
-	
-	/*
-	 * Updates the vehicle's speed using the General Motors car following model
-	 * described here: {@link
-	 * https://nptel.ac.in/courses/105101008/downloads/cete_14.pdf} In future this
-	 * will be revised to ensure a good academic car following model is used
-	 * 
-	 * @param vehcileInFront The vehicle immediately in front of the ego vehicle
-	 * 
-	 * @return The new speed
-	 */
-	public double updateSpeed() {
-		// Update velocity
-		this.speed = this.speed + this.acc * GlobalVars.stepToTimeRatio;
-		
-		enforceSpeedLimit();
-
-		return this.speed;
-
 	}
 	
 	public void setSpeed(double s) {

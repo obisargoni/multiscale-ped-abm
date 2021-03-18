@@ -83,6 +83,7 @@ public abstract class GlobalVars {
 	public static Integer maxVehicleSpeed = 3;
 	public static double vehicleLength = 3.5; // 3.5m
 	public static double vehicleWidth = 1.7; // 1.7m
+	public static double obstacleYieldDistance = 2; // Keep 2m distance from obstacles such as peds and traffic signals
 	
 	
 	public static final class GEOGRAPHY_PARAMS {
