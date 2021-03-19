@@ -87,6 +87,12 @@ public class Signal {
 	 */
 	@ScheduledMethod(start = 0, interval = 1)
 	public void step() {
+		if(this.phases!=null) {
+			updateSignal();
+		}
+	}
+	
+	private void updateSignal() {
 		// Check if it's time to change phase
 		if(this.ticksSincePhaseChange >= this.phaseDurations[this.phaseIndex]) {
 			this.ticksSincePhaseChange = 0;
