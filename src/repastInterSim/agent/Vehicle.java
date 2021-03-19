@@ -324,7 +324,10 @@ public class Vehicle extends MobileAgent {
     public List<Ped> getCrossingPedestrians() {
     	// Get peds on current road by getting the OR road link associated to the vehicle's current ITN road link
     	RoadLink currentITNLink = this.route.getRoadsX().get(0);
-    	List<Ped> crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
+    	List<Ped> crossingPedsOnRoad = new ArrayList<Ped>();
+    	if(currentITNLink.getRoads().size()>0) {
+    		crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
+    	}
     	return crossingPedsOnRoad;
     }
 
