@@ -119,10 +119,10 @@ public class Vehicle extends MobileAgent {
 				
 				// If vehicle has been moved onto a different road link update the road link queues
 		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-		        	this.queuePos = nextRoadLink.getQueue().writePos();
-		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
 		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	currentRoadLink.removeVehicleFromQueue();
+		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
 		        }
 				
 				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
