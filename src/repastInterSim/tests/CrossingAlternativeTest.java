@@ -172,5 +172,8 @@ class CrossingAlternativeTest {
 		assert us1.getState("osgb4000000030238839") == 'u';
 		assert us2.getState("osgb4000000030343781") == 'u';
 		
+		assert us1.getPhaseDurations() == null;
+		assert us1.getPhases() == null;
+		
 	}
 }
