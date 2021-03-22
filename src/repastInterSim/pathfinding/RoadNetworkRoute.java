@@ -188,11 +188,6 @@ public class RoadNetworkRoute implements Cacheable {
 			 */
 			this.addPathToRoute(shortestPath);
 
-			// Check that a route has actually been created
-			checkListSizes();
-			
-			setRouteParity();
-
 		} catch (RoutingException e) {
 			/*
 			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + " going from " + currentCoord.toString() + " to " + this.destination.toString());
@@ -367,6 +362,11 @@ public class RoadNetworkRoute implements Cacheable {
 		else {
 			endPaveJ = destPaveJ;
 		}
+		
+		// Check that a route has actually been created
+		checkListSizes();
+		
+		setRouteParity();
 
 		
 		// Cache the route and route speeds
