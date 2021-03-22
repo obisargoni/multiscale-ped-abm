@@ -132,7 +132,8 @@ public class Vehicle extends MobileAgent {
 					distanceAlongRoute = disp;
 				}
 				else {
-					distanceAlongRoute += distToCoord;	
+					distanceAlongRoute += distToCoord;
+					disp-=distToCoord;
 				}
 				
 				this.route.routeX.remove(routeCoord);
