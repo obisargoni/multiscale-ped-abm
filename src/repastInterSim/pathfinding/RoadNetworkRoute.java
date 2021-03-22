@@ -329,7 +329,7 @@ public class RoadNetworkRoute implements Cacheable {
 		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
 		Junction startPaveJ = null;
 		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
-			this.roadsX.add(0, currentRoad);
+			this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
 			
 			// Set the current pavement junction to be that connected to the nearest pavement junction but at the other end of the starting road link
 			
@@ -350,7 +350,7 @@ public class RoadNetworkRoute implements Cacheable {
 		// Do the same for the end of the route
 		Junction endPaveJ = null;
 		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
-			this.roadsX.add(destRoad);
+			this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
 			
 			// Update the dest pavement junction to be that connected to the nearest pavement junction but at the other end of the ending road link
 			
@@ -458,6 +458,23 @@ public class RoadNetworkRoute implements Cacheable {
 		this.roadsX.add(r);
 		this.routeSpeedsX.add(speed);
 		this.routeDescriptionX.add(description);
+	}
+	
+	/**
+	 * Used to details to the start of the route route. This should be used rather than updating
+	 * individual lists because it makes sure that all lists stay in sync
+	 * 
+	 * @param r
+	 *            The road that the coordinate is part of
+	 * @param speed
+	 *            The speed that the road can be travelled along
+	 * @param description
+	 *            A description of why the coordinate has been added
+	 */
+	protected void prefixToRoute(RoadLink r, double speed, String description) {
+		this.roadsX.add(0, r);
+		this.routeSpeedsX.add(0, speed);
+		this.routeDescriptionX.add(0, description);
 	}
 	
 	protected void removeNextFromRoute() {
