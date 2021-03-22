@@ -168,17 +168,24 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 
 			l = LineString([g_u, g_v])
 
-			# Now check if linestring intersects any of the road link geometries
-			if gdfLinkSub['geometry'].map(lambda g: g.intersects(l)).any():
+			# Connect pairs of ped nodes that are at different ends of the road link, ie associated to different road nodes
+			u_junction_id = gdfPN.loc[gdfPN['fid'] == ped_u, "juncNodeID"].values[0]
+			v_junction_id = gdfPN.loc[gdfPN['fid'] == ped_v, "juncNodeID"].values[0]
+			if u_junction_id == v_junction_id:
 				continue
 			else:
 				edge_data = {'road_link':None, 'ped_poly':None}
+				intersect_check = gdfLinkSub['geometry'].map(lambda g: g.intersects(l))
 
-				# Need to identify which pedestrian polygon(s) this edge corresponds to
-				candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-				nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
-				ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist]
-				edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
+				# Check whether links crosses road or not
+				if intersect_check.any():
+					edge_data['road_link'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+				else:
+					# Need to identify which pedestrian polygon(s) this edge corresponds to
+					candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
+					nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
+					ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist] # unpacking nested list
+					edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
 
 				ped_node_edges.append((ped_u, ped_v, edge_data))
 
@@ -204,7 +211,7 @@ gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
 edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
 G.add_edges_from(edges)
 
-# Nodes with degree > 2 are junctions. Get these
+# Get dataframe of node degrees. Useful for selecting certain junctions nodes, eg those that correspond to intersections (degree > 3)
 node_degrees = G.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
@@ -282,7 +289,7 @@ G_ped_poly.add_edges_from(ped_poly_edges)
 #
 #############################
 
-# Geoup by junctions node id
+# Group by junctions node id
 grouped = gdfPedNodes.groupby('juncNodeID')
 group_names = list(grouped.groups.keys())
 group_sizes = grouped.apply(lambda df: df.shape[0])
@@ -316,7 +323,9 @@ def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
 
 	return junc_edges
 
-junc_edges = gdfPedNodes.groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
+# Ony connect nodes around junctions with > 2 connections, ie actual intersections rather than continuations
+junctionNodesToConnect = df_node_degree.loc[ df_node_degree["nodeDegree"] > 2, "nodeID"].values
+junc_edges = gdfPedNodes.loc[gdfPedNodes['juncNodeID'].isin(junctionNodesToConnect)].groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
 
 # Drop duplicates, drop self loops and recreate index
 junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
