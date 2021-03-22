@@ -86,7 +86,7 @@ public class Vehicle extends MobileAgent {
 		// get the next coordinate along the route
 		double distanceAlongRoute = 0;
 		
-		while (disp > distanceAlongRoute) {
+		while (Double.compare(disp, distanceAlongRoute) > 0) {
 			// Get next coordinate along the route
 	        Coordinate routeCoord = this.route.routeX.get(0);
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
@@ -102,7 +102,7 @@ public class Vehicle extends MobileAgent {
 			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
-			if (distToCoord > disp) {
+			if (Double.compare(distToCoord, disp) > 0) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
 				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(this.bearing), maLoc.y + disp*Math.cos(this.bearing));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
