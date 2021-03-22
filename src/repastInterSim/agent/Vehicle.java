@@ -81,12 +81,12 @@ public class Vehicle extends MobileAgent {
 		double perturbation = 0;
 		double vDes = getDesiredSpeed(vehicleInFront, crossingPeds, cas); 
 		this.speed = Math.max(0, vDes-perturbation);
-		double disp = this.speed * GlobalVars.stepToTimeRatio;
+		double distanceToTravel = this.speed * GlobalVars.stepToTimeRatio;
 		
 		// get the next coordinate along the route
-		double distanceAlongRoute = 0;
+		double distanceTraveled = 0;
 		
-		while (Double.compare(disp, distanceAlongRoute) > 0) {
+		while (Double.compare(distanceToTravel, distanceTraveled) > 0) {
 			// Get next coordinate along the route
 	        Coordinate routeCoord = this.route.routeX.get(0);
 	        RoadLink nextRoadLink = this.route.getRoadsX().get(0);
@@ -102,13 +102,13 @@ public class Vehicle extends MobileAgent {
 			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
-			if (Double.compare(distToCoord, disp) > 0) {
+			if (Double.compare(distToCoord, distanceToTravel) > 0) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
-				Coordinate newCoord = new Coordinate(maLoc.x + disp*Math.sin(this.bearing), maLoc.y + disp*Math.cos(this.bearing));
+				Coordinate newCoord = new Coordinate(maLoc.x + distanceToTravel*Math.sin(this.bearing), maLoc.y + distanceToTravel*Math.cos(this.bearing));
 				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
 				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
-				distanceAlongRoute += disp;
+				distanceTraveled += distanceToTravel;
 			}
 			// The vehicle is able to travel up to or beyond its next route coordinate
 			else {
@@ -129,11 +129,11 @@ public class Vehicle extends MobileAgent {
 				// since the vehicle has now reached the destination and can't go any further
 				if (isFinal) {
 					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
-					distanceAlongRoute = disp;
+					distanceTraveled = distanceToTravel;
 				}
 				else {
-					distanceAlongRoute += distToCoord;
-					disp-=distToCoord;
+					distanceTraveled += distToCoord;
+					distanceToTravel-=distToCoord;
 				}
 				
 				this.route.routeX.remove(routeCoord);
