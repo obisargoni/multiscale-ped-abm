@@ -50,14 +50,21 @@ public class Signal {
 	 * @return char. The state of the signal
 	 */
 	public char getState(String rlID) {
-		// get index this road link appears at and return state value at this index
-		for(int i=0; i<this.itnLinkIDs.length; i++) {
-			if(this.itnLinkIDs[i].contentEquals(rlID)) {
-				return this.phases[this.phaseIndex][i];
-			}
+		char phase = 'u';
+		
+		if(this.phases == null) {
+			return phase;
 		}
-		// return u for unknown if can't match road link id
-		return 'u';
+		else {
+			// get index this road link appears at and return state value at this index
+			for(int i=0; i<this.itnLinkIDs.length; i++) {
+				if(this.itnLinkIDs[i].contentEquals(rlID)) {
+					phase = this.phases[this.phaseIndex][i];
+					break;
+				}
+			}
+			return phase;
+		}
 	}
 	
 	/*
