@@ -908,10 +908,6 @@ public class GISFunctions {
 		// Loop through coordinates of geometry and find nearest/farthest coordinate not blocked by a pedestrian obstruction
 		Coordinate[] rGeomCoords = geom.getCoordinates();
 		for(Coordinate c: rGeomCoords) {
-			
-			// Check for obstructions
-			Coordinate[] lineCoords = {originCoord, c};
-			LineString pathLine = GISFunctions.lineStringGeometryFromCoordinates(lineCoords);
 
 			Double cDist = c.distance(originCoord);
 			int comp = Integer.signum(cDist.compareTo(destDist));
