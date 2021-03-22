@@ -3,6 +3,7 @@ package repastInterSim.environment;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -81,14 +82,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 */
 	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, List<RoadLink> sps) {
 		
-		// Get pedestrian road objects on this road link
-		List<Road> caPedRoads = null;
-		try {
-			caPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(roadLinkID, rG);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// Get pedestrian roads via attributes of road link and road objects
+		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
 		
 		// Get rays perpendicular to agent's bearing to find crossing coordinate
 		LineString ray1 = GISFunctions.linestringRay(c, this.ped.getBearing() - (Math.PI/2), 50.0);
