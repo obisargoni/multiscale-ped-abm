@@ -224,12 +224,13 @@ public class TacticalRoute {
 		return cas;		
 	}
 	
-	/*
-	 * Given the source and target junctions of an edge of the tactical network, return the junction that belongs to the same road node
-	 * as the target junction, is not the target junction itself, and does not require a road crossing to get to. If no such junction is 
-	 * available return null.
-	 * 
+	/* 
 	 * This method is used to identify the default junction a pedestrian walks towards whilst choosing a crossing location.
+	 * 
+	 * If the target junction is located at a different road node to the source junction, find the junction that belongs to the same road node
+	 * as the target junction, is not the target junction itself, and does not require a road crossing to get to.
+	 * 
+	 * If the target junction is located at the same road node as the source junction, the no cross target junction is the source junction.
 	 */
 	public Junction noCrossTargetJunction(Junction sourceJunction, Junction targetJunction) {
 		Junction noCrossJ = null;
@@ -237,12 +238,17 @@ public class TacticalRoute {
 		// get road node id
 		String roadNodeID = targetJunction.getjuncNodeID();
 		
-		// Loop through junctions connected to the source junction
-		for (Junction j:this.nP.getNet().getAdjacent(sourceJunction)) {
-			
-			if ( (j.getjuncNodeID().contentEquals(roadNodeID)) & !(j.getFID().contentEquals(targetJunction.getFID())) ) {
-				noCrossJ = j;
-				break;
+		if (sourceJunction.getjuncNodeID().contentEquals(roadNodeID)) {
+			noCrossJ = sourceJunction;
+		}
+		else {
+			// Loop through junctions connected to the source junction
+			for (Junction j:this.nP.getNet().getAdjacent(sourceJunction)) {
+				
+				if ( (j.getjuncNodeID().contentEquals(roadNodeID)) & !(j.getFID().contentEquals(targetJunction.getFID())) ) {
+					noCrossJ = j;
+					break;
+				}
 			}
 		}
 		
