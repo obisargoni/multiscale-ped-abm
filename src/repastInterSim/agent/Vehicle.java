@@ -109,6 +109,7 @@ public class Vehicle extends MobileAgent {
 				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
 				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
 				distanceTraveled += distanceToTravel;
+				distanceToTravel = 0;
 			}
 			// The vehicle is able to travel up to or beyond its next route coordinate
 			else {
@@ -130,6 +131,7 @@ public class Vehicle extends MobileAgent {
 				if (isFinal) {
 					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
 					distanceTraveled = distanceToTravel;
+					distanceToTravel = 0;
 				}
 				else {
 					distanceTraveled += distToCoord;
