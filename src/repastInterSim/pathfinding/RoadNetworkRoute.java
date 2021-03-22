@@ -321,6 +321,11 @@ public class RoadNetworkRoute implements Cacheable {
 			throw e;
 		}
 		
+		// If no roads in path this means start and end pavement junction are on the same link. Add current road to route manually
+		if(this.roadsX.size()==0) {
+			this.addToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "current road manually added");
+		}
+		
 		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
 		Junction startPaveJ = null;
 		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
