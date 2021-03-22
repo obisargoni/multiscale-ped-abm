@@ -434,18 +434,30 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Random rn = new Random();
 		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
-		for (int iO = 0; iO<nOD; iO++) {
-						
+		for (int iO = 0; iO<nOD; iO++) {						
 			int iD = pDI % nOD;
 			
+			// First row of data is the IDs of the ODs
+			String[] ids = odData.get(0);
+			String idO = ids[iO];
+			String idD = ids[iD];
+			
 			// Get the OD matrix entry
-			Float flow = Float.parseFloat(odData.get(iO)[iD]);
+			Float flow = Float.parseFloat(odData.get(iO+1)[iD]);
 			float threshold = rn.nextFloat();
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
-				OD o = pedestrianDestinationContext.getObjects(OD.class).get(iO);
-				OD d = pedestrianDestinationContext.getObjects(OD.class).get(iD);
+				OD o = null;
+				OD d = null;
+				for (OD j: pedestrianDestinationContext.getObjects(OD.class)) {
+					if (j.getFID().contentEquals(idO)) {
+						o = j;
+					}
+					else if (j.getFID().contentEquals(idD)) {
+						d = j;
+					}
+				}
 				addPed(o, d);
 			}
 		}

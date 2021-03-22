@@ -33,4 +33,6 @@ df1 = pd.DataFrame(random_flows)
 # Set diagonal elements to 0, don't want an agent's destination to be the same as its origin
 for i in range(max(n_origins,n_destinations)):
 	df1.loc[i,i] = 0
-df1.to_csv(output_file, index=False, header=False)
+
+df1.columns = gdf_od['id']
+df1.to_csv(output_file, index=False, header=True)
