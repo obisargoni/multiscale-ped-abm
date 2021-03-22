@@ -82,6 +82,7 @@ public class Vehicle extends MobileAgent {
 		double vDes = getDesiredSpeed(vehicleInFront, crossingPeds, cas); 
 		this.speed = Math.max(0, vDes-perturbation);
 		double distanceToTravel = this.speed * GlobalVars.stepToTimeRatio;
+		Coordinate vehicleLoc = this.maLoc;
 		
 		// get the next coordinate along the route
 		double distanceTraveled = 0;
@@ -96,7 +97,7 @@ public class Vehicle extends MobileAgent {
 	        boolean isFinal = (routeCoord.equals2D(destC));
 	        
 	        // Calculate the distance to this coordinate
-			double distToCoord = maLoc.distance(routeCoord);
+			double distToCoord = vehicleLoc.distance(routeCoord);
 			
 			// Calculate the angle
 			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
@@ -104,19 +105,13 @@ public class Vehicle extends MobileAgent {
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (Double.compare(distToCoord, distanceToTravel) > 0) {
 				// Move agent in the direction of the route coordinate the amount it is able to travel
-				Coordinate newCoord = new Coordinate(maLoc.x + distanceToTravel*Math.sin(this.bearing), maLoc.y + distanceToTravel*Math.cos(this.bearing));
-				Point p = GISFunctions.pointGeometryFromCoordinate(newCoord);
-				Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+				vehicleLoc = new Coordinate(vehicleLoc.x + distanceToTravel*Math.sin(this.bearing), vehicleLoc.y + distanceToTravel*Math.cos(this.bearing));
 				distanceTraveled += distanceToTravel;
 				distanceToTravel = 0;
 			}
 			// The vehicle is able to travel up to or beyond its next route coordinate
 			else {
-				// Move to the coordinate and repeat with next coordinate along
-				Point p = GISFunctions.pointGeometryFromCoordinate(routeCoord);
-				Geometry g = p.buffer(1);
-				GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+				vehicleLoc = routeCoord;
 				
 				// If vehicle has been moved onto a different road link update the road link queues
 		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
@@ -144,6 +139,10 @@ public class Vehicle extends MobileAgent {
 			}
 			
 		}
+		
+		Point p = GISFunctions.pointGeometryFromCoordinate(vehicleLoc);
+		Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
 		
 		setLoc();
 		
