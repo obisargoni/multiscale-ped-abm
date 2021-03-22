@@ -62,7 +62,6 @@ public class PedPathFinder {
 				
 		planStrategicPath(this.origin.getGeom().getCoordinate(), this.destination.getGeom().getCoordinate(), paveG, paveNetwork);
 		
-		List<String> sPIDs = this.strategicPath.stream().map(rl -> rl.getFID()).collect(Collectors.toList());
 		if (minimiseCrossings) {
 			this.primaryCostHeuristic = new EdgeRoadLinkIDTransformer<Junction>();
 			this.secondaryCostHeuristic = new EdgeWeightTransformer<Junction>();
