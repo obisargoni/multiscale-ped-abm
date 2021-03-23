@@ -762,7 +762,12 @@ public class Route implements Cacheable {
 				 * If heading towards a junction: find the curent coord, add it to the route, then add all the remaining
 				 * coords which make up the road segment
 				 */
-				if (currentPointGeom.within(buffer)) {
+				if(currentCoord.equals2D(destinationCoord)) {
+					// Don't add any coords to coord list, not needed
+					foundAllCoords = true;
+					break search;
+				}
+				else if (currentPointGeom.within(buffer)) {
 					for (int j = i + 1; j < roadCoords.length; j++) {
 						coordList.add(roadCoords[j]);
 					}
