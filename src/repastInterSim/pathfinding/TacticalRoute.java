@@ -280,13 +280,13 @@ public class TacticalRoute {
 		return this.isBlank;
 	}
 	
-	private List<RoadLink> tacticalPathPrimaryCrossingLinks(RepastEdge<Junction> edge, List<RoadLink> sP) {
+	static private List<RoadLink> tacticalPathPrimaryCrossingLinks(RepastEdge<Junction> edge, List<RoadLink> sP) {
 		List<RepastEdge<Junction>> path = new ArrayList<RepastEdge<Junction>>();
 		path.add(edge);
 		return tacticalPathPrimaryCrossingLinks(path, sP);
 	}
 	
-	private List<RoadLink> tacticalPathPrimaryCrossingLinks(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
+	static private List<RoadLink> tacticalPathPrimaryCrossingLinks(List<RepastEdge<Junction>> path, List<RoadLink> sP) {
 		List<RoadLink> crossedLinks = new ArrayList<RoadLink>();
 		for (RepastEdge<Junction> e: path) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
