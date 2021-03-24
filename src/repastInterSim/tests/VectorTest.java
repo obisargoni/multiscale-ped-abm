@@ -20,6 +20,12 @@ class VectorTest {
 		ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
 		assert Math.round(ang) == 135.0;
 		
+		v1[0] = -5;
+		
+		ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
+		assert Math.round(ang) == 45.0;
+		
+		v1[0] = 5;
 		v2[0] = -1;
 		v2[1] = 1;
 		
@@ -32,7 +38,16 @@ class VectorTest {
 		ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
 		assert Math.round(ang) == 45.0;
 		
+		v2[0] = 0.1;
+		v2[1] = 1;
 		
+		ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
+		assert Math.round(ang) < 90.0;
+		
+		v2[0] = -0.1;
+		
+		ang = Vector.angleBetweenTwoVectorsDegree(v1, v2);
+		assert Math.round(ang) > 90.0;
 	}
 
 }
