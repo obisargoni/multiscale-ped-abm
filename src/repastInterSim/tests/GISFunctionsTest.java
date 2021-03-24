@@ -325,5 +325,33 @@ class GISFunctionsTest {
 			assert expectedCoords.contains(destCoord);
 		}
 	}
+	
+	/*
+	 * Test method for calculating bearing of vector between two coordinates
+	 */
+	@Test
+	void testBearingBetweenCoordinates() {
+		// Create some coordinates and calculate bearing between them
+		Coordinate c1 = new Coordinate(530683.9458871038, 181012.96436357914);
+		Coordinate c2 = new Coordinate(530706, 181029);
+		Coordinate c3 = new Coordinate(530612, 181056);
+		
+		long start = System.currentTimeMillis();
+		
+		double bearing = GISFunctions.bearingBetweenCoordinates(c1, c2);
+		assert Double.compare(bearing, 0.9421103253862521) == 0;
+		
+		bearing = GISFunctions.bearingBetweenCoordinates(c2, c1);
+		assert Double.compare(bearing, 4.083702978976045) == 0;
+		
+		bearing = GISFunctions.bearingBetweenCoordinates(c1, c3);
+		assert Double.compare(bearing, 5.251459401737451) == 0;
+		
+		bearing = GISFunctions.bearingBetweenCoordinates(c3, c2);
+		assert Double.compare(bearing, 1.8505004792585276)==0;
+		
+		long duration = System.currentTimeMillis() - start;
+		System.out.print(duration);
+	}
 
 }
