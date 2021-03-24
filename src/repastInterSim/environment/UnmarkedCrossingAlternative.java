@@ -11,6 +11,7 @@ import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class UnmarkedCrossingAlternative extends CrossingAlternative {
@@ -58,14 +59,40 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		return cFar;
 	}
 
-	@Override
 	/*
 	 * Get the number of vehicles on the road link. 
 	 * Ideally will calculate exactly the number of cars that would pass through the crossing in a given time period
 	 */
+	@Override
 	public Integer getvFlow() {
-		int vehicleNumber = this.getRoad().getRoadLinksVehicleCount();
-		return vehicleNumber;
+		double crossingTime = this.getC1().distance(this.getC2()) / this.ped.getSpeed();
+		
+		// Loop through vehicles on the road links this crossing covers, count the number that will pass crossing point in crossing time
+		int vehicleCount = 0;
+		for (int i=0; i<this.getRoad().getRoadLinks().size(); i++){
+			RoadLink rl = this.getRoad().getRoadLinks().get(i);
+			int readPos = rl.getQueue().readPos();
+			for(int vi = readPos; vi<readPos+rl.getQueue().count(); vi++){
+				Vehicle v = rl.getQueue().elements[vi];
+				
+				// Check if crossing is in front of vehicle, if not continue to next vehicle
+				if (!GISFunctions.coordInFront(v.getLoc(), v.getBearing(), getC1())) {
+					continue;
+				}
+				
+				// Get expected future location of vehicle
+				double travelDist = v.getSpeed() * crossingTime;
+				Coordinate futureLoc = new Coordinate(v.getLoc().x + Math.sin(v.getBearing())*travelDist, v.getLoc().y + Math.cos(v.getBearing())*travelDist);
+				
+				// Check if crossing location is in front of future location or not
+				boolean crossingAhead = GISFunctions.coordInFront(futureLoc, v.getBearing(), getC1());
+							
+				if (!crossingAhead){
+					vehicleCount++;
+				}
+			}
+		}
+		return vehicleCount;
 	}
 	
 	public String getRoadLinkID() {
