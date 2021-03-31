@@ -6,12 +6,9 @@
 package repastInterSim.environment;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import repastInterSim.main.SpaceBuilder;
 
 /*
  * Not sure what attributes and methods are needed for the road object.
