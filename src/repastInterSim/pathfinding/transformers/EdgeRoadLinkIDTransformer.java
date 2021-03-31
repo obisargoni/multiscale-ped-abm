@@ -1,8 +1,5 @@
 package repastInterSim.pathfinding.transformers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.collections15.Transformer;
 
 import repast.simphony.space.graph.RepastEdge;

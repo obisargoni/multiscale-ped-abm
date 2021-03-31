@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
