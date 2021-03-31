@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import cern.jet.random.Normal;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -25,6 +26,7 @@ import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
 import repast.simphony.gis.util.GeometryUtil;
 import repast.simphony.parameter.Parameters;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
@@ -103,6 +105,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static ISchedulableAction addPedAction;
 	private static ISchedulableAction removeMAgentAction;
 	
+	private Normal pedSpeeds;
+	private Normal pedMasses;
+	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
 	 * (at the bottom of this file).
@@ -120,6 +125,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
+		
+		// Setup random number distributions
+		pedSpeeds = RandomHelper.createNormal(GlobalVars.pedVavg, GlobalVars.pedVsd);
+		pedMasses = RandomHelper.createNormal(GlobalVars.pedMassAv, GlobalVars.pedMasssd);
 		
 		fac = new GeometryFactory();
 		
@@ -557,7 +566,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			minimiseCrossing = true;
 		}
 		
-    	Ped newPed = new Ped(o, d, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		// Draw velocity and mass from random distribution
+		Double v = this.pedSpeeds.nextDouble();
+		Double m = this.pedMasses.nextDouble();
+		
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

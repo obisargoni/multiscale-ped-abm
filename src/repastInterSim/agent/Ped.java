@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 
@@ -30,9 +29,7 @@ import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {    
     private PedPathFinder pathFinder;
-    
-    private Random rnd = new Random(); // Random seed used to give a distribution of velocities 
-    
+        
     private double k; // Constant related to the interaction between agents and the desired velocity of this agent
     
     // Variables related to the pedestrians vision and movements
@@ -67,6 +64,13 @@ public class Ped extends MobileAgent {
     
     private String chosenCrossingType = "none";
     
+    /*
+     * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
+     */
+    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    	super(o,d);
+    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, minimiseCrossings, paveG, paveNetwork);
+    }
     
     /*
      * Instance method for the Ped class.
@@ -74,10 +78,14 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o, d);
-        this.v0  = rnd.nextGaussian() * GlobalVars.pedVsd + GlobalVars.pedVavg;
-        this.m  = rnd.nextGaussian() * GlobalVars.pedMasssd + GlobalVars.pedMassAv;
+    	init(s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, paveG, paveNetwork);
+    }
+    
+    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+        this.v0  = s;
+        this.m  = m;
         this.rad = m / 320; // As per Moussaid
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
