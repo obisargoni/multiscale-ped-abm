@@ -1,17 +1,6 @@
 package repastInterSim.environment;
 
 import org.apache.commons.math3.util.FastMath;
-import org.geotools.factory.Hints;
-import org.geotools.geometry.jts.JTS;
-import org.geotools.referencing.CRS;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
-import org.opengis.referencing.operation.TransformException;
-
-import com.vividsolutions.jts.geom.Geometry;
 
 // Class for sorting functions that do standard vector operations
 public class Vector {
