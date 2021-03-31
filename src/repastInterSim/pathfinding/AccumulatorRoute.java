@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
@@ -107,7 +107,7 @@ public class AccumulatorRoute {
 		List<Double> probs = caSamplingProbabilities();
 		
 		// sample random number between 0 and 1 and use to sample a CA
-		Double r = new Random().nextDouble();
+		Double r = RandomHelper.nextDouble();
 		
 		Integer sampledi = null;
 		double sum_prob = 0;
