@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -391,9 +390,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Get number of possible origins/destinations
 		int nOD = vehicleDestinationGeography.size();
 		
-		// Use to generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
-		Random rn = new Random();
-		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {
 			int iD = vDI % nOD;
@@ -405,7 +401,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Get the OD matrix entry. Add one to row index to skip header of ids
 			Float flow = Float.parseFloat(odData.get(iO + 1)[iD]);
-			float threshold = rn.nextFloat();
+			double threshold = RandomHelper.nextDouble();
 
 			
 			// Create vehicle instance probabilistically according to flow rates
@@ -439,9 +435,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Get number of possible origins/destinations
 		int nOD = pedestrianDestinationGeography.size();
 		
-		// Use to generate random number and use to determine which OD pairs to use when creating a vehicle agent - check this is valid
-		Random rn = new Random();
-		
 		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
 		for (int iO = 0; iO<nOD; iO++) {						
 			int iD = pDI % nOD;
@@ -453,7 +446,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			
 			// Get the OD matrix entry
 			Float flow = Float.parseFloat(odData.get(iO+1)[iD]);
-			float threshold = rn.nextFloat();
+			double threshold = RandomHelper.nextDouble();
 			
 			// Create vehicle instance probabilistically according to flow rates
 			if (flow > threshold) {
@@ -560,9 +553,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         
         // Instantiate a new pedestrian agent and add the agent to the context
 		Parameters  params = RunEnvironment.getInstance().getParameters();
-		Random rn = new Random();
 		boolean minimiseCrossing = false;
-		if (params.getDouble("minCrossingProp") > rn.nextFloat()) {
+		if (params.getDouble("minCrossingProp") > RandomHelper.nextDouble()) {
 			minimiseCrossing = true;
 		}
 		
