@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
@@ -19,22 +18,15 @@ import org.geotools.geometry.DirectPosition2D;
 import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 
-import repast.simphony.context.Context;
-import repast.simphony.context.space.graph.NetworkBuilder;
-import repast.simphony.space.gis.Geography;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
 import repast.simphony.space.graph.UndirectedJungNetwork;
-import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.GISFunctions;
-import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.NetworkEdgeCreator;
-import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
@@ -399,8 +391,7 @@ public class GridRoute {
 		q.add(end);
 		while(q.size() > 0) {
 			// Get random cell from queue - random is important
-		    Random rand = new Random();
-			int nextCellIndex = rand.nextInt(q.size());
+			int nextCellIndex = RandomHelper.nextIntFromTo(0, q.size()-1);
 			thisCell = q.get(nextCellIndex);
 			q.remove(nextCellIndex);
 			
@@ -479,10 +470,10 @@ public class GridRoute {
 			}
 		}
 		
-	    Random rand = new Random();
 	    GridCoordinates2D greedyNeighbour = null;
 	    try {
-		    greedyNeighbour =  greedyNeighbours.get(rand.nextInt(greedyNeighbours.size()));
+	    	int neighbourIndex = RandomHelper.nextIntFromTo(0, greedyNeighbours.size()-1);
+		    greedyNeighbour =  greedyNeighbours.get(neighbourIndex);
 	    } catch (IllegalArgumentException e) {
 	    	String msg = "GridRoute.greedyXNeighbour(): Problem getting greedy neighbour \n\r" + 
 	    			"neighbour type: " + neighbourType + "\n\r" +
