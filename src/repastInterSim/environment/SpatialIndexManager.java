@@ -36,7 +36,6 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.main.GlobalVars;
-import repastInterSim.main.SpaceBuilder;
 
 /**
  * Class that can be used to hold spatial indexes for Geography Projections. This

@@ -20,13 +20,8 @@ package repastInterSim.main;
 
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.logging.Logger;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import repast.simphony.engine.environment.RunEnvironment;
-import repast.simphony.parameter.Parameters;
-
 /**
  * 
  * @author nick
