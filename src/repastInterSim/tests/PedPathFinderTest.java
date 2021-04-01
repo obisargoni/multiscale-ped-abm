@@ -1629,16 +1629,17 @@ class PedPathFinderTest {
 		}
 		
 		// Create distance minimising and crossing minimising pedestrians
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, false, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
-		addPedToWorld(pedMinDist, o);
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, false, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
 		
 		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, true, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
-		addPedToWorld(pedMinCross, o);
 		
 		// Step the peds once to initiase their routes
 		try {
-			pedMinDist.step();
+			addPedToWorld(pedMinCross, o);
 			pedMinCross.step();
+			
+			addPedToWorld(pedMinDist, o);
+			pedMinDist.step();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
