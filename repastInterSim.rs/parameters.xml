@@ -18,18 +18,7 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="vehiclePriorityCostRatio" displayName="Pedestrian ratio of vehicle cell cost to pedestrian cell cost used for inital route" type="double" 
-				defaultValue="1" 
-				isReadOnly="false" 
-				converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
-									
-		/>
-				<parameter name="cellCostUpdate" displayName="Factor used to get cell cost from vehicle space occupancy" type="double" 
-						defaultValue="1" 
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
-									
-		/>
+
 						<parameter name="alpha" displayName="Controls weighting betweem traffic exposure and journey time" type="double" 
 						defaultValue="0.5" 
 						isReadOnly="false" 
