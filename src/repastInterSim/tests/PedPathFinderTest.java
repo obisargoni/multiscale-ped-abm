@@ -884,7 +884,7 @@ class PedPathFinderTest {
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
 		
 		boolean nodeCheck = false;
-		if (endJID1.contentEquals("pave_node_35")) {
+		if (endJID1.contentEquals("pave_node_44")) {
 			nodeCheck = true;
 		}
 		assert nodeCheck == true;
@@ -907,7 +907,7 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 			
 			setUpCrossingAlternatives();
 			
@@ -920,10 +920,10 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (od.getId() == 4) {
+			if (od.getId() == 5) {
 				o = od;
 			}
-			else if (od.getId() == 7) {
+			else if (od.getId() == 2) {
 				d = od;
 			}
 		}
@@ -993,7 +993,7 @@ class PedPathFinderTest {
 			setUpPavementLinks("pedNetworkLinks.shp");
 			setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 			
 			setUpCrossingAlternatives();
 			
@@ -1006,10 +1006,10 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (od.getId() == 8) {
+			if (od.getId() == 6) {
 				o = od;
 			}
-			else if (od.getId() == 7) {
+			else if (od.getId() == 2) {
 				d = od;
 			}
 		}
@@ -1094,7 +1094,7 @@ class PedPathFinderTest {
 			
 			setUpCrossingAlternatives();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1105,10 +1105,10 @@ class PedPathFinderTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 4) {
+			if (i.getId() == 5) {
 				o = i;
 			}
-			else if (i.getId() == 1) {
+			else if (i.getId() == 7) {
 				d = i;
 			}
 		}
@@ -1149,9 +1149,10 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Testing the initialisation of a PedPathFinder object. O Id = 2 D id = 1.
+	 * Testing the initialisation of a PedPathFinder object.
 	 * 
-	 * Test fails due to issue with how destination pavement network node is identified.
+	 * Test fails due to issue with how destination pavement network node is identified. Caused by road link route not including
+	 * the link the nearest pavement junction to the destination is on.
 	 * 
 	 * Need to revise this process to ensure dest node is the node nearest the destination. Will require 
 	 * distinguishing between cases where the final road link is included in the strategic path or not.
@@ -1172,7 +1173,7 @@ class PedPathFinderTest {
 			
 			setUpCrossingAlternatives();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1183,10 +1184,10 @@ class PedPathFinderTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 2) {
+			if (i.getId() == 8) {
 				o = i;
 			}
-			else if (i.getId() == 1) {
+			else if (i.getId() == 7) {
 				d = i;
 			}
 		}
@@ -1214,7 +1215,7 @@ class PedPathFinderTest {
 	}
 	
 	/*
-	 * Testing the initialisation of a PedPathFinder object. O Id = 2 D id = 5.
+	 * Testing the initialisation of a PedPathFinder object.
 	 * 
 	 * Also tests updating the tactical path from a junction part way along the journey.
 	 * 
@@ -1235,7 +1236,7 @@ class PedPathFinderTest {
 			
 			setUpCrossingAlternatives();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1246,10 +1247,10 @@ class PedPathFinderTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 2) {
+			if (i.getId() == 8) {
 				o = i;
 			}
-			else if (i.getId() == 5) {
+			else if (i.getId() == 9) {
 				d = i;
 			}
 		}
@@ -1329,7 +1330,7 @@ class PedPathFinderTest {
 			
 			setUpCrossingAlternatives();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1343,7 +1344,7 @@ class PedPathFinderTest {
 			if (i.getId() == 3) {
 				o = i;
 			}
-			else if (i.getId() == 4) {
+			else if (i.getId() == 5) {
 				d = i;
 			}
 		}
@@ -1442,7 +1443,7 @@ class PedPathFinderTest {
 			
 			setUpRoads();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 			
 			setUpCrossingAlternatives();
 			
@@ -1454,10 +1455,10 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId()==7) {
+			if (i.getId()==10) {
 				o = i;
 			}
-			else if (i.getId()==2) {
+			else if (i.getId()==8) {
 				d = i;
 			}
 		}
@@ -1510,7 +1511,7 @@ class PedPathFinderTest {
 			
 			setUpRoads();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 			
 			setUpCrossingAlternatives();
 			
@@ -1530,7 +1531,7 @@ class PedPathFinderTest {
 			if (i.getId() == 3) {
 				o = i;
 			}
-			else if (i.getId() == 4) {
+			else if (i.getId() == 2) {
 				d = i;
 			}
 		}
@@ -1602,7 +1603,7 @@ class PedPathFinderTest {
 			
 			setUpRoads();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			setUpODs("OD_pedestrian_nodes_test.shp");
 			
 			setUpCrossingAlternatives();
 			
@@ -1619,10 +1620,10 @@ class PedPathFinderTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 3) {
+			if (i.getId() == 5) {
 				o = i;
 			}
-			else if (i.getId() == 4) {
+			else if (i.getId() == 6) {
 				d = i;
 			}
 		}
