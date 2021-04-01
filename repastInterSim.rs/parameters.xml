@@ -49,6 +49,12 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
+								<parameter name="tacticalPlanHorizon" displayName="Cumulative angular distance pedestrian percieves at tactical level" type="double" 
+						defaultValue="20" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
 		</parameters>
 
 
