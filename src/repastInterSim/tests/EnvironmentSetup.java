@@ -126,7 +126,7 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpPedODs() throws MalformedURLException, FileNotFoundException {
-		SpaceBuilder.pedestrianDestinationGeography = setUpODs("OD_pedestrian_nodes.shp", "pedODGeography");
+		SpaceBuilder.pedestrianDestinationGeography = setUpODs("OD_pedestrian_nodes_test.shp", "pedODGeography");
 	}
 	
 	static void setUpVehicleODs() throws MalformedURLException, FileNotFoundException {

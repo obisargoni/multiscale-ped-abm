@@ -148,12 +148,20 @@ public class RoadNetworkRouteTest {
 		testODGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
-		String vehicleDestinationsFile = TestDataDir + "OD_pedestrian_nodes.shp";
+		String vehicleDestinationsFile = TestDataDir + "OD_pedestrian_nodes_test.shp";
 		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
 		
 		// Select pedestrian origins and destinations to test
-		Coordinate o = testODContext.getObjects(OD.class).get(0).getGeom().getCoordinate();
-		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
+		Coordinate o = null;
+		Coordinate d = null;
+		for ( OD od: testODContext.getObjects(OD.class)) {
+			if (od.getId() == 1) {
+				o = od.getGeom().getCoordinate();
+			}
+			else if (od.getId() == 2) {
+				d = od.getGeom().getCoordinate();
+			}
+		}
 
 		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
 		
@@ -201,12 +209,20 @@ public class RoadNetworkRouteTest {
 		testODGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		// Load vehicle origins and destinations
-		String vehicleDestinationsFile = TestDataDir + "OD_pedestrian_nodes.shp";
+		String vehicleDestinationsFile = TestDataDir + "OD_pedestrian_nodes_test.shp";
 		GISFunctions.readShapefile(OD.class, vehicleDestinationsFile, testODGeography, testODContext);
 		
 		// Select pedestrian origins and destinations to test
-		Coordinate o = testODContext.getObjects(OD.class).get(0).getGeom().getCoordinate();
-		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
+		Coordinate o = null;
+		Coordinate d = null;
+		for ( OD od: testODContext.getObjects(OD.class)) {
+			if (od.getId() == 1) {
+				o = od.getGeom().getCoordinate();
+			}
+			else if (od.getId() == 10) {
+				d = od.getGeom().getCoordinate();
+			}
+		}
 
 		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
 		

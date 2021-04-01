@@ -1,8 +1,5 @@
 package repastInterSim.tests;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,33 +11,16 @@ import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
-import repast.simphony.context.space.gis.GeographyFactoryFinder;
-import repast.simphony.context.space.graph.NetworkBuilder;
-import repast.simphony.space.gis.Geography;
-import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
-import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.PedObstruction;
-import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.SpatialIndexManager;
-import repastInterSim.environment.contexts.CAContext;
-import repastInterSim.environment.contexts.JunctionContext;
-import repastInterSim.environment.contexts.PedObstructionContext;
-import repastInterSim.environment.contexts.PedestrianDestinationContext;
-import repastInterSim.environment.contexts.RoadContext;
-import repastInterSim.environment.contexts.RoadLinkContext;
-import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
-import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class TacticalRouteTest {
@@ -54,219 +34,7 @@ class TacticalRouteTest {
 	String pavementLinkPath = null;
 	String pedJPath = null;
 	String serialisedLookupPath = null;
-	
-	void setUpProperties() throws IOException {
-		IO.readProperties();
-	}
-	
-	void setUpObjectGeography() {
-		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		SpaceBuilder.geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
-		SpaceBuilder.geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(SpaceBuilder.geography);
-	}
-	
-	void setUpRoads() throws Exception {
-		pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
-		vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
-		serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
-		
-		// Get road geography
-		Context<Road> testRoadContext = new RoadContext();
-		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
 
-		
-		// Load vehicle origins and destinations
-		try {
-			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
-		} catch (MalformedURLException | FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
-		
-		/**
-		 * To model two way roads, two RoadLink objects are created with the same id. Therefore, when getting the RoadLink objects
-		 * that this Road object is associated, allow for multiple RoadLink objects to be associated.
-		 */
-		
-		// Only do this bit if the ITN road link geography is not null
-		if(SpaceBuilder.roadLinkGeography != null) {
-			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
-				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
-				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
-					// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
-					if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
-						roadLinks.add(rl);
-					}
-				}
-				r.setRoadLinks(roadLinks);
-			}
-		}
-	}
-	
-	Geography<RoadLink> setUpLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
-		roadLinkPath = testGISDir + roadLinkFile;
-		
-		// Initialise test road link geography and context
-		Context<RoadLink> roadLinkContext = new RoadLinkContext();
-		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
-		rlG.setCRS(GlobalVars.geographyCRSString);
-				
-		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, roadLinkContext);
-		SpatialIndexManager.createIndex(rlG, RoadLink.class);
-		
-		return rlG;
-	}
-	
-	void setUpITNRoadLinks(String roadLinkFile) throws Exception {
-		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
-	}
-	
-	void setUpORRoadLinks(String roadLinkFile) throws Exception {
-		SpaceBuilder.orRoadLinkGeography = setUpLinks(roadLinkFile);
-	}
-	
-	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
-		SpaceBuilder.pavementLinkGeography = setUpLinks(linkFile);
-	}
-		
-	void setUpODs(String odFile) throws MalformedURLException, FileNotFoundException {
-		
-		// Initialise OD context and geography
-		Context<OD> ODContext = new PedestrianDestinationContext();
-		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
-		SpaceBuilder.pedestrianDestinationGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testODGeography", ODContext, GeoParamsOD);
-		SpaceBuilder.pedestrianDestinationGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		// Load vehicle origins and destinations
-		String testODFile = testGISDir + odFile;
-		GISFunctions.readShapefile(OD.class, testODFile, SpaceBuilder.pedestrianDestinationGeography, ODContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.pedestrianDestinationGeography, OD.class);
-	}
-	
-	void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
-		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
-		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
-		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
-		SpaceBuilder.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
-		SpaceBuilder.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		
-		// Load ped obstructions data
-		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
-		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
-	}
-	
-	void setUpCrossingAlternatives() throws MalformedURLException, FileNotFoundException {
-		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
-		Context<CrossingAlternative> caContext = new CAContext();
-		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
-		SpaceBuilder.caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
-		SpaceBuilder.caGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		
-		// Load ped obstructions data
-		String testCAFile = testGISDir + "crossing_lines.shp";
-		GISFunctions.readShapefile(CrossingAlternative.class, testCAFile, SpaceBuilder.caGeography, caContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.caGeography, CrossingAlternative.class);
-	}
-	
-	void setUpORRoadNetwork(boolean isDirected) {
-		Context<Junction> junctionContext = new JunctionContext();
-		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
-		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
-		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.orRoadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.orRoadNetwork);
-	}
-	
-	void setUpITNRoadNetwork(boolean isDirected) {
-		Context<Junction> junctionContext = new JunctionContext();
-		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		junctionGeography.setCRS(GlobalVars.geographyCRSString);
-		
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
-		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.roadNetwork = builder.buildNetwork();
-		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
-	}
-	
-	void setUpPavementNetwork() {
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", SpaceBuilder.pavementJunctionContext, false);
-		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.pavementNetwork = builder.buildNetwork();
-		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.pavementLinkGeography, SpaceBuilder.pavementJunctionContext, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
-	}
-	
-	void setUpPedJunctions() throws Exception {
-		setUpProperties();
-		pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
-		
-		// Initialise test road link geography and context
-		SpaceBuilder.pavementJunctionContext = new JunctionContext();
-		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
-		SpaceBuilder.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", SpaceBuilder.pavementJunctionContext, GeoParams);
-		SpaceBuilder.pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
-				
-		GISFunctions.readShapefile(Junction.class, pedJPath, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementJunctionContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.pavementJunctionGeography, Junction.class);
-	}
-	
-	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
-		
-		// Plan the strategic path
-		List<RoadLink> sP = new ArrayList<RoadLink>();		
-		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
-		
-		// Define my starting and ending junctions to test
-		// Need to to this because although the origin and destination were selected above, this was just to initialise RoadNetworkRoute with
-		// The route is actually calculated using junctions. 
-		List<Junction> currentJunctions = new ArrayList<Junction>();
-		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: SpaceBuilder.roadNetwork.getNodes()) {
-			
-			// Set the test current junctions 
-			if (j.getFID().contentEquals(j1ID)) {
-				currentJunctions.add(j);
-			}
-			
-			// Set the test destination junctions
-			if (j.getFID().contentEquals(j2ID)) {
-				destJunctions.add(j);
-			}
-		}
-		
-		Junction[] routeEndpoints = new Junction[2];
-		
-		// Get shortest Route according to the Route class
-		List<RepastEdge<Junction>> shortestRoute = null;
-		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		for(int i=0; i< shortestRoute.size(); i++) {
-			NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(i);
-			sP.add(e.getRoadLink());
-		}
-		
-		return sP;
-	}
 
 	/*
 	 * This tests a scenario where the strategic path is 2 links long.
@@ -279,22 +47,24 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
+			IO.readProperties();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpORRoadLinks();
 			
-			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
-
-			setUpRoads();
-
-			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			EnvironmentSetup.setUpPedODs();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -305,10 +75,10 @@ class TacticalRouteTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 5) {
+			if (i.getId() == 9) {
 				o = i;
 			}
-			else if (i.getId() == 1) {
+			else if (i.getId() == 7) {
 				d = i;
 			}
 		}
@@ -364,23 +134,23 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
+			IO.readProperties();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpORRoadLinks();
 			
-			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
-			setUpITNRoadNetwork(true);
-
-			setUpRoads();
-
-			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			EnvironmentSetup.setUpPedODs();
 			
-			setUpODs("OD_pedestrian_nodes.shp");
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -391,7 +161,7 @@ class TacticalRouteTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 6) {
+			if (i.getId() == 11) {
 				o = i;
 			}
 			else if (i.getId() == 3) {
@@ -433,23 +203,23 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
+			IO.readProperties();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpORRoadLinks();
 			
-			setUpITNRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
-			setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
-			setUpORRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			EnvironmentSetup.setUpPedODs();
 			
-			setUpRoads();
-			
-			setUpODs("OD_pedestrian_nodes.shp");
-			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -460,10 +230,10 @@ class TacticalRouteTest {
 		OD o = null;
 		OD d = null;
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId()==2) {
+			if (i.getId()==3) {
 				o = i;
 			}
-			else if (i.getId()==4) {
+			else if (i.getId()==1) {
 				d = i;
 			}
 		}
