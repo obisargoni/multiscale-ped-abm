@@ -56,7 +56,7 @@ public class Ped extends MobileAgent {
     
     private String roadLinkFID = null;
     
-    private Double pHorizon = 20.0; // Tactical planning horizon of ped agent in degrees
+    private Double pHorizon; // Tactical planning horizon of ped agent in degrees
         
     private int yieldTime = 0;
     
@@ -69,7 +69,7 @@ public class Ped extends MobileAgent {
      */
     public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o,d);
-    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, minimiseCrossings, paveG, paveNetwork);
+    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
     }
     
     /*
@@ -78,12 +78,12 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o, d);
-    	init(s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, paveG, paveNetwork);
+    	init(s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, paveG, paveNetwork);
     }
     
-    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
         this.v0  = s;
         this.m  = m;
         this.rad = m / 320; // As per Moussaid
@@ -98,7 +98,10 @@ public class Ped extends MobileAgent {
         this.theta = (2*Math.PI*75) / 360; // 75 degrees
         this.k = GlobalVars.interactionForceConstant;
         
-        // Set parameters for crossing choice model
+        // Set the tactical planning horizon
+        this.pHorizon = pH;
+        
+        // Set parameters for crossing choice model (operational level path finding)
 		this.alpha = alpha;
 		this.lambda = lambda;
 		this.gamma = gamma;

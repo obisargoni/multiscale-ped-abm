@@ -562,7 +562,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Double v = this.pedSpeeds.nextDouble();
 		Double m = this.pedMasses.nextDouble();
 		
-    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.
