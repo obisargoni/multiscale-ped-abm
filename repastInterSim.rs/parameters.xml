@@ -43,7 +43,7 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
-										<parameter name="minCrossingProp" displayName="Proportion of pedestrian agents that prioritise minimising crossings" type="double" 
+								<parameter name="minCrossingProp" displayName="Proportion of pedestrian agents that prioritise minimising crossings" type="double" 
 						defaultValue="1" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
