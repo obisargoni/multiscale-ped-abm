@@ -75,10 +75,10 @@ class TacticalRouteTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 5) {
+			if (i.getId() == 9) {
 				o = i;
 			}
-			else if (i.getId() == 1) {
+			else if (i.getId() == 7) {
 				d = i;
 			}
 		}
@@ -161,7 +161,7 @@ class TacticalRouteTest {
 		OD d = null;
 		
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 6) {
+			if (i.getId() == 11) {
 				o = i;
 			}
 			else if (i.getId() == 3) {
@@ -230,10 +230,10 @@ class TacticalRouteTest {
 		OD o = null;
 		OD d = null;
 		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId()==2) {
+			if (i.getId()==3) {
 				o = i;
 			}
-			else if (i.getId()==4) {
+			else if (i.getId()==1) {
 				d = i;
 			}
 		}
