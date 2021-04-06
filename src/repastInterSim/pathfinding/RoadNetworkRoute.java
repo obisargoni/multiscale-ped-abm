@@ -1321,7 +1321,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		
 		populateCache(odGeography, pavementJunctionGeography);
 		this.createdTime = new Date().getTime();
-		serialise();
+		//serialise();
 	}
 
 	public void clear() {
