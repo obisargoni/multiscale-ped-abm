@@ -1259,11 +1259,9 @@ class NearestPavementJunctionCoordCache implements Serializable {
 	// changed since
 	private long createdTime;
 	
-	private Geography<Junction> pavementJunctionGeography;
-
 	private GeometryFactory geomFac;
 
-	private NearestPavementJunctionCoordCache(Geography<OD> odGeography, File odile, Geography<Junction> pavementJunctionGeography, 
+	private NearestPavementJunctionCoordCache(Geography<OD> odGeography, File odFile, Geography<Junction> pavementJunctionGeography, 
 			File pavementJunctionFile, File serialisedLoc, GeometryFactory geomFac) throws Exception {
 
 		this.odFile = odFile;
@@ -1271,7 +1269,6 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		this.serialisedLoc = serialisedLoc;
 		this.theCache = new Hashtable<Coordinate, Junction>();
 		this.geomFac = geomFac;
-		this.pavementJunctionGeography = pavementJunctionGeography;
 
 		LOGGER.log(Level.FINE, "NearestPavementJunctionCoordCache() creating new cache with data (and modification date):\n\t"
 				+ this.odFile.getAbsolutePath() + " (" + new Date(this.odFile.lastModified()) + ") \n\t"
@@ -1307,7 +1304,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 	 * @return
 	 * @throws Exception
 	 */
-	public Junction get(Coordinate c) throws Exception {
+	public Junction get(Coordinate c, Geography<Junction> pavementJunctionGeography) throws Exception {
 		if (c == null) {
 			throw new Exception("NearestPavementJunctionCoordCache.get() error: the given coordinate is null.");
 		}
@@ -1330,9 +1327,9 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		Envelope searchEnvelope = coordGeom.buffer(bufferDist * bufferMultiplier).getEnvelopeInternal();
 		StringBuilder debug = new StringBuilder(); // in case the operation fails
 
-		for (Junction j : this.pavementJunctionGeography.getObjectsWithin(searchEnvelope)) {
+		for (Junction j : pavementJunctionGeography.getObjectsWithin(searchEnvelope)) {
 
-			DistanceOp distOp = new DistanceOp(coordGeom, this.pavementJunctionGeography.getGeometry(j));
+			DistanceOp distOp = new DistanceOp(coordGeom, pavementJunctionGeography.getGeometry(j));
 			double thisDist = distOp.distance();
 			// BUG?: if an agent is on a really long road, the long road will not be found by getObjectsWithin because
 			// it is not within the buffer
@@ -1355,7 +1352,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		/* IF HERE THEN ERROR, PRINT DEBUGGING INFO */
 		StringBuilder debugIntro = new StringBuilder(); // Some extra info for debugging
 		debugIntro.append("NearestPavementJunctionCoordCache.get() error: couldn't find a junction to return.\n");
-		Iterable<Junction> juncs = this.pavementJunctionGeography.getObjectsWithin(searchEnvelope);
+		Iterable<Junction> juncs = pavementJunctionGeography.getObjectsWithin(searchEnvelope);
 		debugIntro.append("Looking for nearest road coordinate around ").append(c.toString()).append(".\n");
 		debugIntro.append("pavementJunctionGeography.getObjectsWithin() returned ").append(
 				SpaceBuilder.sizeOfIterable(juncs) + " roads, printing debugging info:\n");
