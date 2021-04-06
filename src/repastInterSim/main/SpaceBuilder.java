@@ -221,7 +221,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			SpatialIndexManager.createIndex(orRoadLinkGeography, RoadLink.class);
 			
 			// 1c. Load pavement nodes and links used for the pavement network
-			String pedJPath = GISDataDir + IO.getProperty("PavementJunctionsShapefile");					
+			String pedJPath = GISDataDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile);					
 			GISFunctions.readShapefile(Junction.class, pedJPath, pavementJunctionGeography, pavementJunctionContext);
 			SpatialIndexManager.createIndex(pavementJunctionGeography, Junction.class);
 			
