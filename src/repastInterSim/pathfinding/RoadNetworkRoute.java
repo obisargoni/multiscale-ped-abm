@@ -609,6 +609,50 @@ public class RoadNetworkRoute implements Cacheable {
 		}
 		return roads;
 	}
+	
+	/*
+	 * Use cache to find the nearest pavement junction to the input coordinate.
+	 * 
+	 * @param Coordinate c
+	 * 			The coordinate to find nearest junction to.
+	 * 
+	 */
+	public static synchronized Junction getNearestPavementJunctionToOD(Coordinate c) throws Exception {
+		// double time = System.nanoTime();
+		
+		// Don't bother with the cache for now
+		synchronized (buildingsOnRoadCacheLock) {
+			if (odPaveJuncCache == null) {
+				/*
+				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
+						+ "creating cache of all roads and the buildings which are on them ...");
+						*/
+				// Create a new cache object, this will be read from disk if
+				// possible (which is why the getInstance() method is used
+				// instead of the constructor.
+				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
+				File odFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
+				File pavementJunctionFile = new File(gisDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile));
+				File paveJuncSeriealizedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
+
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+			} // if not cached
+		} // synchronized
+		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
+	}
+	
+	/*
+	 * A version of the methods for getting the nearest junction to a coordinate that is used when testing since can control which data files to use.
+	 */
+	public static synchronized Junction getNearestpavementJunctionToOD(Coordinate c, File odFile, File pavementJunctionFile, File paveJuncSeriealizedLoc) throws Exception {
+		// Don't bother with the cache for now
+		synchronized (buildingsOnRoadCacheLock) {
+			if (odPaveJuncCache == null) {
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+			} // if not cached
+		} // synchronized
+		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
+	}
 
 	/**
 	 * Finds the shortest route between multiple origin and destination junctions. Will return the shortest path and
