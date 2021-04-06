@@ -970,18 +970,11 @@ public class RoadNetworkRoute implements Cacheable {
 	public void clearCaches() {
 		if (coordCache != null)
 			coordCache.clear();
-		if (nearestRoadCoordCache != null) {
-			nearestRoadCoordCache.clear();
-			nearestRoadCoordCache = null;
+		if (odPaveJuncCache != null) {
+			odPaveJuncCache.clear();
+			odPaveJuncCache = null;
 		}
 		
-		// Ignoring building cache for now
-		/*
-		if (buildingsOnRoadCache != null) {
-			buildingsOnRoadCache.clear();
-			buildingsOnRoadCache = null;
-		}
-		*/
 	}
 	
 	public List<RoadLink> getRoadsX(){
