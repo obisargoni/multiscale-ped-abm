@@ -123,11 +123,13 @@ public class RoadNetworkRoute implements Cacheable {
 	
 	// File names used for cache
 	private static String gisDir;
-	private static File odsFile;
-	private static File roadsFile;
+	private static File odFile;
+	private static File vehcileRoadsFile;
+	private static File pedestrianRoadsFile;
+	private static File pavementJunctionFile;	
 
 	private static File serialisedLoc;
-	private static File odJuncSeriealisedLoc;
+	private static File paveJuncSeriealizedLoc;
 	
 	private static GeometryFactory geomFac = new GeometryFactory();
 
@@ -157,10 +159,13 @@ public class RoadNetworkRoute implements Cacheable {
 		
 		// File names used for caches
 		gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
-		odsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
-		roadsFile = new File(gisDir + IO.getProperty(GlobalVars.ORRoadLinkShapefile));
+		odFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
+		vehcileRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleRoadShapefile));
+		pedestrianRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianRoadShapefile));
+		pavementJunctionFile = new File(gisDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile));
+		
 		serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
-		odJuncSeriealisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
+		paveJuncSeriealizedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
 	}
 	
 	/**
@@ -527,10 +532,10 @@ public class RoadNetworkRoute implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
-				File vehcileRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleRoadShapefile));
-				File pedestrianRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianRoadShapefile));
-				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkRoadsCache));
+				//String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
+				//File vehcileRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleRoadShapefile));
+				//File pedestrianRoadsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianRoadShapefile));
+				//File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkRoadsCache));
 
 				roadLinkRoadsCache = RoadLinkRoadsCache.getInstance(roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc);
 			} // if not cached
@@ -605,11 +610,6 @@ public class RoadNetworkRoute implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				String gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
-				File odFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
-				File pavementJunctionFile = new File(gisDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile));
-				File paveJuncSeriealizedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
-
 				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
 		} // synchronized
