@@ -80,6 +80,8 @@ public class RoadNetworkRouteTest {
 	@Test
 	public void testGetShortestRoute() throws MalformedURLException, FileNotFoundException {
 		
+		double start = System.currentTimeMillis();
+		
 		// Initialise OD context and geography
 		Context<OD> testODContext = new VehicleDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
@@ -136,10 +138,13 @@ public class RoadNetworkRouteTest {
 			assert e.getRoadLink().getFID().contentEquals(expectedFID);
 		}
 		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetShortestRoute() duration: \n" + duration + "\n");
 	}
 	
 	@Test
 	public void testGetShortestRoutePedOD1() throws MalformedURLException, FileNotFoundException {
+		double start = System.currentTimeMillis();
 		
 		// Initialise OD context and geography
 		Context<OD> testODContext = new VehicleDestinationContext();
@@ -196,11 +201,14 @@ public class RoadNetworkRouteTest {
 				
 		// Route is empty when start and end points are the same
 		assert shortestRoute.isEmpty() == true;
-
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetShortestRoutePedOD1() duration: \n" + duration + "\n");
 	}
 	
 	@Test
 	public void testGetShortestRoutePedOD2() throws MalformedURLException, FileNotFoundException {
+		double start = System.currentTimeMillis();
 		
 		// Initialise OD context and geography
 		Context<OD> testODContext = new VehicleDestinationContext();
@@ -259,6 +267,11 @@ public class RoadNetworkRouteTest {
 		assert shortestRoute.size() == 1;
 		NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(0);
 		assert e.getRoadLink().getFID().contentEquals("osgb4000000030238946");
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetShortestRoutePedOD2() duration: \n" + duration + "\n");
+	}
+	
 	/*
 	 * Calculates shortest route using the OR road Network. Also gets the start junctions using the OD to pavement junction cache.
 	 */
@@ -356,6 +369,8 @@ public class RoadNetworkRouteTest {
 	
 	@Test
 	public void testCalculateRouteParity() throws MalformedURLException, FileNotFoundException {
+		double start = System.currentTimeMillis();
+
 		// Initialise OD context and geography
 		Context<OD> testODContext = new PedestrianDestinationContext();
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
@@ -386,6 +401,9 @@ public class RoadNetworkRouteTest {
 		// Now perform parity calculation
 		int p = RoadNetworkRoute.calculateRouteParity(o, d, roads);
 		assert p == 1;
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testCalculateRouteParity() duration: \n" + duration + "\n");
 	}
 	
 	void setUpRoads() {
@@ -411,8 +429,10 @@ public class RoadNetworkRouteTest {
 	
 	@Test
 	public void testGetRoadLinkRoadCacheInstance() throws Exception {
-		
+
 		setUpRoads();
+		
+		double start = System.currentTimeMillis();
 		
 		File vehcileRoadsFile = new File(TestDataDir + "topographicAreaVehicle.shp");
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
@@ -424,12 +444,16 @@ public class RoadNetworkRouteTest {
 		
 		// Check the expected number of roads have been returned		
 		assert roads.size() == 3;
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetRoadLinkRoadCacheInstance() duration: \n" + duration + "\n");
 	}
 	
 	@Test
 	public void testGetRoadLinkPedestrianRoads() throws Exception {
-		
 		setUpRoads();
+		
+		double start = System.currentTimeMillis();
 		
 		File vehcileRoadsFile = new File(TestDataDir + "topographicAreaVehicle.shp");
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
@@ -442,6 +466,9 @@ public class RoadNetworkRouteTest {
 		
 		// Check the expected number of roads have been returned		
 		assert pedRoads.size() == 2;
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetRoadLinkPedestrianRoads() duration: \n" + duration + "\n");
 	}
 
 }
