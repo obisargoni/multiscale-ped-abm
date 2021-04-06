@@ -111,11 +111,12 @@ public class RoadNetworkRoute implements Cacheable {
 	 * centroids of houses to/from the nearest road).
 	 */
 	private static volatile NearestRoadCoordCache nearestRoadCoordCache;
+	
+	
 	/*
-	 * Store which road every building is closest to. This is used to efficiently add buildings to the agent's awareness
-	 * space
+	 * Store which pavement junction each OD is closest to
 	 */
-	//private static volatile BuildingsOnRoadCache buildingsOnRoadCache;
+	private static volatile NearestPavementJunctionCoordCache odPaveJuncCache;
 	// To stop threads competing for the cache:
 	private static Object buildingsOnRoadCacheLock = new Object();
 	/*
@@ -129,7 +130,12 @@ public class RoadNetworkRoute implements Cacheable {
 	private static String gisDir;
 	private static File odsFile;
 	private static File roadsFile;
+
 	private static File serialisedLoc;
+	private static File odJuncSeriealisedLoc;
+	
+	private static GeometryFactory geomFac = new GeometryFactory();
+
 
 
 	/**
@@ -154,11 +160,12 @@ public class RoadNetworkRoute implements Cacheable {
 		this.origin = origin;
 		this.destination = destination;
 		
-		// File names used for cache
+		// File names used for caches
 		gisDir = IO.getProperty(GlobalVars.GISDataDirectory);
 		odsFile = new File(gisDir + IO.getProperty(GlobalVars.PedestrianDestinationsFile));
 		roadsFile = new File(gisDir + IO.getProperty(GlobalVars.ORRoadLinkShapefile));
 		serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
+		odJuncSeriealisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
 	}
 	
 	/**
@@ -292,17 +299,27 @@ public class RoadNetworkRoute implements Cacheable {
 		RoadLink destRoad = null;
 		try {
 			
-			// Get pavement junctions nearest pedestrian OD
-			// Get road links OD are beside
-			currentPaveJ = findNearestObject(currentCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			destPaveJ = findNearestObject(destCoord, pavementJunctionsGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find the road link corresponding to the pavement polygon the agent is on
+			// I think this is quite slow and needs rethinking, eg using a cache
+			currentRoad = GISFunctions.getCoordinateRoad(currentCoord).getORRoadLink();
+			destRoad = GISFunctions.getCoordinateRoad(destCoord).getORRoadLink();
 			
-			currentRoad = findNearestObject(currentCoord, SpaceBuilder.orRoadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			destRoad = findNearestObject(destCoord, SpaceBuilder.orRoadLinkGeography, null, GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
+			// Find the nearest pavement junctions to start and end of journey. Use these to find start and end road junctions
+			currentPaveJ = getNearestPavementJunctionToOD(currentCoord);
+			destPaveJ = getNearestPavementJunctionToOD(destCoord);
 			
-			// Get start and end road network junctions from IDs
-			List<Junction> currentORJ = currentRoad.getJunctions().stream().filter(j -> j.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList());
-			List<Junction> destORJ = destRoad.getJunctions().stream().filter(j -> j.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList());
+			List<Junction> currentORJ = new ArrayList<Junction>();
+			List<Junction> destORJ = new ArrayList<Junction>();
+			
+			// Loop through road junction geography to select start and end road nodes
+			for (Junction rJ: SpaceBuilder.orJunctionGeography.getAllObjects()) {
+				if(rJ.getFID().contentEquals(currentPaveJ.getjuncNodeID())) {
+					currentORJ.add(rJ);
+				}
+				if(rJ.getFID().contentEquals(destPaveJ.getjuncNodeID())) {
+					destORJ.add(rJ);
+				}
+			}
 			
 			assert currentORJ.size() == 1;
 			assert destORJ.size() == 1;
