@@ -118,7 +118,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	private static volatile NearestPavementJunctionCoordCache odPaveJuncCache;
 	// To stop threads competing for the cache:
-	private static Object buildingsOnRoadCacheLock = new Object();
+	private static Object odPaveJuncCacheLock = new Object();
 	/*
 	 * Cache of road link ID to the road objects that have these IDs. Use to find the pedestrian and vehicle polygons links to a road link
 	 */
@@ -604,7 +604,7 @@ public class RoadNetworkRoute implements Cacheable {
 		// double time = System.nanoTime();
 		
 		// Don't bother with the cache for now
-		synchronized (buildingsOnRoadCacheLock) {
+		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
 				/*
 				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
@@ -629,7 +629,7 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	public static synchronized Junction getNearestpavementJunctionToOD(Coordinate c, File odFile, File pavementJunctionFile, File paveJuncSeriealizedLoc) throws Exception {
 		// Don't bother with the cache for now
-		synchronized (buildingsOnRoadCacheLock) {
+		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
 				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
