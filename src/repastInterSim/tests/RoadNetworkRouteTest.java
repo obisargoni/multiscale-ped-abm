@@ -259,8 +259,100 @@ public class RoadNetworkRouteTest {
 		assert shortestRoute.size() == 1;
 		NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(0);
 		assert e.getRoadLink().getFID().contentEquals("osgb4000000030238946");
+	/*
+	 * Calculates shortest route using the OR road Network. Also gets the start junctions using the OD to pavement junction cache.
+	 */
+	@Test
+	public void testGetShortestRoutePedOD3() throws MalformedURLException, FileNotFoundException {
+		
+		try {
+			IO.readProperties();
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpPedJunctions();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+		} catch (Exception e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		double start = System.currentTimeMillis();
 
+		
+		// Select pedestrian origins and destinations to test
+		Coordinate o = null;
+		Coordinate d = null;
+		for ( OD od: SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+			if (od.getId() == 1) {
+				o = od.getGeom().getCoordinate();
+			}
+			else if (od.getId() == 10) {
+				d = od.getGeom().getCoordinate();
+			}
+		}
+
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o , d);
+		
+		// Get current and destination junction using the cache
+		File odFile = new File(TestDataDir + "OD_pedestrian_nodes_test.shp");
+		File pavementJunctionFile = new File(TestDataDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile));
+		File paveJuncSeriealizedLoc = new File(TestDataDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
+		Junction oPavementJ = null;
+		Junction dPavementJ = null;
+		try {
+			oPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(o, odFile, pavementJunctionFile, paveJuncSeriealizedLoc);
+			dPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(d, odFile, pavementJunctionFile, paveJuncSeriealizedLoc);
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// Define my starting and ending junctions to test
+		String currentJunctionFID = "node_id_73";
+		String destJunctionFID = "node_id_60";
+		
+		// Test that the junctions returned are as expected
+		assert oPavementJ.getFID().contentEquals("pave_node_111");
+		assert dPavementJ.getFID().contentEquals("pave_node_91");
+		assert oPavementJ.getjuncNodeID().contentEquals(currentJunctionFID);
+		assert dPavementJ.getjuncNodeID().contentEquals(destJunctionFID);
+		
+		List<Junction> currentJunctions = new ArrayList<Junction>();
+		List<Junction> destJunctions = new ArrayList<Junction>();
+		for(Junction j: SpaceBuilder.orRoadNetwork.getNodes()) {
+			
+			// Set the test current junctions 
+			if (j.getFID().contentEquals(currentJunctionFID)) {
+				currentJunctions.add(j);
+			}
+			
+			// Set the test destination junctions
+			if (j.getFID().contentEquals(destJunctionFID)) {
+				destJunctions.add(j);
+			}
+		}
+		
+		Junction[] routeEndpoints = new Junction[2];
+		
+		// Get shortest Route according to the Route class
+		List<RepastEdge<Junction>> shortestRoute = null;
+		try {
+			shortestRoute = rnr.getShortestRoute(SpaceBuilder.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+				
+		// Check route is made up on single expected road link when these start and end points given
+		assert shortestRoute.size() == 1;
+		NetworkEdge<Junction> e = (NetworkEdge<Junction>)shortestRoute.get(0);
+		assert e.getRoadLink().getFID().contentEquals("A8675945-DE94-4E22-9905-B0623A326221_0");
+		
+		double duration = System.currentTimeMillis() - start;
+		System.out.print("testGetShortestRoutePedOD3() duration: \n" + duration + "\n");
 	}
+
 	
 	@Test
 	public void testCalculateRouteParity() throws MalformedURLException, FileNotFoundException {
