@@ -106,11 +106,6 @@ public class RoadNetworkRoute implements Cacheable {
 	 * of, useful for the agent's awareness space (see getRoadFromCoordCache()).
 	 */
 	private static volatile Map<Coordinate, List<RoadLink>> coordCache;
-	/*
-	 * Cache the nearest road Coordinate to every building for efficiency (agents usually/always need to get from the
-	 * centroids of houses to/from the nearest road).
-	 */
-	private static volatile NearestRoadCoordCache nearestRoadCoordCache;
 	
 	
 	/*
