@@ -526,7 +526,7 @@ public class RoadNetworkRoute implements Cacheable {
 		synchronized (roadLinkRoadsCacheLock) {
 			if (roadLinkRoadsCache == null) {
 				/*
-				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
+				LOGGER.log(Level.FINE, "Route.getRoadLinkRoads called for first time, "
 						+ "creating cache of all roads and the buildings which are on them ...");
 						*/
 				// Create a new cache object, this will be read from disk if
@@ -606,10 +606,7 @@ public class RoadNetworkRoute implements Cacheable {
 		// Don't bother with the cache for now
 		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
-				/*
-				LOGGER.log(Level.FINE, "Route.getNearestRoadCoord called for first time, "
-						+ "creating cache of all roads and the buildings which are on them ...");
-						*/
+
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
