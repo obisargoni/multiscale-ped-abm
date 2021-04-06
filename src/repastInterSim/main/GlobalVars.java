@@ -54,11 +54,13 @@ public abstract class GlobalVars {
 	public static final String PedestrianDestinationsFile = "PedestrianDestinationsFile";
 	public static final String vehicleODFlowsFile = "vehicleODFlowsFile";
 	public static final String pedestrianODFlowsFile = "pedestrianODFlowsFile";
+	public static final String PavementJunctionShapeFile = "PavementJunctionsShapefile";
 	
 	public static final String ODRoadLinkCoordsCache = "ODRoadLinkCoordsCache";
 	public static final String ODORRoadLinkCoordsCache = "ODORRoadLinkCoordsCache";
 	public static final String BuildingsRoadsCache = "BuildingsRoadsCache";
 	public static final String RoadLinkRoadsCache = "RoadLinkRoadsCache";
+	public static final String ODPavementJunctionCache = "ODPavementJunctionCache";
 			
 	public static double spaceScale = 1;
 	public static double stepToTimeRatio = 1;
