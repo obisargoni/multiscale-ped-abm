@@ -167,8 +167,9 @@ public class Ped extends MobileAgent {
     public void walk(Coordinate dLoc) {
     	
     	// Update pedestrians knowledge of which direction the current destination is
-        setBearingToDestinationCoord(dLoc);
+        this.a0 = getBearingToDestinationCoord(dLoc);
     	
+        // Assume that velocity is updated instantly, and then position is update with new velocity since (walking takes time but adjusting velocity is quick)
         double[] a = accel();
         double[] dv = {a[0]*this.tau, a[1]*this.tau};
         this.newV  = Vector.sumV(v,dv);
@@ -516,14 +517,14 @@ public class Ped extends MobileAgent {
     /*
      * Calculate bearing to destination and convert to a unit vector
      */
-    public double setBearingToDestinationCoord(Coordinate dLoc)  {
+    public double getBearingToDestinationCoord(Coordinate dLoc)  {
     	
         double[] dirToEnd = {dLoc.x - maLoc.x, dLoc.y - maLoc.y};        
         dirToEnd = Vector.unitV(dirToEnd);
         
-        this.a0 = Vector.angleBetweenNorthAndUnitVector(dirToEnd);
+        double a0 = Vector.angleBetweenNorthAndUnitVector(dirToEnd);
         
-        return this.a0;
+        return a0;
     }
     
     /*
