@@ -332,6 +332,28 @@ public class Ped extends MobileAgent {
     
     // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
     public double distanceToObject(double alpha)  {
+    	  	
+    	double d = distanceToObject(alpha, SpaceBuilder.context.getObjects(Ped.class), SpaceBuilder.pedObstructGeography.getAllObjects());
+        
+        return d;    	
+    }
+    
+    /*
+     * Function to calculate distance to nearest collision with objects passed in as iterables, for a given angle alpha.
+     * 
+     * Correction needed to account for movements of other peds.
+     * 
+     * @param double alpha
+     * 		The bearing to look for objects along
+     * @param Iterable<Object> maObjs
+     * 		An iterable containing mobile agents (Peds and Vehicle). Search through these to avoid colliding with Peds and Vehicles
+     * @param Iterable<PedObstruction> pedObstObjs
+     * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
+     * 
+     * @return double
+     * 		Distance to the nearest object in the direction of th angle alpha
+     */
+    public double distanceToObject(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
@@ -339,10 +361,9 @@ public class Ped extends MobileAgent {
     	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
     	
     	// Check to see if this line intersects with any pedestrian agents
-        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
-        	Ped P = (Ped)agent;
-        	if (P != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
+        for (Object agent :maObjs) {
+        	if (agent != this) {
+               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
                	if (agentG.intersects(sampledRay)) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
@@ -358,9 +379,8 @@ public class Ped extends MobileAgent {
         }
         
     	// Check to see if this line intersects with any obstacle agents
-        for (Object obstr :SpaceBuilder.pedObstructGeography.getAllObjects()) {
-        	PedObstruction Obstr = (PedObstruction)obstr;
-           	Geometry obstG = Obstr.getGeom();
+        for (PedObstruction obstr : pedObstObjs) {
+           	Geometry obstG = obstr.getGeom();
            	if (obstG.intersects(sampledRay)) {
            		// The intersection geometry could be multiple points.
            		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
