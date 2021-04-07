@@ -86,16 +86,16 @@ public class Ped extends MobileAgent {
     private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
         this.v0  = s;
         this.m  = m;
-        this.rad = m / 320; // As per Moussaid
+        this.rad = m / 320; // As per Moussaid 2011
         
         // Set the pedestrian velocity - half of max velocity in the direction the pedestrian is facing
         double[] v = {0,0};
         this.v =  v;
 
-        this.tau  = 0.5/GlobalVars.tStep;
-        this.dmax = 10/GlobalVars.spaceScale; 
+        this.tau  = 0.5/GlobalVars.tStep; // as per Moussaid 2011
+        this.dmax = 10/GlobalVars.spaceScale; // as per Moussaid 2011
         this.angres = (2*Math.PI) / (36 / 3); // Equivalent to 30 degrees
-        this.theta = (2*Math.PI*75) / 360; // 75 degrees
+        this.theta = (2*Math.PI*75) / 360; // 75 degrees, as per Moussaid 2011
         this.k = GlobalVars.interactionForceConstant;
         
         // Set the tactical planning horizon

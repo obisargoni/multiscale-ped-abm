@@ -71,7 +71,7 @@ public abstract class GlobalVars {
 	public static double pedVavg = 0.8; // average pedestrian speed
 	public static double pedMassAv = 60; // 60kg average mass
 	public static double pedMasssd = 10; // 60kg average mass
-	public static double interactionForceConstant = 100;
+	public static double interactionForceConstant = 5000; // 5e3 as per moussaid 2011
 	public static int lookAheadTimeSteps = 3; // The number of timesteps to use when calculating an agents lookahead coordinate, used to identifying upcoming crossings.
 	public static double deafultTacticalPlanningHorizon = 20.0; // Degrees
 	
