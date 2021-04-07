@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -219,8 +220,12 @@ public class Ped extends MobileAgent {
         
         Coordinate[] searchAreaCoords = {maLoc, c1, c2, maLoc};
         Polygon searchArea = SpaceBuilder.fac.createPolygon(searchAreaCoords);
+        
+        Iterable<Object> mobileAgentsInArea = SpaceBuilder.geography.getObjectsWithin(searchArea.getEnvelopeInternal());
+        Iterable<PedObstruction> obstructionsInArea = SpaceBuilder.pedObstructGeography.getObjectsWithin(searchArea.getEnvelopeInternal());
+
         // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration();
+        fovA = motiveAcceleration(mobileAgentsInArea, obstructionsInArea);
 
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
@@ -233,9 +238,9 @@ public class Ped extends MobileAgent {
     
     
     // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration()  {
+    public double[] motiveAcceleration(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
-    	double[] desiredVelocity = desiredVelocity();
+    	double[] desiredVelocity = desiredVelocity(maObjs, pedObstObjs);
     	
     	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
     	double[] a = {0,0};
@@ -411,10 +416,10 @@ public class Ped extends MobileAgent {
     }
     
     // Function to calculate d(a) using cos rule
-    public double displacementDistance(double alpha)  {
+    public double displacementDistance(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
     	// Get the distance to nearest object for this angle
-    	double fAlpha =  distanceToObject(alpha);
+    	double fAlpha =  distanceToObject(alpha, maObjs, pedObstObjs);
     	
     	double dAlpha = Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
     	
@@ -422,20 +427,20 @@ public class Ped extends MobileAgent {
     }
     
     // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection()  {
+    public Map<String, Double> desiredDirection(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
     	// Sample field of vision
     	List<Double> sampledAngles = sampleFoV();
     	
     	// Initialise the displacement distance (which must be minimised) and the direction of travel
     	// The angle here is relative to the direction of the agent
-    	double d = displacementDistance(sampledAngles.get(0));
+    	double d = displacementDistance(sampledAngles.get(0), maObjs, pedObstObjs);
     	double alpha = sampledAngles.get(0);    
     	
     	// Loop through the remaining angles and find the angle which minimises the displacement distance
     	for (int i = 1;i<sampledAngles.size(); i++) {
     		
-    		double dDist = displacementDistance(sampledAngles.get(i));
+    		double dDist = displacementDistance(sampledAngles.get(i), maObjs, pedObstObjs);
     		
     		if (dDist < d) {
     			d = dDist;
@@ -445,15 +450,15 @@ public class Ped extends MobileAgent {
     	
     	Map<String, Double> output = new HashMap<String, Double>();
     	output.put("angle", alpha);
-    	output.put("collision_distance", distanceToObject(alpha));
+    	output.put("collision_distance", distanceToObject(alpha)); // don't need to calculate distanceToObject again here, can use the minimum distance found so far, d
     	
     	return output;    	
     }
     
-    public double[] desiredVelocity()  {
+    public double[] desiredVelocity(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
-    	Map<String, Double> desiredDirection = desiredDirection();
+    	Map<String, Double> desiredDirection = desiredDirection(maObjs, pedObstObjs);
     	
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
     	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
