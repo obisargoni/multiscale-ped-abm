@@ -206,6 +206,19 @@ public class Ped extends MobileAgent {
         
         double[] totA, fovA, contA;
         
+        // Start by finding obstacle objects (Peds, Vehicles, PedObstructions close to the ped
+        // Do this by creating a triangle geometry that approximates the ped's perceptual field
+        
+        double envAng = this.theta * 1.3; // Angle of cone, a bit larger than field of vision
+        double r = this.dmax / Math.cos(envAng); // Length of cone side
+        double a1 = this.a0 - envAng;
+        double a2 = this.a0 + envAng;
+        
+        Coordinate c1 = new Coordinate(maLoc.x + maLoc.x + r*Math.sin(a1), maLoc.y + maLoc.y + r*Math.cos(a1));
+        Coordinate c2 = new Coordinate(maLoc.x + maLoc.x + r*Math.sin(a2), maLoc.y + maLoc.y + r*Math.cos(a2));
+        
+        Coordinate[] searchAreaCoords = {maLoc, c1, c2, maLoc};
+        Polygon searchArea = SpaceBuilder.fac.createPolygon(searchAreaCoords);
         // Calculate acceleration due to field of vision consideration
         fovA = motiveAcceleration();
 
