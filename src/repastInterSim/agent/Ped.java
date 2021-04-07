@@ -450,7 +450,7 @@ public class Ped extends MobileAgent {
     	
     	Map<String, Double> output = new HashMap<String, Double>();
     	output.put("angle", alpha);
-    	output.put("collision_distance", d);
+    	output.put("collision_distance", distanceToObject(alpha)); // don't need to calculate distanceToObject again here, can use the minimum distance found so far, d
     	
     	return output;    	
     }
