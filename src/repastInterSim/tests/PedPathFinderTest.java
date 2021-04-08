@@ -381,7 +381,7 @@ class PedPathFinderTest {
 	@Test
 	void testPavementJunctions() {
 		try {
-			setUpPedJunctions();
+			EnvironmentSetup.setUpPedJunctions();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -406,9 +406,9 @@ class PedPathFinderTest {
 		
 		// Call methods that create the pavement junction geography and the pavement network
 		try {
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -436,12 +436,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions1() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -488,12 +488,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions2() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -541,12 +541,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions3() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -594,12 +594,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions4() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -647,12 +647,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions5() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -700,12 +700,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions6() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -742,12 +742,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions1() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -795,12 +795,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions2() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -848,12 +848,12 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions3() {
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -899,17 +899,24 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute1() {
 		try {
-			setUpObjectGeography();
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -985,17 +992,24 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute2() {
 		try {
-			setUpObjectGeography();
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1083,18 +1097,24 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1162,18 +1182,24 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1225,18 +1251,24 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1319,18 +1351,24 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
-			setUpObjectGeography();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1434,18 +1472,24 @@ class PedPathFinderTest {
 	public void testPedPathFinder5() {
 		
 		try {
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpRoads();
 			
-			setUpRoads();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1495,27 +1539,26 @@ class PedPathFinderTest {
 	void testPedsOnRoadLinkList() {
 		// Setup the environment
 		try {
-			setUpObjectGeography();
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedObstructions();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpPedObstructions();
 			
-			setUpITNRoadLinks();
-			setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpRoads();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpRoads();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpPedODs();
 			
-			assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1587,27 +1630,26 @@ class PedPathFinderTest {
 	void testPedCrossingFlags1() {
 		// Setup the environment
 		try {
-			setUpObjectGeography();
+			EnvironmentSetup.setUpObjectGeography();
 			
-			setUpPedObstructions();
-
-			setUpORRoadLinks();
-			setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpPedObstructions();
 			
-			setUpITNRoadLinks();
-			setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpRoads();
 			
-			setUpPedJunctions();
-			setUpPavementLinks("pedNetworkLinks.shp");
-			setUpPavementNetwork();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
 			
-			setUpRoads();
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
 			
-			setUpODs("OD_pedestrian_nodes_test.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
-			setUpCrossingAlternatives();
+			EnvironmentSetup.setUpPedODs();
 			
-			assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();;
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
