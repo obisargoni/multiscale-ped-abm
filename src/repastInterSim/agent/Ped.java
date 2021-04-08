@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -409,7 +410,10 @@ public class Ped extends MobileAgent {
         for (Object agent :maObjs) {
         	if (agent != this) {
                	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
-               	if (agentG.intersects(sampledRay)) {
+               	
+               	DistanceOp distOP = new DistanceOp(agentG, sampledRay);
+               	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
+               	if (Double.compare(distOP.distance(), 0.0) == 0) {
                		// The intersection geometry could be multiple points.
                		// Iterate over them find the distance to the nearest pedestrian
                		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
@@ -419,14 +423,15 @@ public class Ped extends MobileAgent {
                    			d = dAgent;
                    		}
                		}
-               	}
+               	}               	
         	}
         }
         
     	// Check to see if this line intersects with any obstacle agents
         for (PedObstruction obstr : pedObstObjs) {
            	Geometry obstG = obstr.getGeom();
-           	if (obstG.intersects(sampledRay)) {
+           	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
+           	if (Double.compare(distOP.distance(), 0.0) == 0) {
            		// The intersection geometry could be multiple points.
            		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
            		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
