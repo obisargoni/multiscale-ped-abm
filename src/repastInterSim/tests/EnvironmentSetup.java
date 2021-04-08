@@ -180,8 +180,18 @@ public class EnvironmentSetup {
 		return rN;
 	}
 	
-	static void setUpORRoadNetwork(boolean isDirected) {		
-		SpaceBuilder.orRoadNetwork = setUpRoadNetwork(isDirected, SpaceBuilder.orRoadLinkGeography, GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+	static void setUpORRoadNetwork(boolean isDirected) {
+		
+		Context<Junction> junctionContext = new JunctionContext();
+		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
+		SpaceBuilder.orJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY, junctionContext, GeoParamsJunc);
+		SpaceBuilder.orJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
+		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
+		SpaceBuilder.orRoadNetwork = builder.buildNetwork();
+		
+		GISFunctions.buildGISRoadNetwork(SpaceBuilder.orRoadLinkGeography, junctionContext, SpaceBuilder.orJunctionGeography, SpaceBuilder.orRoadNetwork);
 	}
 	
 	static void setUpITNRoadNetwork(boolean isDirected) {
