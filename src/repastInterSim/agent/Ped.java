@@ -319,7 +319,9 @@ public class Ped extends MobileAgent {
     	
     }
     
-    // Function to sample field of vision
+    /*
+     * Sample angles in field of vision
+     */
     public List<Double> sampleFoV() {
     	
     	// Initialise a list to hole the sampled field of vision vectors
@@ -357,7 +359,7 @@ public class Ped extends MobileAgent {
      * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
      * 
      * @return double
-     * 		Distance to the nearest object in the direction of th angle alpha
+     * 		Distance to the nearest object in the direction of the angle alpha
      */
     public double distanceToObject(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
