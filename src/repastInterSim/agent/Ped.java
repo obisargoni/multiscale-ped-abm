@@ -602,6 +602,29 @@ public class Ped extends MobileAgent {
     	return newLookAhead;
     }
     
+    /*
+     * Returns a triangle polygon that approximates pedestrian's field of vision. The triangle 
+     * is wider and longer than the actual field of vision to ensure than the triangle fully encompasses the field of vision.
+     * 
+     * @param double b
+     * 		The bearing of the pedestrian (direction pedestrian is facing)
+     */
+    public Polygon getPedestrianFieldOfVisionPolygon(double b) {
+        double envAng = Math.min(Math.PI/2, this.theta * 1.1); // Angle of cone, a bit larger than field of vision, but not larger than pi/2
+        double r = Math.abs((this.dmax *1.1) / Math.cos(envAng / 2)); // Length of cone side. Chosen as length needed to ensure polygon extends beyond field of vision.
+        double a1 = b - envAng;
+        double a2 = b + envAng;
+        
+        Coordinate c1 = new Coordinate(maLoc.x + r*Math.sin(a1), maLoc.y + r*Math.cos(a1));
+        Coordinate c2 = new Coordinate(maLoc.x + r*Math.sin(b), maLoc.y + r*Math.cos(b));
+        Coordinate c3 = new Coordinate(maLoc.x + r*Math.sin(a2), maLoc.y + r*Math.cos(a2));
+        
+        Coordinate[] fovCoords = {maLoc, c1, c2, c3, maLoc};
+        Polygon fovArea = SpaceBuilder.fac.createPolygon(fovCoords);
+        
+        return fovArea;
+    }
+    
     public void setRoadLinkFID(String rlFID) {
     	this.roadLinkFID = rlFID;
     }
