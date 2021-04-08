@@ -403,15 +403,30 @@ public class Ped extends MobileAgent {
         return d;    	
     }
     
-    // Function to calculate d(a) using cos rule
-    public double displacementDistance(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+    /*
+     * Function to calculate d(a) using cos rule.
+     * 
+     * Return both the displacement distance and the distance to the object
+     * 
+     * @param double alpha
+     * 		The bearing to look for objects along
+     * @param Iterable<Object> maObjs
+     * 		An iterable containing mobile agents (Peds and Vehicle). Search through these to avoid colliding with Peds and Vehicles
+     * @param Iterable<PedObstruction> pedObstObjs
+     * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
+     * 
+     * @return double []
+     * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
+     */
+    public double[] displacementDistance(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
     	
     	// Get the distance to nearest object for this angle
     	double fAlpha =  distanceToObject(alpha, maObjs, pedObstObjs);
     	
     	double dAlpha = Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
     	
-    	return dAlpha;
+    	double[] out = {fAlpha, dAlpha};
+    	return out;
     }
     
     // Wrapper function that identifies the chosen walking direction
@@ -422,23 +437,23 @@ public class Ped extends MobileAgent {
     	
     	// Initialise the displacement distance (which must be minimised) and the direction of travel
     	// The angle here is relative to the direction of the agent
-    	double d = displacementDistance(sampledAngles.get(0), maObjs, pedObstObjs);
+    	double[] ddArray = displacementDistance(sampledAngles.get(0), maObjs, pedObstObjs);
     	double alpha = sampledAngles.get(0);    
     	
     	// Loop through the remaining angles and find the angle which minimises the displacement distance
     	for (int i = 1;i<sampledAngles.size(); i++) {
     		
-    		double dDist = displacementDistance(sampledAngles.get(i), maObjs, pedObstObjs);
+    		double[] ddArrayi = displacementDistance(sampledAngles.get(i), maObjs, pedObstObjs);
     		
-    		if (dDist < d) {
-    			d = dDist;
+    		if (ddArrayi[1] < ddArray[1]) {
+    			ddArray = ddArrayi;
     			alpha = sampledAngles.get(i);
     		}
     	}
     	
     	Map<String, Double> output = new HashMap<String, Double>();
     	output.put("angle", alpha);
-    	output.put("collision_distance", distanceToObject(alpha)); // don't need to calculate distanceToObject again here, can use the minimum distance found so far, d
+    	output.put("collision_distance", ddArray[0]);
     	
     	return output;    	
     }
