@@ -104,14 +104,14 @@ class PedTest {
 		for(int i=0; i<fovAngles.size(); i++) {
 			d2s[i] = pedMinDist.distanceToObject(fovAngles.get(i), mobileAgentsInArea, obstGeog);
 		}
-        double durObstGeog = System.currentTimeMillis() - start;
+        double durObstGeog = System.currentTimeMillis() - (start + durObst);
         
         double[] d3s = new double[fovAngles.size()];
         List<PedObstruction> obstSI = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
 		for(int i=0; i<fovAngles.size(); i++) {
 			d3s[i] = pedMinDist.distanceToObject(fovAngles.get(i), mobileAgentsInArea, obstSI);
 		}
-		double durObstSI = System.currentTimeMillis() - durObstGeog;
+		double durObstSI = System.currentTimeMillis() - (start + durObst + durObstGeog);
         
 		System.out.print("Duration get ped obst all:" + durObst + "\n");
 		System.out.print("Duration get ped obst by geography:" + durObstGeog + "\n");
