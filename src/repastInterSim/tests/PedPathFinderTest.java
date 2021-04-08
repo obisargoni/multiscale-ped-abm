@@ -1,8 +1,6 @@
 package repastInterSim.tests;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.MalformedURLException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,34 +13,15 @@ import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
-import repast.simphony.context.space.gis.GeographyFactoryFinder;
-import repast.simphony.context.space.graph.NetworkBuilder;
-import repast.simphony.space.gis.Geography;
-import repast.simphony.space.gis.GeographyParameters;
-import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
-import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.OD;
-import repastInterSim.environment.PedObstruction;
-import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
-import repastInterSim.environment.SpatialIndexManager;
-import repastInterSim.environment.contexts.CAContext;
-import repastInterSim.environment.contexts.JunctionContext;
-import repastInterSim.environment.contexts.PedObstructionContext;
-import repastInterSim.environment.contexts.PedestrianDestinationContext;
-import repastInterSim.environment.contexts.RoadContext;
-import repastInterSim.environment.contexts.RoadLinkContext;
-import repastInterSim.main.GlobalVars;
-import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
-import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class PedPathFinderTest {
