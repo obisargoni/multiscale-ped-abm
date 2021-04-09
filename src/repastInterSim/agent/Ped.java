@@ -672,6 +672,19 @@ public class Ped extends MobileAgent {
         return fovArea;
     }
     
+    public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox) {
+        // Get list of all geometries of other pedestrian agents and pedestrian obstructions that intersect field of vision
+        List<Geometry> obstacleGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
+        Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
+        for (Ped p: pedsInArea) {
+        	if (p != this) {
+        		Geometry pGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, p);
+        		obstacleGeoms.add(pGeom);
+        	}
+        }
+		return obstacleGeoms;
+	}
+    
     public void setRoadLinkFID(String rlFID) {
     	this.roadLinkFID = rlFID;
     }
