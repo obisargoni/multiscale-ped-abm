@@ -211,11 +211,11 @@ public class Ped extends MobileAgent {
         
         // Start by finding obstacle objects (Peds, Vehicles, PedObstructions close to the ped
         Polygon fieldOfVisionApprox = getPedestrianFieldOfVisionPolygon(this.a0);
-        Iterable<Object> mobileAgentsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal());        
-        List<PedObstruction> pedObsInSearchArea = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
+        
+        List<Geometry> obstacleGeoms = getObstacleGeometries(fieldOfVisionApprox);
         
         // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration(mobileAgentsInArea, pedObsInSearchArea);
+        fovA = motiveAcceleration(obstacleGeoms);
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
         contA = totalContactAcceleration();
@@ -224,12 +224,11 @@ public class Ped extends MobileAgent {
         
         return totA;
     }
-    
-    
-    // Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+
+	// Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
+    public double[] motiveAcceleration(Iterable<Geometry> obstGeoms)  {
     	
-    	double[] desiredVelocity = desiredVelocity(maObjs, pedObstObjs);
+    	double[] desiredVelocity = desiredVelocity(obstGeoms);
     	
     	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
     	double[] a = {0,0};
@@ -399,7 +398,7 @@ public class Ped extends MobileAgent {
      * @return double
      * 		Distance to the nearest object in the direction of the angle alpha
      */
-    public double distanceToObject(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+    public double distanceToObject(double alpha, Iterable<Geometry> obstGeoms)  {
     	
     	// Initialise distance to nearest object as the max distance in the field of vision
     	double d = this.dmax;
@@ -407,41 +406,21 @@ public class Ped extends MobileAgent {
     	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
     	
     	// Check to see if this line intersects with any pedestrian agents
-        for (Object agent :maObjs) {
-        	if (agent != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
+        for (Geometry agentG :obstGeoms) {
                	
-               	DistanceOp distOP = new DistanceOp(agentG, sampledRay);
-               	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
-               	if (Double.compare(distOP.distance(), 0.0) == 0) {
-               		// The intersection geometry could be multiple points.
-               		// Iterate over them find the distance to the nearest pedestrian
-               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
-               		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = maLoc.distance(c);
-                   		if (dAgent < d) {
-                   			d = dAgent;
-                   		}
-               		}
-               	}               	
-        	}
-        }
-        
-    	// Check to see if this line intersects with any obstacle agents
-        for (PedObstruction obstr : pedObstObjs) {
-           	Geometry obstG = obstr.getGeom();
-           	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
+           	DistanceOp distOP = new DistanceOp(agentG, sampledRay);
+           	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
            	if (Double.compare(distOP.distance(), 0.0) == 0) {
            		// The intersection geometry could be multiple points.
-           		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
-           		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
-           		for(Coordinate c: obstIntersectionCoords) {
-           			double dAgent = maLoc.distance(c);
+           		// Iterate over them find the distance to the nearest pedestrian
+           		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
+           		for(Coordinate c: agentIntersectionCoords) {
+               		double dAgent = maLoc.distance(c);
                		if (dAgent < d) {
                			d = dAgent;
                		}
            		}
-           	}
+           	}              	
         }
         
         return d;    	
@@ -462,10 +441,10 @@ public class Ped extends MobileAgent {
      * @return double []
      * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
      */
-    public double[] displacementDistance(double alpha, Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+    public double[] displacementDistance(double alpha, Iterable<Geometry> obstGeoms)  {
     	
     	// Get the distance to nearest object for this angle
-    	double fAlpha =  distanceToObject(alpha, maObjs, pedObstObjs);
+    	double fAlpha =  distanceToObject(alpha, obstGeoms);
     	
     	double dAlpha = Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
     	
@@ -474,20 +453,20 @@ public class Ped extends MobileAgent {
     }
     
     // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+    public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms)  {
     	
     	// Sample field of vision
     	List<Double> sampledAngles = sampleFoV();
     	
     	// Initialise the displacement distance (which must be minimised) and the direction of travel
     	// The angle here is relative to the direction of the agent
-    	double[] ddArray = displacementDistance(sampledAngles.get(0), maObjs, pedObstObjs);
+    	double[] ddArray = displacementDistance(sampledAngles.get(0), obstGeoms);
     	double alpha = sampledAngles.get(0);    
     	
     	// Loop through the remaining angles and find the angle which minimises the displacement distance
     	for (int i = 1;i<sampledAngles.size(); i++) {
     		
-    		double[] ddArrayi = displacementDistance(sampledAngles.get(i), maObjs, pedObstObjs);
+    		double[] ddArrayi = displacementDistance(sampledAngles.get(i), obstGeoms);
     		
     		if (ddArrayi[1] < ddArray[1]) {
     			ddArray = ddArrayi;
@@ -502,10 +481,10 @@ public class Ped extends MobileAgent {
     	return output;    	
     }
     
-    public double[] desiredVelocity(Iterable<Object> maObjs, Iterable<PedObstruction> pedObstObjs)  {
+    public double[] desiredVelocity(Iterable<Geometry> obstGeoms)  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
-    	Map<String, Double> desiredDirection = desiredDirection(maObjs, pedObstObjs);
+    	Map<String, Double> desiredDirection = desiredDirection(obstGeoms);
     	
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
     	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
