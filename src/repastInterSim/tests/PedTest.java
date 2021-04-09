@@ -1,22 +1,18 @@
 package repastInterSim.tests;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.IOException;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repastInterSim.agent.Ped;
-import repastInterSim.agent.Vehicle;
-import repastInterSim.environment.PedObstruction;
-import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
@@ -85,12 +81,12 @@ class PedTest {
 		
 		// Get filters groups of objects
         Polygon fieldOfVisionApprox = pedMinDist.getPedestrianFieldOfVisionPolygon(b);
-		Iterable<Object> mobileAgentsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal());
+        List<Geometry> obstGeoms = pedMinDist.getObstacleGeometries(fieldOfVisionApprox);
 		
 		// Now that ped is pointiing in a direction can compare distance to nearest object using the full search method and method that searches 
 		// just objects in field of vision
 		
-		// Speed test difference between SI and Geography methods for identifying distance to closest ped obstruction
+		// Speed test difference between original distanceToObject method and methods that uses pre-filtered obstacle geometries.
 		
         double start = System.currentTimeMillis();
         double[] d1s = new double[fovAngles.size()];
@@ -100,27 +96,17 @@ class PedTest {
         double durObst = System.currentTimeMillis() - start;
         
         double[] d2s = new double[fovAngles.size()];
-        Iterable<PedObstruction> obstGeog = SpaceBuilder.pedObstructGeography.queryInexact(fieldOfVisionApprox.getEnvelopeInternal());
 		for(int i=0; i<fovAngles.size(); i++) {
-			d2s[i] = pedMinDist.distanceToObject(fovAngles.get(i), mobileAgentsInArea, obstGeog);
+			d2s[i] = pedMinDist.distanceToObject(fovAngles.get(i), obstGeoms);
 		}
         double durObstGeog = System.currentTimeMillis() - (start + durObst);
         
-        double[] d3s = new double[fovAngles.size()];
-        List<PedObstruction> obstSI = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
-		for(int i=0; i<fovAngles.size(); i++) {
-			d3s[i] = pedMinDist.distanceToObject(fovAngles.get(i), mobileAgentsInArea, obstSI);
-		}
-		double durObstSI = System.currentTimeMillis() - (start + durObst + durObstGeog);
-        
 		System.out.print("Duration get ped obst all:" + durObst + "\n");
 		System.out.print("Duration get ped obst by geography:" + durObstGeog + "\n");
-		System.out.print("Duration get ped obst by spatial index:" + durObstSI + "\n"); // Using spatial index is quicker
 		
 		// Now check that all distances returned match
 		for(int i=0; i<fovAngles.size(); i++) {
 			assert Double.compare(d1s[i], d2s[i]) == 0;
-			assert Double.compare(d1s[i], d3s[i]) == 0;
 		}
 
 	}
