@@ -406,14 +406,14 @@ public class Ped extends MobileAgent {
     	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
     	
     	// Check to see if this line intersects with any pedestrian agents
-        for (Geometry agentG :obstGeoms) {
+        for (Geometry obstG :obstGeoms) {
                	
-           	DistanceOp distOP = new DistanceOp(agentG, sampledRay);
+           	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
            	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
            	if (Double.compare(distOP.distance(), 0.0) == 0) {
            		// The intersection geometry could be multiple points.
            		// Iterate over them find the distance to the nearest pedestrian
-           		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
+           		Coordinate[] agentIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
            		for(Coordinate c: agentIntersectionCoords) {
                		double dAgent = maLoc.distance(c);
                		if (dAgent < d) {
