@@ -190,6 +190,8 @@ public abstract class SpatialIndexManager implements Cacheable {
 	 *            The geometry to search around
 	 * @param geography
 	 *            The given geography to look through
+	 * @param gisOp
+	 * 				String indicating the gis operation to include geometries based on. Either "contains", "within", otherwise intersects is used.
 	 * @return The List of intersecting objects
 	 * @throws NoSuchElementException
 	 *             If there is no spatial index for the given geography.
@@ -198,35 +200,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 	public static synchronized <T> List<T> findIntersectingObjects(Geography<T> geog, Geometry geomIn, String gisOp) 
 		throws NoSuchElementException {
 		
-		
-		Index<T> index = (Index<T>) indices.get(geog);
-		if (index==null) {
-			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
-		}
-				
-		// Query the spatial index for the nearest objects.
-		List<Geometry> close = index.si.query(geomIn.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
-		
-		// Now go through and find the intersecting geometries
-		List<Geometry> intersectingGeoms = new ArrayList<Geometry>();
-		for (Geometry g:close) {
-			if (gisOp.contentEquals("contains")) {
-				if (g.contains(geomIn)) {
-					intersectingGeoms.add(g);
-				} // if thisDist < minDist
-			}
-			else if (gisOp.contentEquals("within")) {
-				if (g.within(geomIn)) {
-					intersectingGeoms.add(g);
-				} // if thisDist < minDist
-			}
-			else {
-				if (g.intersects(geomIn)) {
-					intersectingGeoms.add(g);
-				} // if thisDist < minDist
-			}
-
-		} // for nearRoads
+		List<Geometry> intersectingGeoms = findIntersectingGeometries(geog, geomIn, gisOp);
 		
 		// This not a very neat method for getting the objects associated with these geometries.
 		// Required due to the way the data is structured, having duplicated geometries associated to different objects.
@@ -272,6 +246,62 @@ public abstract class SpatialIndexManager implements Cacheable {
 			if (g.intersects(geomIn)) {
 				intersectingGeoms.add(g);
 			} // if thisDist < minDist
+		} // for nearRoads
+		
+		return intersectingGeoms;
+	}
+	
+	
+	
+	/*
+	 * Find geometries in a geography that either contain, are within, or intersect the input geometry
+	 * 
+	 * @param <T> The type of object in the input geography.
+	 * @param geography
+	 *            The given geography to look through
+	 * @param geomIn
+	 *            The geometry to search around
+	 * @param gisOp
+	 * 				String indicating the gis operation to include geometries based on. Either "contains", "within", otherwise intersects is used.
+	 * @return The List of intersecting geometries
+	 * @throws NoSuchElementException
+	 *             If there is no spatial index for the given geography.
+	 */
+	@SuppressWarnings("unchecked")
+	public static synchronized <T> List<Geometry> findIntersectingGeometries(Geography<T> geog, Geometry geomIn, String gisOp) 
+			throws NoSuchElementException {
+		
+		if (gisOp == null) {
+			gisOp = "";
+		}
+		
+		Index<T> index = (Index<T>) indices.get(geog);
+		if (index==null) {
+			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
+		}
+				
+		// Query the spatial index for the nearest objects.
+		List<Geometry> close = index.si.query(geomIn.getEnvelope().buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALL.dist).getEnvelopeInternal());
+		
+		// Now go through and find the intersecting geometries
+		List<Geometry> intersectingGeoms = new ArrayList<Geometry>();
+		for (Geometry g:close) {
+			if (gisOp.contentEquals("contains")) {
+				if (g.contains(geomIn)) {
+					intersectingGeoms.add(g);
+				} // if thisDist < minDist
+			}
+			else if (gisOp.contentEquals("within")) {
+				if (g.within(geomIn)) {
+					intersectingGeoms.add(g);
+				} // if thisDist < minDist
+			}
+			else {
+				if (g.intersects(geomIn)) {
+					intersectingGeoms.add(g);
+				} // if thisDist < minDist
+			}
+
 		} // for nearRoads
 		
 		return intersectingGeoms;
