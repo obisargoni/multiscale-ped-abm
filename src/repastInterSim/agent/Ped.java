@@ -446,10 +446,17 @@ public class Ped extends MobileAgent {
     	// Get the distance to nearest object for this angle
     	double fAlpha =  distanceToObject(alpha, obstGeoms);
     	
-    	double dAlpha = Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
+    	double dAlpha = displacementDistance(alpha, fAlpha);
     	
     	double[] out = {fAlpha, dAlpha};
     	return out;
+    }
+    
+    /*
+     * Calculate the displacement distance in a direction given the direction angle, angle to destination, and distance to nearest object in direction angle 
+     */
+    public double displacementDistance(double alpha, double fAlpha) {
+    	return Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
     }
     
     // Wrapper function that identifies the chosen walking direction
