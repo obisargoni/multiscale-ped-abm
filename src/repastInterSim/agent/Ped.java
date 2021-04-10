@@ -427,6 +427,83 @@ public class Ped extends MobileAgent {
     }
     
     /*
+     * Given a set of geometries, calculate displacement distance for each of the geometries. Fill arrays of distances and displacement distances 
+     * with the lowest distance at that angle.
+     * 
+     * This is an alternative approach to finding minimum displacement distance that avoids many intersection computations.
+     * 
+     * @param Iterable<Geometry> obstGeoms
+     * 		The obstacle geometries to calculate the displacement distances for
+     * 
+     * @return double[]
+     * 		Array. First element is distance to the object. Second is displacement distance. Third is angle to geometry that gives least displacement distance. 
+     */
+    public void dispalcementDistancesToGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds) {
+    	double[] output = new double[3];
+    	output[1] = Double.MAX_VALUE;
+    	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
+    	double angleDiff = Double.MAX_VALUE;
+    	Geometry intGeom = null;
+    	for (Geometry g: obstGeoms) {
+    		DistanceOp distOp = new DistanceOp(agentG, g);
+    		
+    		// Calculate angle
+    		double alphaToGeom = GISFunctions.bearingBetweenCoordinates(maLoc, g.getCentroid().getCoordinate());
+    		
+    		// Check whether angle lies within field of vision and find which field of vision angle sample this angle corresponds to
+    		
+    		// Translate angle to be relative to peds bearing and in range -pi - pi
+    		double alpha = alphaToGeom - this.bearing;
+    		if (alpha > Math.PI) {
+    			alpha = alpha - 2*Math.PI;
+    		}
+    		else if(alpha < -Math.PI) {
+    			alpha = alpha + 2*Math.PI;
+    		}
+    		
+    		assert (alpha >= -Math.PI) & (alpha <= Math.PI);
+    		
+    		// Check whether angle lies within field of vision, if not continue to next geom
+    		if ( (alpha < -this.theta) | (alpha > this.theta) ) {
+    			continue;
+    		}
+    		
+    		// Get sample index of angle
+    		int ai = (int) ( (alpha - (- this.theta)) / this.angres);
+    		
+    		// Find out how much the angle to the objects differs to the sample angle
+    		double aD = Math.abs(fovAngles.get(ai) - alphaToGeom);
+    		
+    		// Calculate distance - do I need to limit to dmax?
+    		double fAlpha = distOp.distance();
+    		
+    		// Calculate displacement distance. Use the actual angle to the object.
+    		double dAlpha = displacementDistance(alphaToGeom, fAlpha);
+    		
+    		// Check if displacement distance is lower than previous min
+    		if (fAlpha <= this.dmax) { // if object within field of vision
+	    		if (dds[ai] < 0) { // if value not yet set for this angle
+	    			angleDiff = aD;
+	    			ds[ai] = fAlpha;
+	    			dds[ai] = dAlpha;
+	    			if(ai==2) {
+	    				intGeom = g;
+	    			}
+	    		}
+	    		else if (aD < angleDiff) { // If this angle is closer to the sample angle
+	    			angleDiff = aD;
+	    			ds[ai] = fAlpha;
+	    			dds[ai] = dAlpha;
+	    			if(ai==2) {
+	    				intGeom = g;
+	    			}
+	    		}
+    		}
+    	}
+    	//Coordinate c = intGeom.getCoordinate();
+    }
+    
+    /*
      * Function to calculate d(a) using cos rule.
      * 
      * Return both the displacement distance and the distance to the object
