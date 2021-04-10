@@ -34,6 +34,7 @@ import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
+import repastInterSim.environment.contexts.PedObstructionPointsContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
@@ -149,6 +150,20 @@ public class EnvironmentSetup {
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
 		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
+	}
+	
+	static void setUpPedObstructionPoints() throws MalformedURLException, FileNotFoundException {
+		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
+		Context<PedObstruction> pedObstructionPointsContext = new PedObstructionPointsContext();
+		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
+		SpaceBuilder.pedObstructionPointsGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructionPointsGeography", pedObstructionPointsContext, GeoParams);
+		SpaceBuilder.pedObstructionPointsGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		
+		// Load ped obstructions data
+		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleAreaDensifyPoints10cm.shp";
+		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructionPointsGeography, pedObstructionPointsContext);
+		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructionPointsGeography, PedObstruction.class);
 	}
 	
 	static void setUpCrossingAlternatives(String caFile) throws MalformedURLException, FileNotFoundException {

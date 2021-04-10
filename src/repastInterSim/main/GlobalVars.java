@@ -131,6 +131,8 @@ public abstract class GlobalVars {
 		
 		public static final String PED_OBSTRUCTION_CONTEXT = "pedObstructContext";
 		public static final String PED_OBSTRUCTION_GEOGRAPHY = "pedObstructGeography";
+		public static final String PED_OBSTRUCTION_POINTS_CONTEXT = "pedObstructionPointsContext";
+		public static final String PED_OBSTRUCTION_POINTS_GEOGRAPHY = "pedObstructionPointsGeography";
 		
 		public static final String ROAD_LINK_CONTEXT = "RoadLinkContext";
 		public static final String ROAD_LINK_GEOGRAPHY = "RoadLinkGeography";
