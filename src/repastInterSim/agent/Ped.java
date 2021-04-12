@@ -484,6 +484,7 @@ public class Ped extends MobileAgent {
     		if (fAlpha <= this.dmax) { // if object within field of vision
 	    		if (dds[ai] < 0) { // if value not yet set for this angle
 	    			angleDiff = aD;
+	    			fovAngles.set(ai, alphaToGeom);
 	    			ds[ai] = fAlpha;
 	    			dds[ai] = dAlpha;
 	    			if(ai==2) {
@@ -492,6 +493,7 @@ public class Ped extends MobileAgent {
 	    		}
 	    		else if (aD < angleDiff) { // If this angle is closer to the sample angle
 	    			angleDiff = aD;
+	    			fovAngles.set(ai, alphaToGeom);
 	    			ds[ai] = fAlpha;
 	    			dds[ai] = dAlpha;
 	    			if(ai==2) {
