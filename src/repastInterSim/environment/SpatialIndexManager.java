@@ -259,6 +259,12 @@ public abstract class SpatialIndexManager implements Cacheable {
 					intersectingGeoms.add(g);
 				} // if thisDist < minDist
 			}
+			else if (gisOp.contentEquals("intersection")) {
+				Geometry intersection = g.intersection(geomIn);
+				if (!intersection.isEmpty()) {
+					intersectingGeoms.add(intersection);
+				}
+			}
 			else {
 				if (g.intersects(geomIn)) {
 					intersectingGeoms.add(g);
