@@ -147,7 +147,7 @@ public class EnvironmentSetup {
 		
 		
 		// Load ped obstructions data
-		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
+		String testPedObstructFile = testGISDir + IO.getProperty("PedestrianObstructionShapefile");
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
 		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
 	}
@@ -161,7 +161,7 @@ public class EnvironmentSetup {
 		
 		
 		// Load ped obstructions data
-		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleAreaDensifyPoints10cm.shp";
+		String testPedObstructFile = testGISDir + IO.getProperty("PedestrianObstructionPointsShapefile");
 		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructionPointsGeography, pedObstructionPointsContext);
 		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructionPointsGeography, PedObstruction.class);
 	}
