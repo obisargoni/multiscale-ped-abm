@@ -443,50 +443,52 @@ public class Ped extends MobileAgent {
     	output[1] = Double.MAX_VALUE;
     	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
     	for (Geometry g: obstGeoms) {
-    		DistanceOp distOp = new DistanceOp(agentG.getCentroid(), g);
-    		
-    		// Calculate angle
-    		double alphaToGeom = GISFunctions.bearingBetweenCoordinates(maLoc, g.getCentroid().getCoordinate());
-    		
-    		// Check whether angle lies within field of vision and find which field of vision angle sample this angle corresponds to
-    		
-    		// Translate angle to be relative to peds bearing and in range -pi -> pi
-    		double alpha = alphaToGeom - this.bearing;
-    		if (alpha > Math.PI) {
-    			alpha = alpha - 2*Math.PI;
-    		}
-    		else if(alpha < -Math.PI) {
-    			alpha = alpha + 2*Math.PI;
-    		}
-    		
-    		assert (alpha >= -Math.PI) & (alpha <= Math.PI);
-    		
-    		// Check whether angle lies within field of vision, if not continue to next geom
-    		if ( (alpha < -this.theta) | (alpha > this.theta) ) {
-    			continue;
-    		}
-    		
-    		// Get sample index of angle
-    		int ai = (int) ( (alpha - (- this.theta)) / this.angres);
-    		    		
-    		// Calculate distance - do I need to limit to dmax?
-    		double fAlpha = distOp.distance();
-    		
-    		// Calculate displacement distance. Use the actual angle to the object.
-    		double dAlpha = displacementDistance(alphaToGeom, fAlpha);
-    		
-    		// Check if displacement distance is lower than previous min
-    		if (fAlpha <= this.dmax) { // if object within field of vision
-	    		if (dds[ai] < 0) { // if value not yet set for this angle
-	    			fovAngles.set(ai, alphaToGeom);
-	    			ds[ai] = fAlpha;
-	    			dds[ai] = dAlpha;
-	    		}
-	    		else if (fAlpha < ds[ai]) { // If this geometry is closer to the pedestrian
-	    			fovAngles.set(ai, alphaToGeom);
-	    			ds[ai] = fAlpha;
-	    			dds[ai] = dAlpha;
-	    		}
+    		for (Coordinate obstrCoord: g.getCoordinates()) {
+        		
+        		// Calculate angle
+        		double alphaToGeom = GISFunctions.bearingBetweenCoordinates(maLoc, obstrCoord);
+        		
+        		// Check whether angle lies within field of vision and find which field of vision angle sample this angle corresponds to
+        		
+        		// Translate angle to be relative to peds bearing and in range -pi -> pi
+        		double alpha = alphaToGeom - this.bearing;
+        		if (alpha > Math.PI) {
+        			alpha = alpha - 2*Math.PI;
+        		}
+        		else if(alpha < -Math.PI) {
+        			alpha = alpha + 2*Math.PI;
+        		}
+        		
+        		assert (alpha >= -Math.PI) & (alpha <= Math.PI);
+        		
+        		// Check whether angle lies within field of vision, if not continue to next geom
+        		if ( (alpha < -this.theta) | (alpha > this.theta) ) {
+        			continue;
+        		}
+        		
+        		// Get sample index of angle
+        		int ai = (int) ( (alpha - (- this.theta)) / this.angres);
+        		    		
+        		// Calculate distance - do I need to limit to dmax?
+        		double fAlpha = maLoc.distance(obstrCoord);
+        		
+        		// Calculate displacement distance. Use the actual angle to the object.
+        		double dAlpha = displacementDistance(alphaToGeom, fAlpha);
+        		
+        		// Check if displacement distance is lower than previous min
+        		if (fAlpha <= this.dmax) { // if object within field of vision
+    	    		if (dds[ai] < 0) { // if value not yet set for this angle
+    	    			fovAngles.set(ai, alphaToGeom);
+    	    			ds[ai] = fAlpha;
+    	    			dds[ai] = dAlpha;
+    	    		}
+    	    		else if (fAlpha < ds[ai]) { // If this geometry is closer to the pedestrian
+    	    			fovAngles.set(ai, alphaToGeom);
+    	    			ds[ai] = fAlpha;
+    	    			dds[ai] = dAlpha;
+    	    		}
+        		}
+    			
     		}
     	}
     }
