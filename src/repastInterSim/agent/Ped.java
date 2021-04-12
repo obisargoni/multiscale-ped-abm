@@ -442,8 +442,6 @@ public class Ped extends MobileAgent {
     	double[] output = new double[3];
     	output[1] = Double.MAX_VALUE;
     	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
-    	double angleDiff = Double.MAX_VALUE;
-    	Geometry intGeom = null;
     	for (Geometry g: obstGeoms) {
     		DistanceOp distOp = new DistanceOp(agentG.getCentroid(), g);
     		
@@ -452,7 +450,7 @@ public class Ped extends MobileAgent {
     		
     		// Check whether angle lies within field of vision and find which field of vision angle sample this angle corresponds to
     		
-    		// Translate angle to be relative to peds bearing and in range -pi - pi
+    		// Translate angle to be relative to peds bearing and in range -pi -> pi
     		double alpha = alphaToGeom - this.bearing;
     		if (alpha > Math.PI) {
     			alpha = alpha - 2*Math.PI;
@@ -470,10 +468,7 @@ public class Ped extends MobileAgent {
     		
     		// Get sample index of angle
     		int ai = (int) ( (alpha - (- this.theta)) / this.angres);
-    		
-    		// Find out how much the angle to the objects differs to the sample angle
-    		double aD = Math.abs(fovAngles.get(ai) - alphaToGeom);
-    		
+    		    		
     		// Calculate distance - do I need to limit to dmax?
     		double fAlpha = distOp.distance();
     		
@@ -483,25 +478,17 @@ public class Ped extends MobileAgent {
     		// Check if displacement distance is lower than previous min
     		if (fAlpha <= this.dmax) { // if object within field of vision
 	    		if (dds[ai] < 0) { // if value not yet set for this angle
-	    			angleDiff = aD;
 	    			fovAngles.set(ai, alphaToGeom);
 	    			ds[ai] = fAlpha;
 	    			dds[ai] = dAlpha;
-	    			if(ai==2) {
-	    				intGeom = g;
-	    			}
 	    		}
 	    		else if (fAlpha < ds[ai]) { // If this geometry is closer to the pedestrian
 	    			fovAngles.set(ai, alphaToGeom);
 	    			ds[ai] = fAlpha;
 	    			dds[ai] = dAlpha;
-	    			if(ai==2) {
-	    				intGeom = g;
-	    			}
 	    		}
     		}
     	}
-    	//Coordinate c = intGeom.getCoordinate();
     }
     
     /*
