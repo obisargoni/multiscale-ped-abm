@@ -445,7 +445,7 @@ public class Ped extends MobileAgent {
     	double angleDiff = Double.MAX_VALUE;
     	Geometry intGeom = null;
     	for (Geometry g: obstGeoms) {
-    		DistanceOp distOp = new DistanceOp(agentG, g);
+    		DistanceOp distOp = new DistanceOp(agentG.getCentroid(), g);
     		
     		// Calculate angle
     		double alphaToGeom = GISFunctions.bearingBetweenCoordinates(maLoc, g.getCentroid().getCoordinate());
