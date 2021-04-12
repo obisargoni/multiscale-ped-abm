@@ -542,6 +542,7 @@ public class Ped extends MobileAgent {
     	
     	// Then sample field of vision and initialise arrays of distances that correspond to each angle 
     	List<Double> sampledAngles = sampleFoV();
+    	int nAngleOptions = sampledAngles.size()-1; // Each sector between a sampled angle results in an angle option for direction
     	double[] distances = new double[sampledAngles.size()];
     	double[] displacementDistances = new double[sampledAngles.size()];
     	
@@ -558,7 +559,7 @@ public class Ped extends MobileAgent {
     	double minDD = Double.MAX_VALUE;
     	
     	// Now loop through the remaining angles and calculate displacement distances for any angles that don't have obstacles in
-    	for (int i = 0;i<sampledAngles.size(); i++) {
+    	for (int i = 0;i<nAngleOptions; i++) {
     		if (displacementDistances[i] < 0) {
     			distances[i] = this.dmax;
     			displacementDistances[i] = displacementDistance(sampledAngles.get(i), distances[i]);
