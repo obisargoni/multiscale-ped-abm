@@ -491,8 +491,7 @@ public class Ped extends MobileAgent {
 	    				intGeom = g;
 	    			}
 	    		}
-	    		else if (aD < angleDiff) { // If this angle is closer to the sample angle
-	    			angleDiff = aD;
+	    		else if (fAlpha < ds[ai]) { // If this geometry is closer to the pedestrian
 	    			fovAngles.set(ai, alphaToGeom);
 	    			ds[ai] = fAlpha;
 	    			dds[ai] = dAlpha;
