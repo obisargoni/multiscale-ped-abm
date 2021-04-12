@@ -539,28 +539,39 @@ public class Ped extends MobileAgent {
     // Wrapper function that identifies the chosen walking direction
     public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms)  {
     	
-    	// Sample field of vision
+    	// Then sample field of vision and initialise arrays of distances that correspond to each angle 
     	List<Double> sampledAngles = sampleFoV();
+    	double[] distances = new double[sampledAngles.size()];
+    	double[] displacementDistances = new double[sampledAngles.size()];
     	
-    	// Initialise the displacement distance (which must be minimised) and the direction of travel
-    	// The angle here is relative to the direction of the agent
-    	double[] ddArray = displacementDistance(sampledAngles.get(0), obstGeoms);
-    	double alpha = sampledAngles.get(0);    
+    	// Initialise values as -1 so can identify default values
+    	for (int i=0; i<distances.length; i++) {
+    		distances[i] = -1;
+    		displacementDistances[i] = -1;
+    	}
     	
-    	// Loop through the remaining angles and find the angle which minimises the displacement distance
-    	for (int i = 1;i<sampledAngles.size(); i++) {
+    	// First find the minimum displacement distance and associated angle for obstruction geometries
+    	dispalcementDistancesToGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
+    	
+    	Integer lowi = null;
+    	double minDD = Double.MAX_VALUE;
+    	
+    	// Now loop through the remaining angles and calculate displacement distances for any angles that don't have obstacles in
+    	for (int i = 0;i<sampledAngles.size(); i++) {
+    		if (displacementDistances[i] < 0) {
+    			distances[i] = this.dmax;
+    			displacementDistances[i] = displacementDistance(sampledAngles.get(i), distances[i]);
+    		}
     		
-    		double[] ddArrayi = displacementDistance(sampledAngles.get(i), obstGeoms);
-    		
-    		if (ddArrayi[1] < ddArray[1]) {
-    			ddArray = ddArrayi;
-    			alpha = sampledAngles.get(i);
+    		if (displacementDistances[i] < minDD) {
+    			minDD = displacementDistances[i];
+    			lowi = i;
     		}
     	}
     	
     	Map<String, Double> output = new HashMap<String, Double>();
-    	output.put("angle", alpha);
-    	output.put("collision_distance", ddArray[0]);
+    	output.put("angle", sampledAngles.get(lowi));
+    	output.put("collision_distance", distances[lowi]);
     	
     	return output;    	
     }
