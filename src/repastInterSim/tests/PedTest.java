@@ -85,7 +85,7 @@ class PedTest {
 		
 		// Get filters groups of objects
         Polygon fieldOfVisionApprox = pedMinDist.getPedestrianFieldOfVisionPolygon(b);
-        List<Geometry> obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
+        List<Geometry> obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
         
 		// Now that ped is pointiing in a direction can compare distance to nearest object using the full search method and method that searches 
 		// just objects in field of vision

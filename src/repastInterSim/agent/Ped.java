@@ -441,7 +441,6 @@ public class Ped extends MobileAgent {
     public void dispalcementDistancesToGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds) {
     	double[] output = new double[3];
     	output[1] = Double.MAX_VALUE;
-    	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
     	for (Geometry g: obstGeoms) {
     		for (Coordinate obstrCoord: g.getCoordinates()) {
         		
@@ -739,7 +738,7 @@ public class Ped extends MobileAgent {
     
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox) {
 
-		return getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
+		return getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
 	}
     
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox, Geography<PedObstruction> pedObstGeog) {
