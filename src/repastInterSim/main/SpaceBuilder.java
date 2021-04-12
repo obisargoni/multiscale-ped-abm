@@ -574,7 +574,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Draw velocity and mass from random distribution
 		Double v = this.pedSpeeds.nextDouble();
-		Double m = this.pedMasses.nextDouble();
+		Double m = GlobalVars.pedMassAv + 3*GlobalVars.pedMasssd; // Initialises as a value far from mean
+		while ( (m < GlobalVars.pedMassAv - 2*GlobalVars.pedMasssd) | (m > GlobalVars.pedMassAv + 2*GlobalVars.pedMasssd) ){ // Exclude extreme values
+			m = this.pedMasses.nextDouble();
+		}
 		
     	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
