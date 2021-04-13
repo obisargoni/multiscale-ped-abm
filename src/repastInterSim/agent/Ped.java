@@ -441,7 +441,7 @@ public class Ped extends MobileAgent {
     }
     
     /*
-     * Function to calculate d(a) using cos rule.
+     * Function to calculate distance to object and displacement distance for each of the sampled angles in the agents field of vision.
      * 
      * Return both the displacement distance and the distance to the object
      * 
@@ -455,15 +455,16 @@ public class Ped extends MobileAgent {
      * @return double []
      * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
      */
-    public double[] displacementDistanceToGeometriesIntersect(double alpha, Iterable<Geometry> obstGeoms)  {
+    public void displacementDistanceToGeometriesIntersect(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
     	
-    	// Get the distance to nearest object for this angle
-    	double fAlpha =  distanceToObject(alpha, obstGeoms);
-    	
-    	double dAlpha = displacementDistance(alpha, fAlpha);
-    	
-    	double[] out = {fAlpha, dAlpha};
-    	return out;
+    	for(int i=0; i<fovAngles.size(); i++) {
+        	// Get the distance to nearest object for this angle
+        	double fAlpha =  distanceToObject(fovAngles.get(i), obstGeoms);
+        	double dAlpha = displacementDistance(fovAngles.get(i), fAlpha);
+        	
+        	ds[i] = fAlpha;
+        	dds[i] = dAlpha;
+    	}
     }
     
     // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
