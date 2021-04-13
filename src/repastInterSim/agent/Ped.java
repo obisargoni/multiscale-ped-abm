@@ -319,6 +319,62 @@ public class Ped extends MobileAgent {
     	
     }
     
+    public double[] desiredVelocity(Iterable<Geometry> obstGeoms)  {
+    	
+    	// Get the desired direction of travel and minimum distance to collision in that direction
+    	Map<String, Double> desiredDirection = desiredDirection(obstGeoms);
+    	
+    	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
+    	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
+    	
+    	// Get the desired direction for the pedestrian and use to set velocity
+    	double alpha = desiredDirection.get("angle");
+    	double[] v = {desiredSpeed*Math.sin(alpha), desiredSpeed*Math.cos(alpha)};
+    	
+    	return v;
+    }
+    
+    // Wrapper function that identifies the chosen walking direction
+    public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms)  {
+    	
+    	// Then sample field of vision and initialise arrays of distances that correspond to each angle 
+    	List<Double> sampledAngles = sampleFoV();
+    	int nAngleOptions = sampledAngles.size()-1; // Each sector between a sampled angle results in an angle option for direction
+    	double[] distances = new double[sampledAngles.size()];
+    	double[] displacementDistances = new double[sampledAngles.size()];
+    	
+    	// Initialise values as -1 so can identify default values
+    	for (int i=0; i<distances.length; i++) {
+    		distances[i] = -1;
+    		displacementDistances[i] = -1;
+    	}
+    	
+    	// First find the minimum displacement distance and associated angle for obstruction geometries
+    	dispalcementDistancesToGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
+    	
+    	Integer lowi = null;
+    	double minDD = Double.MAX_VALUE;
+    	
+    	// Now loop through the remaining angles and calculate displacement distances for any angles that don't have obstacles in
+    	for (int i = 0;i<nAngleOptions; i++) {
+    		if (displacementDistances[i] < 0) {
+    			distances[i] = this.dmax;
+    			displacementDistances[i] = displacementDistance(sampledAngles.get(i), distances[i]);
+    		}
+    		
+    		if (displacementDistances[i] < minDD) {
+    			minDD = displacementDistances[i];
+    			lowi = i;
+    		}
+    	}
+    	
+    	Map<String, Double> output = new HashMap<String, Double>();
+    	output.put("angle", sampledAngles.get(lowi));
+    	output.put("collision_distance", distances[lowi]);
+    	
+    	return output;    	
+    }
+    
     /*
      * Sample angles in field of vision
      */
@@ -522,62 +578,6 @@ public class Ped extends MobileAgent {
      */
     public double displacementDistance(double alpha, double fAlpha) {
     	return Math.pow(this.dmax, 2) + Math.pow(fAlpha, 2) - 2*this.dmax*fAlpha*Math.cos(this.a0 - alpha);
-    }
-    
-    // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms)  {
-    	
-    	// Then sample field of vision and initialise arrays of distances that correspond to each angle 
-    	List<Double> sampledAngles = sampleFoV();
-    	int nAngleOptions = sampledAngles.size()-1; // Each sector between a sampled angle results in an angle option for direction
-    	double[] distances = new double[sampledAngles.size()];
-    	double[] displacementDistances = new double[sampledAngles.size()];
-    	
-    	// Initialise values as -1 so can identify default values
-    	for (int i=0; i<distances.length; i++) {
-    		distances[i] = -1;
-    		displacementDistances[i] = -1;
-    	}
-    	
-    	// First find the minimum displacement distance and associated angle for obstruction geometries
-    	dispalcementDistancesToGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
-    	
-    	Integer lowi = null;
-    	double minDD = Double.MAX_VALUE;
-    	
-    	// Now loop through the remaining angles and calculate displacement distances for any angles that don't have obstacles in
-    	for (int i = 0;i<nAngleOptions; i++) {
-    		if (displacementDistances[i] < 0) {
-    			distances[i] = this.dmax;
-    			displacementDistances[i] = displacementDistance(sampledAngles.get(i), distances[i]);
-    		}
-    		
-    		if (displacementDistances[i] < minDD) {
-    			minDD = displacementDistances[i];
-    			lowi = i;
-    		}
-    	}
-    	
-    	Map<String, Double> output = new HashMap<String, Double>();
-    	output.put("angle", sampledAngles.get(lowi));
-    	output.put("collision_distance", distances[lowi]);
-    	
-    	return output;    	
-    }
-    
-    public double[] desiredVelocity(Iterable<Geometry> obstGeoms)  {
-    	
-    	// Get the desired direction of travel and minimum distance to collision in that direction
-    	Map<String, Double> desiredDirection = desiredDirection(obstGeoms);
-    	
-    	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
-    	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
-    	
-    	// Get the desired direction for the pedestrian and use to set velocity
-    	double alpha = desiredDirection.get("angle");
-    	double[] v = {desiredSpeed*Math.sin(alpha), desiredSpeed*Math.cos(alpha)};
-    	
-    	return v;
     }
     
     
