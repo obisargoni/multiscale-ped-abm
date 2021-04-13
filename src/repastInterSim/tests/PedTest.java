@@ -1,6 +1,8 @@
 package repastInterSim.tests;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,7 @@ class PedTest {
 	}
 
 	
-	void testDistanceToObjectFromCoordBreaing(Coordinate c, double b) {
+	public HashMap<String, double[]> getAnglesDistancesToObstaclesFromCoordBreaing(Coordinate c, double b) {
 		// Setup the environment
 		try {
 			IO.readProperties();
@@ -85,19 +87,7 @@ class PedTest {
 		
 		// Get filters groups of objects
         Polygon fieldOfVisionApprox = pedMinDist.getPedestrianFieldOfVisionPolygon(b);
-        List<Geometry> obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
-        
-		// Now that ped is pointiing in a direction can compare distance to nearest object using the full search method and method that searches 
-		// just objects in field of vision
-		
-		// Speed test difference between original distanceToObject method and methods that uses pre-filtered obstacle geometries.
-		
-        double start = System.currentTimeMillis();
-        double[] d1s = new double[fovAngles.size()];
-		for(int i=0; i<fovAngles.size(); i++) {
-			d1s[i] = pedMinDist.distanceToObject(fovAngles.get(i));
-		}
-        double durObst = System.currentTimeMillis() - start;
+        List<Geometry> obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);		
         
     	// Then sample field of vision and initialise arrays of distances that correspond to each angle
         double[] d2s = new double[fovAngles.size()-1];
@@ -110,56 +100,86 @@ class PedTest {
     	}
     	
     	// First find the minimum displacement distance and associated angle for obstruction geometries
+    	double start = System.currentTimeMillis();
     	pedMinDist.dispalcementDistancesToGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
-    	
-    	double durObstGeog = System.currentTimeMillis() - (start + durObst);
+    	double durObstGeog = System.currentTimeMillis() - start;
+        System.out.print("Duration get ped obst by geography:" + durObstGeog + "\n");
         
-		System.out.print("Duration get ped obst all:" + durObst + "\n");
-		System.out.print("Duration get ped obst by geography:" + durObstGeog + "\n");
-		
-		// Now check that all distances returned match
-		int count = 0;
-		for(int i=0; i<fovAngles.size()-1; i++) {
-			// Only compare for angles where there is an obstacle
-			if ( (d2s[i] < 0) | (d1s[i] == 10.0)) {
-				continue;
-			}
-			double diff = Math.abs(d1s[i] - d2s[i]);
-			//assert diff < 1;
-			System.out.print(i+", "+diff + "\n");
-			count++;
+        HashMap<String, double[]> output = new HashMap<String, double[]>();
+        double[] angles = new double[fovAngles.size()];
+        for (int i=0; i<fovAngles.size(); i++) {
+        	angles[i] = fovAngles.get(i);
+        }
+        output.put("angles", angles);
+        output.put("distances", d2s);
+        output.put("dispDistances", displacementDistances);
+        
+        return output;
+	}
+	
+	void validateOutput(HashMap<String, double[]> output, double[] expectedAngles, double[] expectedDistances) {
+		for (int i=0; i< Math.max(expectedAngles.length, output.get("angles").length); i++) {
+			assert Double.compare(output.get("angles")[i], expectedAngles[i]) == 0;
 		}
-		System.out.print("Count: "+count);
-
-	}
-	
-	void testDistanceToObject1() {
-		Coordinate c = new Coordinate(530512.2083577294, 180906.40573744595);
-		double b = 2.8797932657906435;
 		
-		testDistanceToObjectFromCoordBreaing(c, b);
+		for (int i=0; i< Math.max(expectedDistances.length, output.get("distances").length); i++) {
+			assert Double.compare(output.get("distances")[i], expectedDistances[i]) == 0;
+		}
 	}
 	
+	/*
+	 * Test that ped far from any walls doesn't identify obstacle geometries
+	 */
+	@Test
+	void testDistanceToObject1() {
+		Coordinate c = new Coordinate(530522.0, 180918);
+		double b = 3.9209401504483683;
+		
+		HashMap<String, double[]> output = getAnglesDistancesToObstaclesFromCoordBreaing(c, b);
+		
+		// Set up expected angles
+		List<Double> eA = new ArrayList<Double>();
+		double theta = (2*Math.PI*75) / 360; // Copied from ped init function
+		double angRes = (2*Math.PI) / (36 / 3); // Also copied from init function
+		double a = b - theta;
+		while (a <= b+theta) {
+			eA.add(a);
+			a+=angRes;
+		}
+		
+		double[] expectedAngles = new double[eA.size()];
+		for(int i=0; i<expectedAngles.length; i++) {
+			expectedAngles[i] = eA.get(i);
+		}
+		
+		double[] expectedDistances = new double[eA.size()-1];
+		for(int i=0; i<expectedDistances.length; i++) {
+			expectedDistances[i] = -1.0;
+		}
+		
+		validateOutput(output, expectedAngles, expectedDistances);
+	}
+	
+	/*
+	 * Test ped next to wall identifies obstacles points at expected angles and distances.
+	 */
 	@Test
 	void testDistanceToObject2() {
-		Coordinate c = new Coordinate(530510.0, 180909.0);
-		double b = (3*Math.PI)/2;
-		
-		testDistanceToObjectFromCoordBreaing(c, b);
-	}
-	
-	@Test
-	void testDistanceToObject3() {
 		Coordinate c = new Coordinate(530509.6389832983, 180908.11179611267);
 		double b = 3.9209401504483683;
 		
-		testDistanceToObjectFromCoordBreaing(c, b);
-	}
-	
-	// Actually need to compare chosen directions
-	@Test
-	void testChosenDirection1() {
+		HashMap<String, double[]> output = getAnglesDistancesToObstaclesFromCoordBreaing(c, b);
 		
+		double[] expectedAngles = {2.611943211452621, 3.6429872589076853, 4.143583854519489, 4.520772370555282, 4.765214246949521, 5.229937089444116};
+		double[] expectedDistances = {-1.0, 0.5471421433667476, 0.2539724955402363, 0.20371170329094668, 0.1932528727861567};
+		
+		for (int i=0; i< Math.max(expectedAngles.length, output.get("angles").length); i++) {
+			assert Double.compare(output.get("angles")[i], expectedAngles[i]) == 0;
+		}
+		
+		for (int i=0; i< Math.max(expectedDistances.length, output.get("distances").length); i++) {
+			assert Double.compare(output.get("distances")[i], expectedDistances[i]) == 0;
+		}
 	}
 
 }
