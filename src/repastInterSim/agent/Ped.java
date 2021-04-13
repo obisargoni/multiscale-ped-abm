@@ -392,7 +392,7 @@ public class Ped extends MobileAgent {
     	output[1] = Double.MAX_VALUE;
     	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
     	for (Geometry g: obstGeoms) {
-    		DistanceOp distOp = new DistanceOp(agentG.getCentroid(), g);
+    		DistanceOp distOp = new DistanceOp(agentG, g);
     		
     		// Calculate angle
     		double alphaToGeom = GISFunctions.bearingBetweenCoordinates(maLoc, g.getCentroid().getCoordinate());
