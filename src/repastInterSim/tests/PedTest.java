@@ -37,7 +37,7 @@ class PedTest {
 	}
 
 	
-	public HashMap<String, double[]> getAnglesDistancesToObstaclesFromCoordBreaing(Coordinate c, double b) {
+	public HashMap<String, double[]> wrapperDispalcementDistancesToGeometries(Coordinate c, double b, boolean intersects) {
 		// Setup the environment
 		try {
 			IO.readProperties();
@@ -87,21 +87,33 @@ class PedTest {
 		
 		// Get filters groups of objects
         Polygon fieldOfVisionApprox = pedMinDist.getPedestrianFieldOfVisionPolygon(b);
-        List<Geometry> obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);		
+        List<Geometry> obstGeomsPoints = null;		
         
     	// Then sample field of vision and initialise arrays of distances that correspond to each angle
-        double[] d2s = new double[fovAngles.size()-1];
-    	double[] displacementDistances = new double[fovAngles.size()-1];
-    	
-    	// Initialise values as -1 so can identify default values
-    	for (int i=0; i<d2s.length; i++) {
-    		d2s[i] = -1;
-    		displacementDistances[i] = -1;
-    	}
+        double[] d2s = null;
+    	double[] displacementDistances = null;
     	
     	// First find the minimum displacement distance and associated angle for obstruction geometries
     	double start = System.currentTimeMillis();
-    	pedMinDist.dispalcementDistancesToGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    	if(intersects) {
+    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
+            d2s = new double[fovAngles.size()];
+        	displacementDistances = new double[fovAngles.size()];
+    		pedMinDist.displacementDistanceToGeometriesIntersect(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    	}
+    	else {
+    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
+            d2s = new double[fovAngles.size()-1];
+        	displacementDistances = new double[fovAngles.size()-1];
+        	
+        	// Initialise values as -1 so can identify default values
+        	for (int i=0; i<d2s.length; i++) {
+        		d2s[i] = -1;
+        		displacementDistances[i] = -1;
+        	}
+    		pedMinDist.dispalcementDistancesToGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    	}
+    	
     	double durObstGeog = System.currentTimeMillis() - start;
         System.out.print("Duration get ped obst by geography:" + durObstGeog + "\n");
         
@@ -135,7 +147,7 @@ class PedTest {
 		Coordinate c = new Coordinate(530522.0, 180918);
 		double b = 3.9209401504483683;
 		
-		HashMap<String, double[]> output = getAnglesDistancesToObstaclesFromCoordBreaing(c, b);
+		HashMap<String, double[]> output = wrapperDispalcementDistancesToGeometries(c, b, false);
 		
 		// Set up expected angles
 		List<Double> eA = new ArrayList<Double>();
@@ -161,6 +173,41 @@ class PedTest {
 	}
 	
 	/*
+	 * Test that ped far from any walls doesn't identify obstacle geometries.
+	 * 
+	 * Test the intersect method.
+	 */
+	@Test
+	void testDistanceToObject1b() {
+		Coordinate c = new Coordinate(530522.0, 180918);
+		double b = 3.9209401504483683;
+		
+		HashMap<String, double[]> output = wrapperDispalcementDistancesToGeometries(c, b, true);
+		
+		// Set up expected angles
+		List<Double> eA = new ArrayList<Double>();
+		double theta = (2*Math.PI*75) / 360; // Copied from ped init function
+		double angRes = (2*Math.PI) / (36 / 3); // Also copied from init function
+		double a = b - theta;
+		while (a <= b+theta) {
+			eA.add(a);
+			a+=angRes;
+		}
+		
+		double[] expectedAngles = new double[eA.size()];
+		for(int i=0; i<expectedAngles.length; i++) {
+			expectedAngles[i] = eA.get(i);
+		}
+		
+		double[] expectedDistances = new double[eA.size()];
+		for(int i=0; i<expectedDistances.length; i++) {
+			expectedDistances[i] = 10.0;
+		}
+		
+		validateOutput(output, expectedAngles, expectedDistances);
+	}
+	
+	/*
 	 * Test ped next to wall identifies obstacles points at expected angles and distances.
 	 */
 	@Test
@@ -168,7 +215,7 @@ class PedTest {
 		Coordinate c = new Coordinate(530509.6389832983, 180908.11179611267);
 		double b = 3.9209401504483683;
 		
-		HashMap<String, double[]> output = getAnglesDistancesToObstaclesFromCoordBreaing(c, b);
+		HashMap<String, double[]> output = wrapperDispalcementDistancesToGeometries(c, b, false);
 		
 		double[] expectedAngles = {2.611943211452621, 3.6429872589076853, 4.143583854519489, 4.520772370555282, 4.765214246949521, 5.229937089444116};
 		double[] expectedDistances = {-1.0, 0.5471421433667476, 0.2539724955402363, 0.20371170329094668, 0.1932528727861567};
@@ -180,6 +227,38 @@ class PedTest {
 		for (int i=0; i< Math.max(expectedDistances.length, output.get("distances").length); i++) {
 			assert Double.compare(output.get("distances")[i], expectedDistances[i]) == 0;
 		}
+	}
+	
+	/*
+	 * Test ped next to wall identifies obstacles points at expected angles and distances.
+	 * 
+	 * Use the intersect method.
+	 */
+	@Test
+	void testDistanceToObject2b() {
+		Coordinate c = new Coordinate(530509.6389832983, 180908.11179611267);
+		double b = 3.9209401504483683;
+		
+		HashMap<String, double[]> output = wrapperDispalcementDistancesToGeometries(c, b, true);
+		
+		// Set up expected angles
+		List<Double> eA = new ArrayList<Double>();
+		double theta = (2*Math.PI*75) / 360; // Copied from ped init function
+		double angRes = (2*Math.PI) / (36 / 3); // Also copied from init function
+		double a = b - theta;
+		while (a <= b+theta) {
+			eA.add(a);
+			a+=angRes;
+		}
+		
+		double[] expectedAngles = new double[eA.size()];
+		for(int i=0; i<expectedAngles.length; i++) {
+			expectedAngles[i] = eA.get(i);
+		}
+		
+		double[] expectedDistances = {10.0, 10.0, 0.5246611367487147, 0.2458762406829704, 0.1946127776812781, 0.20691517646066288};
+		
+		validateOutput(output, expectedAngles, expectedDistances);
 	}
 
 }
