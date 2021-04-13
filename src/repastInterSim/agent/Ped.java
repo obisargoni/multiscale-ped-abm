@@ -375,94 +375,6 @@ public class Ped extends MobileAgent {
     	return output;    	
     }
     
-    // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
-    public double distanceToObject(double alpha)  {
-    	
-    	// Initialise distance to nearest object as the max distance in the field of vision
-    	double d = this.dmax;
-    	
-    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
-    	
-    	// Check to see if this line intersects with any pedestrian agents
-        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
-        	if (agent != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
-               	if (agentG.intersects(sampledRay)) {
-               		// The intersection geometry could be multiple points.
-               		// Iterate over them find the distance to the nearest pedestrian
-               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
-               		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = maLoc.distance(c);
-                   		if (dAgent < d) {
-                   			d = dAgent;
-                   		}
-               		}
-               	}
-        	}
-        }
-        
-    	// Check to see if this line intersects with any obstacle agents
-        for (PedObstruction obstr : SpaceBuilder.pedObstructGeography.getAllObjects()) {
-           	Geometry obstG = obstr.getGeom();
-           	if (obstG.intersects(sampledRay)) {
-           		// The intersection geometry could be multiple points.
-           		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
-           		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
-           		for(Coordinate c: obstIntersectionCoords) {
-           			double dAgent = maLoc.distance(c);
-               		if (dAgent < d) {
-               			d = dAgent;
-               		}
-           		}
-           	}
-        }
-                
-        return d;    	
-    }
-    
-    /*
-     * Function to calculate distance to nearest collision with objects passed in as iterables, for a given angle alpha.
-     * 
-     * Correction needed to account for movements of other peds.
-     * 
-     * @param double alpha
-     * 		The bearing to look for objects along
-     * @param Iterable<Object> maObjs
-     * 		An iterable containing mobile agents (Peds and Vehicle). Search through these to avoid colliding with Peds and Vehicles
-     * @param Iterable<PedObstruction> pedObstObjs
-     * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
-     * 
-     * @return double
-     * 		Distance to the nearest object in the direction of the angle alpha
-     */
-    public double distanceToObject(double alpha, Iterable<Geometry> obstGeoms)  {
-    	
-    	// Initialise distance to nearest object as the max distance in the field of vision
-    	double d = this.dmax;
-    	
-    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
-    	
-    	// Check to see if this line intersects with any pedestrian agents
-        for (Geometry obstG :obstGeoms) {
-               	
-           	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
-           	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
-           	if (Double.compare(distOP.distance(), 0.0) == 0) {
-           		// The intersection geometry could be multiple points.
-           		// Iterate over them find the distance to the nearest pedestrian
-           		Coordinate[] agentIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
-           		for(Coordinate c: agentIntersectionCoords) {
-               		double dAgent = maLoc.distance(c);
-               		if (dAgent < d) {
-               			d = dAgent;
-               		}
-           		}
-           	}              	
-        }
-        
-        return d;    	
-    }
-    
     /*
      * Given a set of geometries, calculate displacement distance for each of the geometries. Fill arrays of distances and displacement distances 
      * with the lowest distance at that angle.
@@ -552,6 +464,94 @@ public class Ped extends MobileAgent {
     	
     	double[] out = {fAlpha, dAlpha};
     	return out;
+    }
+    
+    // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
+    public double distanceToObject(double alpha)  {
+    	
+    	// Initialise distance to nearest object as the max distance in the field of vision
+    	double d = this.dmax;
+    	
+    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
+    	
+    	// Check to see if this line intersects with any pedestrian agents
+        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
+        	if (agent != this) {
+               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
+               	if (agentG.intersects(sampledRay)) {
+               		// The intersection geometry could be multiple points.
+               		// Iterate over them find the distance to the nearest pedestrian
+               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
+               		for(Coordinate c: agentIntersectionCoords) {
+                   		double dAgent = maLoc.distance(c);
+                   		if (dAgent < d) {
+                   			d = dAgent;
+                   		}
+               		}
+               	}
+        	}
+        }
+        
+    	// Check to see if this line intersects with any obstacle agents
+        for (PedObstruction obstr : SpaceBuilder.pedObstructGeography.getAllObjects()) {
+           	Geometry obstG = obstr.getGeom();
+           	if (obstG.intersects(sampledRay)) {
+           		// The intersection geometry could be multiple points.
+           		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
+           		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
+           		for(Coordinate c: obstIntersectionCoords) {
+           			double dAgent = maLoc.distance(c);
+               		if (dAgent < d) {
+               			d = dAgent;
+               		}
+           		}
+           	}
+        }
+                
+        return d;    	
+    }
+    
+    /*
+     * Function to calculate distance to nearest collision with objects passed in as iterables, for a given angle alpha.
+     * 
+     * Correction needed to account for movements of other peds.
+     * 
+     * @param double alpha
+     * 		The bearing to look for objects along
+     * @param Iterable<Object> maObjs
+     * 		An iterable containing mobile agents (Peds and Vehicle). Search through these to avoid colliding with Peds and Vehicles
+     * @param Iterable<PedObstruction> pedObstObjs
+     * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
+     * 
+     * @return double
+     * 		Distance to the nearest object in the direction of the angle alpha
+     */
+    public double distanceToObject(double alpha, Iterable<Geometry> obstGeoms)  {
+    	
+    	// Initialise distance to nearest object as the max distance in the field of vision
+    	double d = this.dmax;
+    	
+    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
+    	
+    	// Check to see if this line intersects with any pedestrian agents
+        for (Geometry obstG :obstGeoms) {
+               	
+           	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
+           	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
+           	if (Double.compare(distOP.distance(), 0.0) == 0) {
+           		// The intersection geometry could be multiple points.
+           		// Iterate over them find the distance to the nearest pedestrian
+           		Coordinate[] agentIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
+           		for(Coordinate c: agentIntersectionCoords) {
+               		double dAgent = maLoc.distance(c);
+               		if (dAgent < d) {
+               			d = dAgent;
+               		}
+           		}
+           	}              	
+        }
+        
+        return d;    	
     }
     
     /*
