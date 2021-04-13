@@ -375,25 +375,6 @@ public class Ped extends MobileAgent {
     	return output;    	
     }
     
-    /*
-     * Sample angles in field of vision
-     */
-    public List<Double> sampleFoV() {
-    	
-    	// Initialise a list to hole the sampled field of vision vectors
-    	List<Double> sampledAngles = new ArrayList<Double>();
-    	
-    	double sampleAngle = this.bearing-this.theta; // First angle to sample
-    	double sampleAnglemax = this.bearing + this.theta;
-    	while (sampleAngle <= sampleAnglemax) {
-    		sampledAngles.add(sampleAngle);
-    		sampleAngle+=this.angres;
-    	}
-    	
-    	return sampledAngles;
-    	
-    }
-    
     // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
     public double distanceToObject(double alpha)  {
     	
@@ -571,6 +552,25 @@ public class Ped extends MobileAgent {
     	
     	double[] out = {fAlpha, dAlpha};
     	return out;
+    }
+    
+    /*
+     * Sample angles in field of vision
+     */
+    public List<Double> sampleFoV() {
+    	
+    	// Initialise a list to hole the sampled field of vision vectors
+    	List<Double> sampledAngles = new ArrayList<Double>();
+    	
+    	double sampleAngle = this.bearing-this.theta; // First angle to sample
+    	double sampleAnglemax = this.bearing + this.theta;
+    	while (sampleAngle <= sampleAnglemax) {
+    		sampledAngles.add(sampleAngle);
+    		sampleAngle+=this.angres;
+    	}
+    	
+    	return sampledAngles;
+    	
     }
     
     /*
