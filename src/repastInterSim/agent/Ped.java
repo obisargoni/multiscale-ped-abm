@@ -219,6 +219,9 @@ public class Ped extends MobileAgent {
 
         // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
         contA = totalContactAcceleration();
+        // Calculate acceleration due to avoiding collisions with other agents and walls.
+        List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
+        HashMap<Ped, Geometry> peds = getFOVPedsAndGeoms(fieldOfVisionApprox);
         
         totA = Vector.sumV(fovA, contA);
         
