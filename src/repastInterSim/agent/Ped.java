@@ -300,7 +300,7 @@ public class Ped extends MobileAgent {
     	return A;
     }
     
-    public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, PedObstruction Obstr, Geometry obstrGeom) {
+    public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, Geometry obstrGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = egoPed.rad;
