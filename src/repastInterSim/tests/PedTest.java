@@ -312,5 +312,35 @@ class PedTest {
 		assert (dist34.distance()==0) & (g3.intersects(g4)==true);
 		
 	}
+	
+	@Test
+	void testcontactDistancePedWithPedObstruction() {
+		
+		// Create linestring object that represents a wall
+		Coordinate lc1 = new Coordinate(530511, 180900);
+		Coordinate lc2 = new Coordinate(530511, 180910);
+		Coordinate[] lcs = {lc1, lc2};
+		Geometry l = GISFunctions.lineStringGeometryFromCoordinates(lcs);
+
+		
+		Coordinate c3 = new Coordinate(530512, 180907);
+		Point p3 = GISFunctions.pointGeometryFromCoordinate(c3);
+		double r3 = 0.5;
+		Geometry g3 = p3.buffer(r3);
+		
+		Coordinate c4 = new Coordinate(530511.3, 180907);
+		Point p4 = GISFunctions.pointGeometryFromCoordinate(c4);
+		double r4 = 0.5;
+		Geometry g4 = p4.buffer(r4);
+		
+		// Now check distOp and intersects
+		DistanceOp distl3 = new DistanceOp(l, g3);
+		assert (distl3.distance()==0.5) & (l.intersects(g3)==false);
+		
+		DistanceOp distl4 = new DistanceOp(l, g4);
+		assert (distl4.distance()==0) & (l.intersects(g4)==true);
+		Coordinate i = distl4.nearestPoints()[0];
+		assert  (Math.abs(i.x - 530511.0) < 0.0001) & (Math.abs(i.y - 180906.60249647763) < 0.0001);
+	}
 
 }
