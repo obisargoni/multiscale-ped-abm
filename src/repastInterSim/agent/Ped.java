@@ -259,9 +259,9 @@ public class Ped extends MobileAgent {
     	// Check to see if this line intersects with any agents
         for (Entry<Ped, Geometry> entry: peds.entrySet()) {
         	Ped p = entry.getKey();
-        	Geometry agentG = entry.getValue();
-           	if (agentG.intersects((thisGeom))) {
-           		double[] pCA = pedestrianContactAcceleration(this, p, agentG);
+        	Geometry pGeom = entry.getValue();
+           	if (pGeom.intersects((thisGeom))) {
+           		double[] pCA = pedestrianContactAcceleration(this, p, pGeom);
            		cATotal = Vector.sumV(cATotal, pCA);
            	}
         }
