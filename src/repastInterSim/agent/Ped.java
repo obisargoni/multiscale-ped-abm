@@ -740,11 +740,6 @@ public class Ped extends MobileAgent {
         return fovArea;
     }
     
-    public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox) {
-
-		return getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
-	}
-    
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox, Geography<PedObstruction> pedObstGeog) {
         // Get list of all geometries of other pedestrian agents and pedestrian obstructions that intersect field of vision
         List<Geometry> obstacleGeoms = SpatialIndexManager.findIntersectingGeometries(pedObstGeog, fieldOfVisionApprox, "intersects");
