@@ -265,7 +265,8 @@ public class Ped extends MobileAgent {
         for (Entry<Ped, Geometry> entry: peds.entrySet()) {
         	Ped p = entry.getKey();
         	Geometry pGeom = entry.getValue();
-           	if (pGeom.intersects((thisGeom))) {
+        	DistanceOp distOp = new DistanceOp(thisGeom, pGeom);
+           	if (Double.compare(distOp.distance(), 0.0)==0) {
            		double[] pCA = pedestrianContactAcceleration(p, pGeom);
            		cATotal = Vector.sumV(cATotal, pCA);
            	}
