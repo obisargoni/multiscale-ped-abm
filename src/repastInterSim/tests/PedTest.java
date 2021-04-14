@@ -337,10 +337,23 @@ class PedTest {
 		DistanceOp distl3 = new DistanceOp(l, g3);
 		assert (distl3.distance()==0.5) & (l.intersects(g3)==false);
 		
+		// Check dist op identifies the same coordiante that intersection does
+		Coordinate expectedC = new Coordinate(530511.0, 180906.60249647763);
 		DistanceOp distl4 = new DistanceOp(l, g4);
 		assert (distl4.distance()==0) & (l.intersects(g4)==true);
 		Coordinate i = distl4.nearestPoints()[0];
-		assert  (Math.abs(i.x - 530511.0) < 0.0001) & (Math.abs(i.y - 180906.60249647763) < 0.0001);
+		assert  (Math.abs(i.x - expectedC.x) < 0.0001) & (Math.abs(i.y - expectedC.y) < 0.0001);
+		
+		// Also check that intersecting coords is as expected
+		Coordinate[] intCoords = l.intersection(g4).getCoordinates();
+		assert intCoords.length==2;
+		assert (intCoords[0].equals2D(i)) | (intCoords[1].equals2D(i));
+		
+		// And mid point between intersecting coords is as expected
+		Coordinate expectedMid = new Coordinate(530511.0, 180907.0);
+		Coordinate mid = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[1]);
+		assert mid.equals2D(expectedMid);
+		
 	}
 
 }
