@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
@@ -34,6 +35,19 @@ class PedTest {
 	
 	void setUpProperties() throws IOException {
 		IO.readProperties();
+	}
+	
+	Ped createPedAtLocation(boolean minimisesDistance, Coordinate c, double b) {
+		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
+		Ped ped = EnvironmentSetup.createPedestrian(3,4,minimisesDistance);
+		
+		// Move ped to position and bearing that has caused an error in the simulation
+        Point pt = GISFunctions.pointGeometryFromCoordinate(c);
+		Geometry pGeomNew = pt.buffer(ped.getRad());
+        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, ped);
+		ped.setLoc();
+		ped.setBearing(b);
+		return ped;
 	}
 
 	
@@ -259,6 +273,44 @@ class PedTest {
 		double[] expectedDistances = {10.0, 10.0, 0.5246611367487147, 0.2458762406829704, 0.1946127776812781, 0.20691517646066288};
 		
 		validateOutput(output, expectedAngles, expectedDistances);
+	}
+	
+	@Test
+	void testDistanceOpDetectsContactWithPed() {
+		
+		// Create three pedestrians,two that intersect and one that doesnt.
+		Coordinate c1 = new Coordinate(530509.6389832983, 180908.11179611267);
+		Point p1 = GISFunctions.pointGeometryFromCoordinate(c1);
+		double r1 = 0.2;
+		Geometry g1 = p1.buffer(r1);
+		
+		Coordinate c2 = new Coordinate(530509.846, 180908.255);
+		Point p2 = GISFunctions.pointGeometryFromCoordinate(c2);
+		double r2 = 0.5;
+		Geometry g2 = p2.buffer(r2);
+
+		
+		Coordinate c3 = new Coordinate(530512, 180907);
+		Point p3 = GISFunctions.pointGeometryFromCoordinate(c3);
+		double r3 = 0.5;
+		Geometry g3 = p3.buffer(r3);
+		
+		Coordinate c4 = new Coordinate(530513, 180907);
+		Point p4 = GISFunctions.pointGeometryFromCoordinate(c4);
+		double r4 = 0.5;
+		Geometry g4 = p4.buffer(r4);
+		
+		// Now check distOp and intersects
+		DistanceOp dist12 = new DistanceOp(g1, g2);
+		assert (dist12.distance()==0) & (g1.intersects(g2));
+		
+		DistanceOp dist13 = new DistanceOp(g1, g3);
+		assert (dist13.distance()>0) & (g1.intersects(g3)==false);
+		
+		// g3 and g4 should just touch, does identify as touching
+		DistanceOp dist34 = new DistanceOp(g3, g4);
+		assert (dist34.distance()==0) & (g3.intersects(g4)==true);
+		
 	}
 
 }
