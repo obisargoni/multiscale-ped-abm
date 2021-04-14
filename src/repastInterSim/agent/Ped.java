@@ -754,6 +754,18 @@ public class Ped extends MobileAgent {
 		return obstacleGeoms;
 	}
     
+    public HashMap<Ped, Geometry> getFOVPedsAndGeoms(Polygon fieldOfVisionApprox) {
+    	HashMap<Ped, Geometry> peds = new HashMap<Ped, Geometry>();
+        Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
+        for (Ped p: pedsInArea) {
+        	if (p != this) {
+        		Geometry pGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, p);
+        		peds.put(p, pGeom);
+        	}
+        }
+        return peds;
+    }
+    
     public void setRoadLinkFID(String rlFID) {
     	this.roadLinkFID = rlFID;
     }
