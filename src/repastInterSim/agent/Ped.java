@@ -213,14 +213,19 @@ public class Ped extends MobileAgent {
         // Start by finding obstacle objects (Peds, Vehicles, PedObstructions close to the ped
         Polygon fieldOfVisionApprox = getPedestrianFieldOfVisionPolygon(this.a0);
         
-        List<Geometry> obstacleGeoms = getObstacleGeometries(fieldOfVisionApprox);
+        List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
+        HashMap<Ped, Geometry> peds = getFOVPedsAndGeoms(fieldOfVisionApprox);
+
+        // Motive acceleration uses sinlge list containing both ped obstruction geometries and ped geometries
+        List<Geometry> obstacleGeoms = new ArrayList<Geometry>(obstructionGeoms);
+        for (Geometry g: peds.values()) {
+        	obstacleGeoms.add(g);
+        }
         
         // Calculate acceleration due to field of vision consideration
         fovA = motiveAcceleration(obstacleGeoms);
 
         // Calculate acceleration due to avoiding collisions with other agents and walls.
-        List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
-        HashMap<Ped, Geometry> peds = getFOVPedsAndGeoms(fieldOfVisionApprox);
         contA = totalContactAcceleration(obstructionGeoms, peds);
         
         totA = Vector.sumV(fovA, contA);
@@ -349,7 +354,7 @@ public class Ped extends MobileAgent {
     	}
     	
     	// First find the minimum displacement distance and associated angle for obstruction geometries
-    	dispalcementDistancesToGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
+    	displacementDistancesToGeometriesIntersect(obstGeoms, sampledAngles, distances, displacementDistances);
     	
     	Integer lowi = null;
     	double minDD = Double.MAX_VALUE;
