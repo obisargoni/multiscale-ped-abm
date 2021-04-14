@@ -47,7 +47,6 @@ import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
-import repastInterSim.environment.contexts.PedObstructionPointsContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
@@ -159,12 +158,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		pedObstructGeography = createTypedGeography(PedObstruction.class, pedObstructContext, GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
 		context.addSubContext(pedObstructContext);
 		fixedGeographies.add(pedObstructGeography);
-		
-		// points stores coordinates of ped obstructions
-		pedObstructionPointsContext = new PedObstructionPointsContext();
-		pedObstructionPointsGeography = createTypedGeography(PedObstruction.class, pedObstructionPointsContext, GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_POINTS_GEOGRAPHY);
-		context.addSubContext(pedObstructionPointsContext);
-		fixedGeographies.add(pedObstructionPointsGeography);
 
 		// Road link geography is used to create the road network projection
 		roadLinkContext = new RoadLinkContext();
@@ -304,10 +297,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pedObstructionFile = GISDataDir + IO.getProperty("PedestrianObstructionShapefile");
 			GISFunctions.readShapefile(PedObstruction.class, pedObstructionFile, pedObstructGeography, pedObstructContext);
 			SpatialIndexManager.createIndex(pedObstructGeography, PedObstruction.class);
-			
-			String pedObstructionPointsFile = GISDataDir + IO.getProperty("PedestrianObstructionPointsShapefile");
-			GISFunctions.readShapefile(PedObstruction.class, pedObstructionPointsFile, pedObstructionPointsGeography, pedObstructionPointsContext);
-			SpatialIndexManager.createIndex(pedObstructionPointsGeography, PedObstruction.class);
 			
 			// 4. Load crossing alternatives
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
