@@ -261,14 +261,14 @@ public class Ped extends MobileAgent {
         	Ped p = entry.getKey();
         	Geometry pGeom = entry.getValue();
            	if (pGeom.intersects((thisGeom))) {
-           		double[] pCA = pedestrianContactAcceleration(this, p, pGeom);
+           		double[] pCA = pedestrianContactAcceleration(p, pGeom);
            		cATotal = Vector.sumV(cATotal, pCA);
            	}
         }
 
         for (Geometry obstrGeom :obstrGeoms) {
            	if (obstrGeom.intersects((thisGeom))) {
-           		double[] oCA = obstructionContactAcceleration(this, thisGeom, obstrGeom);
+           		double[] oCA = obstructionContactAcceleration(thisGeom, obstrGeom);
            		cATotal = Vector.sumV(cATotal, oCA);
            	}
         } 
@@ -276,10 +276,10 @@ public class Ped extends MobileAgent {
     	return cATotal;
     }
     
-    public double[] pedestrianContactAcceleration(Ped egoPed, Ped agentPed, Geometry agentGeom) {
+    public double[] pedestrianContactAcceleration(Ped agentPed, Geometry agentGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
-    	double r_i = egoPed.rad;
+    	double r_i = this.rad;
     	double r_j = agentPed.rad;
     	
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
@@ -296,10 +296,10 @@ public class Ped extends MobileAgent {
     	return A;
     }
     
-    public double[] obstructionContactAcceleration(Ped egoPed, Geometry egoGeom, Geometry obstrGeom) {
+    public double[] obstructionContactAcceleration(Geometry egoGeom, Geometry obstrGeom) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
-    	double r_i = egoPed.rad;
+    	double r_i = this.rad;
     	
     	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
     	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
