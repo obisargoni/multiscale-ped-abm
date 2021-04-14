@@ -454,7 +454,7 @@ public class Ped extends MobileAgent {
      * @return double []
      * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
      */
-    public void displacementDistanceToGeometriesIntersect(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
+    public void displacementDistancesToGeometriesIntersect(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
     	
     	for(int i=0; i<fovAngles.size(); i++) {
         	// Get the distance to nearest object for this angle

@@ -99,7 +99,7 @@ class PedTest {
     		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
             d2s = new double[fovAngles.size()];
         	displacementDistances = new double[fovAngles.size()];
-    		pedMinDist.displacementDistanceToGeometriesIntersect(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    		pedMinDist.displacementDistancesToGeometriesIntersect(obstGeomsPoints, fovAngles, d2s, displacementDistances);
     	}
     	else {
     		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
