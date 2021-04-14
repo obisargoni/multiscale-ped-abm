@@ -149,7 +149,7 @@ class PedTest {
 		}
 		
 		for (int i=0; i< Math.max(expectedDistances.length, output.get("distances").length); i++) {
-			assert Double.compare(output.get("distances")[i], expectedDistances[i]) == 0;
+			assert Math.abs(output.get("distances")[i] - expectedDistances[i]) < 0.000001;
 		}
 	}
 	

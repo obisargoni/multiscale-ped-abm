@@ -546,16 +546,17 @@ public class Ped extends MobileAgent {
                	
            	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
            	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
-           	if (Double.compare(distOP.distance(), 0.0) == 0) {
-           		// The intersection geometry could be multiple points.
-           		// Iterate over them find the distance to the nearest pedestrian
-           		Coordinate[] agentIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
-           		for(Coordinate c: agentIntersectionCoords) {
-               		double dAgent = maLoc.distance(c);
-               		if (dAgent < d) {
-               			d = dAgent;
-               		}
-           		}
+           	while (Double.compare(distOP.distance(), 0.0) == 0) {
+           		// DistanceOp can be used to approximate intersection.
+           		// When distance is zero geometries overlapp. The nearest point between the two geometries are the intersection.
+           		// Distance Op approximately returns one of the intersection points
+           		// Since there might be multiple, need to create a new ray that extends just up to the first point distance op found
+           		// and re run until the distance is no zero, meaning that the nearest intersecting coord is found.
+           		Coordinate intersectingCoord = distOP.nearestPoints()[1];
+           		d = maLoc.distance(intersectingCoord);
+           		
+           		sampledRay = GISFunctions.linestringRay(maLoc, alpha, d*0.9999);
+           		distOP = new DistanceOp(obstG, sampledRay);
            	}              	
         }
         
