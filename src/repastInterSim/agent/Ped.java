@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 
@@ -217,11 +218,10 @@ public class Ped extends MobileAgent {
         // Calculate acceleration due to field of vision consideration
         fovA = motiveAcceleration(obstacleGeoms);
 
-        // To Do: Calculate acceleration due to avoiding collisions with other agents and walls.
-        contA = totalContactAcceleration();
         // Calculate acceleration due to avoiding collisions with other agents and walls.
         List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
         HashMap<Ped, Geometry> peds = getFOVPedsAndGeoms(fieldOfVisionApprox);
+        contA = totalContactAcceleration(obstructionGeoms, peds);
         
         totA = Vector.sumV(fovA, contA);
         
@@ -248,7 +248,7 @@ public class Ped extends MobileAgent {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration()  {
+    public double[] totalContactAcceleration(List<Geometry> obstrGeoms, HashMap<Ped, Geometry> peds)  {
     	double[] cATotal = {0,0};
     	
     	// Get the geometry  and context of the ego agent
@@ -257,22 +257,18 @@ public class Ped extends MobileAgent {
     	// Iterate over all other pedestrian agents and for those that touch the 
     	// ego agent calculate the interaction force
     	// Check to see if this line intersects with any agents
-        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
-        	Ped P = (Ped)agent;
-        	if (P != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, P);
-               	if (agentG.intersects((thisGeom))) {
-               		double[] pCA = pedestrianContactAcceleration(this, P, agentG);
-               		cATotal = Vector.sumV(cATotal, pCA);
-               	}
-        	}
+        for (Entry<Ped, Geometry> entry: peds.entrySet()) {
+        	Ped p = entry.getKey();
+        	Geometry agentG = entry.getValue();
+           	if (agentG.intersects((thisGeom))) {
+           		double[] pCA = pedestrianContactAcceleration(this, p, agentG);
+           		cATotal = Vector.sumV(cATotal, pCA);
+           	}
         }
 
-        for (Object obstr :SpaceBuilder.pedObstructGeography.getAllObjects()) {
-        	PedObstruction Obstr = (PedObstruction)obstr;
-           	Geometry obstrGeom = Obstr.getGeom();
+        for (Geometry obstrGeom :obstrGeoms) {
            	if (obstrGeom.intersects((thisGeom))) {
-           		double[] oCA = obstructionContactAcceleration(this, thisGeom, Obstr, obstrGeom);
+           		double[] oCA = obstructionContactAcceleration(this, thisGeom, obstrGeom);
            		cATotal = Vector.sumV(cATotal, oCA);
            	}
         } 
