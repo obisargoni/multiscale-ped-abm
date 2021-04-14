@@ -273,8 +273,9 @@ public class Ped extends MobileAgent {
         }
 
         for (Geometry obstrGeom :obstrGeoms) {
-           	if (obstrGeom.intersects((thisGeom))) {
-           		double[] oCA = obstructionContactAcceleration(thisGeom, obstrGeom);
+        	Coordinate[] intersectionCoords = thisGeom.intersection(obstrGeom).getCoordinates();
+           	if (intersectionCoords.length>0) {
+           		double[] oCA = obstructionContactAcceleration(thisGeom, intersectionCoords);
            		cATotal = Vector.sumV(cATotal, oCA);
            	}
         } 
@@ -302,19 +303,20 @@ public class Ped extends MobileAgent {
     	return A;
     }
     
-    public double[] obstructionContactAcceleration(Geometry egoGeom, Geometry obstrGeom) {
+    public double[] obstructionContactAcceleration(Geometry egoGeom, Coordinate[] intCoords) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = this.rad;
     	
-    	Geometry obstIntersection = egoGeom.intersection(obstrGeom);
-    	Coordinate intersectionCoord = obstIntersection.getCentroid().getCoordinate();
-    	double d_ij = maLoc.distance(intersectionCoord);
+    	// Find midpoint between intersecting coords
+    	int nCoords = intCoords.length;
+    	Coordinate midPoint = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[nCoords-1]);
+    	double d_ij = maLoc.distance(midPoint);
     	
     	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in.
     	// This should also be perpendicular to the obstacle 
-    	double[] n = {maLoc.x - intersectionCoord.x, maLoc.y - intersectionCoord.y};
+    	double[] n = {maLoc.x - midPoint.x, maLoc.y - midPoint.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i - d_ij) / this.m;
