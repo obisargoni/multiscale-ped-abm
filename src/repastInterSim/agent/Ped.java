@@ -546,6 +546,7 @@ public class Ped extends MobileAgent {
                	
            	DistanceOp distOP = new DistanceOp(obstG, sampledRay);
            	// This check is equivalent to agentG.intersects(sampledRay) (tested this using assertions in a simulation run) but is slightly faster.
+           	int i=0;
            	while (Double.compare(distOP.distance(), 0.0) == 0) {
            		// DistanceOp can be used to approximate intersection.
            		// When distance is zero geometries overlapp. The nearest point between the two geometries are the intersection.
@@ -557,6 +558,13 @@ public class Ped extends MobileAgent {
            		
            		sampledRay = GISFunctions.linestringRay(maLoc, alpha, d*0.9999);
            		distOP = new DistanceOp(obstG, sampledRay);
+           		i++;
+           		
+           		// Add break clause to avoid infinite loop occuring
+           		if (i<100) {
+           			d = 0;
+           			break;
+           		}
            	}              	
         }
         
