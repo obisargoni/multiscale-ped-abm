@@ -44,7 +44,6 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
-import cern.colt.Arrays;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
@@ -960,11 +959,10 @@ public class RoadNetworkRoute implements Cacheable {
 		}
 	}
 
-
-
-	public void clearCaches() {
+	public static void clearCaches() {
 		if (coordCache != null)
 			coordCache.clear();
+			coordCache = null;
 		if (odPaveJuncCache != null) {
 			odPaveJuncCache.clear();
 			odPaveJuncCache = null;

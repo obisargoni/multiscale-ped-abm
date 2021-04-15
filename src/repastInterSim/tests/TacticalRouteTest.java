@@ -47,7 +47,7 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -134,7 +134,7 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -203,7 +203,7 @@ class TacticalRouteTest {
 		
 		// Setup environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();

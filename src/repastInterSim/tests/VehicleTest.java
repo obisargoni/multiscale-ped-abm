@@ -22,7 +22,7 @@ class VehicleTest {
 	void testGetCrossingPedestrians1() {
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -63,7 +63,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -123,7 +123,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -220,7 +220,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -336,7 +336,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -450,7 +450,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -549,7 +549,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();

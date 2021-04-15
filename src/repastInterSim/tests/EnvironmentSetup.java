@@ -56,6 +56,7 @@ public class EnvironmentSetup {
 	
 	static void setUpProperties() throws IOException {
 		IO.readProperties();
+		EnvironmentSetup.clearCaches();
 	}
 	
 	static void setUpObjectGeography() {
@@ -222,7 +223,6 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpPedJunctions() throws Exception {
-		setUpProperties();
 		String pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
 		
 		// Initialise test road link geography and context
@@ -360,6 +360,9 @@ public class EnvironmentSetup {
 		return p;
 	}
 	
-	
+	public static void clearCaches() {
+		RoadNetworkRoute.clearCaches();
+		SpatialIndexManager.clearCaches();
+	}
 
 }

@@ -43,6 +43,7 @@ import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.contexts.VehicleDestinationContext;
+import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
@@ -124,6 +125,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public Context<Object> build(Context<Object> c) {
 		
 		//RepastInterSimLogging.init();
+		
+		// Clear caches before starting
+		RoadNetworkRoute.clearCaches();
+		SpatialIndexManager.clearCaches();
 	    
 		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
@@ -376,7 +381,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * End the simulation if there are no mobile agents in the context.
 	 */
 	public void endSimulation() {
-		if (context.getObjects(MobileAgent.class).size() == 0) {
+		if (context.getObjects(MobileAgent.class).size() == 0) {			
 			RunEnvironment.getInstance().endRun();
 		}
 	}
