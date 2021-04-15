@@ -350,14 +350,14 @@ public class Ped extends MobileAgent {
     	double[] distances = new double[sampledAngles.size()];
     	double[] displacementDistances = new double[sampledAngles.size()];
     	
-    	// Initialise values as -1 so can identify default values
+    	// Initialise values as dmax since this is limit of peds field of vision
     	for (int i=0; i<distances.length; i++) {
-    		distances[i] = -1;
-    		displacementDistances[i] = -1;
+    		distances[i] = this.dmax;
     	}
     	
     	// First find the minimum displacement distance and associated angle for obstruction geometries
     	displacementDistancesToObstacleGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
+    	displacementDistancesToPeds(peds, sampledAngles, distances, displacementDistances);
     	
     	Integer lowi = null;
     	double minDD = Double.MAX_VALUE;
