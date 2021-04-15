@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 
@@ -31,7 +33,9 @@ import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
-public class Ped extends MobileAgent {    
+public class Ped extends MobileAgent {
+	private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
+
     private PedPathFinder pathFinder;
         
     private double k; // Constant related to the interaction between agents and the desired velocity of this agent
@@ -67,6 +71,8 @@ public class Ped extends MobileAgent {
     private Color col; // Colour of the pedestrian
     
     private String chosenCrossingType = "none";
+    
+    private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     
     /*
      * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
@@ -122,6 +128,8 @@ public class Ped extends MobileAgent {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {        
     	
+    	this.stepsSinceReachedTarget++;
+    	
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
    		//decideYield();
@@ -164,7 +172,15 @@ public class Ped extends MobileAgent {
    		
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
+    		this.stepsSinceReachedTarget=0;
     		this.pathFinder.getTacticalPath().updateTargetCoordiante();
+    	}
+    	
+    	// Remove stuck agents from the simulation
+    	if (this.stepsSinceReachedTarget>GlobalVars.stuckPedNSteps) {
+    		LOGGER.log(Level.FINE, "Removed stuck ped. Origin ID: " + this.origin.getFID() + " Dest ID: " + this.destination.getFID());
+    		this.tidyForRemoval();
+    		SpaceBuilder.context.remove(this);
     	}
     }
     
