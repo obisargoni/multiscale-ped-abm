@@ -52,6 +52,8 @@ class PedPathFinderTest {
 	@Test
 	void testGetLinksWithinAngularDistance() throws Exception {
 		
+		EnvironmentSetup.setUpProperties();
+		
 		// Load links
 		SpaceBuilder.orRoadLinkGeography = EnvironmentSetup.setUpRoadLinks("test_strategic_path1.shp");
 		
@@ -89,6 +91,8 @@ class PedPathFinderTest {
 	@Test
 	void testGetLinksWithinAngularDistance2() throws Exception {
 		
+		EnvironmentSetup.setUpProperties();
+		
 		// Load links
 		SpaceBuilder.orRoadLinkGeography = EnvironmentSetup.setUpRoadLinks("test_strategic_path2.shp");
 		
@@ -112,6 +116,8 @@ class PedPathFinderTest {
 	
 	@Test
 	void testGetLinksWithinAngularDistance3() throws Exception {
+		EnvironmentSetup.setUpProperties();
+		
 		// Difference between "test_strategic_path3.shp" and "test_strategic_path2.shp"
 		// is that "test_strategic_path3.shp" reverses the order of coords for one of the line strings 
 		// compared to the others. This tests that angle is still correctly calculated.
@@ -140,6 +146,7 @@ class PedPathFinderTest {
 	@Test
 	void testPavementJunctions() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpPedJunctions();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -165,6 +172,7 @@ class PedPathFinderTest {
 		
 		// Call methods that create the pavement junction geography and the pavement network
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpPedJunctions();
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
 			EnvironmentSetup.setUpPavementNetwork();
@@ -195,6 +203,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions1() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -247,6 +256,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions2() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -300,6 +310,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions3() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -353,6 +364,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions4() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -406,6 +418,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions5() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -459,6 +472,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonEndJunctions6() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -501,6 +515,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions1() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -554,6 +569,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions2() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -607,6 +623,7 @@ class PedPathFinderTest {
 	@Test
 	void testTacticalHorizonOutsideJunctions3() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpORRoadNetwork(false);
 			
@@ -658,6 +675,7 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute1() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -751,6 +769,7 @@ class PedPathFinderTest {
 	@Test
 	public void testSetupTacticalRoute2() {
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -856,6 +875,7 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -941,6 +961,7 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -1010,6 +1031,7 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -1110,6 +1132,7 @@ class PedPathFinderTest {
 		
 		// Setup environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -1231,6 +1254,7 @@ class PedPathFinderTest {
 	public void testPedPathFinder5() {
 		
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
@@ -1298,6 +1322,7 @@ class PedPathFinderTest {
 	void testPedsOnRoadLinkList() {
 		// Setup the environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpPedObstructions();
@@ -1389,6 +1414,7 @@ class PedPathFinderTest {
 	void testPedCrossingFlags1() {
 		// Setup the environment
 		try {
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpPedObstructions();
