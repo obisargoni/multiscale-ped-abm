@@ -474,51 +474,6 @@ public class Ped extends MobileAgent {
     	}
     }
     
-    // Function to calculate distance to nearest collision for a given angle f(a) -  this will need to account for movements of other peds
-    public double distanceToObject(double alpha)  {
-    	
-    	// Initialise distance to nearest object as the max distance in the field of vision
-    	double d = this.dmax;
-    	
-    	LineString sampledRay = GISFunctions.linestringRay(maLoc, alpha, dmax);
-    	
-    	// Check to see if this line intersects with any pedestrian agents
-        for (Object agent :SpaceBuilder.context.getObjects(Ped.class)) {
-        	if (agent != this) {
-               	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, agent);
-               	if (agentG.intersects(sampledRay)) {
-               		// The intersection geometry could be multiple points.
-               		// Iterate over them find the distance to the nearest pedestrian
-               		Coordinate[] agentIntersectionCoords = agentG.intersection(sampledRay).getCoordinates();
-               		for(Coordinate c: agentIntersectionCoords) {
-                   		double dAgent = maLoc.distance(c);
-                   		if (dAgent < d) {
-                   			d = dAgent;
-                   		}
-               		}
-               	}
-        	}
-        }
-        
-    	// Check to see if this line intersects with any obstacle agents
-        for (PedObstruction obstr : SpaceBuilder.pedObstructGeography.getAllObjects()) {
-           	Geometry obstG = obstr.getGeom();
-           	if (obstG.intersects(sampledRay)) {
-           		// The intersection geometry could be multiple points.
-           		// Iterate over them and take the smallest distance - this is the distance to the nearest obstacle
-           		Coordinate[] obstIntersectionCoords = obstG.intersection(sampledRay).getCoordinates();
-           		for(Coordinate c: obstIntersectionCoords) {
-           			double dAgent = maLoc.distance(c);
-               		if (dAgent < d) {
-               			d = dAgent;
-               		}
-           		}
-           	}
-        }
-                
-        return d;    	
-    }
-    
     /*
      * Function to calculate distance to nearest collision with objects passed in as iterables, for a given angle alpha.
      * 
