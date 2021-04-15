@@ -113,7 +113,7 @@ class PedTest {
     		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
             d2s = new double[fovAngles.size()];
         	displacementDistances = new double[fovAngles.size()];
-    		pedMinDist.displacementDistancesToGeometriesIntersect(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    		pedMinDist.displacementDistancesToObstacleGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
     	}
     	else {
     		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
@@ -125,7 +125,7 @@ class PedTest {
         		d2s[i] = -1;
         		displacementDistances[i] = -1;
         	}
-    		pedMinDist.dispalcementDistancesToGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
+    		pedMinDist.dispalcementDistancesToPointGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
     	}
     	
     	double durObstGeog = System.currentTimeMillis() - start;

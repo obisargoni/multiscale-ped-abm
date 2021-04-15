@@ -357,7 +357,7 @@ public class Ped extends MobileAgent {
     	}
     	
     	// First find the minimum displacement distance and associated angle for obstruction geometries
-    	displacementDistancesToGeometriesIntersect(obstGeoms, sampledAngles, distances, displacementDistances);
+    	displacementDistancesToObstacleGeometries(obstGeoms, sampledAngles, distances, displacementDistances);
     	
     	Integer lowi = null;
     	double minDD = Double.MAX_VALUE;
@@ -394,7 +394,7 @@ public class Ped extends MobileAgent {
      * @return double[]
      * 		Array. First element is distance to the object. Second is displacement distance. Third is angle to geometry that gives least displacement distance. 
      */
-    public void dispalcementDistancesToGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds) {
+    public void dispalcementDistancesToPointGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds) {
     	double[] output = new double[3];
     	output[1] = Double.MAX_VALUE;
     	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
@@ -462,7 +462,7 @@ public class Ped extends MobileAgent {
      * @return double []
      * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
      */
-    public void displacementDistancesToGeometriesIntersect(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
+    public void displacementDistancesToObstacleGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
     	
     	for(int i=0; i<fovAngles.size(); i++) {
         	// Get the distance to nearest object for this angle
