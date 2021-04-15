@@ -841,4 +841,8 @@ public class Ped extends MobileAgent {
 		return this.pathFinder.getTacticalPath().getAccumulatorRoute().isCrossing();
 	}
 	
+    public double[] getV() {
+		return v;
+	}
+	
 }
