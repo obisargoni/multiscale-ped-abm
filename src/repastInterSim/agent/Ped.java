@@ -113,9 +113,8 @@ public class Ped extends MobileAgent {
 		
 		this.pathFinder = new PedPathFinder(this, paveG, paveNetwork, minimiseCrossings);
     }
-    
-    
-    /*
+
+	/*
      * Calculate the pedestrian's acceleration and resulting velocity
      * given its location, north and destination.
      */
@@ -375,8 +374,8 @@ public class Ped extends MobileAgent {
     	
     	return output;    	
     }
-    
-    /*
+
+	/*
      * Given a set of geometries, calculate displacement distance for each of the geometries. Fill arrays of distances and displacement distances 
      * with the lowest distance at that angle.
      * 
