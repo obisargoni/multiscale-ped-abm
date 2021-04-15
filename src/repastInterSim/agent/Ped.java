@@ -214,19 +214,13 @@ public class Ped extends MobileAgent {
         Polygon fieldOfVisionApprox = getPedestrianFieldOfVisionPolygon(this.a0);
         
         List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
-        HashMap<Ped, Geometry> peds = getFOVPedsAndGeoms(fieldOfVisionApprox);
-
-        // Motive acceleration uses sinlge list containing both ped obstruction geometries and ped geometries
-        List<Geometry> obstacleGeoms = new ArrayList<Geometry>(obstructionGeoms);
-        for (Geometry g: peds.values()) {
-        	obstacleGeoms.add(g);
-        }
+        HashMap<Ped, Geometry> pedsWithGeoms = getFOVPedsAndGeoms(fieldOfVisionApprox);
         
         // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration(obstacleGeoms, peds.keySet());
+        fovA = motiveAcceleration(obstructionGeoms, pedsWithGeoms.keySet());
 
         // Calculate acceleration due to avoiding collisions with other agents and walls.
-        contA = totalContactAcceleration(obstructionGeoms, peds);
+        contA = totalContactAcceleration(obstructionGeoms, pedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
