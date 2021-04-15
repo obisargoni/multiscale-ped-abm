@@ -223,7 +223,7 @@ public class Ped extends MobileAgent {
         }
         
         // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration(obstacleGeoms);
+        fovA = motiveAcceleration(obstacleGeoms, peds.keySet());
 
         // Calculate acceleration due to avoiding collisions with other agents and walls.
         contA = totalContactAcceleration(obstructionGeoms, peds);
@@ -234,9 +234,9 @@ public class Ped extends MobileAgent {
     }
 
 	// Calculate the acceleration towards the destination accounting for objects in the field of vision but not collisions
-    public double[] motiveAcceleration(Iterable<Geometry> obstGeoms)  {
+    public double[] motiveAcceleration(Iterable<Geometry> obstGeoms, Iterable<Ped> peds)  {
     	
-    	double[] desiredVelocity = desiredVelocity(obstGeoms);
+    	double[] desiredVelocity = desiredVelocity(obstGeoms, peds);
     	
     	// Acceleration is set as the acceleration required to reach the desired velocity within tau amount of time
     	double[] a = {0,0};
@@ -326,10 +326,10 @@ public class Ped extends MobileAgent {
     	
     }
     
-    public double[] desiredVelocity(Iterable<Geometry> obstGeoms)  {
+    public double[] desiredVelocity(Iterable<Geometry> obstGeoms, Iterable<Ped> peds)  {
     	
     	// Get the desired direction of travel and minimum distance to collision in that direction
-    	Map<String, Double> desiredDirection = desiredDirection(obstGeoms);
+    	Map<String, Double> desiredDirection = desiredDirection(obstGeoms, peds);
     	
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
     	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
@@ -342,7 +342,7 @@ public class Ped extends MobileAgent {
     }
     
     // Wrapper function that identifies the chosen walking direction
-    public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms)  {
+    public Map<String, Double> desiredDirection(Iterable<Geometry> obstGeoms, Iterable<Ped> peds)  {
     	
     	// Then sample field of vision and initialise arrays of distances that correspond to each angle 
     	List<Double> sampledAngles = sampleFoV();
