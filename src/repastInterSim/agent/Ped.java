@@ -448,19 +448,73 @@ public class Ped extends MobileAgent {
     }
     
     /*
-     * Function to calculate distance to object and displacement distance for each of the sampled angles in the agents field of vision.
+     * Calculate the distance and displacement distance to each ped in the input iterable.
      * 
-     * Return both the displacement distance and the distance to the object
+     * Distance are the distance of first collision with the ped if the ego ped moves at it's preferred walking
+     * speed at the sample angle and the other ped continues with its current velocity.
      * 
-     * @param double alpha
-     * 		The bearing to look for objects along
-     * @param Iterable<Object> maObjs
-     * 		An iterable containing mobile agents (Peds and Vehicle). Search through these to avoid colliding with Peds and Vehicles
-     * @param Iterable<PedObstruction> pedObstObjs
-     * 		An iterable containing PedObstruction objects. Search through these to avoid colliding with PedObstructions
+     * @param Iterable<Ped>
+     * 		The peds to consider when calculating distances.
+     * @param List<Double> sampledAngles
+     * 		The bearings to consider the ego ped moving in.
+     * @param double[] distances
+     * 		The distance of nearest collision for each bearing.
+     * @param double[] displacementDistances
+     * 		The displacement distances for each bearing.
+     */
+    private void displacementDistancesToPeds(Iterable<Ped> peds, List<Double> sampledAngles, double[] distances,
+			double[] displacementDistances) {
+		for (Ped p: peds) {
+			// Calculate difference in current position
+			double[] dR = {this.maLoc.x - p.getLoc().x, this.maLoc.y - p.getLoc().y};
+			
+			// Iterate over possible directions of travel
+			for (int i=0; i<sampledAngles.size(); i++) {
+				double b = sampledAngles.get(i);
+				double[] vThis = {this.v0*Math.sin(b), this.v0*Math.cos(b)};
+				double[] dV = {vThis[0] - p.getV()[0], vThis[1] - p.getV()[1]};
+				
+				// Calculate time of closest approach
+				double tClosest = -(dR[0] / dV[0]) - (dR[1] / dV[1]);				
+				
+				// If tClosest is in the past set time of closest approach to now
+				if (tClosest<0) {
+					tClosest = 0;
+				}
+				
+				// Calculate distance of closest approach
+				double[] futurePLoc = {p.getLoc().x+p.getV()[0]*tClosest, p.getLoc().y+p.getV()[1]*tClosest};
+				double[] futureThisLoc = {maLoc.x+this.v0*Math.sin(b)*tClosest, maLoc.y+this.v0*Math.cos(b)*tClosest};
+				double dClosest = Math.sqrt( Math.pow(futureThisLoc[0] - futurePLoc[0], 2) +  Math.pow(futureThisLoc[1] - futurePLoc[1], 2) );
+				
+				// If peds collide on this course find distance this ped can travel in direction b until collision
+				// If this is less that the current distance set for this angle, update the distance and displacement distance for this angle
+				if (dClosest<0) {
+					double fAlpha = this.v0*tClosest;
+					
+					// Assumes that angles without a detected obstruction have dmax entered as distance
+					if (fAlpha < distances[i]) {
+						distances[i] = fAlpha;
+						displacementDistances[i] = displacementDistance(b, fAlpha);
+					}
+						
+				}
+			}
+		}
+		
+	}
+    
+    /*
+     * Function to calculate distance to obstruction geometries in each of the bearing directions given in the input sampled angles.
      * 
-     * @return double []
-     * 		Array of length 2 containing the distance to the nearest object in alpha direction and corresponding displacement distance.
+     * @param Iterable<Geometry> obstGeoms
+     * 		The obstruction geometries to check distances to
+     * @param List<Double> sampledAngles
+     * 		The bearings to consider the ego ped moving in.
+     * @param double[] distances
+     * 		The distance of nearest collision for each bearing.
+     * @param double[] displacementDistances
+     * 		The displacement distances for each bearing.
      */
     public void displacementDistancesToObstacleGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds)  {    	
     	
