@@ -563,7 +563,7 @@ public class Ped extends MobileAgent {
            		i++;
            		
            		// Add break clause to avoid infinite loop occuring
-           		if (i<100) {
+           		if (i>100) {
            			d = 0;
            			break;
            		}
