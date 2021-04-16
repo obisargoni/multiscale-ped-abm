@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.vividsolutions.jts.geom.Coordinate;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
