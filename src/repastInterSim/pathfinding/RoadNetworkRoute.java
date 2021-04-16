@@ -347,12 +347,7 @@ public class RoadNetworkRoute implements Cacheable {
 			// Get road junction that is not near to the pavement junction
 			Junction roadNode = currentRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
 			
-			// Find connecting pavement node that is associated with this road node
-			for(Junction j: pavementNetwork.getAdjacent(currentPaveJ)) {
-				if (j.getjuncNodeID().contentEquals(roadNode.getFID())) {
-					startPaveJ = j;
-				}
-			}
+			startPaveJ = sameSideOppEndPavementJunction(pavementNetwork, currentPaveJ, roadNode);
 		}
 		else {
 			startPaveJ = currentPaveJ;
@@ -369,11 +364,7 @@ public class RoadNetworkRoute implements Cacheable {
 			Junction roadNode = destRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
 			
 			// Find connecting pavement node that is associated with this road node
-			for(Junction j: pavementNetwork.getAdjacent(destPaveJ)) {
-				if (j.getjuncNodeID().contentEquals(roadNode.getFID())) {
-					endPaveJ = j;
-				}
-			}
+			endPaveJ = sameSideOppEndPavementJunction(pavementNetwork, destPaveJ, roadNode);
 		}
 		else {
 			endPaveJ = destPaveJ;
@@ -404,6 +395,38 @@ public class RoadNetworkRoute implements Cacheable {
 		Junction[] routeEnds = {startPaveJ, endPaveJ};
 		return routeEnds;
 		
+	}
+	
+	/*
+	 * Find connecting pavement node that is associated with this road node and that is on the same side of the road
+	 * 
+	 * @param Network<Junction> pavementNetwork
+	 * 		The pavement network
+	 * @param Junction pJ
+	 * 		The pavement junction to find an adjacent pavement junction to.
+	 * @param Junction rJ
+	 * 		The road junction indicating the opposite end of the road.
+	 */
+	public Junction sameSideOppEndPavementJunction(Network<Junction> pavementNetwork, Junction pJ, Junction rJ) {
+		Junction adjacent=null;
+		for(RepastEdge<Junction> e: pavementNetwork.getEdges(pJ)) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
+			if (ne.getRoadLink().getPedRLID().contentEquals("")) {
+				
+				Junction candidate = null;
+				if (ne.getSource().getFID().contentEquals(pJ.getFID())) {
+					candidate = ne.getTarget();
+				}
+				else {
+					candidate = ne.getSource();
+				}
+				
+				if (candidate.getjuncNodeID().contentEquals(rJ.getFID())) {
+					adjacent = candidate;
+				}
+			}
+		}
+		return adjacent;
 	}
 	
 
