@@ -428,7 +428,8 @@ class PedTest {
 		}
 		
 		// Now step both peds along and try to recreate bug
-		while((p33.getCurrentRoad()!=null) | (p17.getCurrentRoad()!=null)) {
+		int count = 0; // After 30 steps ped 33 get's push through a wall. when count =29 things go wrong
+		while((p33.getCurrentRoad()!=null) & (p17.getCurrentRoad()!=null)) {
 			try {
 				// Break if p17 gets to destination
 				if (p17.getPathFinder().getTacticalPath().getCurrentJunction()==null) {
@@ -436,11 +437,12 @@ class PedTest {
 				}
 				p17.step();
 				p33.step();
+				count++;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+		System.out.print(count);
 		assert p33.getCurrentRoad()!=null;
 
 	}
