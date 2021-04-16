@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import com.vividsolutions.jts.geom.Coordinate;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
@@ -22,7 +23,7 @@ class VehicleTest {
 	void testGetCrossingPedestrians1() {
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -63,7 +64,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -123,7 +124,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -220,7 +221,7 @@ class VehicleTest {
 		
 		// Set up environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
@@ -336,7 +337,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -390,19 +391,28 @@ class VehicleTest {
 				e.printStackTrace();
 			}
 		}
-		
+				
 		// Vehicle still shouldn't perceive any crossing pedestrians
 		assert v.getCrossingPedestrians().size() == 0;
 		
-		// Now move ped along until it starts to cross
-		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 2) {
+		
+		// In ped's step function after stepping the PathFinder ped checks if target coordinate needs updating. 
+		// Do that once here in case ped chooses unmarked crossing, which means that target coordinate is current position, and results in null bearing
+    	// Finally update the target coordinate if current target coordinate has been reached
+    	if (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) < 0.5) {
+    		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+    	}
+		
+		// Now move ped along until it reaches its first crossing point, as indicated by it's distance from the second crossing point
+    	Coordinate firstCrossCoord = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast(); 
+		while (pedMinDist.getLoc().distance(firstCrossCoord)>6.0) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}		
-		//pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 1;
 		assert v.getCrossingPedestrians().size() == 1;
 		
 		// Vehicle not yet close enough to pedestrian to yield, so safe ped speed  is set to max value
@@ -450,7 +460,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -505,7 +515,8 @@ class VehicleTest {
 			}
 		}
 		
-		// Now walk pedestrian along until it is about to start crossing
+		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
+		// so while loop won't be entered.
 		while (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) > 2.5) {
 			try {
 				pedMinDist.step();
@@ -531,7 +542,7 @@ class VehicleTest {
 			prevDist = v.getLoc().distance(pedMinDist.getLoc());
 		}
 		
-		// Now update ped's current coordinate, which means that ped has reach first crossing coordinate and therefore has started crossing
+		// Now update ped's current coordinate, which means that ped has reached first crossing coordinate and therefore has started crossing
 		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
 		assert v.getCrossingPedestrians().size() == 1;
 		
@@ -549,7 +560,7 @@ class VehicleTest {
 		
 		// Setup the environment
 		try {
-			IO.readProperties();
+			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();

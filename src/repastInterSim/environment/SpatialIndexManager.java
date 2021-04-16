@@ -331,7 +331,7 @@ public abstract class SpatialIndexManager implements Cacheable {
 		return indices.containsKey(geog);
 	}
 
-	public void clearCaches() {
+	public static void clearCaches() {
 		indices.clear();
 	}
 }

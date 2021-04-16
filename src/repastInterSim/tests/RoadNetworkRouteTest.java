@@ -44,7 +44,7 @@ public class RoadNetworkRouteTest {
 	private Boolean isDirected = true;
 	
 	void setUpProperties() throws IOException {
-		IO.readProperties();
+		EnvironmentSetup.setUpProperties();
 	}
 	
 	@BeforeEach

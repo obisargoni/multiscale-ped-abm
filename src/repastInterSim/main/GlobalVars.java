@@ -74,6 +74,7 @@ public abstract class GlobalVars {
 	public static double interactionForceConstant = 5000; // 5e3 as per moussaid 2011
 	public static int lookAheadTimeSteps = 3; // The number of timesteps to use when calculating an agents lookahead coordinate, used to identifying upcoming crossings.
 	public static double deafultTacticalPlanningHorizon = 20.0; // Degrees
+	public static int stuckPedNSteps = 200;
 	
 	public static double defaultVehicleAcceleration = 0.8;
 	public static double defaultVehicleDecceleration = 4.5; // These two values taken from SUMO car following model https://sumo.dlr.de/pdf/KraussDiss.pdf

@@ -26,6 +26,9 @@ package repastInterSim.environment;
  */
 public interface Cacheable {
 	
-	void clearCaches();
+	
+	static void clearCaches() {
+		// Must be overridden to clear the caches used by Cacheable classes
+	}
 
 }
