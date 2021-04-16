@@ -390,19 +390,28 @@ class VehicleTest {
 				e.printStackTrace();
 			}
 		}
-		
+				
 		// Vehicle still shouldn't perceive any crossing pedestrians
 		assert v.getCrossingPedestrians().size() == 0;
 		
-		// Now move ped along until it starts to cross
-		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 2) {
+		
+		// In ped's step function after stepping the PathFinder ped checks if target coordinate needs updating. 
+		// Do that once here in case ped chooses unmarked crossing, which means that target coordinate is current position, and results in null bearing
+    	// Finally update the target coordinate if current target coordinate has been reached
+    	if (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) < 0.5) {
+    		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+    	}
+		
+		// Now move ped along until it reaches its first crossing point, as indicated by it's distance from the second crossing point
+    	Coordinate firstCrossCoord = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast(); 
+		while (pedMinDist.getLoc().distance(firstCrossCoord)>6.0) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}		
-		//pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 1;
 		assert v.getCrossingPedestrians().size() == 1;
 		
 		// Vehicle not yet close enough to pedestrian to yield, so safe ped speed  is set to max value
