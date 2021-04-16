@@ -907,5 +907,10 @@ public class Ped extends MobileAgent {
     public double[] getV() {
 		return v;
 	}
+    
+    // Used for testing only
+    public void setV(double[] v) {
+    	this.v = v;
+    }
 	
 }

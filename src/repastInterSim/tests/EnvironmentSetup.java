@@ -337,6 +337,18 @@ public class EnvironmentSetup {
 	}
 	
 	static Ped createPedestrian(int oID, int dID, boolean minimisesCrossing) {
+		double s = 0.0;
+		double m = 0.0;
+		double alpha = 0.5;
+		double lambda = 1.0;
+		double gamma = 0.9;
+		double epsilon = 3.0;
+		double pH = 20.0;
+		
+		return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+	}
+	
+	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
 		
 		OD o = null;
 		OD d = null;
@@ -350,7 +362,7 @@ public class EnvironmentSetup {
 			}
 		}
 		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimisesCrossing, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 
         SpaceBuilder.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();

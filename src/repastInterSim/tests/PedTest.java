@@ -33,10 +33,6 @@ class PedTest {
 	String pedJPath = null;
 	String serialisedLookupPath = null;
 	
-	void setUpProperties() throws IOException {
-		IO.readProperties();
-	}
-	
 	Ped createPedAtLocation(boolean minimisesDistance, Coordinate c, double b) {
 		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
 		Ped ped = EnvironmentSetup.createPedestrian(3,4,minimisesDistance);
@@ -54,8 +50,7 @@ class PedTest {
 	public HashMap<String, double[]> wrapperDispalcementDistancesToGeometries(Coordinate c, double b, boolean intersects) {
 		// Setup the environment
 		try {
-			IO.readProperties();
-			SpaceBuilder.fac = new GeometryFactory();
+			EnvironmentSetup.setUpProperties();
 			
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
@@ -354,6 +349,100 @@ class PedTest {
 		Coordinate mid = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[1]);
 		assert mid.equals2D(expectedMid);
 		
+	}
+	
+	
+	@Test
+	void testPedsPassingContactAccel() {
+		
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+			EnvironmentSetup.setUpPedObstructionPoints();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Ped p17 = EnvironmentSetup.createPedestrian(1, 3, 0.8098254410639371, 56.15750059331304, 0.5, 0.1, 0.9, 4.0, true, 20.0);
+		assert (p17.getRad() - 0.17549218935410324) < 0.00001;
+		// Step to initialise
+		try {
+			p17.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// step p17 until it is on last section
+		while(p17.getCurrentRoad().getRoadLinkID().contentEquals("9745D155-3C95-4CCD-BC65-0908D57FA83A_0")==false) {
+			try {
+				p17.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		assert p17.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_108");
+		
+		// Move ped 17 to location it should be at when ped 33 is added to simulation
+		Coordinate c = new Coordinate(530428.678340819, 180841.2802190967);
+        Point pt = GISFunctions.pointGeometryFromCoordinate(c);
+		Geometry pGeomNew = pt.buffer(p17.getRad());
+        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, p17);
+		p17.setLoc();
+		p17.setBearing(4.016138701200504);
+		double[] v17 = {-0.6213405465259059, -0.5193776759134808};
+		p17.setV(v17);
+		
+		
+		// Live OD data id 6 is test OD data id 13
+		Ped p33 = EnvironmentSetup.createPedestrian(3,13, 0.698355745646177, 61.108214657651644, 0.5, 0.1, 0.9, 4.0, true, 20.0);
+		assert (p33.getRad() - 0.1909631708051614) < 0.00001;
+		try {
+			p33.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Now step both peds along and try to recreate bug
+		while((p33.getCurrentRoad()!=null) | (p17.getCurrentRoad()!=null)) {
+			try {
+				// Break if p17 gets to destination
+				if (p17.getPathFinder().getTacticalPath().getCurrentJunction()==null) {
+					break;
+				}
+				p17.step();
+				p33.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert p33.getCurrentRoad()!=null;
+
 	}
 
 }
