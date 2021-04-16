@@ -1010,7 +1010,7 @@ class PedPathFinderTest {
 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_121");
-		assert pedMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_93");
+		assert pedMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_80");
 				
 		// Now test planning the first tactical path with this ped path finder object
 		pedMinDist.getPathFinder().updateTacticalPath();
