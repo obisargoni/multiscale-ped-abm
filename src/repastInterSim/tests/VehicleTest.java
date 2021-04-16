@@ -515,7 +515,8 @@ class VehicleTest {
 			}
 		}
 		
-		// Now walk pedestrian along until it is about to start crossing
+		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
+		// so while loop won't be entered.
 		while (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) > 2.5) {
 			try {
 				pedMinDist.step();
@@ -541,7 +542,7 @@ class VehicleTest {
 			prevDist = v.getLoc().distance(pedMinDist.getLoc());
 		}
 		
-		// Now update ped's current coordinate, which means that ped has reach first crossing coordinate and therefore has started crossing
+		// Now update ped's current coordinate, which means that ped has reached first crossing coordinate and therefore has started crossing
 		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
 		assert v.getCrossingPedestrians().size() == 1;
 		
