@@ -57,6 +57,7 @@ public class EnvironmentSetup {
 	static void setUpProperties() throws IOException {
 		IO.readProperties();
 		EnvironmentSetup.clearCaches();
+		SpaceBuilder.fac = new GeometryFactory();
 	}
 	
 	static void setUpObjectGeography() {
