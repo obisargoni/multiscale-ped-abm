@@ -25,6 +25,7 @@ import repast.simphony.space.graph.Network;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.Vector;
@@ -71,6 +72,8 @@ public class Ped extends MobileAgent {
     private Color col; // Colour of the pedestrian
     
     private String chosenCrossingType = "none";
+	private String lastTraversedPavementLinkID = "";
+
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     
@@ -172,6 +175,8 @@ public class Ped extends MobileAgent {
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
     		this.stepsSinceReachedTarget=0;
+    		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge(); 
+    		this.lastTraversedPavementLinkID = ne.getRoadLink().getFID();
     		this.pathFinder.getTacticalPath().updateTargetCoordiante();
     	}
     	
@@ -911,5 +916,17 @@ public class Ped extends MobileAgent {
     public void setV(double[] v) {
     	this.v = v;
     }
-	
+    
+    public String getTraversedPavementLinkID() { 
+    	return this.lastTraversedPavementLinkID;
+    }
+    
+    public String getCrossingCoordsString() {
+    	String ccString = "";
+    	for (Coordinate c: this.pathFinder.getTacticalPath().getAccumulatorRoute().getCrossingCoordinates()) {
+    		ccString += c.toString();
+    		ccString += ",";
+    	}
+    	return ccString;
+    }
 }
