@@ -67,8 +67,10 @@ public abstract class GlobalVars {
 	public static double[] north = {0,1}; // Defines north, against which bearings are taken
 	
 	public static double tStep = 1;
-	public static double pedVsd = 0.1; // standard dev of ped speeds
-	public static double pedVavg = 0.8; // average pedestrian speed
+	public static double pedVsd = 0.299; // Ped walking speed data taken from Willis et al 2004
+	public static double pedVavg = 1.47; 
+	public static double pedVmin = 0.45;  
+	public static double pedVmax = 5.56; 
 	public static double pedMassAv = 60; // 60kg average mass
 	public static double pedMasssd = 10; // 60kg average mass
 	public static double interactionForceConstant = 5000; // 5e3 as per moussaid 2011

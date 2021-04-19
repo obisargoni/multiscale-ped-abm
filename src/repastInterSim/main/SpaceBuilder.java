@@ -567,7 +567,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Draw velocity and mass from random distribution
-		Double v = this.pedSpeeds.nextDouble();
+		Double v = GlobalVars.pedVavg + 3*GlobalVars.pedVsd; // Initialises as a value far from mean
+		while ( (v < GlobalVars.pedVavg - 2*GlobalVars.pedVsd) | (v > GlobalVars.pedVavg + 2*GlobalVars.pedVsd) ){ // Exclude extreme values
+			v = this.pedMasses.nextDouble();
+		}
+		
+		
 		Double m = GlobalVars.pedMassAv + 3*GlobalVars.pedMasssd; // Initialises as a value far from mean
 		while ( (m < GlobalVars.pedMassAv - 2*GlobalVars.pedMasssd) | (m > GlobalVars.pedMassAv + 2*GlobalVars.pedMasssd) ){ // Exclude extreme values
 			m = this.pedMasses.nextDouble();
