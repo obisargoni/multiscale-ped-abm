@@ -571,7 +571,7 @@ public class Ped extends MobileAgent {
            		// Since there might be multiple, need to create a new ray that extends just up to the first point distance op found
            		// and re run until the distance is no zero, meaning that the nearest intersecting coord is found.
            		Coordinate intersectingCoord = distOP.nearestPoints()[1];
-           		d = maLoc.distance(intersectingCoord);
+           		d = maLoc.distance(intersectingCoord) - this.rad;
            		
            		sampledRay = GISFunctions.linestringRay(maLoc, alpha, d*0.9999);
            		distOP = new DistanceOp(obstG, sampledRay);
