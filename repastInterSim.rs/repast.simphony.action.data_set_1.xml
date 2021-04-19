@@ -24,6 +24,22 @@
         <methodName>getID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
+    <entry>
+      <string>CrossingCoordsString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>CrossingCoordsString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getCrossingCoordsString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>TraversedPavementLinkID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>TraversedPavementLinkID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getTraversedPavementLinkID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
   </methodDataSources>
   <countSources class="linked-hash-map"/>
   <customNADataSources class="linked-hash-map"/>

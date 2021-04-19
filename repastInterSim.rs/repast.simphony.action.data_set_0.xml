@@ -40,7 +40,7 @@
         <methodName>getLocYString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
-      <entry>
+    <entry>
       <string>CrossingChoice</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>CrossingChoice</id>
