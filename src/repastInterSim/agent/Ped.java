@@ -484,7 +484,7 @@ public class Ped extends MobileAgent {
 				double[] dV = {vThis[0] - p.getV()[0], vThis[1] - p.getV()[1]};
 				
 				// Calculate time of closest approach
-				double tClosest = -(dR[0] / dV[0]) - (dR[1] / dV[1]);				
+				double tClosest = -(dR[0] *dV[0] + dR[1] * dV[1]) / ( dV[0]*dV[0] + dV[1]*dV[1]);				
 				
 				// If tClosest is in the past set time of closest approach to now
 				if (tClosest<0) {
