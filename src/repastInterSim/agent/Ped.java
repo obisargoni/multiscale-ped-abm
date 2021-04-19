@@ -341,7 +341,7 @@ public class Ped extends MobileAgent {
     	Map<String, Double> desiredDirection = desiredDirection(obstGeoms, peds);
     	
     	// Calculate the desired speed, minimum between desired speed and speed required to avoid colliding
-    	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance") - this.rad) / this.tau);
+    	double desiredSpeed = Math.min(this.v0, (desiredDirection.get("collision_distance")) / this.tau);
     	
     	// Get the desired direction for the pedestrian and use to set velocity
     	double alpha = desiredDirection.get("angle");
@@ -435,7 +435,7 @@ public class Ped extends MobileAgent {
     		int ai = (int) ( (alpha - (- this.theta)) / this.angres);
     		    		
     		// Calculate distance - do I need to limit to dmax?
-    		double fAlpha = distOp.distance();
+    		double fAlpha = distOp.distance() - this.rad;
     		
     		// Calculate displacement distance. Use the actual angle to the object.
     		double dAlpha = displacementDistance(alphaToGeom, fAlpha);
@@ -494,12 +494,12 @@ public class Ped extends MobileAgent {
 				// Calculate distance of closest approach
 				double[] futurePLoc = {p.getLoc().x+p.getV()[0]*tClosest, p.getLoc().y+p.getV()[1]*tClosest};
 				double[] futureThisLoc = {maLoc.x+this.v0*Math.sin(b)*tClosest, maLoc.y+this.v0*Math.cos(b)*tClosest};
-				double dClosest = Math.sqrt( Math.pow(futureThisLoc[0] - futurePLoc[0], 2) +  Math.pow(futureThisLoc[1] - futurePLoc[1], 2) );
+				double dClosest = Math.sqrt( Math.pow(futureThisLoc[0] - futurePLoc[0], 2) +  Math.pow(futureThisLoc[1] - futurePLoc[1], 2) ) - this.rad - p.getRad();
 				
 				// If peds collide on this course find distance this ped can travel in direction b until collision
 				// If this is less that the current distance set for this angle, update the distance and displacement distance for this angle
 				if (dClosest<0) {
-					double fAlpha = this.v0*tClosest;
+					double fAlpha = this.v0*tClosest - this.rad - p.getRad();
 					
 					// Assumes that angles without a detected obstruction have dmax entered as distance
 					if (fAlpha < distances[i]) {
