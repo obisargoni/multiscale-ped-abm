@@ -130,13 +130,13 @@ projectCRS = "epsg:27700"
 with open("config.json") as f:
     config = json.load(f)
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+gis_data_dir = config['gis_data_dir']
 
-itn_directory = os.path.join(gis_data_dir, "mastermap-itn_2903030")
-itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap-itn 2903030_0 RoadLink.shp")
+itn_directory = os.path.join(gis_data_dir, config['mastermap_itn_name'])
+itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap-itn RoadLink.shp")
 itn_node_file = os.path.join(itn_directory, "mastermap-itn RoadNode", "mastermap-itn RoadNode.shp")
 
-open_roads_directory = os.path.join(gis_data_dir, "OS Open Roads\\open-roads_subsection")
+open_roads_directory = os.path.join(gis_data_dir, config['open_roads_dir'])
 or_link_file = os.path.join(open_roads_directory, "RoadLink.shp")
 or_node_file = os.path.join(open_roads_directory, "RoadNode.shp")
 

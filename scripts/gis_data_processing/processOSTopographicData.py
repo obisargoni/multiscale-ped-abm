@@ -16,7 +16,7 @@ from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLine
 with open("config.json") as f:
     config = json.load(f)
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+gis_data_dir = config['gis_data_dir']
 
 qgis_workings_dir = os.path.join(gis_data_dir, "qgis_workings")
 
@@ -29,8 +29,8 @@ if os.path.isdir(output_directory) == False:
     os.mkdir(output_directory)
 
 
-topographic_area_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicArea")
-topographic_line_dir = os.path.join(gis_data_dir, "mastermap-topo_2903032\\mastermap-topo_2903032_0 TopographicLine")
+topographic_area_dir = os.path.join(gis_data_dir, config['topographic_area_dir'])
+topographic_line_dir = os.path.join(gis_data_dir, config['topographic_line_dir'])
 
 itn_link_file = os.path.join(output_directory, config["mastermap_link_processed_file"])
 itn_node_file = os.path.join(output_directory, config["mastermap_node_processed_file"])
@@ -41,8 +41,8 @@ or_node_file = os.path.join(output_directory, config["openroads_node_processed_f
 
 selection_layer_file = os.path.join(gis_data_dir, config['clip_file'])
 
-topographic_area_file = os.path.join(topographic_area_dir, 'mastermap TopographicArea.shp')
-topographic_line_file = os.path.join(topographic_line_dir, 'mastermap-topo_2903032_0 TopographicLine.shp')
+topographic_area_file = os.path.join(topographic_area_dir, config['topographic_area_file'])
+topographic_line_file = os.path.join(topographic_line_dir, config['topographic_line_file'])
 
 output_vehicle_file = os.path.join(output_directory, config["topo_vehicle_processed_file"])
 output_pedestrian_file = os.path.join(output_directory, config["topo_pedestrian_processed_file"])

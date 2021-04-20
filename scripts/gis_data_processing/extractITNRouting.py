@@ -1,6 +1,7 @@
 # Get lookup from RoadLinkID to the Plus and Minus Node IDs for each RoadLink in the ITN .gml file
 # Get lookup from DirectedLinkID (same as RoadLinkID but for only directed links) to the orientaition (direction) of that road link
 
+import json
 from lxml import etree
 import geopandas as gpd
 import pandas as pd
@@ -12,10 +13,15 @@ import os
 # Initialise paths
 #
 ########################
-itnDir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\mastermap-itn_2903030\\"
-itnF = "mastermap-itn_2903030_0.gml"
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+with open("config.json") as f:
+    config = json.load(f)
+
+gis_data_dir = config['gis_data_dir']
+
+itnDir = os.path.join(gis_data_dir, config["mastermap_itn_name"])
+itnF = config["mastermap_itn_name"] + "_0.gml"
+
 output_directory = os.path.join(gis_data_dir, "itn_route_info")
 
 if os.path.isdir(output_directory) == False:

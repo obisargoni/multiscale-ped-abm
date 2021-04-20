@@ -8,11 +8,11 @@ import geopandas as gpd
 # Config
 #
 ##################
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+gis_data_dir = config['gis_data_dir']
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
-ped_ods_file = os.path.join(output_directory, "OD_pedestrian_nodes.shp")
-output_file = os.path.join(output_directory, "pedestrianODFlows.csv")
+ped_ods_file = os.path.join(output_directory, config['pedestrian_od_file'])
+output_file = os.path.join(output_directory, config["pedestrianODFlows.csv"])
 
 
 #################

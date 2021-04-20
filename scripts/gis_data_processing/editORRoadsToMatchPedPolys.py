@@ -24,7 +24,7 @@ with open("config.json") as f:
     config = json.load(f)
 
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+gis_data_dir = config['gis_data_dir']
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
 

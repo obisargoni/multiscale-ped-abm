@@ -20,14 +20,14 @@ import networkx as nx
 #
 #
 #############################
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\processed_gis_data"
+gis_data_dir = config['gis_data_dir']
 
-OD_shapefile = "OD_vehicle_nodes_intersect_within.shp"
+OD_shapefile = config['vehicle_od_file']
 
-route_info_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo\\itn_route_info"
+route_info_dir = os.path.join(gis_data_dir, "itn_route_info")
 itn_network_edge_data_file = os.path.join(route_info_dir, "itn_edge_list.csv")
 
-output_flows_path = os.path.join(gis_data_dir, "vehicleODFlows.csv")
+output_flows_path = os.path.join(gis_data_dir, config['vehicle_od_flows'])
 
 
 ############################
