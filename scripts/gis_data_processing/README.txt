@@ -34,7 +34,7 @@ NOTE: Requires manually placing shape files of vehicle OD nodes in the processed
 
 Given the road nodes to use as vehicle ODs this procudes random flows between ODs, checking that a route is possible.
 
-7. randomOD2.py
+7. pedestrianODFlows.py
 
 Very simple script to generate random flows between pedestrian ODs
 
