@@ -140,6 +140,7 @@ open_roads_directory = os.path.join(gis_data_dir, config['open_roads_dir'])
 or_link_file = os.path.join(open_roads_directory, config['open_roads_link_file'])
 or_node_file = os.path.join(open_roads_directory, config['open_roads_node_file'])
 
+poi_file = os.path.join(gis_data_dir, config['poi_file'])
 
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
@@ -177,24 +178,37 @@ gdfORLink.crs = projectCRS
 gdfORNode = gpd.read_file(or_node_file)
 gdfORNode.crs = projectCRS
 
+gdfPOIs = gpd.read_file(poi_file)
+
 # Study area polygon - to select data within the study area
+'''
 gdfSelect = gpd.read_file(selection_layer_file)
 gdfSelect.crs = projectCRS
-
-# Get the area to filter geometries by
 SelectPolygon = gdfSelect.loc[0,'geometry']
+'''
+centre_poi = gdfPOIs.loc[gdfPOIs['ref_no'] == config['centre_poi_ref']] 
+centre_poi_geom = centre_poi['geometry'].values[0]
 
+gdfStudyArea = centre_poi.buffer(3000)
+gdfStudyArea.to_file(os.path.join(gis_data_dir, "study_area.shp"))
+gsStudyAreaWSG84 = gdfStudyArea.to_crs(epsg=4326)
 
+studyPolygon = gdfStudyArea['geometry'].values[0]
+studyPolygonWSG84 = gsStudyAreaWSG84['geometry'].values[0]
 
 ################################
 #
 # Select the ITN Road Network that lies in the study area
 #
+# Need to use study polygon rather than network distance method because at this stage the ITN network has not been created.
+# This is done in the script makeITNdirectional.py
+#
 ################################
 
 # Select only the polygons that intersect or lie within the junc clip area
-gdfITNLink = gdfITNLink.loc[ (gdfITNLink.geometry.intersects(SelectPolygon)) | (gdfITNLink.geometry.within(SelectPolygon))]
+gdfITNLink = gdfITNLink.loc[ (gdfITNLink.geometry.intersects(studyPolygon)) | (gdfITNLink.geometry.within(studyPolygon))]
 gdfITNNode = gpd.sjoin(gdfITNNode, gdfITNLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+
 
 # Clean up
 gdfITNNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
