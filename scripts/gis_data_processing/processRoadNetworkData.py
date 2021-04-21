@@ -225,6 +225,52 @@ def graph_to_gdfs(G, nodes=True, edges=True, node_geometry=True, fill_edge_geome
         raise ValueError("you must request nodes or edges or both")
 
 
+def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
+    '''Given a geo data frame of network edges with LineString geometries, etract the start and end points of the 
+    LineString geometries and create a nodes geo data frame from these.
+
+    Set the u and v columns of the edges geo data frame to the corresponding node ids
+
+    ----------
+    edges_gdf : geopandas.GeoDataFrame
+        input edges
+    u : str
+        column to use for u node id
+    v : str
+        column to use for v node id
+    Returns
+    -------
+    tuple
+        (gdf_nodes, gdf_edges)
+    '''
+    nodes_data = {'id':[], 'geometry':[]}
+    u_data = []
+    v_data = []
+
+    node_id = 0
+    for row_index, row in gdf_edges.iterrows():
+        g = row['geometry']
+
+        nodes_data['id'].append(node_id)
+        nodes_data['geometry'].append(g.coords[0])
+        u_data.append(node_id)
+
+        node_id+=1
+
+        nodes_data['id'].append(node_id)
+        nodes_data['geometry'].append(g.coords[-1])
+        v_data.append(node_id)
+
+        node_id+=1
+
+    gdf_nodes = gpd.GeoDataFrame(nodes_data)
+    gdf_nodes.crs = gdf_edges.crs
+
+    gdf_edges[u] = u_data
+    gdf_edges[v] = v_data
+
+    return gdf_nodes, gdf_edges
+
 ######################
 #
 #
@@ -400,39 +446,15 @@ gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "fid", "new_fid
 
 assert gdfORLink_simplified['new_fid'].duplicated().any() == False
 
-gdfORLink_simplified['startCoord'] = gdfORLink_simplified['geometry'].map(lambda x: Point(x.coords[0]))
-gdfORLink_simplified['endCoord'] = gdfORLink_simplified['geometry'].map(lambda x: Point(x.coords[-1]))
-
-# Collect all start and end nodes
-coords = pd.concat([gdfORLink_simplified['startCoord'], gdfORLink_simplified['endCoord']]).drop_duplicates()
-gdfORNode_simplified = gpd.GeoDataFrame({'geometry':coords})
-gdfORNode_simplified.index = np.arange(gdfORNode_simplified.shape[0])
-gdfORNode_simplified['node_fid'] = ["node_id_{}".format(i) for i in gdfORNode_simplified.index]
-
-
-# Drop the old node identifierd and merge to nodes df to get new identifiers/ids
-gdfORLink_simplified = gdfORLink_simplified.drop(['startNode','endNode'], axis = 1)
-
-# Merge the nodes with the links
-gdfORLink_simplified = gdfORLink_simplified.set_geometry("startCoord")
-gdfORLink_simplified = gpd.geopandas.sjoin(gdfORLink_simplified, gdfORNode_simplified, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-assert gdfORLink_simplified['node_fid'].isnull().any() == False
-gdfORLink_simplified.rename(columns={'node_fid':'startNode'}, inplace=True)
-gdfORLink_simplified = gdfORLink_simplified.drop(['index_right'], axis = 1)
-
-
-gdfORLink_simplified = gdfORLink_simplified.set_geometry("endCoord")
-gdfORLink_simplified = gpd.geopandas.sjoin(gdfORLink_simplified, gdfORNode_simplified, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-assert gdfORLink_simplified['node_fid'].isnull().any() == False 
-gdfORLink_simplified.rename(columns={'node_fid':'endNode'}, inplace=True)
-gdfORLink_simplified = gdfORLink_simplified.drop(['index_right'], axis = 1)
-
-gdfORLink_simplified = gdfORLink_simplified.set_geometry("geometry")
-# Clean up and save data
-gdfORLink_simplified = gdfORLink_simplified.drop(["startCoord", "endCoord"], axis = 1)
+gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_simplified, 'startNode','endNode')
 
 # Rename fid columns and node columns to match other road network data columns
+gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'id':'node_fid'})
 gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
+
+# Checking that all node ids in link data match with a node id in nodes data
+assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
+assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['PNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
 
 assert gdfORLink_simplified['fid'].duplicated().any() == False
 assert gdfORNode_simplified['node_fid'].duplicated().any() == False
