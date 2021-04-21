@@ -84,7 +84,7 @@ def simplify_line_angle(l, angle_threshold = 10):
     angle = 0.0
 
     for lb in split_lines:
-        angle+=ang(la,lb)
+        angle+=abs(ang(la,lb))
 
         # If angle has reached threshold create simplified linestring
         if angle >= angle_threshold:
