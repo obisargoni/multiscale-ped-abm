@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import os
+import networkx as nx
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
 
 ######################
@@ -116,6 +117,16 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
                 multdf.loc[i, new_id_col] = multdf.loc[i, id_col] + "_{}".format(i)
             outdf = outdf.append(multdf,ignore_index=True)
     return outdf
+
+def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
+    lccNodes = max(nx.connected_components(G), key=len)
+
+    lccG = G.subgraph(lccNodes).copy()
+    
+    shortest_paths = nx.single_source_dijkstra(lccG, source_node, target=None, cutoff=dist, weight=weight)   
+    reachable_nodes = shortest_paths[0].keys()
+
+    return reachable_nodes
 
 
 ######################
@@ -228,14 +239,30 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 gdfORLink = gdfORLink.rename(columns = {"identifier": "fid"})
 gdfORNode = gdfORNode.rename(columns = {"identifier": "fid"})
 
+# Get largest connected component
+edges = gdfORLink.loc[:,['startNode','endNode','length']].values
+G = nx.Graph()
+G.add_weighted_edges_from(edges, weight='length')
 
+# Find the or node nearest the centre poi
+gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
+nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True)['fid'].values[0]
+
+reachable_nodes = largest_connected_component_nodes_within_dist(G, nearest_node_id, 2500, 'length')
+
+gdfORLink = gdfORLink.loc[(gdfORLink['startNode'].isin(reachable_nodes)) & (gdfORLink['endNode'].isin(reachable_nodes))]
+gdfORNode = gdfORNode.loc[gdfORNode['fid'].isin(reachable_nodes)]
+
+'''
 gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
 gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
+gdfORNode.rename(columns = {'fid_node':'fid'}, inplace = True)
+gdfORNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
+'''
 
 # Clean up
-gdfORNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
 gdfORNode.drop_duplicates(inplace = True)
-gdfORNode.rename(columns = {'fid_node':'fid'}, inplace = True)
+
 
 # Clean data to ensure minimum angular deviation along road link
 
