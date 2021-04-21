@@ -137,8 +137,9 @@ itn_link_file = os.path.join(itn_directory, "mastermap-itn RoadLink", "mastermap
 itn_node_file = os.path.join(itn_directory, "mastermap-itn RoadNode", "mastermap-itn RoadNode.shp")
 
 open_roads_directory = os.path.join(gis_data_dir, config['open_roads_dir'])
-or_link_file = os.path.join(open_roads_directory, "RoadLink.shp")
-or_node_file = os.path.join(open_roads_directory, "RoadNode.shp")
+or_link_file = os.path.join(open_roads_directory, config['open_roads_link_file'])
+or_node_file = os.path.join(open_roads_directory, config['open_roads_node_file'])
+
 
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
