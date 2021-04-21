@@ -296,12 +296,12 @@ SelectPolygon = gdfSelect.loc[0,'geometry']
 centre_poi = gdfPOIs.loc[gdfPOIs['ref_no'] == config['centre_poi_ref']] 
 centre_poi_geom = centre_poi['geometry'].values[0]
 
-gdfStudyArea = centre_poi.buffer(3000)
-gdfStudyArea.to_file(os.path.join(gis_data_dir, "study_area.shp"))
-gsStudyAreaWSG84 = gdfStudyArea.to_crs(epsg=4326)
+seriesStudyArea = centre_poi.buffer(3000)
+seriesStudyArea.to_file(os.path.join(gis_data_dir, "study_area.shp"))
+gsStudyAreaWSG84 = seriesStudyArea.to_crs(epsg=4326)
 
-studyPolygon = gdfStudyArea['geometry'].values[0]
-studyPolygonWSG84 = gsStudyAreaWSG84['geometry'].values[0]
+studyPolygon = seriesStudyArea.values[0]
+studyPolygonWSG84 = gsStudyAreaWSG84.values[0]
 
 ################################
 #
