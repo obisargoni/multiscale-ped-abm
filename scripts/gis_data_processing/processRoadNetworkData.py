@@ -419,52 +419,41 @@ reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_
 U = U.subgraph(reachable_nodes)
 G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
 
-
-# Clean data to ensure minimum angular deviation along road link
-
-assert gdfORLink['geometry'].type.unique().size == 1
-assert gdfORLink['fid'].unique().size == gdfORLink.shape[0]
-
-'''
-# Load the node gis data
-gdfORNode = gpd.read_file(os.path.join(gis_data_dir, node_shapefile))
-gdfORNode.crs = projectCRS
-gdfORNode = gdfORNode.reindex(columns=['identifier','geometry'])
-
-# Merge the nodes with the links
-gdfORLink = gdfORLink.merge(gdfORNode, left_on = 'startNode', right_on = 'identifier', how = 'left', suffixes = ('','_start_node'), indicator= True)
-print(gdfORLink['_merge'].value_counts())
-assert gdfORLink.loc[ gdfORLink['_merge'] != 'both'].shape[0] == 0 #- not all nodes are in the road link clipped data due to the way it was clipped. should change this
-gdfORLink.rename(columns={'_merge':'_merge_plus_node'}, inplace=True)
-
-
-gdfORLink = gdfORLink.merge(gdfORNode, left_on = 'endNode', right_on = 'identifier', how = 'left', suffixes = ('', '_end_node'), indicator=True)
-print(gdfORLink['_merge'].value_counts())
-assert gdfORLink.loc[ gdfORLink['_merge'] != 'both'].shape[0] == 0 #- - not all nodes are in the road link clipped data due to the way it was clipped. should change this
-gdfORLink.rename(columns={'_merge':'_merge_minus_node'}, inplace=True)
-'''
-
-
 ###################################
 #
 #
-# # Simplify linestrings
-# identify new nodes that will result from splitting lines
-# collect these in a df
-# split linestrings re-ID components
-# find which linestrings' start and end coords dont match the node coordinate
-# add these coords as new nodes
+# Now that study area network has been selected, clean network by:
+# - simplify intersections
+# - split lines based on angular deviation
 #
 ####################################
-gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "fid", "new_fid")
 
-assert gdfORLink_simplified['new_fid'].duplicated().any() == False
+# simplify intersections - not working for some reason
+G = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
+
+
+# Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
+U = G.to_undirected()
+gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
+
+gdfORLink.reset_index(inplace=True)
+gdfORNode.reset_index(inplace=True)
+
+
+# Clean data to ensure minimum angular deviation along road link
+assert gdfORLink['geometry'].type.unique().size == 1
+assert gdfORLink['osmid'].unique().size == gdfORLink.shape[0]
+
+
+gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "osmid", "fid")
+
+assert gdfORLink_simplified['fid'].duplicated().any() == False
 
 gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_simplified, 'startNode','endNode')
 
 # Rename fid columns and node columns to match other road network data columns
 gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'id':'node_fid'})
-gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"fid":"old_fid", "new_fid":"fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
+gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
 
 # Checking that all node ids in link data match with a node id in nodes data
 assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
