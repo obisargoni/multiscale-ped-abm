@@ -412,12 +412,12 @@ U = G.to_undirected()
 
 # Find the or node nearest the centre poi
 gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
-nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True)['fid'].values[0]
+nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
-reachable_nodes = largest_connected_component_nodes_within_dist(G, nearest_node_id, 2500, 'length')
+reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, 2500, 'length')
 
-gdfORLink = gdfORLink.loc[(gdfORLink['startNode'].isin(reachable_nodes)) & (gdfORLink['endNode'].isin(reachable_nodes))]
-gdfORNode = gdfORNode.loc[gdfORNode['fid'].isin(reachable_nodes)]
+U = U.subgraph(reachable_nodes)
+G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
 
 '''
 gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
