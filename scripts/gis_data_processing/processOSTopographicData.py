@@ -242,7 +242,7 @@ for cc in ccs:
     gdfCC = gdfPedVeh.loc[ gdfPedVeh['fid'].isin(cc)]
 
     # Check that none of these intersect with road links
-    if gpd.sjoin(gdfCC, gdfITNLink, op='intersects').shape[0] != 0:
+    if gpd.sjoin(gdfCC, gdfORLink, op='intersects').shape[0] != 0:
         print("Connected component at index {} intersects the road network".format(ccs.index(cc)))
         check_ok = False
 
