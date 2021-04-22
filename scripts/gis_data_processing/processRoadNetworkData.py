@@ -390,7 +390,7 @@ open_network = osmnx.graph.graph_from_polygon(studyPolygonWSG84, network_type='a
 
 # Get undirected non multi graph version
 #D = osmnx.get_digraph(open_network) # Converts from multi di graph to di graph
-U = D.to_undirected()
+U = open_network.to_undirected()
 
 gdf_nodes, gdf_edges = osmnx.graph_to_gdfs(U)
 gdf_edges.reset_index(inplace = True)
