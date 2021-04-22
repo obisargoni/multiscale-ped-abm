@@ -385,14 +385,30 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 #
 ##############################
 
-# Rename identifier to fid to match the id col used in the ITN
-gdfORLink = gdfORLink.rename(columns = {"identifier": "fid"})
-gdfORNode = gdfORNode.rename(columns = {"identifier": "fid"})
+# Get into format required for osmnx compliant graph
+gdfORLink = gdfORLink.rename(columns = {"identifier": "osmid", 'startNode':'u', 'endNode':'v'})
+gdfORLink['key'] = 0
+gdfORLink.set_index(['u','v','key'], inplace=True)
+gdfORLink['geometry'] = gdfORLink['geometry'].map(make_linestring_coords_2d)
+
+gdfORNode = gdfORNode.rename(columns = {"identifier": "osmid"})
+gdfORNode['x'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.x)
+gdfORNode['y'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.y)
+gdfORNode.set_index('osmid', inplace=True)
 
 # Get largest connected component
+'''
 edges = gdfORLink.loc[:,['startNode','endNode','length']].values
+edges_ids = gdfORLink['fid'].values
 G = nx.Graph()
-G.add_weighted_edges_from(edges, weight='length')
+G.add_weighted_edges_from(edges, weight='length', fid = edges_ids)
+'''
+
+# Makes sense to set up graph as osmnx compliant object. But need to make sure I can keep track of edge ids
+G = osmnx.graph_from_gdfs(gdfORNode, gdfORLink, graph_attrs=None)
+
+# Convert to undirected
+U = G.to_undirected()
 
 # Find the or node nearest the centre poi
 gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
