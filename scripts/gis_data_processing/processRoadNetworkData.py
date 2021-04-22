@@ -333,8 +333,8 @@ G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undi
 #
 ####################################
 
-# simplify intersections - not working for some reason
-G = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
+# simplify intersections - not working for some reason - don't think this does what I want
+#G_simplified = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
 
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
