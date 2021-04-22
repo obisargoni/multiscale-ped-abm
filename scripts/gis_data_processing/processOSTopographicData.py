@@ -120,8 +120,8 @@ studyPolygonWSG84 = gdfStudyAreaWSG84['geometry'].values[0]
 
 # Select vehicle areas as those that intersect the road network
 # Results in 252 polygons, many more that previous method
-gdfVehicle = gpd.sjoin(gdfTopoArea, gdfITNLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'itn')
-gdfVehicle.drop('index_itn', axis = 1, inplace=True)
+gdfVehicle = gpd.sjoin(gdfTopoArea, gdfORLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'or')
+gdfVehicle.drop('index_or', axis = 1, inplace=True)
 gdfVehicle.drop_duplicates(inplace = True)
 
 
