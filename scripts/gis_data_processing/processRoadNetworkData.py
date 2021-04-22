@@ -184,6 +184,127 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
 
     return gdf_nodes, gdf_edges
 
+def simplify_graph(G, strict=True, remove_rings=True):
+    """
+    Simplify a graph's topology by removing interstitial nodes.
+    Simplifies graph topology by removing all nodes that are not intersections
+    or dead-ends. Create an edge directly between the end points that
+    encapsulate them, but retain the geometry of the original edges, saved as
+    a new `geometry` attribute on the new edge. Note that only simplified
+    edges receive a `geometry` attribute. Some of the resulting consolidated
+    edges may comprise multiple OSM ways, and if so, their multiple attribute
+    values are stored as a list.
+    Parameters
+    ----------
+    G : networkx.MultiDiGraph
+        input graph
+    strict : bool
+        if False, allow nodes to be end points even if they fail all other
+        rules but have incident edges with different OSM IDs. Lets you keep
+        nodes at elbow two-way intersections, but sometimes individual blocks
+        have multiple OSM IDs within them too.
+    remove_rings : bool
+        if True, remove isolated self-contained rings that have no endpoints
+    Returns
+    -------
+    G : networkx.MultiDiGraph
+        topologically simplified graph, with a new `geometry` attribute on
+        each simplified edge
+    """
+    if "simplified" in G.graph and G.graph["simplified"]:  # pragma: no cover
+        raise Exception("This graph has already been simplified, cannot simplify it again.")
+
+    osmnx.utils.log("Begin topologically simplifying the graph...")
+
+    # make a copy to not mutate original graph object caller passed in
+    G = G.copy()
+    initial_node_count = len(G)
+    initial_edge_count = len(G.edges)
+    all_nodes_to_remove = []
+    all_edges_to_add = []
+
+    # generate each path that needs to be simplified
+    for path in osmnx.simplification._get_paths_to_simplify(G, strict=strict):
+
+        # add the interstitial edges we're removing to a list so we can retain
+        # their spatial geometry
+        edge_attributes = dict()
+        for u, v in zip(path[:-1], path[1:]):
+
+            # there should rarely be multiple edges between interstitial nodes
+            # usually happens if OSM has duplicate ways digitized for just one
+            # street... we will keep only one of the edges (see below)
+            if G.number_of_edges(u, v) != 1:
+                osmnx.utils.log(f"Found multiple edges between {u} and {v} when simplifying")
+
+            # get edge between these nodes: if multiple edges exist between
+            # them (see above), we retain only one in the simplified graph
+            edge = G.edges[u, v, 0]
+            for key in edge:
+
+                # Ignore any 'geometry' attribute since this gets overwritten
+                if key == 'geometry':
+                    continue
+
+                if key in edge_attributes:
+                    # if this key already exists in the dict, append it to the
+                    # value list
+                    edge_attributes[key].append(edge[key])
+                else:
+                    # if this key doesn't already exist, set the value to a list
+                    # containing the one value
+                    edge_attributes[key] = [edge[key]]
+
+        for key in edge_attributes:
+            # don't touch the length attribute, we'll sum it at the end
+            if len(set(edge_attributes[key])) == 1 and key != "length":
+                # if there's only 1 unique value in this attribute list,
+                # consolidate it to the single value (the zero-th)
+                edge_attributes[key] = edge_attributes[key][0]
+            elif key != "length":
+                # otherwise, if there are multiple values, keep one of each value
+                edge_attributes[key] = list(set(edge_attributes[key]))
+
+        # construct the geometry and sum the lengths of the segments
+        edge_attributes["geometry"] = LineString(
+            [Point((G.nodes[node]["x"], G.nodes[node]["y"])) for node in path]
+        )
+        edge_attributes["length"] = sum(edge_attributes["length"])
+
+        # add the nodes and edges to their lists for processing at the end
+        all_nodes_to_remove.extend(path[1:-1])
+        all_edges_to_add.append(
+            {"origin": path[0], "destination": path[-1], "attr_dict": edge_attributes}
+        )
+
+    # for each edge to add in the list we assembled, create a new edge between
+    # the origin and destination
+    for edge in all_edges_to_add:
+        G.add_edge(edge["origin"], edge["destination"], **edge["attr_dict"])
+
+    # finally remove all the interstitial nodes between the new edges
+    G.remove_nodes_from(set(all_nodes_to_remove))
+
+    if remove_rings:
+        # remove any connected components that form a self-contained ring
+        # without any endpoints
+        wccs = nx.weakly_connected_components(G)
+        nodes_in_rings = set()
+        for wcc in wccs:
+            if not any(osmnx.simplification._is_endpoint(G, n) for n in wcc):
+                nodes_in_rings.update(wcc)
+        G.remove_nodes_from(nodes_in_rings)
+
+    # mark graph as having been simplified
+    G.graph["simplified"] = True
+
+    msg = (
+        f"Simplified graph: {initial_node_count} to {len(G)} nodes, "
+        f"{initial_edge_count} to {len(G.edges)} edges"
+    )
+    osmnx.utils.log(msg)
+    return G
+
 ######################
 #
 #
@@ -335,6 +456,9 @@ G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undi
 
 # simplify intersections - not working for some reason - don't think this does what I want
 #G_simplified = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
+
+# simplify topology before breaking up edges based on angular deviation
+G = simplify_graph(G, strict=True, remove_rings=True)
 
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
