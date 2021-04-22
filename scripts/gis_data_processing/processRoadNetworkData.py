@@ -419,16 +419,6 @@ reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_
 U = U.subgraph(reachable_nodes)
 G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
 
-'''
-gdfORLink = gdfORLink.loc[ (gdfORLink.geometry.intersects(SelectPolygon)) | (gdfORLink.geometry.within(SelectPolygon))]
-gdfORNode = gpd.sjoin(gdfORNode, gdfORLink.loc[:,['fid','geometry']], op = 'intersects', lsuffix = 'node', rsuffix = 'line')
-gdfORNode.rename(columns = {'fid_node':'fid'}, inplace = True)
-gdfORNode.drop(['fid_line', 'index_line'], axis = 1, inplace=True)
-'''
-
-# Clean up
-gdfORNode.drop_duplicates(inplace = True)
-
 
 # Clean data to ensure minimum angular deviation along road link
 
