@@ -260,13 +260,13 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
         g = row['geometry']
 
         nodes_data['id'].append(node_id)
-        nodes_data['geometry'].append(g.coords[0])
+        nodes_data['geometry'].append(Point(g.coords[0]))
         u_data.append(node_id)
 
         node_id+=1
 
         nodes_data['id'].append(node_id)
-        nodes_data['geometry'].append(g.coords[-1])
+        nodes_data['geometry'].append(Point(g.coords[-1]))
         v_data.append(node_id)
 
         node_id+=1
