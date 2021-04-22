@@ -137,101 +137,6 @@ def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
 
     return reachable_nodes
 
-def graph_to_gdfs(G, nodes=True, edges=True, node_geometry=True, fill_edge_geometry=True):
-    """
-    Convert a Undirected Graph to node and/or edge GeoDataFrames.
-    This function is the inverse of `graph_from_gdfs`.
-    Parameters
-    ----------
-    G : networkx.MultiDiGraph
-        input graph
-    nodes : bool
-        if True, convert graph nodes to a GeoDataFrame and return it
-    edges : bool
-        if True, convert graph edges to a GeoDataFrame and return it
-    node_geometry : bool
-        if True, create a geometry column from node x and y attributes
-    fill_edge_geometry : bool
-        if True, fill in missing edge geometry fields using nodes u and v
-    Returns
-    -------
-    geopandas.GeoDataFrame or tuple
-        gdf_nodes or gdf_edges or tuple of (gdf_nodes, gdf_edges). gdf_nodes
-        is indexed by osmid and gdf_edges is multi-indexed by u, v, key
-        following normal MultiDiGraph structure.
-    """
-    crs = G.graph["crs"]
-
-    if nodes:
-
-        if not G.nodes:  # pragma: no cover
-            raise ValueError("graph contains no nodes")
-
-        nodes, data = zip(*G.nodes(data=True))
-
-        if node_geometry:
-            # convert node x/y attributes to Points for geometry column
-            geom = (Point(d["x"], d["y"]) for d in data)
-            gdf_nodes = gpd.GeoDataFrame(data, index=nodes, crs=crs, geometry=list(geom))
-        else:
-            gdf_nodes = gpd.GeoDataFrame(data, index=nodes)
-
-        gdf_nodes.index.rename("osmid", inplace=True)
-        osmnx.utils.log("Created nodes GeoDataFrame from graph")
-
-    if edges:
-
-        if not G.edges:  # pragma: no cover
-            raise ValueError("graph contains no edges")
-
-        if isinstance(G, nx.classes.multidigraph.MultiDiGraph):
-            u, v, k, data = zip(*G.edges(keys=True, data=True))
-        else:
-            u, v, data = zip(*G.edges(data=True))
-            k = [0]*len(u)
-
-
-        if fill_edge_geometry:
-
-            # subroutine to get geometry for every edge: if edge already has
-            # geometry return it, otherwise create it using the incident nodes
-            x_lookup = nx.get_node_attributes(G, "x")
-            y_lookup = nx.get_node_attributes(G, "y")
-
-            def make_geom(u, v, data, x=x_lookup, y=y_lookup):
-                if "geometry" in data:
-                    return data["geometry"]
-                else:
-                    return LineString((Point((x[u], y[u])), Point((x[v], y[v]))))
-
-            geom = map(make_geom, u, v, data)
-            gdf_edges = gpd.GeoDataFrame(data, crs=crs, geometry=list(geom))
-
-        else:
-            gdf_edges = gpd.GeoDataFrame(data)
-            if "geometry" not in gdf_edges.columns:
-                # if no edges have a geometry attribute, create null column
-                gdf_edges["geometry"] = np.nan
-            gdf_edges.set_geometry("geometry")
-            gdf_edges.crs = crs
-
-        # add u, v, key attributes as index
-        gdf_edges["u"] = u
-        gdf_edges["v"] = v
-        gdf_edges["key"] = k
-        gdf_edges.set_index(["u", "v", "key"], inplace=True)
-
-        osmnx.utils.log("Created edges GeoDataFrame from graph")
-
-    if nodes and edges:
-        return gdf_nodes, gdf_edges
-    elif nodes:
-        return gdf_nodes
-    elif edges:
-        return gdf_edges
-    else:  # pragma: no cover
-        raise ValueError("you must request nodes or edges or both")
-
 
 def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     '''Given a geo data frame of network edges with LineString geometries, etract the start and end points of the 
@@ -484,10 +389,10 @@ open_network = osmnx.graph.graph_from_point(centre_point, dist=2500, dist_type='
 open_network = osmnx.graph.graph_from_polygon(studyPolygonWSG84, network_type='all', simplify=True, retain_all=False, truncate_by_edge=True, clean_periphery=True, custom_filter=None)
 
 # Get undirected non multi graph version
-D = osmnx.get_digraph(open_network) # Converts from multi di graph to di graph
+#D = osmnx.get_digraph(open_network) # Converts from multi di graph to di graph
 U = D.to_undirected()
 
-gdf_nodes, gdf_edges = graph_to_gdfs(U)
+gdf_nodes, gdf_edges = osmnx.graph_to_gdfs(U)
 gdf_edges.reset_index(inplace = True)
 gdf_nodes = gdf_nodes.to_crs(projectCRS)
 gdf_edges = gdf_edges.to_crs(projectCRS)
