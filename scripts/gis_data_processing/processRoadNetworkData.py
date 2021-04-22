@@ -255,7 +255,7 @@ SelectPolygon = gdfSelect.loc[0,'geometry']
 centre_poi = gdfPOIs.loc[gdfPOIs['ref_no'] == config['centre_poi_ref']] 
 centre_poi_geom = centre_poi['geometry'].values[0]
 
-seriesStudyArea = centre_poi.buffer(3000)
+seriesStudyArea = centre_poi.buffer(config['study_area_dist']+500)
 seriesStudyArea.to_file(os.path.join(gis_data_dir, "study_area.shp"))
 gsStudyAreaWSG84 = seriesStudyArea.to_crs(epsg=4326)
 
@@ -319,7 +319,7 @@ U = G.to_undirected()
 gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
 nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
-reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, 2500, 'length')
+reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, config['study_area_dist'], 'length')
 
 U = U.subgraph(reachable_nodes)
 G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
@@ -382,7 +382,7 @@ gdfORNode_simplified.crs = projectCRS
 '''
 gdfPOIsWSG84 = gdfPOIs.to_crs(epsg=4326)
 centre_point = gdfPOIsWSG84.loc[gdfPOIsWSG84['ref_no'] == config['centre_poi_ref'], 'geometry'].values[0].coords[0]
-open_network = osmnx.graph.graph_from_point(centre_point, dist=2500, dist_type='bbox', network_type='all', simplify=True, retain_all=False, truncate_by_edge=True, clean_periphery=True, custom_filter=None)
+open_network = osmnx.graph.graph_from_point(centre_point, dist=config['study_area_dist'], dist_type='bbox', network_type='all', simplify=True, retain_all=False, truncate_by_edge=True, clean_periphery=True, custom_filter=None)
 '''
 
 # Try using polygon instead
@@ -401,7 +401,7 @@ gdf_edges = gdf_edges.to_crs(projectCRS)
 gdf_nodes['dist_to_centre'] = gdf_nodes.distance(centre_poi_geom)
 nearest_node_id = gdf_nodes.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
-reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, 2500, 'length')
+reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, config['study_area_dist'], 'length')
 
 gdf_nodes = gdf_nodes.loc[reachable_nodes]
 gdf_edges = gdf_edges.loc[ ( gdf_edges['u'].isin(reachable_nodes)) & (gdf_edges['v'].isin(reachable_nodes))]
