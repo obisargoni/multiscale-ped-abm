@@ -24,6 +24,14 @@ from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLine
 #
 ######################
 import math
+
+def make_linestring_coords_2d(l):
+    new_coords = []
+    for c in l.coords:
+        if len(c) > 1:
+            new_coords.append((c[0],c[1]))
+    return LineString(new_coords)
+
 def dot(vA, vB):
     return vA[0]*vB[0]+vA[1]*vB[1]
 def ang(lineA, lineB):
