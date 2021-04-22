@@ -106,11 +106,11 @@ gdfORNode.crs = projectCRS
 gdfORNode = gdfORNode.reindex(columns = ['geometry', 'node_fid'])
 
 # Study area polygon - to select data within the study area
-gdfSelect = gpd.read_file(selection_layer_file)
-gdfSelect.crs = projectCRS
+gdfStudyArea = gpd.read_file(os.path.join(gis_data_dir, "study_area.shp"))
+gdfStudyAreaWSG84 = gdfStudyArea.to_crs(epsg=4326)
 
-# Get the area to filter geometries by
-SelectPolygon = gdfSelect.loc[0,'geometry']
+studyPolygon = gdfStudyArea['geometry'].values[0]
+studyPolygonWSG84 = gdfStudyAreaWSG84['geometry'].values[0]
 
 ################################
 #
