@@ -100,8 +100,7 @@ gdfITNNode = gdfITNNode.reindex(columns = ['fid', 'version', 'versionDat', 'them
 # OS Open Road - for ped road network
 gdfORLink = gpd.read_file(or_link_file)
 gdfORLink.crs = projectCRS
-gdfORLink = gdfORLink.reindex(columns = ['fictitious', 'old_fid', 'class', 'roadNumber', 'name1', 'name1_lang','name2', 'name2_lang', 'formOfWay', 'length', 'primary', 'trunkRoad','loop', 'structure', 'nameTOID', 'numberTOID', 'function', 'geometry','fid', 'MNodeFID', 'PNodeFID'])
-
+gdfORLink = gdfORLink.reindex(columns = ['fictitious', 'old_fid', 'class', 'roadNumber', 'name1','formOfWay', 'length', 'primary', 'trunkRoad','loop', 'structure', 'nameTOID', 'numberTOID', 'function', 'geometry','fid', 'MNodeFID', 'PNodeFID'])
 gdfORNode = gpd.read_file(or_node_file)
 gdfORNode.crs = projectCRS
 gdfORNode = gdfORNode.reindex(columns = ['geometry', 'node_fid'])
