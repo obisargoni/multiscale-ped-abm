@@ -164,7 +164,7 @@ gdfVehicle[priority_column] = "vehicle"
 ########################################
 #
 # Include any missed out pedestrian and vehicle polygons by finding the topographic polygons 
-# that math up with interorior gaps in the pedestrian vehicle polygon set, that are of the descriptive 
+# that match up with interorior gaps in the pedestrian vehicle polygon set, that are of the descriptive 
 # type that matches other ped and vehicle areas
 #
 ########################################
@@ -189,7 +189,7 @@ gdfPedVehInteriors.crs = projectCRS
 polyIDs = gdfPedVeh['fid'].values
 gdfTopoAreaExcluded = gdfTopoArea.loc[ ~gdfTopoArea['fid'].isin(polyIDs)]
 
-# Select those that intersect with the pedestrian and vehicle polygons, so see if they should have been included
+# Select those that intersect with the pedestrian and vehicle polygons, to see if they should have been included
 # Loop through geometries and include them if they touch a vehicle polygon
 candidate_indices = []
 for i, row in gdfTopoAreaExcluded.iterrows():
@@ -467,7 +467,7 @@ gdfITNLinkPedRLID.rename(columns = {'roadLinkID':'pedRLID'}, inplace = True)
 
 # Check all links still present and proportions reasonably high
 assert gdfITNLinkPedRLID['fid'].duplicated().any() == False
-assert len(gdfITNLinkPedRLID['fid'].unique()) == len(gdfITNLink['fid'].unique())
+assert len(gdfITNLinkPedRLID['fid'].unique()) == len(gdfITNLink['fid'].unique()) # Fails since ITN road links now extend beyond ped study area
 assert gdfITNLinkPedRLID['proportion'].min() > 0.75 #FAILS
 
 # Join lookup from fid to ped road link id to original ITN Link Data
