@@ -28,16 +28,16 @@ After running this script, the processOSTopographicData.py script needs to be re
 
 This uses the direction information extracted with the first script and edits the portion of the road network selected in the section so that it represents a directed road network.
 
-6. checkDiNetworkRouting.py
+6. createPedestrianNetwork.py
+
+Creates a network approximating the paths available to a pedestrian in that separate side of the road have different nodes with links to connect them across junctions
+
+7. vehicleODFlows.py
 
 NOTE: Requires manually placing shape files of vehicle OD nodes in the processed data directory.
 
 Given the road nodes to use as vehicle ODs this procudes random flows between ODs, checking that a route is possible.
 
-7. pedestrianODFlows.py
+8. pedestrianODFlows.py
 
 Very simple script to generate random flows between pedestrian ODs
-
-8. createPedestrianNetwork.py
-
-Creates a network approximating the paths available to a pedestrian in that separate side of the road have different nodes with links to connect them across junctions
