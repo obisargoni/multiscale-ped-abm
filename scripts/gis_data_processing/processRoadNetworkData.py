@@ -466,6 +466,7 @@ G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed fr
 # simplify intersections - not working for some reason - don't think this does what I want
 #G_simplified = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
 
+
 # simplify topology before breaking up edges based on angular deviation
 G = simplify_graph(G, strict=True, remove_rings=True)
 
@@ -481,6 +482,10 @@ for col in gdfORLink.columns:
     gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "-".join(str(i) for i in v))
 
 
+# At this stage can have some duplicated geometries. Check for this and delete duplications
+gdfORLink['geom_coords'] = gdfORLink['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords))) # Have to convert to string for .duplicated() to work
+gdfORLink.drop_duplicates('geom_coords', inplace=True)
+gdfORLink.drop('geom_coords', axis=1, inplace=True)
 
 # Clean data to ensure minimum angular deviation along road link
 assert gdfORLink['geometry'].type.unique().size == 1
@@ -496,6 +501,12 @@ gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_
 # Rename fid columns and node columns to match other road network data columns
 gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'node_id':'node_fid'})
 gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
+
+
+# At this stage can have some duplicated geometries. Check for this and delete duplications
+gdfORLink_simplified['geom_coords'] = gdfORLink_simplified['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords)))
+gdfORLink_simplified.drop_duplicates('geom_coords', inplace=True)
+gdfORLink_simplified.drop('geom_coords', axis=1, inplace=True)
 
 # Checking that all node ids in link data match with a node id in nodes data
 assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
