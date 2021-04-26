@@ -441,8 +441,18 @@ nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).i
 
 reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, config['study_area_dist'], 'length')
 
-U = U.subgraph(reachable_nodes)
-G = U.to_directed() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
+U = U.subgraph(reachable_nodes).copy()
+
+# Remove dead ends by removing nodes with degree 1 continually  until no degree 1 nodes left
+dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
+dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
+while(len(dead_end_nodes)>0):
+    U.remove_nodes_from(dead_end_nodes)
+
+    dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
+    dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
+
+G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
 
 ###################################
 #
