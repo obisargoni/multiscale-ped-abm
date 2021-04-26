@@ -29,19 +29,16 @@ with open("config.json") as f:
 crs = "epsg:27700"
 
 gis_data_dir = config['gis_data_dir']
+output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
-link_shapefile = config['mastermap_link_processed_file']
-node_shapefile = config['mastermap_node_processed_file']
+link_shapefile = os.path.join(output_directory, config['mastermap_link_processed_file'])
+node_shapefile = os.path.join(output_directory, config['mastermap_node_processed_file'])
 
 route_info_dir = os.path.join(gis_data_dir, "itn_route_info")
 road_route_info_path = os.path.join(route_info_dir, "extracted_RRI.csv")
 road_node_info_path = os.path.join(route_info_dir, "extracted_RLNodes.csv")
 
-output_vehicle_file = os.path.join(gis_data_dir, config["topo_vehicle_processed_file"])
-
 output_itn_edge_list = os.path.join(route_info_dir, "itn_edge_list.csv")
-
-output_dir = gis_data_dir
 output_shapefile = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
 
 
@@ -64,8 +61,6 @@ dfRLNode = pd.read_csv(road_node_info_path)
 
 # Load ITN Nodes
 gdf_itn_node = gpd.read_file(os.path.join(gis_data_dir, node_shapefile))
-
-gdfVehicleLinks = gpd.read_file(output_vehicle_file)
 
 
 ##########################
