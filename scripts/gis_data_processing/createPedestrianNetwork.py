@@ -29,7 +29,7 @@ with open("config.json") as f:
     config = json.load(f)
 
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\CoventGardenWaterloo"
+gis_data_dir = config['gis_data_dir']
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 
 
@@ -47,8 +47,8 @@ gdfTopoPed.crs = projectCRS
 gdfBoundary = gpd.read_file(os.path.join(output_directory, config["boundary_file"]))
 gdfBoundary.crs = projectCRS
 
-output_ped_nodes_file = os.path.join(output_directory, "pedNetworkNodes.shp")
-output_ped_links_file = os.path.join(output_directory, "pedNetworkLinks.shp")
+output_ped_nodes_file = os.path.join(output_directory, config["pavement_nodes_file"])
+output_ped_links_file = os.path.join(output_directory, config["pavement_links_file"])
 
 #################################
 #
