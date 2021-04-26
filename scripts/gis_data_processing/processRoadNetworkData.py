@@ -477,6 +477,10 @@ gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
 gdfORLink.reset_index(inplace=True)
 gdfORNode.reset_index(inplace=True)
 
+for col in gdfORLink.columns:
+    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "-".join(str(i) for i in v))
+
+
 
 # Clean data to ensure minimum angular deviation along road link
 assert gdfORLink['geometry'].type.unique().size == 1
