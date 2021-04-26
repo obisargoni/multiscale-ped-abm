@@ -156,31 +156,30 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     tuple
         (gdf_nodes, gdf_edges)
     '''
-    nodes_data = {'id':[], 'geometry':[]}
-    u_data = []
-    v_data = []
 
-    node_id = 0
-    for row_index, row in gdf_edges.iterrows():
-        g = row['geometry']
+    gdf_edges['c1'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[0]))
+    gdf_edges['c2'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[1]))
 
-        nodes_data['id'].append(node_id)
-        nodes_data['geometry'].append(Point(g.coords[0]))
-        u_data.append(node_id)
-
-        node_id+=1
-
-        nodes_data['id'].append(node_id)
-        nodes_data['geometry'].append(Point(g.coords[-1]))
-        v_data.append(node_id)
-
-        node_id+=1
-
-    gdf_nodes = gpd.GeoDataFrame(nodes_data)
+    node_coords = pd.concat([gdf_edges['c1'], gdf_edges['c2']]).drop_duplicates()
+    gdf_nodes = gpd.GeoDataFrame({'node_id': np.arange(len(node_coords)), 'geometry':node_coords})
     gdf_nodes.crs = gdf_edges.crs
 
-    gdf_edges[u] = u_data
-    gdf_edges[v] = v_data
+    # Join nodes to edges on coordinate
+    gdf_edges = gdf_edges.set_geometry("c1")
+    gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes, how='inner', op='intersects', lsuffix='left', rsuffix='right')
+    assert gdf_edges['node_id'].isnull().any() == False
+    gdf_edges.rename(columns={'node_id':u}, inplace=True)
+    gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
+
+    gdf_edges = gdf_edges.set_geometry("c2")
+    gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes    , how='inner', op='intersects', lsuffix='left', rsuffix='right')
+    assert gdf_edges['node_id'].isnull().any() == False 
+    gdf_edges.rename(columns={'node_id':'endNode'}, inplace=True)
+    gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
+
+    # Tidy up
+    gdf_edges = gdf_edges.set_geometry("geometry")
+    gdf_edges = gdf_edges.drop(["c1", "c2"], axis = 1)
 
     return gdf_nodes, gdf_edges
 
@@ -481,7 +480,7 @@ assert gdfORLink_simplified['fid'].duplicated().any() == False
 gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_simplified, 'startNode','endNode')
 
 # Rename fid columns and node columns to match other road network data columns
-gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'id':'node_fid'})
+gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'node_id':'node_fid'})
 gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
 
 # Checking that all node ids in link data match with a node id in nodes data
