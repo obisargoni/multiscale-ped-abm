@@ -473,11 +473,11 @@ G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed fr
 
 
 # simplify topology before breaking up edges based on angular deviation
-G = simplify_graph(G, strict=True, remove_rings=True)
+G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False)
 
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
-U = G.to_undirected()
+U = G_simp.to_undirected()
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
 
 gdfORLink.reset_index(inplace=True)
