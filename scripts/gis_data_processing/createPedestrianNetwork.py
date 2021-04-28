@@ -204,7 +204,6 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 #
 ##################################
 
-
 # Load the Open Roads road network as a nx graph
 G = nx.Graph()
 gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
@@ -258,6 +257,7 @@ gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 # Create id for each ped node
 gdfPedNodes['fid'] = ['pave_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.crs = projectCRS
+
 gdfPedNodes.to_file(output_ped_nodes_file)
 
 
@@ -388,6 +388,8 @@ gdfPedNetwork['fid'] = "pave_link" + gdfPedNetwork['MNodeFID'].str.replace("pave
 gdfPedNetwork.crs = projectCRS
 gdfPedNetwork.to_file(output_ped_links_file)
 
+# Think this is code from previous method for connecting nodes. Doesn't seem to be used now.
+'''
 # Also select those edges that connect ped nodes that share a polygon from junc edges
 gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['MNodeFID'],row['PNodeFID']), axis=1)
 junc_edges['edgea'] = junc_edges.apply(lambda row: (row['fid_from'],row['fid_to']), axis=1)
@@ -398,3 +400,4 @@ junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['fid_to'],row['fid_from'
 share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgeb'].values)
 gdfPedNetSharePoly = gdfPedNetwork.loc[ gdfPedNetwork['edge'].isin(share_poly_edges)]
 #gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")
+'''
