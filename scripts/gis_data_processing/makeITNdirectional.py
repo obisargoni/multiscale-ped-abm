@@ -39,7 +39,7 @@ road_route_info_path = os.path.join(route_info_dir, "extracted_RRI.csv")
 road_node_info_path = os.path.join(route_info_dir, "extracted_RLNodes.csv")
 
 output_itn_edge_list = os.path.join(route_info_dir, "itn_edge_list.csv")
-output_shapefile = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
+output_shapefile = os.path.join(output_directory, config['mastermap_itn_processed_direction_file'])
 
 
 ###########################
