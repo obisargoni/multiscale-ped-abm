@@ -15,6 +15,7 @@ import os
 import networkx as nx
 import osmnx
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely import ops
 
 ######################
 #
@@ -184,7 +185,7 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
 
     return gdf_nodes, gdf_edges
 
-def simplify_graph(G, strict=True, remove_rings=True):
+def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     """
     Simplify a graph's topology by removing interstitial nodes.
     Simplifies graph topology by removing all nodes that are not intersections
@@ -241,11 +242,6 @@ def simplify_graph(G, strict=True, remove_rings=True):
             # them (see above), we retain only one in the simplified graph
             edge = G.edges[u, v, 0]
             for key in edge:
-
-                # Ignore any 'geometry' attribute since this gets overwritten
-                if key == 'geometry':
-                    continue
-
                 if key in edge_attributes:
                     # if this key already exists in the dict, append it to the
                     # value list
@@ -256,20 +252,28 @@ def simplify_graph(G, strict=True, remove_rings=True):
                     edge_attributes[key] = [edge[key]]
 
         for key in edge_attributes:
-            # don't touch the length attribute, we'll sum it at the end
-            if len(set(edge_attributes[key])) == 1 and key != "length":
+            # don't touch the length or geometry attribute, we'll sum it at the end
+            if key in ["length", "geometry"]:
+                continue
+            elif len(set(edge_attributes[key])) == 1:
                 # if there's only 1 unique value in this attribute list,
                 # consolidate it to the single value (the zero-th)
                 edge_attributes[key] = edge_attributes[key][0]
-            elif key != "length":
+            else:
                 # otherwise, if there are multiple values, keep one of each value
                 edge_attributes[key] = list(set(edge_attributes[key]))
 
         # construct the geometry and sum the lengths of the segments
-        edge_attributes["geometry"] = LineString(
-            [Point((G.nodes[node]["x"], G.nodes[node]["y"])) for node in path]
-        )
-        edge_attributes["length"] = sum(edge_attributes["length"])
+        if rebuild_geoms:
+            edge_attributes["geometry"] = LineString(
+                [Point((G.nodes[node]["x"], G.nodes[node]["y"])) for node in path]
+            )
+            edge_attributes["length"] = sum(edge_attributes["length"])
+        else:
+            # Create single geometry from the coordinates of the component geometries
+            merged_line = ops.linemerge(MultiLineString(edge_attributes["geometry"]))
+            edge_attributes["geometry"] = merged_line
+            edge_attributes["length"] = merged_line.length
 
         # add the nodes and edges to their lists for processing at the end
         all_nodes_to_remove.extend(path[1:-1])
