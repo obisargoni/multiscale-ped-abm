@@ -484,7 +484,7 @@ gdfORLink.reset_index(inplace=True)
 gdfORNode.reset_index(inplace=True)
 
 for col in gdfORLink.columns:
-    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "-".join(str(i) for i in v))
+    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
 
 # At this stage can have some duplicated geometries. Check for this and delete duplications
