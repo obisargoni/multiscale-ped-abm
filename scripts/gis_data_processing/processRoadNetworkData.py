@@ -416,11 +416,13 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 ##############################
 
 # Get into format required for osmnx compliant graph
+gdfORLink = gdfORLink[ gdfORLink['geometry'].type == "LineString"]
 gdfORLink = gdfORLink.rename(columns = {"identifier": "osmid", 'startNode':'u', 'endNode':'v'})
 gdfORLink['key'] = 0
 gdfORLink.set_index(['u','v','key'], inplace=True)
 gdfORLink['geometry'] = gdfORLink['geometry'].map(make_linestring_coords_2d)
 
+gdfORNode["geometry"] = gdfORNode["geometry"].map(lambda g: g[0])
 gdfORNode = gdfORNode.rename(columns = {"identifier": "osmid"})
 gdfORNode['x'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.x)
 gdfORNode['y'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.y)
