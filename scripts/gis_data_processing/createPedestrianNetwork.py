@@ -204,14 +204,13 @@ def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
 #
 ##################################
 
-
 # Load the Open Roads road network as a nx graph
 G = nx.Graph()
 gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
 edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
 G.add_edges_from(edges)
 
-# Get dataframe of node degrees. Useful for selecting certain junctions nodes, eg those that correspond to intersections (degree > 3)
+# Get dataframe of node degrees. Useful for selecting certain junctions nodes, eg those that correspond to intersections (degree > 2)
 node_degrees = G.degree()
 df_node_degree = pd.DataFrame(node_degrees)
 df_node_degree.columns = ['nodeID', 'nodeDegree']
@@ -258,6 +257,7 @@ gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 # Create id for each ped node
 gdfPedNodes['fid'] = ['pave_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.crs = projectCRS
+
 gdfPedNodes.to_file(output_ped_nodes_file)
 
 
@@ -385,16 +385,42 @@ gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
 gdfPedNetwork.rename(columns = {"from_node":"MNodeFID", "to_node":"PNodeFID", "road_link":"pedRLID", "ped_poly":"pedRoadID"}, inplace=True)
 gdfPedNetwork['fid'] = "pave_link" + gdfPedNetwork['MNodeFID'].str.replace("pave_node","") + gdfPedNetwork['PNodeFID'].str.replace("pave_node","")
 
+
+###############################
+#
+# Validate - check that number of pavement nodes per road link is as expected
+#
+# Remove OR links that don't have expected number of pavement nodes
+#
+# Model requires each OR road link to have 4 pavement nodes, 2 at each end.
+# Check for this and remove OR links that don't have
+#
+# 2 nodes is ok. 3 is not, since ped could try and cross but have no default target junction.
+# 1 could also be a problem.
+#
+# This is not ideal. A temporary measure whilst I improve the data processing.
+#
+###############################
+
+# Use ped nodes. there are 2 ped rl id columns
+df1 = gdfPedNodes.groupby('v1rlID')['fid'].apply(lambda df: df.shape[0]).reset_index()
+df2 = gdfPedNodes.groupby('v2rlID')['fid'].apply(lambda df: df.shape[0]).reset_index()
+
+df1.rename(columns = {'v1rlID':'pedRLID', 'fid':'node_count'}, inplace=True)
+df2.rename(columns = {'v2rlID':'pedRLID', 'fid':'node_count'}, inplace=True)
+
+dfTot = pd.concat([df1, df2])
+dfTot = dfTot.groupby('pedRLID')['node_count'].apply(lambda df: df.sum()).reset_index()
+
+assert dfTot['pedRLID'].duplicated().any() == False
+
+rl_ids_to_remove = dfTot.loc[ dfTot['node_count'].isin([3,1]), 'pedRLID'].values
+
+# Remove these links from the OR road network
+gdfORLink = gdfORLink.loc[ ~gdfORLink['fid'].isin(rl_ids_to_remove)]
+assert gdfORLink.loc[ gdfORLink['fid'].isin(rl_ids_to_remove)].shape[0] == 0
+
+
+gdfORLink.to_file(os.path.join(output_directory, config["openroads_link_processed_file"]))
 gdfPedNetwork.crs = projectCRS
 gdfPedNetwork.to_file(output_ped_links_file)
-
-# Also select those edges that connect ped nodes that share a polygon from junc edges
-gdfPedNetwork['edge'] = gdfPedNetwork.apply(lambda row: (row['MNodeFID'],row['PNodeFID']), axis=1)
-junc_edges['edgea'] = junc_edges.apply(lambda row: (row['fid_from'],row['fid_to']), axis=1)
-junc_edges['edgeb'] = junc_edges.apply(lambda row: (row['fid_to'],row['fid_from']), axis=1)
-
-
-# Check those edges that connect nodes around a junction that are on the same ped poly - just for checking
-share_poly_edges = list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgea'].values) + list(junc_edges.loc[(junc_edges['share_ped_poly'] == True) & (junc_edges['fid_from'] != junc_edges['fid_to']), 'edgeb'].values)
-gdfPedNetSharePoly = gdfPedNetwork.loc[ gdfPedNetwork['edge'].isin(share_poly_edges)]
-#gdfPedNetSharePoly.drop(['edge'], axis=1).to_file("pedNetworkSharePoly.shp")

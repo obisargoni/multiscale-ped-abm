@@ -113,16 +113,27 @@ public class Vehicle extends MobileAgent {
 			else {
 				vehicleLoc = routeCoord;
 				
-				// If vehicle has been moved onto a different road link update the road link queues
-		        if (!nextRoadLink.getFID().contentEquals(currentRoadLink.getFID())) {
-		        	assert currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
-		        	currentRoadLink.removeVehicleFromQueue();
-		        	this.queuePos = nextRoadLink.getQueue().writePos();
-		        	assert nextRoadLink.addVehicleToQueue(this); // If successfully added will return true
+				// If vehicle has moved distance such that it can enter the next road link, check if the next link has capacity and progress as appropriate
+				boolean endCurrentLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
+				boolean progressedToNextLink=false;
+		        if (endCurrentLink) {
+		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
+		        	// If successfully added will return true
+		        	progressedToNextLink = nextRoadLink.addVehicleToQueue(this); 
 		        }
 				
-				// If this is the final coordinate in the vehicle's route set distance travelled to be the vehicle displacement
-				// since the vehicle has now reached the destination and can't go any further
+
+		        if (progressedToNextLink) {
+		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
+		        	assert posOK;
+		        	currentRoadLink.removeVehicleFromQueue();
+		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        }
+		        else {
+		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
+		        }
+		        
+				// If vehicle can't go any further set distanceToTravel to zero
 				if (isFinal) {
 					// NOTE: this means the distanceAlongRoute isn't the actual distance moved by the vehicle since it was moved up to its final coordinate only and not beyond
 					distanceTraveled = distanceToTravel;
@@ -133,9 +144,11 @@ public class Vehicle extends MobileAgent {
 					distanceToTravel-=distToCoord;
 				}
 				
-				this.route.routeX.remove(routeCoord);
-				currentRoadLink = nextRoadLink;
-				this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
+				if( (endCurrentLink==false) | (progressedToNextLink==true) ) {
+					this.route.routeX.remove(routeCoord);
+					currentRoadLink = nextRoadLink;
+					this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
+				}
 			}
 			
 		}

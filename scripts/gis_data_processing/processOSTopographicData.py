@@ -22,6 +22,9 @@ qgis_workings_dir = os.path.join(gis_data_dir, "qgis_workings")
 
 if os.path.isdir(qgis_workings_dir) == False:
     os.mkdir(qgis_workings_dir)
+else:
+    for f in os.listdir(qgis_workings_dir):
+        os.remove(os.path.join(qgis_workings_dir, f))
 
 output_directory = os.path.join(gis_data_dir, "processed_gis_data")
 

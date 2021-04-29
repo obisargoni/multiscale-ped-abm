@@ -15,6 +15,7 @@ import os
 import networkx as nx
 import osmnx
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely import ops
 
 ######################
 #
@@ -161,7 +162,8 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     gdf_edges['c2'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[1]))
 
     node_coords = pd.concat([gdf_edges['c1'], gdf_edges['c2']]).drop_duplicates()
-    gdf_nodes = gpd.GeoDataFrame({'node_id': np.arange(len(node_coords)), 'geometry':node_coords})
+    node_ids = ['or_node_{}'.format(i) for i in np.arange(len(node_coords))]
+    gdf_nodes = gpd.GeoDataFrame({'node_id': node_ids, 'geometry':node_coords})
     gdf_nodes.crs = gdf_edges.crs
 
     # Join nodes to edges on coordinate
@@ -183,7 +185,7 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
 
     return gdf_nodes, gdf_edges
 
-def simplify_graph(G, strict=True, remove_rings=True):
+def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     """
     Simplify a graph's topology by removing interstitial nodes.
     Simplifies graph topology by removing all nodes that are not intersections
@@ -240,11 +242,6 @@ def simplify_graph(G, strict=True, remove_rings=True):
             # them (see above), we retain only one in the simplified graph
             edge = G.edges[u, v, 0]
             for key in edge:
-
-                # Ignore any 'geometry' attribute since this gets overwritten
-                if key == 'geometry':
-                    continue
-
                 if key in edge_attributes:
                     # if this key already exists in the dict, append it to the
                     # value list
@@ -255,20 +252,28 @@ def simplify_graph(G, strict=True, remove_rings=True):
                     edge_attributes[key] = [edge[key]]
 
         for key in edge_attributes:
-            # don't touch the length attribute, we'll sum it at the end
-            if len(set(edge_attributes[key])) == 1 and key != "length":
+            # don't touch the length or geometry attribute, we'll sum it at the end
+            if key in ["length", "geometry"]:
+                continue
+            elif len(set(edge_attributes[key])) == 1:
                 # if there's only 1 unique value in this attribute list,
                 # consolidate it to the single value (the zero-th)
                 edge_attributes[key] = edge_attributes[key][0]
-            elif key != "length":
+            else:
                 # otherwise, if there are multiple values, keep one of each value
                 edge_attributes[key] = list(set(edge_attributes[key]))
 
         # construct the geometry and sum the lengths of the segments
-        edge_attributes["geometry"] = LineString(
-            [Point((G.nodes[node]["x"], G.nodes[node]["y"])) for node in path]
-        )
-        edge_attributes["length"] = sum(edge_attributes["length"])
+        if rebuild_geoms:
+            edge_attributes["geometry"] = LineString(
+                [Point((G.nodes[node]["x"], G.nodes[node]["y"])) for node in path]
+            )
+            edge_attributes["length"] = sum(edge_attributes["length"])
+        else:
+            # Create single geometry from the coordinates of the component geometries
+            merged_line = ops.linemerge(MultiLineString(edge_attributes["geometry"]))
+            edge_attributes["geometry"] = merged_line
+            edge_attributes["length"] = merged_line.length
 
         # add the nodes and edges to their lists for processing at the end
         all_nodes_to_remove.extend(path[1:-1])
@@ -411,11 +416,13 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 ##############################
 
 # Get into format required for osmnx compliant graph
+gdfORLink = gdfORLink[ gdfORLink['geometry'].type == "LineString"]
 gdfORLink = gdfORLink.rename(columns = {"identifier": "osmid", 'startNode':'u', 'endNode':'v'})
 gdfORLink['key'] = 0
 gdfORLink.set_index(['u','v','key'], inplace=True)
 gdfORLink['geometry'] = gdfORLink['geometry'].map(make_linestring_coords_2d)
 
+gdfORNode["geometry"] = gdfORNode["geometry"].map(lambda g: g[0])
 gdfORNode = gdfORNode.rename(columns = {"identifier": "osmid"})
 gdfORNode['x'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.x)
 gdfORNode['y'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.y)
@@ -468,18 +475,18 @@ G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed fr
 
 
 # simplify topology before breaking up edges based on angular deviation
-G = simplify_graph(G, strict=True, remove_rings=True)
+G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False)
 
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
-U = G.to_undirected()
+U = G_simp.to_undirected()
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
 
 gdfORLink.reset_index(inplace=True)
 gdfORNode.reset_index(inplace=True)
 
 for col in gdfORLink.columns:
-    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "-".join(str(i) for i in v))
+    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
 
 # At this stage can have some duplicated geometries. Check for this and delete duplications

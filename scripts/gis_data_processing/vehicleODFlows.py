@@ -11,7 +11,7 @@ import pandas as pd
 import geopandas as gpd
 import os
 import networkx as nx
-
+import json
 
 #############################
 #
@@ -20,36 +20,70 @@ import networkx as nx
 #
 #
 #############################
+with open("config.json") as f:
+    config = json.load(f)
+
 gis_data_dir = config['gis_data_dir']
-
-OD_shapefile = config['vehicle_od_file']
-
+processed_gis_dir = os.path.join(gis_data_dir, "processed_gis_data")
 route_info_dir = os.path.join(gis_data_dir, "itn_route_info")
+
 itn_network_edge_data_file = os.path.join(route_info_dir, "itn_edge_list.csv")
 
-output_flows_path = os.path.join(gis_data_dir, config['vehicle_od_flows'])
+itn_node_path = os.path.join(processed_gis_dir, config["mastermap_node_processed_file"])
+
+output_flows_path = os.path.join(processed_gis_dir, config['vehicle_od_flows'])
+OD_shapefile_path = os.path.join(processed_gis_dir, config['vehicle_od_file'])
+
+# Proportion of ITN nodes to use as vehicle ODs
+prop_random_ODs = 0.3
 
 
 ############################
 #
 #
-# Load the data
+# Create Vehicle ODs
 #
+# Select nodes at the edges of network and compliments with a set of randomly selected other nodes
 #
-###########################
+############################
 
-# Load the vehicle OD nodes and the road link data
-gdfOD = gpd.read_file(os.path.join(gis_data_dir, OD_shapefile))
-
+# Create road network
 dfEdgeList = pd.read_csv(itn_network_edge_data_file)
 graphRL = nx.from_pandas_edgelist(dfEdgeList, source='start_node', target = 'end_node', edge_attr = ['RoadLinkFID','weight'], create_using=nx.DiGraph())
 assert graphRL.is_directed()
 
-print(gdfOD.head())
+n_ODs = int(prop_random_ODs * len(graphRL.nodes()))
+
+# Select nodes with degree = 2 or 1. Since directed, these are the nodes at the edge of the network
+dfDegree = pd.DataFrame(graphRL.to_undirected().degree, columns = ['node','deg'])
+edge_nodes = dfDegree.loc[ dfDegree['deg'] == 1, 'node'].values
+n_ODs-= len(edge_nodes)
+
+remaining_nodes = dfDegree.loc[ ~dfDegree['node'].isin(edge_nodes), 'node'].values
+random_nodes = np.random.choice(remaining_nodes, n_ODs, replace=False)
+
+vehicle_OD_nodes = np.concatenate( [edge_nodes, random_nodes])
+
+gdfOD = gpd.read_file(itn_node_path)
+gdfOD = gdfOD.loc[ gdfOD['fid'].isin(vehicle_OD_nodes), ['fid','geometry']]
+
+# Save the vehicle OD data
+gdfOD.to_file(OD_shapefile_path)
+
+# Load the vehicle OD nodes and the road link data
+#gdfOD = gpd.read_file(OD_shapefile_path)
+
+############################
+#
+#
+# Generate OD Flows
+#
+#
+###########################
 
 # Now iterate between all OD pairs and find which paths are possible and which are not
 dfPossibleFlows = pd.DataFrame(columns = ['O','D', 'flowPossible'])
-excludeFIDs = ['osgb4000000029970447'] # Nodes that shouldn't be considered as ODs
+excludeFIDs = [] # Nodes that shouldn't be considered as ODs
 ODfids = gdfOD['fid']
 for o in ODfids:
 	for d in ODfids:

@@ -39,7 +39,7 @@ road_route_info_path = os.path.join(route_info_dir, "extracted_RRI.csv")
 road_node_info_path = os.path.join(route_info_dir, "extracted_RLNodes.csv")
 
 output_itn_edge_list = os.path.join(route_info_dir, "itn_edge_list.csv")
-output_shapefile = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
+output_shapefile = os.path.join(output_directory, config['mastermap_itn_processed_direction_file'])
 
 
 ###########################
@@ -120,14 +120,18 @@ gdf_itn = None
 #
 ###########################
 
+# Before merging itn fids should be unique.
+assert gdf_itn_link['fid'].duplicated().any()==False
+
 gdf_itn_link = pd.merge(gdf_itn_link, dfRRI, left_on='fid', right_on='DirectedLinkFID',how = 'left', indicator=True)
 gdf_itn_link = pd.merge(gdf_itn_link, dfRLNode, left_on='fid', right_on='RoadLinkFID',how = 'left', indicator=False)
 #assert gdf_itn_link.loc[ gdf_itn_link['_merge'] != 'both'].shape[0] ==0 # This fails, ok cos not all road links have orientation routing info
 
+# After merging should still be unique since dfRRI only contains routing info for one way links
+#assert gdf_itn_link['fid'].duplicated().any()==False # Fails since dfRRI does contian a small number of couplet entries for road links that are two way
 
 gdf_itn_link['direction'] = gdf_itn_link['DirectedLinkOrientation']
 gdf_itn_link['OneWay'] = np.nan
-gdf_itn_link.loc[ gdf_itn_link['_merge'] == 'both', 'OneWay'] = True
 gdf_itn_link.loc[ gdf_itn_link['_merge'] == 'left_only', 'OneWay'] = False
 gdf_itn_link.drop("_merge", axis=1, inplace=True)
 
@@ -138,6 +142,14 @@ gdf_itn_link.loc[ gdf_itn_link['OneWay'] == False, 'direction'] = '-'
 gdf_itn_link_two_way = gdf_itn_link.loc[ gdf_itn_link['OneWay'] == False]
 gdf_itn_link_two_way['direction'] = '+'
 gdf_itn_link = pd.concat([gdf_itn_link, gdf_itn_link_two_way], join = 'inner')
+
+# Now should have some duplicated fid
+assert gdf_itn_link['fid'].duplicated().any()==True
+
+# Fix this by adding route info to id
+gdf_itn_link['fid_undir'] = gdf_itn_link['fid']
+gdf_itn_link['fid'] = gdf_itn_link['fid'] + "_" + gdf_itn_link['direction'].replace({'-':'minus', '+':'plus'})
+assert gdf_itn_link['fid'].duplicated().any()==False
 
 print(gdf_itn_link['OneWay'].value_counts())
 print(gdf_itn_link['direction'].value_counts())
@@ -152,10 +164,10 @@ print(gdf_itn_link['DirectedLinkOrientation'].value_counts())
 #
 ##################################
 # Filter the nodes to be just those in the ITN Link data used for the model
-dfRLNode = dfRLNode.loc[ dfRLNode["RoadLinkFID"].isin(gdf_itn_link.fid)]
+dfRLNode = dfRLNode.loc[ dfRLNode["RoadLinkFID"].isin(gdf_itn_link.fid_undir)]
 
 # Check all road links are present and that thy all have 2 nodes
-assert len(dfRLNode.RoadLinkFID.unique()) == len(gdf_itn_link.fid.unique())
+assert len(dfRLNode.RoadLinkFID.unique()) == len(gdf_itn_link.fid_undir.unique())
 assert dfRLNode['PlusNodeFID'].isnull().any() == False
 assert dfRLNode['MinusNodeFID'].isnull().any() == False
 
