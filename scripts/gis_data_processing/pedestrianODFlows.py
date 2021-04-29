@@ -4,6 +4,8 @@ import os
 import geopandas as gpd
 import json
 
+from shapely.geometry import Point
+
 ##################
 #
 # Config
@@ -35,6 +37,7 @@ dist_from_centre_threshold = 50
 #################
 
 # Select Origin pavement nodes based on POIs
+'''
 gdf_pois = gpd.read_file(poi_file)
 gdf_pave_node = gpd.read_file(pavement_nodes_file)
 
@@ -56,9 +59,27 @@ ODs = np.concatenate([Os, Ds])
 gdfODs = gdf_pave_node.loc[ gdf_pave_node['fid'].isin(ODs), ['fid', 'geometry']]
 
 gdfODs.to_file(pedestrian_od_file)
+'''
+
+def displace_point(p, d, bearing):
+	x = p.x + d*np.sin(bearing)
+	y = p.y + d*np.cos(bearing)
+	return Point([x,y])
+
 
 # Load ped ODs to get number of origins/destinations
 gdfODs = gpd.read_file(pedestrian_od_file)
+
+points = gdfODs['geometry'].values
+ds = [0.1]*gdfODs.shape[0]
+random_bearings = np.random.rand(gdfODs.shape[0])
+new_points = list(map(displace_point, points, ds, random_bearings))
+
+gdfODs['geometry'] = new_points
+
+Os = gdfODs.loc[ gdfODs['fid'] == 'pave_node_9', 'fid'].values
+Ds = gdfODs.loc[ gdfODs['fid'] != 'pave_node_9', 'fid'].values
+ODs = np.concatenate([Os, Ds])
 
 #################
 #
