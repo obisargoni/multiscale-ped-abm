@@ -440,8 +440,20 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
 # Get into format required for osmnx compliant graph
 gdfORLink = gdfORLink[ gdfORLink['geometry'].type == "LineString"]
+
+# Handle multi links
+gdfORLink['key'] = None
+gdfORLink['key'] = gdfORLink.groupby(['startNode','endNode'])['key'].transform(lambda df: np.arange(df.shape[0]))
+assert gdfORLink.loc[:, ['startNode','endNode', 'key']].duplicated().any() == False
+
+# Represent undirected network as directed graph
+gdfORLinkReversed = gdfORLink.copy()
+gdfORLinkReversed = gdfORLink.rename(columns = {'startNode':'endNode', 'endNode':'startNode'})
+gdfORLinkReversed['geometry'] = gdfORLinkReversed['geometry'].map(lambda g: LineString(g.coords[::-1]))
+gdfORLink = pd.concat([gdfORLink, gdfORLinkReversed])
+
+# Format for osmnx
 gdfORLink = gdfORLink.rename(columns = {"identifier": "osmid", 'startNode':'u', 'endNode':'v'})
-gdfORLink['key'] = 0
 gdfORLink.set_index(['u','v','key'], inplace=True)
 gdfORLink['geometry'] = gdfORLink['geometry'].map(make_linestring_coords_2d)
 
