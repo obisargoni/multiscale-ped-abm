@@ -463,38 +463,31 @@ gdfORNode['x'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.x)
 gdfORNode['y'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.y)
 gdfORNode.set_index('osmid', inplace=True)
 
-# Get largest connected component
-'''
-edges = gdfORLink.loc[:,['startNode','endNode','length']].values
-edges_ids = gdfORLink['fid'].values
-G = nx.Graph()
-G.add_weighted_edges_from(edges, weight='length', fid = edges_ids)
-'''
 
 # Makes sense to set up graph as osmnx compliant object. But need to make sure I can keep track of edge ids
 G = osmnx.graph_from_gdfs(gdfORNode, gdfORLink, graph_attrs=None)
-
-# Convert to undirected
-U = G.to_undirected()
 
 # Find the or node nearest the centre poi
 gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
 nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
-reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, config['study_area_dist'], 'length')
+# Get largest connected component
+reachable_nodes = largest_connected_component_nodes_within_dist(G, nearest_node_id, config['study_area_dist'], 'length')
 
-U = U.subgraph(reachable_nodes).copy()
+G = G.subgraph(reachable_nodes).copy()
 
 # Remove dead ends by removing nodes with degree 1 continually  until no degree 1 nodes left
+U = G.to_undirected()
 dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
 dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
+removed_nodes = []
 while(len(dead_end_nodes)>0):
     U.remove_nodes_from(dead_end_nodes)
-
+    removed_nodes = np.concatenate([removed_nodes, dead_end_nodes])
     dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
     dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
 
-G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
+G.remove_nodes_from(removed_nodes)
 
 ###################################
 #
@@ -504,10 +497,6 @@ G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed fr
 # - split lines based on angular deviation
 #
 ####################################
-
-# simplify intersections - not working for some reason - don't think this does what I want
-#G_simplified = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
-
 
 # simplify topology before breaking up edges based on angular deviation
 G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False)
