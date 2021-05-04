@@ -310,6 +310,72 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     osmnx.utils.log(msg)
     return G
 
+def break_overlapping_edges(G):
+    """Used to deal with edges geometries that overlap. Create nodes at intersection between edges
+    and break edge geometries at these points. Rebuild graph by assigning nodes to start and end of graph.
+
+    --------------
+    Returns:
+        geopandas.GeoDataFrame, geopandas.GeoDataFrame
+
+        gdfNode,s gdfEdges
+    """
+
+    # Here need to break up edges where they overlap. Do this by looping over pairs of edges and calculating intersection
+    node_data = {'geometry':[]}
+    for u in list(G.nodes()):
+        node_edges = []
+        for v in list(G[u]):
+            for k in list(G[u][v]):
+                node_edges.append((u,v,k))
+
+        # Now loop through pairs of edges
+        for (u1,v1,k1), (u2,v2,k2) in itertools.combinations(node_edges, 2):
+            g1 = U_clip[u1][v1][k1]['geometry']
+            g2 = U_clip[u2][v2][k2]['geometry']
+
+            # Remove overlaps between geometries
+            g1 = g1.difference(g2)
+
+            #G[u1][v1][k1]['geometry'] = g1
+            #G[u2][v2][k2]['geometry'] = g2
+
+            if (g1.is_empty) & ~(g2.is_empty):
+                print("Empty line. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                continue
+            elif ~(g1.is_empty) & (g2.is_empty):
+                print("Empty line. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                continue
+
+            # Find intersecting points of geometries
+            intersection = g1.intersection(g2)
+
+            if isinstance(intersection, Point):
+                node_data['geometry'].append(intersection)
+            elif isinstance(intersection, MultiPoint):
+                print("MultiPoint Intersection.e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                for p in intersection:
+                    node_data['geometry'].append(p)
+            else:
+                print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+        
+
+    # Now split lines by these points
+    edge_data = {'geometry':[], 'fid':[]}
+    mp = MultiPoint(points)
+    for edge in G.edges(data=True):
+        g = edge[2]['geometry']
+        for l in ops.split(g, mp):
+            edge_data['geometry'].append(l)
+
+    # Gether points into gdf
+    gdfNodes = gpd.GeoDataFrame(node_data)
+    gdfEdges = gpd.GeoDataFrame(edge_data)
+
+    return gdfNodes, gdfEdges
+
+
+
 def duplicate_geometry_row_ids(gdf, geometry = 'geometry'):
     dup_ids = []
     for ix, row in gdf.iterrows():
