@@ -14,8 +14,9 @@ import geopandas as gpd
 import os
 import networkx as nx
 import osmnx
-from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString
 from shapely import ops
+import itertools
 
 ######################
 #
