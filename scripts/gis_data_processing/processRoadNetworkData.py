@@ -501,6 +501,8 @@ G.remove_nodes_from(removed_nodes)
 # simplify topology before breaking up edges based on angular deviation
 G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False)
 
+# simplify intersections
+G_simp = osmnx.consolidate_intersections(G_simp, tolerance=15, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
 U = G_simp.to_undirected()
