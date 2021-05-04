@@ -572,6 +572,17 @@ G_simp = osmnx.consolidate_intersections(G_simp, tolerance=15, rebuild_graph=Tru
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
 U = G_simp.to_undirected()
+U_clip = U.copy()
+gdfNode, gdfEdges = break_overlapping_edges(U_clip)
+
+
+gdfNodes = drop_duplicate_geometries(gdfNodes)
+gdfEdges = drop_duplicate_geometries(gdfEdges)
+
+gdfNodes.crs = projectCRS
+gdfEdges.crs = projectCRS
+gdfEdges.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
+gdfNodes.to_file(os.path.join("or_roads", "or_node_cleaned_split.shp"))
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
 
 gdfORLink.reset_index(inplace=True)
