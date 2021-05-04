@@ -310,7 +310,7 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     osmnx.utils.log(msg)
     return G
 
-def break_overlapping_edges(G):
+def break_overlapping_edges(G, id_attr = 'fid'):
     """Used to deal with edges geometries that overlap. Create nodes at intersection between edges
     and break edge geometries at these points. Rebuild graph by assigning nodes to start and end of graph.
 
@@ -320,25 +320,28 @@ def break_overlapping_edges(G):
 
         gdfNode,s gdfEdges
     """
+    H = nx.MultiGraph()
 
     # Here need to break up edges where they overlap. Do this by looping over pairs of edges and calculating intersection
     node_data = {'geometry':[]}
-    for u in list(G.nodes()):
-        node_edges = []
-        for v in list(G[u]):
-            for k in list(G[u][v]):
-                node_edges.append((u,v,k))
 
-        # Now loop through pairs of edges
-        for (u1,v1,k1), (u2,v2,k2) in itertools.combinations(node_edges, 2):
-            g1 = U_clip[u1][v1][k1]['geometry']
-            g2 = U_clip[u2][v2][k2]['geometry']
+    new_nodes = {} # Record the points of intersections between edge geometries and use these as addition nodes
+    node_attributes = nx.get_node_attributes(G)
+    new_node_index = 0
+    for u in list(G.nodes()):
+
+        # Now loop through pairs of edges attached to this node
+        for e1, e2 in itertools.combinations(G.edges(u,data=True, keys=True), 2):
+
+            # Unpack for ease
+            u1,v1,k1,d1 = e1
+            u2,v2,k2,d2 = e2
+
+            g1 = G[u1][v1][k1]['geometry']
+            g2 = G[u2][v2][k2]['geometry']
 
             # Remove overlaps between geometries
             g1 = g1.difference(g2)
-
-            #G[u1][v1][k1]['geometry'] = g1
-            #G[u2][v2][k2]['geometry'] = g2
 
             if (g1.is_empty) & ~(g2.is_empty):
                 print("Empty line. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
@@ -352,27 +355,67 @@ def break_overlapping_edges(G):
 
             if isinstance(intersection, Point):
                 node_data['geometry'].append(intersection)
+                intersection = MultiPoint([intersection])
             elif isinstance(intersection, MultiPoint):
                 print("MultiPoint Intersection.e1:{}, e2:{}".format((u1,v1), (u2,v2)))
                 for p in intersection:
                     node_data['geometry'].append(p)
             else:
                 print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
-        
 
-    # Now split lines by these points
-    edge_data = {'geometry':[], 'fid':[]}
-    mp = MultiPoint(points)
-    for edge in G.edges(data=True):
-        g = edge[2]['geometry']
-        for l in ops.split(g, mp):
-            edge_data['geometry'].append(l)
+            # Add intersection points to dict of new nodes
+            for p in intersection:
+                if p.coords in new_nodes:
+                    continue
+                else:
+                    d = {}
+                    d['x'] = p.x
+                    d['y'] = p.y
+                    d[id_attr] = "intersection_node_{}".format(new_node_index)
+                    d['geometry'] = p
+                    new_nodes[p.coords] = d
+                    new_node_index += 1
 
-    # Gether points into gdf
-    gdfNodes = gpd.GeoDataFrame(node_data)
-    gdfEdges = gpd.GeoDataFrame(edge_data)
 
-    return gdfNodes, gdfEdges
+            # Split edge geometries by the intersecting points
+            for e in (e1, e2):
+                data = e[-1]
+                g = data['geometry']
+                new_edge_index = 0
+                for new_geom in ops.split(g, intersection):
+                    # Find start and end nodes for the new edge geometry
+
+                    new_u = None
+                    if (new_geom.coords[0] == node_attributes[e[0]]['geometry'].coords):
+                        new_u = e[0]
+                    elif (new_geom.coords[0] == node_attributes[e[1]]['geometry'].coords):
+                        new_u = e[1]
+                    else:
+                        for p in intersection: # Here need to loop through all newly created nodes.
+                            if (new_geom.coords[0] == p.coords):
+                                new_u = new_nodes[p.coords][id_attr]
+                                break
+
+                    new_v = None
+                    if (new_geom.coords[1] == node_attributes[e[0]]['geometry'].coords):
+                        new_v = e[0]
+                    elif (new_geom.coords[1] == node_attributes[e[1]]['geometry'].coords):
+                        new_v = e[1]
+                    else:
+                        for p in intersection: # Here need to loop through all newly created nodes.
+                            if (new_geom.coords[1] == p.coords):
+                                new_v = new_nodes[p.coords][id_attr]
+                                break
+
+                    # Finally add the edge to the new graph
+                    new_data = data
+                    new_data['geometry'] = new_geom
+                    new_data['sub_'+id_attr] = "tactical_id_{}".format(new_edge_index)
+                    new_edge_index += 1
+
+                    H.add_edge(new_u, new_v, **new_data)
+
+    return H
 
 
 
