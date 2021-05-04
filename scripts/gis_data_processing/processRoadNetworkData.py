@@ -310,6 +310,28 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     osmnx.utils.log(msg)
     return G
 
+def duplicate_geometry_row_ids(gdf, geometry = 'geometry'):
+    dup_ids = []
+    for ix, row in gdf.iterrows():
+        g1 = row[geometry]
+        temp = [ix]
+        for ix_, row_ in gdf.loc[ix:,].iterrows():
+            if ix_ == ix:
+                continue
+            g2 = row_[geometry]
+            if g1.equals(g2):
+                temp.append(ix_)
+        if len(temp) > 1:
+            dup_ids.append(temp)
+    return dup_ids
+
+def drop_duplicate_geometries(gdf, geometry = 'geometry', **kwargs):
+    duplicated_ids = duplicate_geometry_row_ids(gdf, geometry = geometry)
+    for id_group in duplicated_ids:
+        gdf = gdf.drop(id_group[1:], axis=0, errors = 'ignore') # Keep the first entry, ignore errors since possible that this will try to drop the same row multiple times
+    return gdf
+
+
 ######################
 #
 #
