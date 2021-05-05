@@ -687,25 +687,6 @@ gdfNodes.to_file(os.path.join("or_roads", "or_node_cleaned_split.shp"))
 gdfLinks.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
 
 
-gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
-
-gdfORLink.reset_index(inplace=True)
-gdfORNode.reset_index(inplace=True)
-
-for col in gdfORLink.columns:
-    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
-
-
-# At this stage can have some duplicated geometries. Check for this and delete duplications
-gdfORLink['geom_coords'] = gdfORLink['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords))) # Have to convert to string for .duplicated() to work
-gdfORLink.drop_duplicates('geom_coords', inplace=True)
-gdfORLink.drop('geom_coords', axis=1, inplace=True)
-
-# Clean data to ensure minimum angular deviation along road link
-assert gdfORLink['geometry'].type.unique().size == 1
-assert gdfORLink['osmid'].unique().size == gdfORLink.shape[0]
-
-
 gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "osmid", "fid")
 
 assert gdfORLink_simplified['fid'].duplicated().any() == False
