@@ -703,9 +703,8 @@ gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid",
 
 
 # At this stage can have some duplicated geometries. Check for this and delete duplications
-gdfORLink_simplified['geom_coords'] = gdfORLink_simplified['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords)))
-gdfORLink_simplified.drop_duplicates('geom_coords', inplace=True)
-gdfORLink_simplified.drop('geom_coords', axis=1, inplace=True)
+gdfORLink_simplified.index = np.arange(gdfORLink_simplified.shape[0])
+gdfORLink_simplified = drop_duplicate_geometries(gdfORLink_simplified)
 
 # Checking that all node ids in link data match with a node id in nodes data
 assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
