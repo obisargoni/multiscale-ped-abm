@@ -613,6 +613,16 @@ G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False
 # simplify intersections
 G_simp = osmnx.consolidate_intersections(G_simp, tolerance=15, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
 
+# At this stage reset the road link IDs. These road links correspond to strtegic routing.
+# This code keeps the old attributes but not sure that's needed.
+new_attributes = {}
+for i, edge in enumerate(G_simp.edges(data = True, keys = True)):
+    edge_id = "strategic_link_{}".format(i)
+    edge_attributes = {}
+    edge_attributes['fid'] = edge_id
+    new_attributes[edge[:-1]] = edge_attributes
+nx.set_edge_attributes(G_simp, new_attributes)
+
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
 U = G_simp.to_undirected()
 U_clip = U.copy()
