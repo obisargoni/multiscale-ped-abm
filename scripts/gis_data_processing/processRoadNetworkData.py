@@ -691,7 +691,7 @@ gdfNodes.to_file(os.path.join("or_roads", "or_node_cleaned_split.shp"))
 gdfLinks.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
 
 
-gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "osmid", "fid")
+gdfORLink_simplified = simplify_line_gdf_by_angle(gdfLinks, 10, "link_id", "fid")
 
 assert gdfORLink_simplified['fid'].duplicated().any() == False
 
