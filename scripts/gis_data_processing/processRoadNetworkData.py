@@ -178,7 +178,7 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     gdf_edges = gdf_edges.set_geometry("c2")
     gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes    , how='inner', op='intersects', lsuffix='left', rsuffix='right')
     assert gdf_edges['node_id'].isnull().any() == False 
-    gdf_edges.rename(columns={'node_id':'endNode'}, inplace=True)
+    gdf_edges.rename(columns={'node_id':v}, inplace=True)
     gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
 
     # Tidy up
