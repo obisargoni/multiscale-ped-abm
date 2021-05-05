@@ -657,15 +657,36 @@ nx.set_edge_attributes(G_simp, new_attributes)
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
 U = G_simp.to_undirected()
 U_clip = U.copy()
-gdfNodes, gdfEdges = break_overlapping_edges(U_clip)
+U_clip = break_overlapping_edges(U_clip)
+
+gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_clip)
+
+# Reset indexes and convert ids to string data
+gdfNodes.reset_index(inplace=True)
+gdfNodes['osmid'] = gdfNodes['osmid'].map(lambda x: str(x))
+
+gdfLinks.reset_index(inplace=True)
+gdfLinks['u'] = gdfLinks['u'].map(lambda x: str(x))
+gdfLinks['v'] = gdfLinks['v'].map(lambda x: str(x))
+gdfLinks['key'] = gdfLinks['key'].map(lambda x: str(x))
+
+for col in gdfLinks.columns:
+    gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col] = gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
+
+for col in gdfNodes.columns:
+    gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col] = gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
 gdfNodes = drop_duplicate_geometries(gdfNodes)
-gdfEdges = drop_duplicate_geometries(gdfEdges)
+gdfLinks = drop_duplicate_geometries(gdfLinks)
+
+assert gdfLinks.loc[:, ['u','v','key']].duplicated().any() == False
 
 gdfNodes.crs = projectCRS
-gdfEdges.crs = projectCRS
-gdfEdges.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
+gdfLinks.crs = projectCRS
 gdfNodes.to_file(os.path.join("or_roads", "or_node_cleaned_split.shp"))
+gdfLinks.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
+
+
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
 
 gdfORLink.reset_index(inplace=True)
