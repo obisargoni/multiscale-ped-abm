@@ -319,18 +319,16 @@ def break_overlapping_edges(G, id_attr = 'fid'):
     Returns:
         geopandas.GeoDataFrame, geopandas.GeoDataFrame
 
-        gdfNode,s gdfEdges
+        gdfNodes, gdfLinks
     """
     H = nx.MultiGraph()
-
-    # Here need to break up edges where they overlap. Do this by looping over pairs of edges and calculating intersection
-    node_data = {'geometry':[]}
+    H.graph = G.graph
 
     new_nodes = {} # Record the points of intersections between edge geometries and use these as addition nodes
-    node_attributes = nx.get_node_attributes(G)
+    nodes = G.nodes(data=True)
     new_node_index = 0
-    for u in list(G.nodes()):
-
+    for n in nodes:
+        u = n[0]
         # Now loop through pairs of edges attached to this node
         for e1, e2 in itertools.combinations(G.edges(u,data=True, keys=True), 2):
 
@@ -338,8 +336,8 @@ def break_overlapping_edges(G, id_attr = 'fid'):
             u1,v1,k1,d1 = e1
             u2,v2,k2,d2 = e2
 
-            g1 = G[u1][v1][k1]['geometry']
-            g2 = G[u2][v2][k2]['geometry']
+            g1 = copy.deepcopy(d1['geometry'])
+            g2 = copy.deepcopy(d2['geometry'])
 
             # Remove overlaps between geometries
             g1 = g1.difference(g2)
@@ -355,66 +353,98 @@ def break_overlapping_edges(G, id_attr = 'fid'):
             intersection = g1.intersection(g2)
 
             if isinstance(intersection, Point):
-                node_data['geometry'].append(intersection)
+                #node_data['geometry'].append(intersection)
                 intersection = MultiPoint([intersection])
             elif isinstance(intersection, MultiPoint):
-                print("MultiPoint Intersection.e1:{}, e2:{}".format((u1,v1), (u2,v2)))
-                for p in intersection:
-                    node_data['geometry'].append(p)
+                print("MultiPoint Intersection.e1:{}, e2:{}".format((u1,v1,k1), (u2,v2,k2)))
+            #elif len(intersection.coords) == 0:
+                # these two edges no longer intersect, continue to next edge pair
+                #continue
             else:
-                print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1,k1), (u2,v2,k2)))
 
             # Add intersection points to dict of new nodes
             for p in intersection:
-                if p.coords in new_nodes:
+                
+                # Search new nodes for this coordinate
+                is_new_node = True
+                for v in new_nodes.values():
+                    if (p.x == v['x']) & (p.y == v['y']):
+                        # This coordiante has already been recorded as a new node
+                        is_new_node = False
+                        break
+                
+                if not is_new_node:
                     continue
                 else:
                     d = {}
                     d['x'] = p.x
                     d['y'] = p.y
-                    d[id_attr] = "intersection_node_{}".format(new_node_index)
                     d['geometry'] = p
-                    new_nodes[p.coords] = d
+                    node_id = "intersection_node_{}".format(new_node_index)
+                    new_nodes[node_id] = d
                     new_node_index += 1
 
+    # Create multipoint geometry containing all the nodes, use this to split edges
+    points = [Point(n[-1]['x'],n[-1]['y']) for n in nodes]
+    points += [v['geometry'] for k,v in new_nodes.items()]
+    mp = MultiPoint(points)
 
-            # Split edge geometries by the intersecting points
-            for e in (e1, e2):
-                data = e[-1]
-                g = data['geometry']
-                new_edge_index = 0
-                for new_geom in ops.split(g, intersection):
-                    # Find start and end nodes for the new edge geometry
+    # Split edge geometries by the intersecting points
+    for e in G.edges(data=True, keys=True):
+        data = copy.deepcopy(e[-1])
+        g = data['geometry']
+        new_edge_index = 0
+        for new_geom in ops.split(g, mp):
+            # Find start and end nodes for the new edge geometry
+            # Although start and end coords might match points of intersection, retain original node IDs where possible
+            # Means that only intersection node sthat are used should be added to the graph, otherwise will get duplicated node geometries
 
-                    new_u = None
-                    if (new_geom.coords[0] == node_attributes[e[0]]['geometry'].coords):
-                        new_u = e[0]
-                    elif (new_geom.coords[0] == node_attributes[e[1]]['geometry'].coords):
-                        new_u = e[1]
-                    else:
-                        for p in intersection: # Here need to loop through all newly created nodes.
-                            if (new_geom.coords[0] == p.coords):
-                                new_u = new_nodes[p.coords][id_attr]
-                                break
+            new_u = None
+            new_u_data = None
+            if (new_geom.coords[0][0] == nodes[e[0]]['x']) & (new_geom.coords[0][1] == nodes[e[0]]['y']):
+                new_u = e[0]
+                new_u_data = nodes[new_u]
+            elif (new_geom.coords[0][0] == nodes[e[1]]['x']) & (new_geom.coords[0][1] == nodes[e[1]]['y']):
+                new_u = e[1]
+                new_u_data = nodes[new_u]
+            else:
+                # Find which newly created nodes matched the end of this line string
+                for node_id, node_data in new_nodes.items():
+                    if (new_geom.coords[0][0] == node_data['x']) & (new_geom.coords[0][1] == node_data['y']):
+                        new_u = node_id
+                        new_u_data = node_data
+                        break
+            
+            new_v = None
+            new_v_data = None
+            if (new_geom.coords[-1][0] == nodes[e[0]]['x']) & (new_geom.coords[-1][1] == nodes[e[0]]['y']):
+                new_v = e[0]
+                new_v_data = nodes[new_v]
+            elif (new_geom.coords[-1][0] == nodes[e[1]]['x']) & (new_geom.coords[-1][1] == nodes[e[1]]['y']):
+                new_v = e[1]
+                new_v_data = nodes[new_v]
+            else:
+                # Find which newly created nodes matched the end of this line string
+                for node_id, node_data in new_nodes.items():
+                    if (new_geom.coords[-1][0] == node_data['x']) & (new_geom.coords[-1][1] == node_data['y']):
+                        new_v = node_id
+                        new_v_data = node_data
+                        break
 
-                    new_v = None
-                    if (new_geom.coords[1] == node_attributes[e[0]]['geometry'].coords):
-                        new_v = e[0]
-                    elif (new_geom.coords[1] == node_attributes[e[1]]['geometry'].coords):
-                        new_v = e[1]
-                    else:
-                        for p in intersection: # Here need to loop through all newly created nodes.
-                            if (new_geom.coords[1] == p.coords):
-                                new_v = new_nodes[p.coords][id_attr]
-                                break
 
-                    # Finally add the edge to the new graph
-                    new_data = data
-                    new_data['geometry'] = new_geom
-                    new_data['sub_'+id_attr] = "tactical_id_{}".format(new_edge_index)
-                    new_edge_index += 1
-
-                    H.add_edge(new_u, new_v, **new_data)
+            # Finally add the edge to the new graph
+            if (new_u is None) | (new_v is None):
+                print("New nodes not found for edge {}".format(e))
+            else:
+                H.add_node(new_v, **new_v_data) # If node has already been added the graph will be unchanged
+                H.add_node(new_u, **new_u_data) # If node has already been added the graph will be unchanged
+                
+                new_data = data
+                new_data['geometry'] = new_geom
+                new_data['sub_'+id_attr] = "tactical_id_{}".format(new_edge_index)
+                new_edge_index += 1
+                H.add_edge(new_u, new_v, **new_data)
 
     return H
 
