@@ -17,6 +17,7 @@ import osmnx
 from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString
 from shapely import ops
 import itertools
+import copy
 
 ######################
 #
