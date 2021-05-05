@@ -311,7 +311,7 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     osmnx.utils.log(msg)
     return G
 
-def break_overlapping_edges(G, id_attr = 'fid'):
+def break_overlapping_edges(G, id_attr = 'strg_id'):
     """Used to deal with edges geometries that overlap. Create nodes at intersection between edges
     and break edge geometries at these points. Rebuild graph by assigning nodes to start and end of graph.
 
@@ -356,10 +356,7 @@ def break_overlapping_edges(G, id_attr = 'fid'):
                 #node_data['geometry'].append(intersection)
                 intersection = MultiPoint([intersection])
             elif isinstance(intersection, MultiPoint):
-                print("MultiPoint Intersection.e1:{}, e2:{}".format((u1,v1,k1), (u2,v2,k2)))
-            #elif len(intersection.coords) == 0:
-                # these two edges no longer intersect, continue to next edge pair
-                #continue
+                pass
             else:
                 print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1,k1), (u2,v2,k2)))
 
@@ -442,7 +439,7 @@ def break_overlapping_edges(G, id_attr = 'fid'):
                 
                 new_data = data
                 new_data['geometry'] = new_geom
-                new_data['sub_'+id_attr] = "tactical_id_{}".format(new_edge_index)
+                new_data['sub_'+id_attr] = "sub_{}".format(new_edge_index)
                 new_edge_index += 1
                 H.add_edge(new_u, new_v, **new_data)
 
@@ -648,9 +645,9 @@ G_simp = osmnx.consolidate_intersections(G_simp, tolerance=15, rebuild_graph=Tru
 # This code keeps the old attributes but not sure that's needed.
 new_attributes = {}
 for i, edge in enumerate(G_simp.edges(data = True, keys = True)):
-    edge_id = "strategic_link_{}".format(i)
+    edge_id = "strategic_{}".format(i)
     edge_attributes = {}
-    edge_attributes['fid'] = edge_id
+    edge_attributes['strg_id'] = edge_id
     new_attributes[edge[:-1]] = edge_attributes
 nx.set_edge_attributes(G_simp, new_attributes)
 
