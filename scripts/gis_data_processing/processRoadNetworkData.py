@@ -667,16 +667,23 @@ gdfLinks['u'] = gdfLinks['u'].map(lambda x: str(x))
 gdfLinks['v'] = gdfLinks['v'].map(lambda x: str(x))
 gdfLinks['key'] = gdfLinks['key'].map(lambda x: str(x))
 
+gdfLinks = gdfLinks.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'geometry'])
+gdfLinks['link_id'] = gdfLinks['strg_id'].map(str) + "_" + gdfLinks['sub_strg_id'].map(str)
+
+
 for col in gdfLinks.columns:
     gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col] = gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
 for col in gdfNodes.columns:
     gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col] = gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
+
+# Crudely dropping duplicated geometries like this breaks lookup from 'strategic ids' to tactical ids. Might to reconsider if planning on using separate network for strategic routing.
 gdfNodes = drop_duplicate_geometries(gdfNodes)
 gdfLinks = drop_duplicate_geometries(gdfLinks)
 
 assert gdfLinks.loc[:, ['u','v','key']].duplicated().any() == False
+assert gdfLinks.loc[:, ['link_id']].duplicated().any() == False
 
 gdfNodes.crs = projectCRS
 gdfLinks.crs = projectCRS
