@@ -797,44 +797,44 @@ U_clip = U_clip.to_undirected()
 U_ang = break_edges_by_angle(U_clip, 10, "strg_id", "strg_ang_id")
 
 # Convert graph to data frames and clean up
-gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_ang)
+gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U_ang)
 
 # Reset indexes and convert ids to string data
-gdfNodes.reset_index(inplace=True)
-gdfNodes['osmid'] = gdfNodes['osmid'].map(lambda x: str(x))
-gdfNodes['node_fid'] = ["or_node_{}".format(i) for i in gdfNodes.index]
+gdfORNode.reset_index(inplace=True)
+gdfORNode['osmid'] = gdfORNode['osmid'].map(lambda x: str(x))
+gdfORNode['node_fid'] = ["or_node_{}".format(i) for i in gdfORNode.index]
 
-node_id_dict = gdfNodes.set_index('osmid')['node_fid'].to_dict()
+node_id_dict = gdfORNode.set_index('osmid')['node_fid'].to_dict()
 
-gdfLinks.reset_index(inplace=True)
-gdfLinks['u'] = gdfLinks['u'].map(lambda x: str(x))
-gdfLinks['v'] = gdfLinks['v'].map(lambda x: str(x))
-gdfLinks['key'] = gdfLinks['key'].map(lambda x: str(x))
+gdfORLink.reset_index(inplace=True)
+gdfORLink['u'] = gdfORLink['u'].map(lambda x: str(x))
+gdfORLink['v'] = gdfORLink['v'].map(lambda x: str(x))
+gdfORLink['key'] = gdfORLink['key'].map(lambda x: str(x))
 
-gdfLinks = gdfLinks.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'strg_ang_id', 'geometry'])
-gdfLinks['fid'] = gdfLinks['strg_ang_id'].map(str) + "_" + gdfLinks['sub_strg_id'].map(str)
-gdfLinks['MNodeFID'] = gdfLinks['u'].replace(node_id_dict)
-gdfLinks['PNodeFID'] = gdfLinks['v'].replace(node_id_dict)
+gdfORLink = gdfORLink.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'strg_ang_id', 'geometry'])
+gdfORLink['fid'] = gdfORLink['strg_ang_id'].map(str) + "_" + gdfORLink['sub_strg_id'].map(str)
+gdfORLink['MNodeFID'] = gdfORLink['u'].replace(node_id_dict)
+gdfORLink['PNodeFID'] = gdfORLink['v'].replace(node_id_dict)
 
-for col in gdfLinks.columns:
-    gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col] = gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
+for col in gdfORLink.columns:
+    gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
-for col in gdfNodes.columns:
-    gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col] = gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
+for col in gdfORNode.columns:
+    gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col] = gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
-gdfNodes.to_file(os.path.join("or_roads", "or_node_graph_clean.shp"))
-gdfLinks.to_file(os.path.join("or_roads", "or_link_graph_clean.shp"))
+gdfORNode.to_file(os.path.join("or_roads", "or_node_graph_clean.shp"))
+gdfORLink.to_file(os.path.join("or_roads", "or_link_graph_clean.shp"))
 
 # Checking that all node ids in link data match with a node id in nodes data
-assert gdfLinks.loc[:, ['MNodeFID','PNodeFID','key']].duplicated().any() == False
-assert gdfLinks['fid'].duplicated().any() == False # Fails
-assert gdfNodes['node_fid'].duplicated().any() == False
+assert gdfORLink.loc[:, ['MNodeFID','PNodeFID','key']].duplicated().any() == False
+assert gdfORLink['fid'].duplicated().any() == False # Fails
+assert gdfORNode['node_fid'].duplicated().any() == False
 
-assert gdfLinks.loc[ ~(gdfLinks['MNodeFID'].isin(gdfNodes['node_fid']))].shape[0] == 0
-assert gdfLinks.loc[ ~(gdfLinks['PNodeFID'].isin(gdfNodes['node_fid']))].shape[0] == 0
+assert gdfORLink.loc[ ~(gdfORLink['MNodeFID'].isin(gdfORNode['node_fid']))].shape[0] == 0
+assert gdfORLink.loc[ ~(gdfORLink['PNodeFID'].isin(gdfORNode['node_fid']))].shape[0] == 0
 
-gdfNodes.crs = projectCRS
-gdfLinks.crs = projectCRS
+gdfORNode.crs = projectCRS
+gdfORLink.crs = projectCRS
 
 ################################
 #
@@ -887,8 +887,8 @@ for col in gdf_edges.columns:
 gdfITNLink.to_file(output_itn_link_file)
 gdfITNNode.to_file(output_itn_node_file)
 
-gdfLinks.to_file(output_or_link_file)
-gdfNodes.to_file(output_or_node_file)
+gdfORLink.to_file(output_or_link_file)
+gdfORNode.to_file(output_or_node_file)
 
 gdf_edges.to_file(os.path.join(output_directory, "osmnx_edges.shp"))
 gdf_nodes.to_file(os.path.join(output_directory, "osmnx_nodes.shp"))
