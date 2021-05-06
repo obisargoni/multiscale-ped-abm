@@ -188,6 +188,63 @@ def _match_nodes_to_geometry(g, u, v, graph_nodes, other_nodes):
 
     return (new_u, new_u_data), (new_v, new_v_data)
                 
+
+# Disolved geometries are multi polygons, explode to single polygons
+def break_edges_by_angle(G, angle_threshold, id_col, new_id_col):
+    """Given and input graph, break up edges that contain more than two coordinates where
+    the angle between edge segments is greater thatn the input angle threshold.
+    """
+    H = nx.MultiGraph()
+    H.graph = G.graph
+
+    new_nodes = {} # Record the points of intersections between edge geometries and use these as addition nodes
+    nodes = G.nodes(data=True)
+    new_node_index = 0
+
+    # loop over the edges in the graph
+    for e in G.edges(data=True, keys = True):
+        e_data = copy.deepcopy(e[-1])
+        g = e_data['geometry']
+
+        if len(g.coords) == 2:
+            e_data[new_id_col] = e_data[id_col]
+            H.add_edge(e[0], e[1], key = e[2], **e_data)
+        else:
+            # Break geometry into component edges
+            component_geoms = simplify_line_angle(g, angle_threshold)
+
+            # Add these component edges to the graph
+            for i, cg in enumerate(component_geoms):
+                comp_e_data = copy.deepcopy(e_data)
+                comp_e_data[new_id_col] = "{}_{}".format(comp_e_data[id_col], i)
+                comp_e_data['geometry'] = cg
+
+                # Add start and end points of geometry to new nodes
+                for p in (Point(cg.coords[0]), Point(cg.coords[-1])):
+
+                    point_in_nodes = _is_point_in_nodes(p, new_nodes)
+                    
+                    if point_in_nodes:
+                        continue
+                    else:
+                        node_id = "intersection_node_{}".format(new_node_index)
+                        new_node_index += 1
+                        new_nodes[node_id] = _node_data_from_point(p)
+
+
+                # Get the nodes for this geometry
+                (new_u, new_u_data), (new_v, new_v_data) = _match_nodes_to_geometry(cg, e[0], e[1], nodes, new_nodes)
+
+                # Finally add the edge to the new graph
+                if (new_u is None) | (new_v is None):
+                    print("New nodes not found for edge {}".format(e))
+                else:
+                    H.add_node(new_v, **new_v_data) # If node has already been added the graph will be unchanged
+                    H.add_node(new_u, **new_u_data) # If node has already been added the graph will be unchanged
+                    H.add_edge(new_u, new_v, **comp_e_data)
+
+    return H
+
 def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
     if G.is_directed():
         lccNodes = max(nx.weakly_connected_components(G), key=len)
