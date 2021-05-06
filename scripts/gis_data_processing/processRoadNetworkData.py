@@ -737,11 +737,13 @@ gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
 nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
 # Get largest connected component
+print("Selecting OR study area")
 reachable_nodes = largest_connected_component_nodes_within_dist(G, nearest_node_id, config['study_area_dist'], 'length')
 
 G = G.subgraph(reachable_nodes).copy()
 
 # Remove dead ends by removing nodes with degree 1 continually  until no degree 1 nodes left
+print("Removing Dead Ends")
 U = G.to_undirected()
 dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
 dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
