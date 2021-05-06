@@ -250,13 +250,21 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
                 if key in edge_attributes:
                     # if this key already exists in the dict, append it to the
                     # value list
-                    edge_attributes[key].append(edge[key])
+                    if isinstance(edge[key], (list, tuple)):
+                        for item in edge[key]:
+                            edge_attributes[key].append(item)
+                    else:
+                        edge_attributes[key].append(edge[key])
                 else:
-                    # if this key doesn't already exist, set the value to a list
-                    # containing the one value
-                    edge_attributes[key] = [edge[key]]
+                    # if this key doesn't already exist, but the value is a list set the value to the edge value
+                    # otherwise set the value to a list containing the one value
+                    if isinstance(edge[key], (list, tuple)):
+                        edge_attributes[key] = list(edge[key])
+                    else:
+                        edge_attributes[key] = [edge[key]]
 
         for key in edge_attributes:
+
             # don't touch the length or geometry attribute, we'll sum it at the end
             if key in ["length", "geometry"]:
                 continue
