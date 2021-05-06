@@ -131,7 +131,10 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
     return outdf
 
 def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
-    lccNodes = max(nx.weakly_connected_components(G), key=len)
+    if G.is_directed():
+        lccNodes = max(nx.weakly_connected_components(G), key=len)
+    else:
+        lccNodes = max(nx.connected_components(G), key=len)
 
     lccG = G.subgraph(lccNodes).copy()
     
