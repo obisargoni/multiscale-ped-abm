@@ -130,6 +130,64 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
             outdf = outdf.append(multdf,ignore_index=True)
     return outdf
 
+def _is_point_in_nodes(p, nodes):
+    # Search new nodes for this coordinate
+    point_in_node = False
+    for v in nodes.values():
+        if (p.x == v['x']) & (p.y == v['y']):
+            # This coordiante has already been recorded as a new node
+            point_in_node = False
+            break
+    return point_in_node
+
+def _node_data_from_point(p):
+    d = {}
+    d['x'] = p.x
+    d['y'] = p.y
+    d['geometry'] = p
+    return d
+
+def _match_nodes_to_geometry(g, u, v, graph_nodes, other_nodes):
+    """Find start and end nodes for the new edge geometry. 
+
+    First check if input u and v nodes match start and end point of geometry. Then search through input list of nodes.
+    Allows distingusing between nodes that already are in a graph (u and v) and node that need to be added.
+    """
+
+    new_u = None
+    new_u_data = None
+    if (g.coords[0][0] == graph_nodes[u]['x']) & (g.coords[0][1] == graph_nodes[u]['y']):
+        new_u = u
+        new_u_data = graph_nodes[new_u]
+    elif (g.coords[0][0] == graph_nodes[v]['x']) & (g.coords[0][1] == graph_nodes[v]['y']):
+        new_u = v
+        new_u_data = graph_nodes[new_u]
+    else:
+        # Find which newly created nodes matched the end of this line string
+        for node_id, node_data in other_nodes.items():
+            if (g.coords[0][0] == node_data['x']) & (g.coords[0][1] == node_data['y']):
+                new_u = node_id
+                new_u_data = node_data
+                break
+    
+    new_v = None
+    new_v_data = None
+    if (g.coords[-1][0] == graph_nodes[u]['x']) & (g.coords[-1][1] == graph_nodes[u]['y']):
+        new_v = u
+        new_v_data = graph_nodes[new_v]
+    elif (g.coords[-1][0] == graph_nodes[v]['x']) & (g.coords[-1][1] == graph_nodes[v]['y']):
+        new_v = v
+        new_v_data = graph_nodes[new_v]
+    else:
+        # Find which newly created nodes matched the end of this line string
+        for node_id, node_data in other_nodes.items():
+            if (g.coords[-1][0] == node_data['x']) & (g.coords[-1][1] == node_data['y']):
+                new_v = node_id
+                new_v_data = node_data
+                break
+
+    return (new_u, new_u_data), (new_v, new_v_data)
+                
 def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
     if G.is_directed():
         lccNodes = max(nx.weakly_connected_components(G), key=len)
@@ -332,6 +390,7 @@ def break_overlapping_edges(G, id_attr = 'strg_id'):
 
         gdfNodes, gdfLinks
     """
+    print("Breaking overlapping edges")
     H = nx.MultiGraph()
     H.graph = G.graph
 
@@ -373,25 +432,15 @@ def break_overlapping_edges(G, id_attr = 'strg_id'):
 
             # Add intersection points to dict of new nodes
             for p in intersection:
+
+                point_in_nodes = _is_point_in_nodes(p, new_nodes)
                 
-                # Search new nodes for this coordinate
-                is_new_node = True
-                for v in new_nodes.values():
-                    if (p.x == v['x']) & (p.y == v['y']):
-                        # This coordiante has already been recorded as a new node
-                        is_new_node = False
-                        break
-                
-                if not is_new_node:
+                if point_in_nodes:
                     continue
                 else:
-                    d = {}
-                    d['x'] = p.x
-                    d['y'] = p.y
-                    d['geometry'] = p
                     node_id = "intersection_node_{}".format(new_node_index)
-                    new_nodes[node_id] = d
                     new_node_index += 1
+                    new_nodes[node_id] = _node_data_from_point(p)
 
     # Create multipoint geometry containing all the nodes, use this to split edges
     points = [Point(n[-1]['x'],n[-1]['y']) for n in nodes]
@@ -407,39 +456,7 @@ def break_overlapping_edges(G, id_attr = 'strg_id'):
             # Find start and end nodes for the new edge geometry
             # Although start and end coords might match points of intersection, retain original node IDs where possible
             # Means that only intersection node sthat are used should be added to the graph, otherwise will get duplicated node geometries
-
-            new_u = None
-            new_u_data = None
-            if (new_geom.coords[0][0] == nodes[e[0]]['x']) & (new_geom.coords[0][1] == nodes[e[0]]['y']):
-                new_u = e[0]
-                new_u_data = nodes[new_u]
-            elif (new_geom.coords[0][0] == nodes[e[1]]['x']) & (new_geom.coords[0][1] == nodes[e[1]]['y']):
-                new_u = e[1]
-                new_u_data = nodes[new_u]
-            else:
-                # Find which newly created nodes matched the end of this line string
-                for node_id, node_data in new_nodes.items():
-                    if (new_geom.coords[0][0] == node_data['x']) & (new_geom.coords[0][1] == node_data['y']):
-                        new_u = node_id
-                        new_u_data = node_data
-                        break
-            
-            new_v = None
-            new_v_data = None
-            if (new_geom.coords[-1][0] == nodes[e[0]]['x']) & (new_geom.coords[-1][1] == nodes[e[0]]['y']):
-                new_v = e[0]
-                new_v_data = nodes[new_v]
-            elif (new_geom.coords[-1][0] == nodes[e[1]]['x']) & (new_geom.coords[-1][1] == nodes[e[1]]['y']):
-                new_v = e[1]
-                new_v_data = nodes[new_v]
-            else:
-                # Find which newly created nodes matched the end of this line string
-                for node_id, node_data in new_nodes.items():
-                    if (new_geom.coords[-1][0] == node_data['x']) & (new_geom.coords[-1][1] == node_data['y']):
-                        new_v = node_id
-                        new_v_data = node_data
-                        break
-
+            (new_u, new_u_data), (new_v, new_v_data) = _match_nodes_to_geometry(new_geom, e[0], e[1], nodes, new_nodes)
 
             # Finally add the edge to the new graph
             if (new_u is None) | (new_v is None):
