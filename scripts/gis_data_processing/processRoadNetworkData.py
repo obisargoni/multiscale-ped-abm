@@ -792,21 +792,27 @@ U_clip.graph['simplified'] = False
 U_clip = simplify_graph(U_clip, strict=True, remove_rings=True, rebuild_geoms = False)
 U_clip = U_clip.to_undirected()
 
+U_ang = break_edges_by_angle(U_clip, 10, "strg_id", "strg_ang_id")
 
-gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_clip)
+# Convert graph to data frames and clean up
+gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_ang)
 
 # Reset indexes and convert ids to string data
 gdfNodes.reset_index(inplace=True)
 gdfNodes['osmid'] = gdfNodes['osmid'].map(lambda x: str(x))
+gdfNodes['node_fid'] = ["or_node_{}".format(i) for i in gdfNodes.index]
+
+node_id_dict = gdfNodes.set_index('osmid')['node_fid'].to_dict()
 
 gdfLinks.reset_index(inplace=True)
 gdfLinks['u'] = gdfLinks['u'].map(lambda x: str(x))
 gdfLinks['v'] = gdfLinks['v'].map(lambda x: str(x))
 gdfLinks['key'] = gdfLinks['key'].map(lambda x: str(x))
 
-gdfLinks = gdfLinks.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'geometry'])
-gdfLinks['link_id'] = gdfLinks['strg_id'].map(str) + "_" + gdfLinks['sub_strg_id'].map(str)
-
+gdfLinks = gdfLinks.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'strg_ang_id', 'geometry'])
+gdfLinks['fid'] = gdfLinks['strg_ang_id'].map(str) + "_" + gdfLinks['sub_strg_id'].map(str)
+gdfLinks['MNodeFID'] = gdfLinks['u'].replace(node_id_dict)
+gdfLinks['PNodeFID'] = gdfLinks['v'].replace(node_id_dict)
 
 for col in gdfLinks.columns:
     gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col] = gdfLinks.loc[gdfLinks[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
@@ -814,41 +820,19 @@ for col in gdfLinks.columns:
 for col in gdfNodes.columns:
     gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col] = gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
-assert gdfLinks.loc[:, ['u','v','key']].duplicated().any() == False
-assert gdfLinks.loc[:, ['link_id']].duplicated().any() == False
+gdfNodes.to_file(os.path.join("or_roads", "or_node_graph_clean.shp"))
+gdfLinks.to_file(os.path.join("or_roads", "or_link_graph_clean.shp"))
+
+# Checking that all node ids in link data match with a node id in nodes data
+assert gdfLinks.loc[:, ['MNodeFID','PNodeFID','key']].duplicated().any() == False
+assert gdfLinks['fid'].duplicated().any() == False # Fails
+assert gdfNodes['node_fid'].duplicated().any() == False
+
+assert gdfLinks.loc[ ~(gdfLinks['MNodeFID'].isin(gdfNodes['node_fid']))].shape[0] == 0
+assert gdfLinks.loc[ ~(gdfLinks['PNodeFID'].isin(gdfNodes['node_fid']))].shape[0] == 0
 
 gdfNodes.crs = projectCRS
 gdfLinks.crs = projectCRS
-gdfNodes.to_file(os.path.join("or_roads", "or_node_cleaned_split.shp"))
-gdfLinks.to_file(os.path.join("or_roads", "or_link_cleaned_split.shp"))
-
-
-gdfORLink_simplified = simplify_line_gdf_by_angle(gdfLinks, 10, "link_id", "fid")
-
-assert gdfORLink_simplified['fid'].duplicated().any() == False
-
-gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_simplified, 'startNode','endNode')
-
-# Rename fid columns and node columns to match other road network data columns
-gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'node_id':'node_fid'})
-gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
-
-
-# At this stage can have some duplicated geometries. Check for this and delete duplications
-gdfORLink_simplified.index = np.arange(gdfORLink_simplified.shape[0])
-gdfORLink_simplified = drop_duplicate_geometries(gdfORLink_simplified)
-
-# Checking that all node ids in link data match with a node id in nodes data
-assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
-assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['PNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
-
-assert gdfORLink_simplified['fid'].duplicated().any() == False
-assert gdfORNode_simplified['node_fid'].duplicated().any() == False
-
-
-gdfORLink_simplified.crs = projectCRS
-gdfORNode_simplified.crs = projectCRS
-
 
 ################################
 #
@@ -901,8 +885,8 @@ for col in gdf_edges.columns:
 gdfITNLink.to_file(output_itn_link_file)
 gdfITNNode.to_file(output_itn_node_file)
 
-gdfORLink_simplified.to_file(output_or_link_file)
-gdfORNode_simplified.to_file(output_or_node_file)
+gdfLinks.to_file(output_or_link_file)
+gdfNodes.to_file(output_or_node_file)
 
 gdf_edges.to_file(os.path.join(output_directory, "osmnx_edges.shp"))
 gdf_nodes.to_file(os.path.join(output_directory, "osmnx_nodes.shp"))
