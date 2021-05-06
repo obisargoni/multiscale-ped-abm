@@ -713,6 +713,12 @@ U_clip = break_overlapping_edges(U_clip)
 
 U_clip = remove_duplicated_edges(U_clip)
 
+U_clip = U_clip.to_directed()
+U_clip.graph['simplified'] = False
+U_clip = simplify_graph(U_clip, strict=True, remove_rings=True, rebuild_geoms = False)
+U_clip = U_clip.to_undirected()
+
+
 gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_clip)
 
 # Reset indexes and convert ids to string data
