@@ -445,6 +445,49 @@ def break_overlapping_edges(G, id_attr = 'strg_id'):
 
     return H
 
+def remove_duplicated_edges(G):
+    """Breaking up edges where they overlap can create multiple links between the same two nodes with the same geometry.
+    These are considered duplicate link. This functions removes these links from the graph.
+    """
+    D = G.copy()
+
+    # Loop through node pairs, if multiple keys check if geometry is duplicated and delete if so
+    for u in D.nodes():
+
+        if isinstance(G, nx.MultiGraph):
+            neighbours = set(D.neighbors(u))
+        elif isinstance(G, nx.MultiDiGraph):
+            neighbours = set(list(D.predecessors(u)) + list(D.successors(u)))
+
+        for v in neighbours:
+
+            keys = list(D[u][v].keys())
+
+            if len(keys)==1:
+                # no multi edge between these nodes
+                continue
+            else:
+                # Check for duplicate geometries
+                geoms = [D[u][v][k]['geometry'] for k in keys]
+
+                for k1, k2 in itertools.combinations(keys, 2):
+                    try:
+                        g1 = D[u][v][k1]['geometry']
+                        g2 = D[u][v][k2]['geometry']
+                    except KeyError as ke:
+                        # Get key error if an edge has been removed
+                        continue
+
+                    if g1.equals(g2):
+                        D.remove_edge(u,v,key = k2)
+
+                # Check there is still an edge between u and v
+                try:
+                    e = D[u][v]
+                except KeyError:
+                    assert False
+    return D
+
 
 
 def duplicate_geometry_row_ids(gdf, geometry = 'geometry'):
@@ -656,6 +699,9 @@ U = G_simp.to_undirected()
 U_clip = U.copy()
 U_clip = break_overlapping_edges(U_clip)
 
+
+U_clip = remove_duplicated_edges(U_clip)
+
 gdfNodes, gdfLinks = osmnx.graph_to_gdfs(U_clip)
 
 # Reset indexes and convert ids to string data
@@ -676,11 +722,6 @@ for col in gdfLinks.columns:
 
 for col in gdfNodes.columns:
     gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col] = gdfNodes.loc[gdfNodes[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
-
-
-# Crudely dropping duplicated geometries like this breaks lookup from 'strategic ids' to tactical ids. Might to reconsider if planning on using separate network for strategic routing.
-gdfNodes = drop_duplicate_geometries(gdfNodes)
-gdfLinks = drop_duplicate_geometries(gdfLinks)
 
 assert gdfLinks.loc[:, ['u','v','key']].duplicated().any() == False
 assert gdfLinks.loc[:, ['link_id']].duplicated().any() == False
