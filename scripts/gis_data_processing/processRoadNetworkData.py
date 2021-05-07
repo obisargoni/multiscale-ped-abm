@@ -110,6 +110,55 @@ def simplify_line_angle(l, angle_threshold = 10):
 
     return simplified_lines
 
+def simplify_line_angle_and_distance(l, angle_threshold = 10, dist_threshold = 15):
+    '''Break a linestring into components such that the anglular distance along each component 
+    is below the threshold. Also simplify the linestrings to be two coordinates only. Cleans road network so that each line string
+    acts as maximal angular deviation unit of angular distance
+    
+    Might want to separate these two cleaning operations
+    '''
+    simplified_lines = []
+    
+    split_lines = list(split_line(l, 2))
+
+    la = split_lines[0]
+    lb = None
+    c1 = la.coords[0]
+    angle = 0.0
+    dist = la.length
+    break_line = False
+    for i in range(1, len(split_lines)):
+        lb = split_lines[i]
+
+        angle+=abs(ang(la,lb))
+
+        # First check if enough distance covered or angular deviation to break link, if not continue
+        if (dist>dist_threshold) & (angle >= angle_threshold):
+
+            # Also need to check that next link will surpass distance threshold
+            remaining_dist = lb.length
+            for j in range(i+1, len(split_lines)):
+                remaining_dist += split_lines[j].length
+
+            if (remaining_dist > dist_threshold):
+                break_line = True
+
+        # If angle and distance conditions satisfied create simplified linestring
+        if break_line:
+            c2 = la.coords[-1]
+            simplified_lines.append(LineString((c1,c2)))
+            c1 = c2
+            angle = 0
+            dist = 0
+            break_line = False
+        la = lb
+        dist += la.length
+
+    c2 = lb.coords[-1]
+    simplified_lines.append(LineString((c1,c2)))
+
+    return simplified_lines
+
 # Disolved geometries are multi polygons, explode to single polygons
 def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
     outdf = gpd.GeoDataFrame(columns=indf.columns)
@@ -190,7 +239,7 @@ def _match_nodes_to_geometry(g, u, v, graph_nodes, other_nodes):
                 
 
 # Disolved geometries are multi polygons, explode to single polygons
-def break_edges_by_angle(G, angle_threshold, id_col, new_id_col):
+def break_edges_by_angle_and_distance(G, angle_threshold, dist_threshold, id_col, new_id_col):
     """Given and input graph, break up edges that contain more than two coordinates where
     the angle between edge segments is greater thatn the input angle threshold.
     """
@@ -211,7 +260,7 @@ def break_edges_by_angle(G, angle_threshold, id_col, new_id_col):
             H.add_edge(e[0], e[1], key = e[2], **e_data)
         else:
             # Break geometry into component edges
-            component_geoms = simplify_line_angle(g, angle_threshold)
+            component_geoms = simplify_line_angle_and_distance(g, angle_threshold, dist_threshold)
 
             # Add these component edges to the graph
             for i, cg in enumerate(component_geoms):
@@ -794,7 +843,7 @@ U_clip.graph['simplified'] = False
 U_clip = simplify_graph(U_clip, strict=True, remove_rings=True, rebuild_geoms = False)
 U_clip = U_clip.to_undirected()
 
-U_ang = break_edges_by_angle(U_clip, 10, "strg_id", "strg_ang_id")
+U_ang = break_edges_by_angle_and_distance(U_clip, 10, 15, "strg_id", "strg_ang_id")
 
 # Convert graph to data frames and clean up
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U_ang)
