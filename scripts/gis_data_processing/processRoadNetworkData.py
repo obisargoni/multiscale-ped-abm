@@ -110,7 +110,7 @@ def simplify_line_angle(l, angle_threshold = 10):
 
     return simplified_lines
 
-def simplify_line_angle_and_distance(l, angle_threshold = 10, dist_threshold = 15):
+def break_line_by_angle(l, angle_threshold = 10, min_link_length = 15):
     '''Break a linestring into components such that the anglular distance along each component 
     is below the threshold. Also simplify the linestrings to be two coordinates only. Cleans road network so that each line string
     acts as maximal angular deviation unit of angular distance
@@ -133,14 +133,14 @@ def simplify_line_angle_and_distance(l, angle_threshold = 10, dist_threshold = 1
         angle+=abs(ang(la,lb))
 
         # First check if enough distance covered or angular deviation to break link, if not continue
-        if (dist>dist_threshold) & (angle >= angle_threshold):
+        if (dist>min_link_length) & (angle >= angle_threshold):
 
             # Also need to check that next link will surpass distance threshold
             remaining_dist = lb.length
             for j in range(i+1, len(split_lines)):
                 remaining_dist += split_lines[j].length
 
-            if (remaining_dist > dist_threshold):
+            if (remaining_dist > min_link_length):
                 break_line = True
 
         # If angle and distance conditions satisfied create simplified linestring
@@ -239,7 +239,7 @@ def _match_nodes_to_geometry(g, u, v, graph_nodes, other_nodes):
                 
 
 # Disolved geometries are multi polygons, explode to single polygons
-def break_edges_by_angle_and_distance(G, angle_threshold, dist_threshold, id_col, new_id_col):
+def break_edges_by_angle(G, angle_threshold, min_link_length, id_col, new_id_col):
     """Given and input graph, break up edges that contain more than two coordinates where
     the angle between edge segments is greater thatn the input angle threshold.
     """
@@ -260,7 +260,7 @@ def break_edges_by_angle_and_distance(G, angle_threshold, dist_threshold, id_col
             H.add_edge(e[0], e[1], key = e[2], **e_data)
         else:
             # Break geometry into component edges
-            component_geoms = simplify_line_angle_and_distance(g, angle_threshold, dist_threshold)
+            component_geoms = break_line_by_angle(g, angle_threshold, min_link_length)
 
             # Add these component edges to the graph
             for i, cg in enumerate(component_geoms):
@@ -843,7 +843,7 @@ U_clip.graph['simplified'] = False
 U_clip = simplify_graph(U_clip, strict=True, remove_rings=True, rebuild_geoms = False)
 U_clip = U_clip.to_undirected()
 
-U_ang = break_edges_by_angle_and_distance(U_clip, 10, 15, "strg_id", "strg_ang_id")
+U_ang = break_edges_by_angle(U_clip, 10, 15, "strg_id", "strg_ang_id")
 
 # Convert graph to data frames and clean up
 gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U_ang)
