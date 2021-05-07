@@ -822,9 +822,6 @@ for col in gdfORLink.columns:
 for col in gdfORNode.columns:
     gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col] = gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
-gdfORNode.to_file(os.path.join("or_roads", "or_node_graph_clean.shp"))
-gdfORLink.to_file(os.path.join("or_roads", "or_link_graph_clean.shp"))
-
 # Checking that all node ids in link data match with a node id in nodes data
 assert gdfORLink.loc[:, ['MNodeFID','PNodeFID','key']].duplicated().any() == False
 assert gdfORLink['fid'].duplicated().any() == False # Fails
