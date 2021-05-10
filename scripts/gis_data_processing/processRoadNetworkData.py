@@ -276,7 +276,7 @@ def break_edges_by_angle(G, angle_threshold, min_link_length, id_col, new_id_col
                     if point_in_nodes:
                         continue
                     else:
-                        node_id = "intersection_node_{}".format(new_node_index)
+                        node_id = "break_angle_node_{}".format(new_node_index)
                         new_node_index += 1
                         new_nodes[node_id] = _node_data_from_point(p)
 
@@ -544,7 +544,7 @@ def break_overlapping_edges(G, id_attr = 'strg_id'):
                 if point_in_nodes:
                     continue
                 else:
-                    node_id = "intersection_node_{}".format(new_node_index)
+                    node_id = "overlap_node_{}".format(new_node_index)
                     new_node_index += 1
                     new_nodes[node_id] = _node_data_from_point(p)
 
