@@ -58,15 +58,22 @@ output_ped_links_file = os.path.join(output_directory, config["pavement_links_fi
 #
 #
 #################################
-def road_node_pedestrian_nodes_metadata(graph, road_node_id):
+def road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id):
 
     # Method for getting ped nodes for a single junctions
-    edges = graph.edges(road_node_id, data=True)
+    edges = list(graph.edges(road_node_id, data=True))
 
-    dfPedNodes = pd.DataFrame()
+    # Find neighbouring edges based on the edge geometry bearing
+    edge_bearings = [linestring_bearing(e[-1]['geometry'], road_node_geom) for e in edges]
 
+    edges_w_bearing = list(zip(edges, edge_bearings))
+    edges_w_bearing.sort(key = lambda e: e[1])
+    edges, edge_bearings = zip(*edges_w_bearing)
+    edge_pairs = zip(edges[0:-1], edges[1:] + edges[0:1])
+    
     # Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
-    for e1, e2 in itertools.combinations(edges, 2):
+    dfPedNodes = pd.DataFrame()
+    for e1, e2 in edge_pairs:
         # Initialise data to go into the geodataframe
         row = {"juncNodeID":road_node_id, "rlID1":e1[-1]['fid'], "rlID2":e2[-1]['fid']}
 
@@ -75,11 +82,11 @@ def road_node_pedestrian_nodes_metadata(graph, road_node_id):
     # Filter dataframe to exclude empty geometries
     return dfPedNodes
 
-def multiple_road_node_pedestrian_nodes_metadata(graph, road_node_ids):
+def multiple_road_node_pedestrian_nodes_metadata(graph, gdfRoadNodes):
     dfPedNodes = pd.DataFrame()
 
-    for road_node_id in road_node_ids:
-        df = road_node_pedestrian_nodes_metadata(graph, road_node_id)
+    for road_node_id, road_node_geom in gdfRoadNodes.loc[:, ['node_fid', 'geometry']].values:
+        df = road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id)
         dfPedNodes = pd.concat([dfPedNodes, df])
 
     dfPedNodes.index = np.arange(dfPedNodes.shape[0])
@@ -112,23 +119,9 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
         else:
             pass
 
-        if road_node.coords[0] == rlg1.coords[0]:
-            rlp1 = np.array(rlg1.coords[-1])
-        else:
-            rlp1 = np.array(rlg1.coords[0])
-
-        if road_node.coords[0] == rlg2.coords[0]:
-            rlp2 = np.array(rlg2.coords[-1])
-        else:
-            rlp2 = np.array(rlg2.coords[0])
-
-        road_node = np.array(road_node.coords[0])
-        v1 = rlp1 - road_node
-        v2 = rlp2 - road_node
-
         # Find boundary between using ray casting
-        a1 = angle_between_north_and_vector(v1)
-        a2 = angle_between_north_and_vector(v2)
+        a1 = linestring_bearing(rlg1, road_node)
+        a2 = linestring_bearing(rlg2, road_node)
 
         intersecting_boundary_geom_ids = np.array([])
         for l in rays_between_angles(a1, a2, road_node):
@@ -143,7 +136,7 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
             geom = serBounds.loc[row_id]
 
             for c in geom.exterior.coords:
-                rn = Point(road_node)
+                rn = road_node
                 p = Point(c)
                 d = rn.distance(p)
                 if d < min_dist:
@@ -155,11 +148,25 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
     return gdfPN
 
 
-def rays_between_angles(a1, a2, start_coord, sample_res = 10, ray_length = 50):
+def linestring_bearing(l, start_point):
+    if start_point.coords[0] == l.coords[0]:
+        end_coord = np.array(l.coords[-1])
+    elif start_point.coords[0] == l.coords[-1]:
+        end_coord = np.array(l.coords[0])
+    else:
+        return None
+
+    start_coord = np.array(start_point.coords[0])
+
+    v = end_coord - start_coord
+
+    return angle_between_north_and_vector(v)
+
+
+def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
     sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
     sampled_angles = np.arange(min(a1,a2), max(a1,a2),sample_res)
     for sa in sampled_angles:
-        p1 = Point(start_coord)
         p2 = Point([p1.x + ray_length*np.sin(sa), p1.y + ray_length*np.cos(sa)])
         l = LineString([p1,p2])
         yield l
@@ -224,16 +231,12 @@ def ang(lineA, lineB):
 
 # Load the Open Roads road network as a nx graph
 G = nx.MultiGraph()
-gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
+gdfORLink['fid_dict'] = gdfORLink.apply(lambda x: {"fid":x['fid'],'geometry':x['geometry']}, axis=1)
 edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
 G.add_edges_from(edges)
 
-node_degrees = G.degree()
-df_node_degree = pd.DataFrame(node_degrees)
-df_node_degree.columns = ['nodeID', 'nodeDegree']
-
 # Node metadata
-dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, df_node_degree['nodeID'].values)
+dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, gdfORNode)
 
 
 ##################################
