@@ -162,6 +162,33 @@ def linestring_bearing(l, start_point):
 
     return angle_between_north_and_vector(v)
 
+def sample_angles(a1, a2, sample_res):
+    if a1 < a2:
+        sampled_angles = np.arange(a1+sample_res, a2,sample_res)
+    else:
+        sampled_angles = []
+        ang = a1+sample_res
+        while ang < 2*np.pi:
+            sampled_angles.append(ang)
+            ang+=sample_res
+        
+        ang-=2*np.pi
+        
+        while ang < a2:
+            sampled_angles.append(ang)
+            ang+=sample_res
+
+        sampled_angles = np.array(sampled_angles)
+
+    return sampled_angles
+
+def in_angle_range(ang, a1, a2):
+    if a1 < a2:
+        return (ang>a1) & (ang<a2)
+    else:
+        b1 = (ang>a1) & (ang<0)
+        b2 = (ang>=0) & (ang<a2)
+        return b1 | b2
 
 def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
     sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
