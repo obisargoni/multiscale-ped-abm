@@ -58,6 +58,107 @@ output_ped_links_file = os.path.join(output_directory, config["pavement_links_fi
 #
 #
 #################################
+def unit_vector(v):
+    magV = np.linalg.norm(v)
+    return v / magV
+
+def angle_between_north_and_unit_vector(u):
+    n = (0,1)
+
+    signX = np.sign(u[0])
+    signY = np.sign(u[1])
+
+    dp = np.dot(n, u)
+    a = np.arccos(dp)
+
+    # Dot product gives angle between vectors. We need angle clockwise from north
+    if (signX == 1):
+        return a
+    elif (signX == -1):
+        return 2*np.pi - a
+    else:
+        return a
+
+def angle_between_north_and_vector(v):
+    unit_v = unit_vector(v)
+    return angle_between_north_and_unit_vector(unit_v)
+            
+
+def ang(lineA, lineB):
+    # Get nicer vector form
+    lACoords = lineA.coords
+    lBCoords = lineB.coords
+    vA = [(lACoords[0][0]-lACoords[1][0]), (lACoords[0][1]-lACoords[1][1])]
+    vB = [(lBCoords[0][0]-lBCoords[1][0]), (lBCoords[0][1]-lBCoords[1][1])]
+    # Get dot prod
+    dot_prod = np.dot(vA, vB)
+    # Get magnitudes
+    magA = dot(vA, vA)**0.5
+    magB = dot(vB, vB)**0.5
+    # Get cosine value
+    cos_ = round(dot_prod/magA/magB, 4)
+    # Get angle in radians and then convert to degrees
+    angle = math.arccos(cos_)
+    # Basically doing angle <- angle mod 360
+    ang_deg = math.degrees(angle)%360
+
+    if ang_deg-180>=0:
+        # As in if statement
+        return 360 - ang_deg
+    else: 
+        return ang_deg
+
+
+def sample_angles(a1, a2, sample_res):
+    if a1 < a2:
+        sampled_angles = np.arange(a1+sample_res, a2,sample_res)
+    else:
+        sampled_angles = []
+        ang = a1+sample_res
+        while ang < 2*np.pi:
+            sampled_angles.append(ang)
+            ang+=sample_res
+        
+        ang-=2*np.pi
+        
+        while ang < a2:
+            sampled_angles.append(ang)
+            ang+=sample_res
+
+        sampled_angles = np.array(sampled_angles)
+
+    return sampled_angles
+
+def in_angle_range(ang, a1, a2):
+    if a1 < a2:
+        return (ang>a1) & (ang<a2)
+    else:
+        b1 = (ang>a1) & (ang<0)
+        b2 = (ang>=0) & (ang<a2)
+        return b1 | b2
+
+def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
+    sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
+    sampled_angles = sample_angles(a1, a2, sample_res)
+    for sa in sampled_angles:
+        p2 = Point([p1.x + ray_length*np.sin(sa), p1.y + ray_length*np.cos(sa)])
+        l = LineString([p1,p2])
+        yield l
+
+def linestring_bearing(l, start_point):
+    if start_point.coords[0] == l.coords[0]:
+        end_coord = np.array(l.coords[-1])
+    elif start_point.coords[0] == l.coords[-1]:
+        end_coord = np.array(l.coords[0])
+    else:
+        return None
+
+    start_coord = np.array(start_point.coords[0])
+
+    v = end_coord - start_coord
+
+    return angle_between_north_and_vector(v)
+
 def road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id):
 
     # Method for getting ped nodes for a single junctions
@@ -156,105 +257,6 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
     return gdfPN
 
 
-def linestring_bearing(l, start_point):
-    if start_point.coords[0] == l.coords[0]:
-        end_coord = np.array(l.coords[-1])
-    elif start_point.coords[0] == l.coords[-1]:
-        end_coord = np.array(l.coords[0])
-    else:
-        return None
-
-    start_coord = np.array(start_point.coords[0])
-
-    v = end_coord - start_coord
-
-    return angle_between_north_and_vector(v)
-
-def sample_angles(a1, a2, sample_res):
-    if a1 < a2:
-        sampled_angles = np.arange(a1+sample_res, a2,sample_res)
-    else:
-        sampled_angles = []
-        ang = a1+sample_res
-        while ang < 2*np.pi:
-            sampled_angles.append(ang)
-            ang+=sample_res
-        
-        ang-=2*np.pi
-        
-        while ang < a2:
-            sampled_angles.append(ang)
-            ang+=sample_res
-
-        sampled_angles = np.array(sampled_angles)
-
-    return sampled_angles
-
-def in_angle_range(ang, a1, a2):
-    if a1 < a2:
-        return (ang>a1) & (ang<a2)
-    else:
-        b1 = (ang>a1) & (ang<0)
-        b2 = (ang>=0) & (ang<a2)
-        return b1 | b2
-
-def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
-    sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
-    sampled_angles = sample_angles(a1, a2, sample_res)
-    for sa in sampled_angles:
-        p2 = Point([p1.x + ray_length*np.sin(sa), p1.y + ray_length*np.cos(sa)])
-        l = LineString([p1,p2])
-        yield l
-
-def unit_vector(v):
-    magV = np.linalg.norm(v)
-    return v / magV
-
-def angle_between_north_and_unit_vector(u):
-    n = (0,1)
-
-    signX = np.sign(u[0])
-    signY = np.sign(u[1])
-
-    dp = np.dot(n, u)
-    a = np.arccos(dp)
-
-    # Dot product gives angle between vectors. We need angle clockwise from north
-    if (signX == 1):
-        return a
-    elif (signX == -1):
-        return 2*np.pi - a
-    else:
-        return a
-
-def angle_between_north_and_vector(v):
-    unit_v = unit_vector(v)
-    return angle_between_north_and_unit_vector(unit_v)
-            
-
-def ang(lineA, lineB):
-    # Get nicer vector form
-    lACoords = lineA.coords
-    lBCoords = lineB.coords
-    vA = [(lACoords[0][0]-lACoords[1][0]), (lACoords[0][1]-lACoords[1][1])]
-    vB = [(lBCoords[0][0]-lBCoords[1][0]), (lBCoords[0][1]-lBCoords[1][1])]
-    # Get dot prod
-    dot_prod = np.dot(vA, vB)
-    # Get magnitudes
-    magA = dot(vA, vA)**0.5
-    magB = dot(vB, vB)**0.5
-    # Get cosine value
-    cos_ = round(dot_prod/magA/magB, 4)
-    # Get angle in radians and then convert to degrees
-    angle = math.arccos(cos_)
-    # Basically doing angle <- angle mod 360
-    ang_deg = math.degrees(angle)%360
-
-    if ang_deg-180>=0:
-        # As in if statement
-        return 360 - ang_deg
-    else: 
-        return ang_deg
 ################################
 #
 #
