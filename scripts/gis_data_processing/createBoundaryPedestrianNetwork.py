@@ -169,14 +169,14 @@ def road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id):
 
     edges_w_bearing = list(zip(edges, edge_bearings))
     edges_w_bearing.sort(key = lambda e: e[1])
-    edges, edge_bearings = zip(*edges_w_bearing)
-    edge_pairs = zip(edges, edges[1:] + edges[0:1])
+    edge_pairs = zip(edges_w_bearing, edges_w_bearing[1:] + edges_w_bearing[0:1])
     
     # Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
     dfPedNodes = pd.DataFrame()
-    for e1, e2 in edge_pairs:
+    for (e1, bearing1), (e2, bearing2) in edge_pairs:
+
         # Initialise data to go into the geodataframe
-        row = {"juncNodeID":road_node_id, "rlID1":e1[-1]['fid'], "rlID2":e2[-1]['fid']}
+        row = {"juncNodeID":road_node_id, "juncNodeX":road_node_geom.x, "juncNodeY": road_node_geom.y, "rlID1":e1[-1]['fid'], "a1":bearing1, "rlID2":e2[-1]['fid'], "a2":bearing2}
 
         dfPedNodes = dfPedNodes.append(row, ignore_index = True)
         
