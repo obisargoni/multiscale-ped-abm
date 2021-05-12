@@ -149,25 +149,7 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
         a1 = linestring_bearing(rlg1, road_node)
         a2 = linestring_bearing(rlg2, road_node)
 
-        intersecting_boundary_geom_ids = np.array([])
-        for l in rays_between_angles(a1, a2, road_node):
-            ids = serBounds.loc[ serBounds.intersects(l)].index
-            intersecting_boundary_geom_ids = np.concatenate([intersecting_boundary_geom_ids, ids])
-
-
-        # Now find nearest boundary coordinate from intersecting boundaries
-        min_dist = sys.maxsize
-        ped_node_geom = None
-        for row_id in set(intersecting_boundary_geom_ids):
-            geom = serBounds.loc[row_id]
-
-            for c in geom.exterior.coords:
-                rn = road_node
-                p = Point(c)
-                d = rn.distance(p)
-                if d < min_dist:
-                    min_dist = d
-                    ped_node_geom = p
+        ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, serBounds)
 
         row['geometry'] = ped_node_geom
 
