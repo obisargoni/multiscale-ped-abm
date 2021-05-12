@@ -133,7 +133,7 @@ def in_angle_range(ang, a1, a2):
     if a1 < a2:
         return (ang>a1) & (ang<a2)
     else:
-        b1 = (ang>a1) & (ang<0)
+        b1 = (ang>a1) & (ang<2*np.pi)
         b2 = (ang>=0) & (ang<a2)
         return b1 | b2
 
