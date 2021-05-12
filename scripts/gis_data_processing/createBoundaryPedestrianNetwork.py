@@ -234,21 +234,10 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
         rlID1 = row['rlID1']
         rlID2 = row['rlID2']
 
-        rlg1 = gdfRoadLinks.loc[ gdfRoadLinks['fid'] == rlID1, 'geometry'].values[0]
-        rlg2 = gdfRoadLinks.loc[ gdfRoadLinks['fid'] == rlID2, 'geometry'].values[0]
+        a1 = row['a1']
+        a2 = row['a2']
 
-        road_node = rlg1.intersection(rlg2)
-        if isinstance(road_node, Point)==False:
-            print("Non-point intersection. {} {} {}".format(ix, rlID1, rlID2))
-            print(road_node.type)
-            print("\n") 
-            continue
-        else:
-            pass
-
-        # Find boundary between using ray casting
-        a1 = linestring_bearing(rlg1, road_node)
-        a2 = linestring_bearing(rlg2, road_node)
+        road_node = Point([row['juncNodeX'], row['juncNodeY']])
 
         ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, serBounds)
 
