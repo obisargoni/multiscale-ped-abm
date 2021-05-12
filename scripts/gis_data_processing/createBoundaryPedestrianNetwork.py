@@ -218,7 +218,7 @@ def in_angle_range(ang, a1, a2):
 
 def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
     sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
-    sampled_angles = np.arange(min(a1,a2), max(a1,a2),sample_res)
+    sampled_angles = sample_angles(a1, a2, sample_res)
     for sa in sampled_angles:
         p2 = Point([p1.x + ray_length*np.sin(sa), p1.y + ray_length*np.cos(sa)])
         l = LineString([p1,p2])
