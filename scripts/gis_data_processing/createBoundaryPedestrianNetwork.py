@@ -151,7 +151,7 @@ def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs 
 
         ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, serBounds)
 
-        row['geometry'] = ped_node_geom
+        gdfPN.at[ix, 'geometry'] = ped_node_geom
 
     return gdfPN
 
