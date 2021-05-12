@@ -92,6 +92,32 @@ def multiple_road_node_pedestrian_nodes_metadata(graph, gdfRoadNodes):
     dfPedNodes.index = np.arange(dfPedNodes.shape[0])
     return dfPedNodes
 
+def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms):
+        intersecting_boundary_geom_ids = np.array([])
+        for l in rays_between_angles(a1, a2, start_point):
+            ids = seriesGeoms.loc[ seriesGeoms.intersects(l)].index
+            intersecting_boundary_geom_ids = np.concatenate([intersecting_boundary_geom_ids, ids])
+
+
+        # Now find nearest boundary coordinate from intersecting boundaries
+        min_dist = sys.maxsize
+        nearest_point = None
+        for row_id in set(intersecting_boundary_geom_ids):
+            geom = seriesGeoms.loc[row_id]
+
+            for c in geom.exterior.coords:
+                p = Point(c)
+                d = start_point.distance(p)
+
+                # ensure that point lies in direction between input and output angles
+                a = linestring_bearing(LineString([start_point, p]), start_point)
+
+                if (d < min_dist) & (in_angle_range(a, a1, a2)):
+                    min_dist = d
+                    nearest_point = p
+        
+        return nearest_point
+
 def assign_boundary_coordinates_to_ped_nodes(dfPN, gdfRoadLinks, serBounds, crs = projectCRS):
     """Identify coordinates for ped nodes based on the bounday.
     """
