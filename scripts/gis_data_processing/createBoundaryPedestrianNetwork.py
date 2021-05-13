@@ -287,6 +287,10 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
         rlID1 = row['rlID1']
         rlID2 = row['rlID2']
 
+        # exclude links connected to this road node to check that line to ped node doesn't intersect a road link
+        series_road_links = gdf_road_links.loc[ (gdf_road_links['MNodeFID']!=row['juncNodeID']) & (gdf_road_links['PNodeFID']!=row['juncNodeID']), 'geometry'].copy()
+        series_road_links.index = np.arange(series_road_links.shape[0])
+
         a1 = row['a1']
         a2 = row['a2']
 
