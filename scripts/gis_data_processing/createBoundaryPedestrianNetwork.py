@@ -305,6 +305,30 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
 
     return pd.Series(geoms, index = index)
 
+def choose_ped_node(row, pave_node_col, boundary_node_col):
+
+    # Initialise output    
+    pave_node = row[pave_node_col]
+    boundary_node = row[boundary_node_col]
+
+    if pave_node is not None:
+        return pave_node
+
+    elif boundary_node is not None:
+
+        # Displace this node slightly towards the road nodeso it does not touch the barrier
+        rn = np.array([row['juncNodeX'], row['juncNodeY']])
+        v = rn - np.array(boundary_node.coords[0])
+        a = angle_between_north_and_vector(v)
+
+        disp = 0.5
+        displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
+
+        return Point(displaced_coord)
+
+    else:
+        return None
+
 
 ################################
 #
@@ -342,6 +366,12 @@ pavement_geoms = gdfTopoPed['geometry']
 dfPedNodes['boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, boundary_geoms, method = 'ray_intersection', crs = projectCRS)
 dfPedNodes['pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, pavement_geoms, method = 'ray_intersection', crs = projectCRS)
 
+# Now choose final node
+dfPedNodes['geometry'] = dfPedNodes.apply(choose_ped_node, axis=1, pave_node_col = 'pavement_ped_node', boundary_node_col = 'boundary_ped_node')
+
+gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry')
+print(gdfPedNodes['geometry'].isnull().value_counts())
+gdfPedNodes.to_file("TestPedNodes.shp")
 
 '''
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
