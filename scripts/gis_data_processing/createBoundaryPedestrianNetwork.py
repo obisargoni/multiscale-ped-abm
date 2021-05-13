@@ -336,13 +336,11 @@ dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, gdfORNode)
 ##################################
 
 # Buffer the boundary so that nodes are located slightly away from walls
-gdfBoundaryBuff = gdfBoundary.buffer(0.5)
+buffered_boundary_geoms = gdfBoundary.buffer(0.5)
 
-gdfPedNodes = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, gdfBoundaryBuff)
+gdfPedNodes = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, buffered_boundary_geoms, method = 'ray_intersection', crs = projectCRS)
 
-# alternatively could have assign_ped_veh_polygon_coordaintes_to_ped_nodes()
 
-# Remove the multipoints - seems like these are traffic islands - might want to think about including in future
 '''
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
