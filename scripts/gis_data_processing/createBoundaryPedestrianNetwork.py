@@ -277,12 +277,11 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
     """
 
     # Initialise output
-    gdf_ped_nodes = gpd.GeoDataFrame(df_ped_nodes)
-    gdf_ped_nodes['geometry'] = None
-    gdf_ped_nodes.set_geometry('geometry', inplace=True, crs = crs)
+    index = []
+    geoms = []
 
     # Loop through nodes, get corresponding road links and the boundary between them
-    for ix, row in gdf_ped_nodes.iterrows():
+    for ix, row in df_ped_nodes.iterrows():
 
         rlID1 = row['rlID1']
         rlID2 = row['rlID2']
@@ -301,9 +300,10 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
         else:
             ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links)
 
-        gdf_ped_nodes.at[ix, 'geometry'] = ped_node_geom
+        index.append(ix)
+        geoms.append(ped_node_geom)
 
-    return gdf_ped_nodes
+    return pd.Series(geoms, index = index)
 
 
 ################################
@@ -336,9 +336,11 @@ dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, gdfORNode)
 ##################################
 
 # Buffer the boundary so that nodes are located slightly away from walls
-buffered_boundary_geoms = gdfBoundary.buffer(0.5)
+boundary_geoms = gdfBoundary['geometry']
+pavement_geoms = gdfTopoPed['geometry']
 
-gdfPedNodes = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, buffered_boundary_geoms, method = 'ray_intersection', crs = projectCRS)
+dfPedNodes['boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, boundary_geoms, method = 'ray_intersection', crs = projectCRS)
+dfPedNodes['pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, pavement_geoms, method = 'ray_intersection', crs = projectCRS)
 
 
 '''
