@@ -67,12 +67,13 @@ priority_column = "priority"
 
 # Disolved geometries are multi polygons, explode to single polygons
 def explode(indf, single_type = Polygon, multi_type = MultiPolygon):
-    outdf = gpd.GeoDataFrame(columns=indf.columns)
+    data = {c:[] for c in indf.columns}
+    outdf = gpd.GeoDataFrame(data)
     for idx, row in indf.iterrows():
         if type(row.geometry) == single_type:
             outdf = outdf.append(row,ignore_index=True)
         if type(row.geometry) == multi_type:
-            multdf = gpd.GeoDataFrame(columns=indf.columns)
+            multdf = gpd.GeoDataFrame(data)
             recs = len(row.geometry)
             multdf = multdf.append([row]*recs,ignore_index=True)
             for geom in range(recs):
@@ -123,8 +124,9 @@ studyPolygonWSG84 = gdfStudyAreaWSG84['geometry'].values[0]
 
 # Select vehicle areas as those that intersect the road network
 # Results in 252 polygons, many more that previous method
-gdfVehicle = gpd.sjoin(gdfTopoArea, gdfORLink.loc[:,['geometry']], op = 'intersects', rsuffix = 'or')
-gdfVehicle.drop('index_or', axis = 1, inplace=True)
+or_plus_itn_link_geometries = pd.concat([gdfORLink.loc[:, ['geometry']], gdfITNLink.loc[:,['geometry']]])
+gdfVehicle = gpd.sjoin(gdfTopoArea, or_plus_itn_link_geometries, op = 'intersects', rsuffix = 'links')
+gdfVehicle.drop('index_links', axis = 1, inplace=True)
 gdfVehicle.drop_duplicates(inplace = True)
 
 
@@ -417,7 +419,8 @@ gdfDissolved = gdfPedVehLinks.dissolve(by = "dissolve_key")
 gdfDissolved = explode(gdfDissolved)
 
 # Get linstrings of exterior and interior of the dissolved pedestrian + vehicle polygons. These will mark the perimiters of the space
-gdfPerimiter = gpd.GeoDataFrame(columns = ['type','geometry'])
+data = {'type':[], 'geometry':[]}
+gdfPerimiter = gpd.GeoDataFrame(data)
 gdfPerimiter.crs = gdfDissolved.crs
 for geom in gdfDissolved['geometry']:
     exterior = LineString(geom.exterior.coords)
