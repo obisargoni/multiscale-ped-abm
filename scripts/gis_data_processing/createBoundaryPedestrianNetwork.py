@@ -272,7 +272,7 @@ def nearest_point_in_coord_sequence(coords, min_dist, start_point, a1, a2, serie
 
     return chosen_point, min_dist
 
-def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, series_coord_geoms, backup_coord_geoms = None, method = 'ray_intersection', crs = projectCRS):
+def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, series_coord_geoms, method = 'ray_intersection', crs = projectCRS):
     """Identify coordinates for ped nodes based on the bounday.
     """
 
@@ -296,11 +296,14 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
 
         road_node = Point([row['juncNodeX'], row['juncNodeY']])
 
-        ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, serBounds)
+        if method == 'ray_intersection':
+            ped_node_geom = nearest_ray_intersection_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links)
+        else:
+            ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links)
 
-        gdfPN.at[ix, 'geometry'] = ped_node_geom
+        gdf_ped_nodes.at[ix, 'geometry'] = ped_node_geom
 
-    return gdfPN
+    return gdf_ped_nodes
 
 
 ################################
