@@ -6,7 +6,7 @@ import pandas as pd
 import geopandas as gpd
 import networkx as nx
 import os
-from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString, MultiPoint, GeometryCollection
 import itertools
 import re
 
