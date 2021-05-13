@@ -193,29 +193,56 @@ def multiple_road_node_pedestrian_nodes_metadata(graph, gdfRoadNodes):
     dfPedNodes.index = np.arange(dfPedNodes.shape[0])
     return dfPedNodes
 
-def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms):
-        intersecting_boundary_geom_ids = np.array([])
-        for l in rays_between_angles(a1, a2, start_point):
-            ids = seriesGeoms.loc[ seriesGeoms.intersects(l)].index
-            intersecting_boundary_geom_ids = np.concatenate([intersecting_boundary_geom_ids, ids])
+def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks):
 
+        si_geoms = seriesGeoms.sindex
+        si_road_link = seriesRoadLinks.sindex
 
-        # Now find nearest boundary coordinate from intersecting boundaries
         min_dist = sys.maxsize
         nearest_point = None
-        for row_id in set(intersecting_boundary_geom_ids):
-            geom = seriesGeoms.loc[row_id]
 
-            for c in geom.exterior.coords:
-                p = Point(c)
-                d = start_point.distance(p)
+        for l in rays_between_angles(a1, a2, start_point):
+            close = si_geoms.intersection(l.bounds)
+            for geom_id in close:
+                intersection = seriesGeoms[geom_id].intersection(l)
 
-                # ensure that point lies in direction between input and output angles
-                a = linestring_bearing(LineString([start_point, p]), start_point)
+                if isinstance(intersection, (MultiPoint, MultiLineString, MultiPolygon, GeometryCollection)):
+                    coords = []
+                    for geom in intersection:
+                        coords+=geom.coords
+                else:
+                    coords = intersection.coords
 
-                if (d < min_dist) & (in_angle_range(a, a1, a2)):
+
+                p, d = nearest_point_in_coord_sequence(coords, min_dist, start_point, a1, a2, seriesRoadLinks, si_road_link)
+                
+                if p is not None:
                     min_dist = d
                     nearest_point = p
+        
+        return nearest_point
+
+def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks):
+        
+        si_geoms = seriesGeoms.sindex
+        si_road_link = seriesRoadLinks.sindex
+
+        min_dist = sys.maxsize
+        nearest_point = None
+
+        processed_boundary_geom_ids = []
+        for l in rays_between_angles(a1, a2, start_point):
+            for geom_id in si_geoms.intersection(l.bounds):
+                if (seriesGeoms[geom_id].intersects(l)) & (geom_id not in processed_boundary_geom_ids):
+                    
+                    # Now find nearest boundary coordinate from intersecting boundaries
+                    geom = seriesGeoms.loc[row_id]
+
+                    p, d = nearest_point_in_coord_sequence(geom.exterior.coords, min_dist, start_point, a1, a2, seriesRoadLinks, si_road_link)
+
+                    if p is not None:
+                        min_dist = d
+                        nearest_point = p
         
         return nearest_point
 
