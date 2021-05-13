@@ -277,12 +277,12 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
     """
 
     # Initialise output
-    gdfPN = gpd.GeoDataFrame(dfPN)
-    gdfPN['geometry'] = None
-    gdfPN.set_geometry('geometry', inplace=True, crs = crs)
+    gdf_ped_nodes = gpd.GeoDataFrame(df_ped_nodes)
+    gdf_ped_nodes['geometry'] = None
+    gdf_ped_nodes.set_geometry('geometry', inplace=True, crs = crs)
 
     # Loop through nodes, get corresponding road links and the boundary between them
-    for ix, row in gdfPN.iterrows():
+    for ix, row in gdf_ped_nodes.iterrows():
 
         rlID1 = row['rlID1']
         rlID2 = row['rlID2']
