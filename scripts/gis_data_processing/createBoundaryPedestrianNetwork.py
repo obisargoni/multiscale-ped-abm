@@ -50,6 +50,12 @@ gdfBoundary.crs = projectCRS
 output_ped_nodes_file = os.path.join(output_directory, config["pavement_nodes_file"])
 output_ped_links_file = os.path.join(output_directory, config["pavement_links_file"])
 
+# Load the Open Roads road network as a nx graph
+G = nx.MultiGraph()
+gdfORLink['fid_dict'] = gdfORLink.apply(lambda x: {"fid":x['fid'],'geometry':x['geometry']}, axis=1)
+edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
+G.add_edges_from(edges)
+
 
 #################################
 #
@@ -398,12 +404,6 @@ gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
 # For every node in the road network, create pedestrian nodes in the regions between the links in that network
 #
 ################################
-
-# Load the Open Roads road network as a nx graph
-G = nx.MultiGraph()
-gdfORLink['fid_dict'] = gdfORLink.apply(lambda x: {"fid":x['fid'],'geometry':x['geometry']}, axis=1)
-edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
-G.add_edges_from(edges)
 
 # Node metadata
 dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, gdfORNode)
