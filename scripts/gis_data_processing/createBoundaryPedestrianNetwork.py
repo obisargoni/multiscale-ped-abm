@@ -573,7 +573,7 @@ if n_missing_nodes > 0:
     dfPedNodes.loc[missing_index, 'pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes.loc[missing_index], gdfORLink, pavement_geoms, method = 'ray_intersection', angle_range = None, ray_length = 30, crs = projectCRS)
     dfPedNodes.loc[missing_index, 'geometry'] = dfPedNodes.loc[missing_index].apply(choose_ped_node, axis=1, pave_node_col = 'pavement_ped_node', boundary_node_col = 'boundary_ped_node', road_node_x_col = 'juncNodeX', road_node_y_col = 'juncNodeY')
 
-    gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry')
+    gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry', crs = projectCRS)
     n_missing_nodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].isnull()].shape[0]
     print("Number of missing nodes: {}".format(n_missing_nodes))
 
