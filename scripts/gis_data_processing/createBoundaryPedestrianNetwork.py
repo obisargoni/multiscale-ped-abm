@@ -337,14 +337,23 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
 
     return pd.Series(geoms, index = index)
 
-def choose_ped_node(row, pave_node_col, boundary_node_col):
+def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road_node_y_col):
 
     # Initialise output    
     pave_node = row[pave_node_col]
     boundary_node = row[boundary_node_col]
 
-    if pave_node is not None:
+    road_node = Point([row[road_node_x_col], row[road_node_y_col]])
+
+    if (pave_node is not None) & (boundary_node is None):
         return pave_node
+
+    elif (pave_node is not None) & (boundary_node is not None):
+        # return the closest to the road node
+        options = [pave_node, boundary_node]
+        distances = [road_node.distance(options[0]), road_node.distance(options[1])]
+        i = distances.index(min(distances))
+        return options[i]
 
     elif boundary_node is not None:
 
