@@ -348,7 +348,7 @@ def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road
         return pave_node
     elif (pave_node is None) & (boundary_node is not None):
         # Displace this node slightly towards the road nodeso it does not touch the barrier
-        v = np.array(rn.coords[0]) - np.array(boundary_node.coords[0])
+        v = np.array(road_node.coords[0]) - np.array(boundary_node.coords[0])
         a = angle_between_north_and_vector(v)
         disp = 0.5
         displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
@@ -364,7 +364,7 @@ def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road
             chosen_node = pave_node
         else:
             # displace the boundary node
-            v = np.array(rn.coords[0]) - np.array(boundary_node.coords[0])
+            v = np.array(road_node.coords[0]) - np.array(boundary_node.coords[0])
             a = angle_between_north_and_vector(v)
             disp = 0.5
             displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
