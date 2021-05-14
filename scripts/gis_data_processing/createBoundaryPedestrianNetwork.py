@@ -519,6 +519,9 @@ if n_missing_nodes > 0:
     print("Number of missing nodes: {}".format(n_missing_nodes))
 
 
+# check for duplicates?
+
+gdfPedNodes['fid'] = ["pave_node_{}".format(i) for i in range(gdfPedNodes.shape[0])]
 gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("TestPedNodes.shp")
 
 
