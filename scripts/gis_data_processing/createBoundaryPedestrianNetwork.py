@@ -329,6 +329,66 @@ def choose_ped_node(row, pave_node_col, boundary_node_col):
     else:
         return None
 
+def neighbouring_geometries_graph(gdf_polys, id_col):
+    # df to record neighbours
+    df_neighbours = pd.DataFrame()
+
+    for index, row in gdf_polys.iterrows():
+        # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
+        neighborFIDs = gdf_polys[gdf_polys.geometry.touches(row['geometry'])][id_col].tolist()
+
+        # Polygons without neighbours need to be attached to themselves so they can be identified as a cluster of one
+        if len(neighborFIDs) == 0:
+            neighborFIDs.append(row[id_col])
+
+        df = pd.DataFrame({'neighbourfid':neighborFIDs})
+        df[id_col] = row[id_col]
+        df_neighbours = pd.concat([df_neighbours, df])
+
+    g = nx.from_pandas_edgelist(df_neighbours, source=id_col, target = 'neighbourfid')
+
+    return g
+
+########################################
+#
+#
+# Filter out traffic islands
+#
+# don't want pavement nodes located on traffic islands so need to filter these out.
+#
+#
+########################################
+
+# First identify ped polygons no touching a boundary
+gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
+gdf_islands = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))].copy()
+
+# Then find island to exclude by identifying islands that are comprised of a single ped polygon
+# This results from voronoi processing
+G_islands = neighbouring_geometries_graph(gdf_islands, id_col = 'polyID')
+
+# Find connected components of size 1 - these are potential traffic islands
+ccs = list(nx.connected_components(G_islands))
+sizes = np.array([len(cc) for cc in ccs])
+island_poly_ids = []
+for cc_index in np.where(sizes==1)[0]:
+    cc = ccs[cc_index]
+    for poly_id in cc:
+        island_poly_ids.append(poly_id)
+
+gdf_islands = gdf_islands.loc[ gdf_islands['polyID'].isin(island_poly_ids)].copy()
+gdf_islands['area'] = gdf_islands['geometry'].area
+
+# Add in ped polys that intersect road nodes
+gdfORNodeBuff = gdfORNode.copy()
+gdfORNodeBuff['geometry'] = gdfORNodeBuff['geometry'].buffer(0.1)
+gdf_islands_rn = gpd.sjoin(gdfTopoPed, gdfORNodeBuff, op = 'intersects')
+
+
+island_poly_ids += gdf_islands_rn['polyID'].to_list()
+
+gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
+
 
 ################################
 #
