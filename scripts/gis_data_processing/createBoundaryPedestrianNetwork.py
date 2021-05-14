@@ -143,6 +143,28 @@ def in_angle_range(ang, a1, a2):
         b2 = (ang>=0) & (ang<a2)
         return b1 | b2
 
+def filter_angle_range(a1, a2, angle_range):
+    if angle_range is None:
+        return a1, a2
+
+    angle_range = (2*np.pi) * (angle_range/360.0) # convert to radians
+
+    if a1<a2:
+        r = a2-a1
+    else:
+        r = (2*np.pi-a1) + a2
+    
+    middle = a1 + r/2
+    a1 = middle - angle_range / 2
+    a2 = middle + angle_range / 2
+
+    if a1 > 2*np.pi:
+        a1 = a1-2*np.pi
+    if a2 > 2*np.pi:
+        a2 = a2-2*np.pi
+
+    return a1, a2
+
 def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
     sample_res = (2*np.pi) * (sample_res/360.0) # 10 degrees in rad
     sampled_angles = sample_angles(a1, a2, sample_res)
