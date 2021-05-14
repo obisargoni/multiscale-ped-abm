@@ -451,14 +451,6 @@ gdf_islands_remove['area'] = gdf_islands_remove['geometry'].area
 gdf_islands_keep = gdf_islands.loc[ gdf_islands['polyID'].isin(island_polys_to_keep)].copy()
 gdf_islands_keep['area'] = gdf_islands_keep['geometry'].area
 
-# Add in ped polys that intersect road nodes
-'''
-gdfORNodeBuff = gdfORNode.copy()
-gdfORNodeBuff['geometry'] = gdfORNodeBuff['geometry'].buffer(0.1)
-gdf_islands_rn = gpd.sjoin(gdfTopoPed, gdfORNodeBuff, op = 'intersects')
-island_poly_ids += gdf_islands_rn['polyID'].to_list()
-'''
-
 gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_polys_to_remove))]
 
 
