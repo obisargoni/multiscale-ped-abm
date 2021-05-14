@@ -339,33 +339,38 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
 
 def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road_node_y_col):
 
-    # Initialise output    
+    # Initialise output  
     pave_node = row[pave_node_col]
     boundary_node = row[boundary_node_col]
-
     road_node = Point([row[road_node_x_col], row[road_node_y_col]])
 
     if (pave_node is not None) & (boundary_node is None):
         return pave_node
+    elif (pave_node is None) & (boundary_node is not None):
+        # Displace this node slightly towards the road nodeso it does not touch the barrier
+        v = np.array(rn.coords[0]) - np.array(boundary_node.coords[0])
+        a = angle_between_north_and_vector(v)
+        disp = 0.5
+        displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
+        return Point(displaced_coord)
 
     elif (pave_node is not None) & (boundary_node is not None):
         # return the closest to the road node
-        options = [pave_node, boundary_node]
-        distances = [road_node.distance(options[0]), road_node.distance(options[1])]
-        i = distances.index(min(distances))
-        return options[i]
+        chosen_node = None
+        pave_node_dist = road_node.distance(pave_node)
+        bound_node_dist = road_node.distance(boundary_node)
 
-    elif boundary_node is not None:
+        if (pave_node_dist<bound_node_dist):
+            chosen_node = pave_node
+        else:
+            # displace the boundary node
+            v = np.array(rn.coords[0]) - np.array(boundary_node.coords[0])
+            a = angle_between_north_and_vector(v)
+            disp = 0.5
+            displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
+            chosen_node = Point(displaced_coord)
 
-        # Displace this node slightly towards the road nodeso it does not touch the barrier
-        rn = np.array([row['juncNodeX'], row['juncNodeY']])
-        v = rn - np.array(boundary_node.coords[0])
-        a = angle_between_north_and_vector(v)
-
-        disp = 0.5
-        displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
-
-        return Point(displaced_coord)
+        return chosen_node
 
     else:
         return None
