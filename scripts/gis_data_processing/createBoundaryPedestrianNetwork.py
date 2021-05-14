@@ -395,6 +395,65 @@ def neighbouring_geometries_graph(gdf_polys, id_col):
 
     return g
 
+
+def connect_ped_nodes(gdfPN, gdfLink, road_graph):
+    """Method for connecting ped nodes.
+
+    Connects all nodes on a road link.
+    """
+
+    ped_node_edges = []
+
+    for rl_id in gdfLink['fid'].values:
+
+        # Get start and end node for this road link
+        node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
+        assert len(node_records) == 1
+        u = node_records[0]['MNodeFID']
+        v = node_records[0]['PNodeFID']
+
+        # Get small section of road network connected to this road link
+        neighbour_links = [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [u], data=True)]
+        neighbour_links += [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [v], data=True)]
+
+        # Get the geometries for these road links
+        gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
+
+        # Get pairs of ped nodes
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['rlID1']==rl_id) | (gdfPN['rlID2']==rl_id)]
+
+        # Should be 4 ped nodes for each road link
+        if gdfPedNodesSub.shape[0]!=4:
+            print(rl_id)
+            print(gdfPedNodesSub)
+            print("\n")
+            continue
+
+        ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
+
+        for ped_u, ped_v in ped_node_pairs:
+            # Create linestring to join ped nodes
+            g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'geometry'].values[0]
+            g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'geometry'].values[0]
+
+            l = LineString([g_u, g_v])
+            edge_id = "pave_link_{}_{}".format(ped_u.replace("pave_node_",""), ped_v.replace("pave_node_",""))
+
+            ped_edge = {'MNodeFID':ped_u, 'PNodeFID':ped_v, 'pedRLID':None, 'pedRoadID':None, 'fid':edge_id, 'geometry':l}
+            intersect_check = gdfLinkSub['geometry'].map(lambda g: g.intersects(l))
+
+            # Check whether links crosses road or not
+            if intersect_check.any():
+                ped_edge['road_link'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+
+            # Could also check which ped polys edge intersects but this isn't necessary
+
+            ped_node_edges.append(ped_edge)
+
+        dfPedEdges = pd.DataFrame(ped_node_edges)
+
+    return dfPedEdges
+
 ########################################
 #
 #
@@ -533,6 +592,9 @@ gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("Test
 #
 ###################################
 
+# Previously wrote separate functions for connecting nodes at opposite ends of a link and nodes around a junction
+
+dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
 
 
 '''
