@@ -506,7 +506,8 @@ dfPedNodes['geometry'] = dfPedNodes.apply(choose_ped_node, axis=1, pave_node_col
 
 gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry')
 print(gdfPedNodes['geometry'].isnull().value_counts())
-gdfPedNodes.to_file("TestPedNodes.shp")
+gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("TestPedNodes.shp")
+
 
 '''
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
