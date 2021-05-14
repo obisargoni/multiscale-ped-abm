@@ -221,7 +221,7 @@ def multiple_road_node_pedestrian_nodes_metadata(graph, gdfRoadNodes):
     dfPedNodes.index = np.arange(dfPedNodes.shape[0])
     return dfPedNodes
 
-def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks):
+def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks, angle_range = None, ray_length = 20):
 
         si_geoms = seriesGeoms.sindex
         si_road_link = seriesRoadLinks.sindex
@@ -229,7 +229,9 @@ def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeo
         min_dist = sys.maxsize
         nearest_point = None
 
-        for l in rays_between_angles(a1, a2, start_point):
+        a1, a2 = filter_angle_range(a1, a2, angle_range)
+
+        for l in rays_between_angles(a1, a2, start_point, ray_length = ray_length):
             close = si_geoms.intersection(l.bounds)
             for geom_id in close:
                 intersection = seriesGeoms[geom_id].intersection(l)
@@ -250,7 +252,7 @@ def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeo
         
         return nearest_point
 
-def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks):
+def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks, angle_range = None, ray_length = 20):
         
         si_geoms = seriesGeoms.sindex
         si_road_link = seriesRoadLinks.sindex
@@ -258,8 +260,10 @@ def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms, seri
         min_dist = sys.maxsize
         nearest_point = None
 
+        a1, a2 = filter_angle_range(a1, a2, angle_range)
+
         processed_boundary_geom_ids = []
-        for l in rays_between_angles(a1, a2, start_point):
+        for l in rays_between_angles(a1, a2, start_point, ray_length = ray_length):
             for geom_id in si_geoms.intersection(l.bounds):
                 if (seriesGeoms[geom_id].intersects(l)) & (geom_id not in processed_boundary_geom_ids):
                     
@@ -300,7 +304,7 @@ def nearest_point_in_coord_sequence(coords, min_dist, start_point, a1, a2, serie
 
     return chosen_point, min_dist
 
-def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, series_coord_geoms, method = 'ray_intersection', crs = projectCRS):
+def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, series_coord_geoms, method = 'ray_intersection', angle_range = None, ray_length = 20, crs = projectCRS):
     """Identify coordinates for ped nodes based on the bounday.
     """
 
@@ -324,9 +328,9 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
         road_node = Point([row['juncNodeX'], row['juncNodeY']])
 
         if method == 'ray_intersection':
-            ped_node_geom = nearest_ray_intersection_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links)
+            ped_node_geom = nearest_ray_intersection_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links, angle_range = angle_range, ray_length = ray_length)
         else:
-            ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links)
+            ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links, angle_range = angle_range, ray_length = ray_length)
 
         index.append(ix)
         geoms.append(ped_node_geom)
@@ -485,8 +489,8 @@ gdfBoundary.index = np.arange(gdfBoundary.shape[0])
 boundary_geoms = gdfBoundary['geometry']
 pavement_geoms = gdfTopoPed['geometry']
 
-dfPedNodes['boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, boundary_geoms, method = 'ray_intersection', crs = projectCRS)
-dfPedNodes['pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, pavement_geoms, method = 'ray_intersection', crs = projectCRS)
+dfPedNodes['boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, boundary_geoms, method = 'ray_intersection', angle_range = 90, ray_length = 30, crs = projectCRS)
+dfPedNodes['pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, pavement_geoms, method = 'ray_intersection', angle_range = 90, ray_length = 30, crs = projectCRS)
 
 # Now choose final node
 dfPedNodes['geometry'] = dfPedNodes.apply(choose_ped_node, axis=1, pave_node_col = 'pavement_ped_node', boundary_node_col = 'boundary_ped_node')
