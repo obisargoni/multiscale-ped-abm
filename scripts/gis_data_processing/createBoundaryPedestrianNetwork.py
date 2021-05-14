@@ -581,7 +581,7 @@ if n_missing_nodes > 0:
 # check for duplicates?
 
 gdfPedNodes['fid'] = ["pave_node_{}".format(i) for i in range(gdfPedNodes.shape[0])]
-gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("TestPedNodes.shp")
+gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file(output_ped_nodes_file)
 
 
 ###################################
@@ -595,6 +595,10 @@ gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("Test
 # Previously wrote separate functions for connecting nodes at opposite ends of a link and nodes around a junction
 
 dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
+gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectCRS)
+gdfPedLinks.to_file(output_ped_links_file)
+
+
 
 
 '''
