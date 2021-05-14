@@ -501,6 +501,16 @@ print(gdfPedNodes['geometry'].isnull().value_counts())
 gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file("TestPedNodes.shp")
 
 
+###################################
+#
+#
+# Join ped nodes to create ped network
+#
+#
+###################################
+
+
+
 '''
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
