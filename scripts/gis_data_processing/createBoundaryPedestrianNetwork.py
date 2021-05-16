@@ -380,6 +380,14 @@ def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road
 
 def neighbouring_geometries_graph(gdf_polys, id_col):
     # df to record neighbours
+    df_neighbours = neighbouring_geometries_df(gdf_polys, id_col)
+
+    g = nx.from_pandas_edgelist(df_neighbours, source=id_col, target = 'neighbourfid')
+
+    return g
+
+def neighbouring_geometries_df(gdf_polys, id_col):
+    # df to record neighbours
     df_neighbours = pd.DataFrame()
 
     for index, row in gdf_polys.iterrows():
@@ -396,7 +404,7 @@ def neighbouring_geometries_graph(gdf_polys, id_col):
 
     g = nx.from_pandas_edgelist(df_neighbours, source=id_col, target = 'neighbourfid')
 
-    return g
+    return df_neighbours
 
 
 def connect_ped_nodes(gdfPN, gdfLink, road_graph):
