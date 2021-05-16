@@ -455,7 +455,7 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
 
             # Check whether links crosses road or not
             if intersect_check.any():
-                ped_edge['road_link'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+                ped_edge['pedRLID'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
 
             # Could also check which ped polys edge intersects but this isn't necessary
 
