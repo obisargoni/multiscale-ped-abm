@@ -477,6 +477,10 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
 
 # First identify ped polygons not touching a boundary
 gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
+
+# HACK - need to do properly by making sure no ped islands have boundaries within them
+gdfTopoPedBoundary = gdfTopoPedBoundary.loc[ ~gdfTopoPedBoundary['polyID'].isin(['ped_poly_id_2251', 'ped_poly_id_2259'])]
+
 gdf_islands = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))].copy()
 
 # Then form network of neighbouring ped polygons
