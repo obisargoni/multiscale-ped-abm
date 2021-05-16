@@ -649,7 +649,7 @@ if n_missing_nodes > 0:
 # check for duplicates?
 
 gdfPedNodes['fid'] = ["pave_node_{}".format(i) for i in range(gdfPedNodes.shape[0])]
-gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file(output_ped_nodes_file)
+gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1, inplace=True)
 
 
 ###################################
@@ -664,6 +664,21 @@ gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1).to_file(outpu
 
 dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
 gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectCRS)
+
+# Validate that each road link has two non crossing links and 2 diagonal crossing links
+
+
+
+###################################
+#
+#
+# Validate and save
+#
+#
+###################################
+
+validate_numbers_of_nodes_and_links(gdfORLink, gdfPedNodes, gdfPedLinks)
+gdfPedNodes.to_file(output_ped_nodes_file)
 gdfPedLinks.to_file(output_ped_links_file)
 
 
