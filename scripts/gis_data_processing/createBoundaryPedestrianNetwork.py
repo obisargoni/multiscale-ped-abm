@@ -465,6 +465,59 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
 
     return dfPedEdges
 
+def validate_numbers_of_nodes_and_links(gdfRoadLinks, gdfPN, gdfPL):
+    """Check for road links that don't have 4 ped nodes associated.
+    Check for road links that don't have 2 non crossing links on either side of the road and 
+    4 crossing links.
+    """
+
+    for rl_id in gdfRoadLinks['fid'].values:
+
+        # Get pairs of ped nodes
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['rlID1']==rl_id) | (gdfPN['rlID2']==rl_id)]
+
+        # Should be 4 ped nodes for each road link
+        if gdfPedNodesSub.shape[0]!=4:
+            print("Road link does not have 4 ped nodes")
+            print(rl_id)
+            print(gdfPedNodesSub)
+            print("\n")
+            continue
+
+        # Get edges between these nodes
+        edge_ids = []
+        ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
+        for ped_u, ped_v in ped_node_pairs:
+            edge_ida = "pave_link_{}_{}".format(ped_u.replace("pave_node_",""), ped_v.replace("pave_node_",""))
+            edge_idb = "pave_link_{}_{}".format(ped_v.replace("pave_node_",""), ped_u.replace("pave_node_",""))
+
+            edge_ids.append(edge_ida)
+            edge_ids.append(edge_idb)
+
+
+        gdfPedEdgesSub = gdfPL.loc[gdfPL['fid'].isin(edge_ids)]
+        gdfCross = gdfPedEdgesSub.loc[~gdfPedEdgesSub['pedRLID'].isnull()]
+        gdfNoCross = gdfPedEdgesSub.loc[gdfPedEdgesSub['pedRLID'].isnull()]
+
+        if gdfNoCross.shape[0]!=2:
+            print("Road link does not have 2 non-crossing edges")
+            print(rl_id)
+            print("\n")
+
+        nodesa = set(gdfNoCross.loc[:, ["MNodeFID", "PNodeFID"]].values[0])
+        nodesb = set(gdfNoCross.loc[:, ["MNodeFID", "PNodeFID"]].values[1])
+        if len(nodesa.intersection(nodesb)) > 0:
+            print("Non-corssing links overlap")
+            print(rl_id)
+            print("\n")
+
+        if gdfCross.shape[0] != 4:
+            print("Road link does not have 4 crossing ped links")
+            print(rl_id)
+            print("\n")
+
+
+
 ########################################
 #
 #
