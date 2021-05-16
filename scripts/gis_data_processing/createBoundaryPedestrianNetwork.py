@@ -153,6 +153,9 @@ def filter_angle_range(a1, a2, angle_range):
         r = a2-a1
     else:
         r = (2*np.pi-a1) + a2
+
+    if r < angle_range:
+        return a1, a2
     
     middle = a1 + r/2
     a1 = middle - angle_range / 2
