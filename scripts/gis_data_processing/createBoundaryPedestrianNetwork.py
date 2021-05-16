@@ -407,7 +407,7 @@ def neighbouring_geometries_df(gdf_polys, id_col):
     return df_neighbours
 
 
-def connect_ped_nodes(gdfPN, gdfLink, road_graph):
+def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
     """Method for connecting ped nodes.
 
     Connects all nodes on a road link.
@@ -415,10 +415,10 @@ def connect_ped_nodes(gdfPN, gdfLink, road_graph):
 
     ped_node_edges = []
 
-    for rl_id in gdfLink['fid'].values:
+    for rl_id in gdfRoadLink['fid'].values:
 
         # Get start and end node for this road link
-        node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
+        node_records = gdfRoadLink.loc[ gdfRoadLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
         assert len(node_records) == 1
         u = node_records[0]['MNodeFID']
         v = node_records[0]['PNodeFID']
@@ -428,7 +428,7 @@ def connect_ped_nodes(gdfPN, gdfLink, road_graph):
         neighbour_links += [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [v], data=True)]
 
         # Get the geometries for these road links
-        gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
+        gdfLinkSub = gdfRoadLink.loc[ gdfRoadLink['fid'].isin(neighbour_links)]
 
         # Get pairs of ped nodes
         gdfPedNodesSub = gdfPN.loc[(gdfPN['rlID1']==rl_id) | (gdfPN['rlID2']==rl_id)]
