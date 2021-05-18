@@ -341,14 +341,14 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     # Join nodes to edges on coordinate
     gdf_edges = gdf_edges.set_geometry("c1")
     gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-    assert gdf_edges['node_id'].isnull().any() == False
-    gdf_edges.rename(columns={'node_id':u}, inplace=True)
+    assert gdf_edges['node_fid'].isnull().any() == False
+    gdf_edges.rename(columns={'node_fid':u}, inplace=True)
     gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
 
     gdf_edges = gdf_edges.set_geometry("c2")
     gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes    , how='inner', op='intersects', lsuffix='left', rsuffix='right')
-    assert gdf_edges['node_id'].isnull().any() == False 
-    gdf_edges.rename(columns={'node_id':v}, inplace=True)
+    assert gdf_edges['node_fid'].isnull().any() == False 
+    gdf_edges.rename(columns={'node_fid':v}, inplace=True)
     gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
 
     # Tidy up
