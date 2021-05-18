@@ -118,7 +118,8 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 		 */
 		public List<Stack<RepastEdge<T>>> getSimplePaths(T node, T targetNode, Predicate<T> nodeFilter){
 			this.filterGraph(nodeFilter);
-			return getSimplePaths(node, targetNode);
+			List<Stack<RepastEdge<T>>> paths = getSimplePaths(node, targetNode); 
+			return paths;
 		}
 		
 		/*
