@@ -30,6 +30,26 @@ poi_file = os.path.join(gis_data_dir, config["poi_file"])
 centre_poi_ref = config["centre_poi_ref"]
 dist_from_centre_threshold = 50
 
+
+#################
+#
+#
+# Functions
+#
+#
+#################
+def displace_point(p, d, bearing):
+    x = p.x + d*np.sin(bearing)
+    y = p.y + d*np.cos(bearing)
+    return Point([x,y])
+
+def get_random_point_in_polygon(poly):
+    minx, miny, maxx, maxy = poly.bounds
+    while True:
+        p = Point(np.random.uniform(minx, maxx), np.random.uniform(miny, maxy))
+        if poly.contains(p):
+            return p
+
 #################
 #
 # Load data and select pedestrian ODs
@@ -60,11 +80,6 @@ gdfODs = gdf_pave_node.loc[ gdf_pave_node['fid'].isin(ODs), ['fid', 'geometry']]
 
 gdfODs.to_file(pedestrian_od_file)
 '''
-
-def displace_point(p, d, bearing):
-	x = p.x + d*np.sin(bearing)
-	y = p.y + d*np.cos(bearing)
-	return Point([x,y])
 
 
 # Load ped ODs to get number of origins/destinations
