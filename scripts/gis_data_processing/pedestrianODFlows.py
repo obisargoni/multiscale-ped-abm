@@ -18,6 +18,7 @@ with open("config.json") as f:
 
 # Proportion of ITN nodes to use as vehicle ODs
 prop_random_ODs = 0.3
+min_distance_of_ped_od_to_road_link = 30
 
 gis_data_dir = config['gis_data_dir']
 processed_gis_dir = os.path.join(gis_data_dir, "processed_gis_data")
@@ -63,6 +64,7 @@ def get_random_point_in_polygon(poly):
 gdf_pois = gpd.read_file(poi_file)
 gdfPaveNode = gpd.read_file(pavement_nodes_file)
 gdfTopoPed = gpd.read_file(pavement_polygons_file)
+gdfORLink = gpd.read_file(or_links_file)
 
 centre_poi_geom = gdf_pois.loc[ gdf_pois['ref_no'] == centre_poi_ref, 'geometry'].values[0]
 gdfTopoPed['dist_to_centre'] = gdfTopoPed['geometry'].distance(centre_poi_geom)
@@ -79,11 +81,21 @@ nDs = int(prop_random_ODs * len(candidates))
 
 # Choose random geoms, then choose random points in those geoms
 Ds = []
-for i in range(nDs):
+while len(Ds)<nDs:
     ri = np.random.randint(0, gdfTopoPed.shape[0])
     pavement_geom = gdfTopoPed.iloc[ri]['geometry']
-    Ds.append(get_random_point_in_polygon(pavement_geom))
+    pavement_location = get_random_point_in_polygon(pavement_geom)
+    d = min(gdfORLink.distance(pavement_location))
 
+    # filter out any locations that are too far from a road link, but only try a few times before skipping this geometry
+    i = 0
+    while (d>min_distance_of_ped_od_to_road_link) & (i<5):
+        pavement_location = get_random_point_in_polygon(pavement_geom)
+        d = min(gdfORLink.distance(pavement_location))
+        i+=1
+
+    if d<min_distance_of_ped_od_to_road_link:
+        Ds.append(pavement_location)
 
 ODs = Os+Ds
 data = {'fid': ['od_{}'.format(i) for i in range(len(ODs))], 'geometry':ODs}
