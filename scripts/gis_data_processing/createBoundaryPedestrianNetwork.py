@@ -532,7 +532,7 @@ def validate_numbers_of_nodes_and_links(gdfRoadLinks, gdfPN, gdfPL):
 gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
 
 # HACK - need to do properly by making sure no ped islands have boundaries within them
-gdfTopoPedBoundary = gdfTopoPedBoundary.loc[ ~gdfTopoPedBoundary['polyID'].isin(['ped_poly_id_2251', 'ped_poly_id_2259'])]
+gdfTopoPedBoundary = gdfTopoPedBoundary.loc[ ~gdfTopoPedBoundary['polyID'].isin(config['ped_polygons_force_include'])]
 
 gdf_islands = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))].copy()
 
