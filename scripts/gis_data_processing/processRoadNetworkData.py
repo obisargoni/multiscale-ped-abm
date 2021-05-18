@@ -865,6 +865,10 @@ gdfORLink['key'] = gdfORLink['key'].map(lambda x: str(x))
 
 gdfORLink = gdfORLink.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'strg_ang_id', 'geometry'])
 gdfORLink['fid'] = gdfORLink['strg_ang_id'].map(str) + "_" + gdfORLink['sub_strg_id'].map(str)
+
+# remake Link IDs for clarity
+gdfORLink['fid'] = ["or_link_{}".format(i) for i in range(gdfORLink.shape[0])]
+
 gdfORLink['MNodeFID'] = gdfORLink['u'].replace(node_id_dict)
 gdfORLink['PNodeFID'] = gdfORLink['v'].replace(node_id_dict)
 
