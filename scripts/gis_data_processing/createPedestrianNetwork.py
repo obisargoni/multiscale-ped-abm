@@ -1,12 +1,12 @@
-# Script for producing the pedestrian network
-
+# Script for producing the pedestrian network using a road network and walkable bounday
+import sys
 import json
 import numpy as np
 import pandas as pd
 import geopandas as gpd
 import networkx as nx
 import os
-from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString, MultiPoint, GeometryCollection
 import itertools
 import re
 
@@ -43,12 +43,19 @@ gdfTopoPed = gpd.read_file(os.path.join(output_directory, config["topo_pedestria
 gdfTopoVeh.crs = projectCRS
 gdfTopoPed.crs = projectCRS
 
-# Load boundary data - used to identify traffic island pedestrian polygons
+# Load boundary data - used to identify pavement nodes
 gdfBoundary = gpd.read_file(os.path.join(output_directory, config["boundary_file"]))
 gdfBoundary.crs = projectCRS
 
 output_ped_nodes_file = os.path.join(output_directory, config["pavement_nodes_file"])
 output_ped_links_file = os.path.join(output_directory, config["pavement_links_file"])
+
+# Load the Open Roads road network as a nx graph
+G = nx.MultiGraph()
+gdfORLink['fid_dict'] = gdfORLink.apply(lambda x: {"fid":x['fid'],'geometry':x['geometry']}, axis=1)
+edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
+G.add_edges_from(edges)
+
 
 #################################
 #
@@ -57,201 +64,627 @@ output_ped_links_file = os.path.join(output_directory, config["pavement_links_fi
 #
 #
 #################################
-def save_geometries(*geoms, path):
-	gdf = gpd.GeoDataFrame({'geometry':geoms})
-	gdf.to_file(path)
-	return gdf
+def unit_vector(v):
+    magV = np.linalg.norm(v)
+    return v / magV
 
-def intersection_of_multiple_geometries(geoms):
-	'''Finds intersection between multiple geometries
-	'''
-	i = geoms.pop()
-	for g in geoms:
-		i = i.intersection(g)
-	return i
+def angle_between_north_and_unit_vector(u):
+    n = (0,1)
 
-def find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdfPedPolys):
+    signX = np.sign(u[0])
+    signY = np.sign(u[1])
 
-	# Method for getting ped nodes for a single junctions
-	edges = graph.edges(road_node_id)
+    dp = np.dot(n, u)
+    a = np.arccos(dp)
 
-	# Get the road link IDs connected to this junction node
-	rl_fids = [graph.get_edge_data(*e)['fid'] for e in edges]
+    # Dot product gives angle between vectors. We need angle clockwise from north
+    if (signX == 1):
+        return a
+    elif (signX == -1):
+        return 2*np.pi - a
+    else:
+        return a
 
-	gdfPedNodes = gpd.GeoDataFrame()
+def angle_between_north_and_vector(v):
+    unit_v = unit_vector(v)
+    return angle_between_north_and_unit_vector(unit_v)
+            
 
-	# Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
-	for fid_pair in itertools.combinations(rl_fids, 2):
-		# Initialise data to go into the geodataframe
-		row = {"juncNodeID":road_node_id}
+def ang(lineA, lineB):
+    # Get nicer vector form
+    lACoords = lineA.coords
+    lBCoords = lineB.coords
+    vA = [(lACoords[0][0]-lACoords[1][0]), (lACoords[0][1]-lACoords[1][1])]
+    vB = [(lBCoords[0][0]-lBCoords[1][0]), (lBCoords[0][1]-lBCoords[1][1])]
+    # Get dot prod
+    dot_prod = np.dot(vA, vB)
+    # Get magnitudes
+    magA = dot(vA, vA)**0.5
+    magB = dot(vB, vB)**0.5
+    # Get cosine value
+    cos_ = round(dot_prod/magA/magB, 4)
+    # Get angle in radians and then convert to degrees
+    angle = math.arccos(cos_)
+    # Basically doing angle <- angle mod 360
+    ang_deg = math.degrees(angle)%360
 
-		veh_polys_indices = gdfVehPolys.loc[ gdfVehPolys['roadLinkID'].isin(fid_pair)].index
-		ped_polys1_indices = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == fid_pair[0]].index
-		ped_polys2_indices = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == fid_pair[1]].index
-
-
-		# Then form pairs of vehicle polygons and ped polygons
-		veh_pairs = list(itertools.combinations(veh_polys_indices, 2))
-		ped_pairs = list(itertools.product(ped_polys1_indices, ped_polys2_indices))
-
-		# loop through all combinations of these pairs and find intersection between all 4 polygons. This gives a node in the pedestrian network.
-		intersections = []
-		for iv1,iv2 in veh_pairs:
-			for ip1,ip2 in ped_pairs:
-				row['v1pID'] = gdfVehPolys.loc[iv1, 'polyID']
-				row['v1rlID'] = gdfVehPolys.loc[iv1, 'roadLinkID']
-
-				row['v2pID'] = gdfVehPolys.loc[iv2, 'polyID']
-				row['v2rlID'] = gdfVehPolys.loc[iv2, 'roadLinkID']
-
-				row['p1pID'] = gdfPedPolys.loc[ip1, 'polyID']
-				row['p1rlID'] = gdfPedPolys.loc[ip1, 'roadLinkID']
-				
-				row['p2pID'] = gdfPedPolys.loc[ip2, 'polyID']
-				row['p2rlID'] = gdfPedPolys.loc[ip2, 'roadLinkID']
-
-				v1_g = gdfVehPolys.loc[iv1, 'geometry']
-				v2_g = gdfVehPolys.loc[iv2, 'geometry']
-
-				p1_g = gdfPedPolys.loc[ip1, 'geometry']
-				p2_g = gdfPedPolys.loc[ip2, 'geometry']
-
-				i = intersection_of_multiple_geometries([v1_g,v2_g,p1_g,p2_g])
-				if i.is_empty == False:
-					row['geometry'] = i
-					gdfPedNodes = gdfPedNodes.append(row, ignore_index = True)
-
-	# Filter dataframe to exclude empty geometries
-	return gdfPedNodes
-
-def find_multiple_road_node_pedestrian_nodes(graph, road_node_ids, gdfVehPolys, gdfPedPolys):
-	gdfPedNodes = gpd.GeoDataFrame()
-
-	for road_node_id in road_node_ids:
-		gdf = find_single_road_node_pedestrian_nodes(graph, road_node_id, gdfVehPolys, gdfPedPolys)
-		gdfPedNodes = pd.concat([gdfPedNodes, gdf])
-		'''
-		except Exception as err:
-			print(road_node_id)
-			print(err)
-		'''
-	gdfPedNodes.index = np.arange(gdfPedNodes.shape[0])
-	return gdfPedNodes
-
-def connect_pavement_ped_nodes(gdfPN, gdfPedPolys, gdfLink, road_graph):
-
-	ped_node_edges = []
-
-	for rl_id in gdfLink['fid'].values:
-
-		# Get start and end node for this road link
-		node_records = gdfLink.loc[ gdfLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
-		assert len(node_records) == 1
-		u = node_records[0]['MNodeFID']
-		v = node_records[0]['PNodeFID']
-
-		# Get small section of road network connected to this road link
-		neighbour_links = [edge_data['fid'] for e, edge_data in road_graph[u].items()]
-		neighbour_links += [edge_data['fid'] for e, edge_data in road_graph[v].items()]
-
-		# Get the geometries for these road links
-		gdfLinkSub = gdfLink.loc[ gdfLink['fid'].isin(neighbour_links)]
-
-		# Get pairs of ped nodes
-		gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
-		ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
-
-		for ped_u, ped_v in ped_node_pairs:
-			# Create linestring to join ped nodes
-			g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'geometry'].values[0]
-			g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'geometry'].values[0]
-
-			l = LineString([g_u, g_v])
-
-			# Connect pairs of ped nodes that are at different ends of the road link, ie associated to different road nodes
-			u_junction_id = gdfPN.loc[gdfPN['fid'] == ped_u, "juncNodeID"].values[0]
-			v_junction_id = gdfPN.loc[gdfPN['fid'] == ped_v, "juncNodeID"].values[0]
-			if u_junction_id == v_junction_id:
-				continue
-			else:
-				edge_data = {'road_link':None, 'ped_poly':None}
-				intersect_check = gdfLinkSub['geometry'].map(lambda g: g.intersects(l))
-
-				# Check whether links crosses road or not
-				if intersect_check.any():
-					edge_data['road_link'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
-				else:
-					# Need to identify which pedestrian polygon(s) this edge corresponds to
-					candidates = gdfPedPolys.loc[ gdfPedPolys['roadLinkID'] == rl_id, 'polyID'].unique()
-					nested_ped_node_polys = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'].isin([ped_u, ped_v]), ['p1pID','p2pID']].to_dict(orient = 'split')['data']
-					ped_node_polys = [item for sublist in nested_ped_node_polys for item in sublist] # unpacking nested list
-					edge_data['ped_poly'] = " ".join([p for p in candidates if p in ped_node_polys])
-
-				ped_node_edges.append((ped_u, ped_v, edge_data))
-
-	return ped_node_edges
+    if ang_deg-180>=0:
+        # As in if statement
+        return 360 - ang_deg
+    else: 
+        return ang_deg
 
 
-#################################
+def sample_angles(a1, a2, sample_res):
+    if a1 < a2:
+        sampled_angles = np.arange(a1+sample_res, a2,sample_res)
+    else:
+        sampled_angles = []
+        ang = a1+sample_res
+        while ang < 2*np.pi:
+            sampled_angles.append(ang)
+            ang+=sample_res
+        
+        ang-=2*np.pi
+        
+        while ang < a2:
+            sampled_angles.append(ang)
+            ang+=sample_res
+
+        sampled_angles = np.array(sampled_angles)
+
+    return sampled_angles
+
+def in_angle_range(ang, a1, a2):
+    if a1 < a2:
+        return (ang>a1) & (ang<a2)
+    else:
+        b1 = (ang>a1) & (ang<2*np.pi)
+        b2 = (ang>=0) & (ang<a2)
+        return b1 | b2
+
+def filter_angle_range(a1, a2, angle_range):
+    if angle_range is None:
+        return a1, a2
+
+    angle_range = (2*np.pi) * (angle_range/360.0) # convert to radians
+
+    if a1<a2:
+        r = a2-a1
+    else:
+        r = (2*np.pi-a1) + a2
+
+    if r < angle_range:
+        return a1, a2
+    
+    middle = a1 + r/2
+    a1 = middle - angle_range / 2
+    a2 = middle + angle_range / 2
+
+    if a1 > 2*np.pi:
+        a1 = a1-2*np.pi
+    if a2 > 2*np.pi:
+        a2 = a2-2*np.pi
+
+    return a1, a2
+
+def rays_between_angles(a1, a2, p1, sample_res = 10, ray_length = 50):
+    sample_res = (2*np.pi) * (sample_res/360.0) # convert to radians
+    sampled_angles = sample_angles(a1, a2, sample_res)
+    for sa in sampled_angles:
+        p2 = Point([p1.x + ray_length*np.sin(sa), p1.y + ray_length*np.cos(sa)])
+        l = LineString([p1,p2])
+        yield l
+
+def linestring_bearing(l, start_point):
+    if start_point.coords[0] == l.coords[0]:
+        end_coord = np.array(l.coords[-1])
+    elif start_point.coords[0] == l.coords[-1]:
+        end_coord = np.array(l.coords[0])
+    else:
+        return None
+
+    start_coord = np.array(start_point.coords[0])
+
+    v = end_coord - start_coord
+
+    return angle_between_north_and_vector(v)
+
+def road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id):
+
+    # Method for getting ped nodes for a single junctions
+    edges = list(graph.edges(road_node_id, data=True))
+
+    # Find neighbouring edges based on the edge geometry bearing
+    edge_bearings = [linestring_bearing(e[-1]['geometry'], road_node_geom) for e in edges]
+
+    edges_w_bearing = list(zip(edges, edge_bearings))
+    edges_w_bearing.sort(key = lambda e: e[1])
+    edge_pairs = zip(edges_w_bearing, edges_w_bearing[1:] + edges_w_bearing[0:1])
+    
+    # Iterate over pairs of road link IDs in order to find the pedestrian nodes that lie between these two road links
+    dfPedNodes = pd.DataFrame()
+    for (e1, bearing1), (e2, bearing2) in edge_pairs:
+
+        # Initialise data to go into the geodataframe
+        row = {"juncNodeID":road_node_id, "juncNodeX":road_node_geom.x, "juncNodeY": road_node_geom.y, "v1rlID":e1[-1]['fid'], "a1":bearing1, "v2rlID":e2[-1]['fid'], "a2":bearing2}
+
+        dfPedNodes = dfPedNodes.append(row, ignore_index = True)
+        
+    # Filter dataframe to exclude empty geometries
+    return dfPedNodes
+
+def multiple_road_node_pedestrian_nodes_metadata(graph, gdfRoadNodes):
+    dfPedNodes = pd.DataFrame()
+
+    for road_node_id, road_node_geom in gdfRoadNodes.loc[:, ['node_fid', 'geometry']].values:
+        df = road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id)
+        dfPedNodes = pd.concat([dfPedNodes, df])
+
+    dfPedNodes.index = np.arange(dfPedNodes.shape[0])
+    return dfPedNodes
+
+def nearest_ray_intersection_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks, angle_range = None, ray_length = 20):
+
+        si_geoms = seriesGeoms.sindex
+        si_road_link = seriesRoadLinks.sindex
+
+        min_dist = sys.maxsize
+        nearest_point = None
+
+        a1, a2 = filter_angle_range(a1, a2, angle_range)
+
+        for l in rays_between_angles(a1, a2, start_point, ray_length = ray_length):
+            close = si_geoms.intersection(l.bounds)
+            for geom_id in close:
+                intersection = seriesGeoms[geom_id].intersection(l)
+
+                if isinstance(intersection, (MultiPoint, MultiLineString, MultiPolygon, GeometryCollection)):
+                    coords = []
+                    for geom in intersection:
+                        coords+=geom.coords
+                else:
+                    coords = intersection.coords
+
+
+                p, d = nearest_point_in_coord_sequence(coords, min_dist, start_point, a1, a2, seriesRoadLinks, si_road_link)
+                
+                if p is not None:
+                    min_dist = d
+                    nearest_point = p
+        
+        return nearest_point
+
+def nearest_geometry_point_between_angles(a1, a2, start_point, seriesGeoms, seriesRoadLinks, angle_range = None, ray_length = 20):
+        
+        si_geoms = seriesGeoms.sindex
+        si_road_link = seriesRoadLinks.sindex
+
+        min_dist = sys.maxsize
+        nearest_point = None
+
+        a1, a2 = filter_angle_range(a1, a2, angle_range)
+
+        processed_boundary_geom_ids = []
+        for l in rays_between_angles(a1, a2, start_point, ray_length = ray_length):
+            for geom_id in si_geoms.intersection(l.bounds):
+                if (seriesGeoms[geom_id].intersects(l)) & (geom_id not in processed_boundary_geom_ids):
+                    
+                    # Now find nearest boundary coordinate from intersecting boundaries
+                    geom = seriesGeoms.loc[row_id]
+
+                    p, d = nearest_point_in_coord_sequence(geom.exterior.coords, min_dist, start_point, a1, a2, seriesRoadLinks, si_road_link)
+
+                    if p is not None:
+                        min_dist = d
+                        nearest_point = p
+        
+        return nearest_point
+
+def nearest_point_in_coord_sequence(coords, min_dist, start_point, a1, a2, seriesRoadLinks, si_road_link):
+    chosen_point = None
+    for c in coords:
+        p = Point(c)
+        d = start_point.distance(p)
+
+        l = LineString([start_point, p])
+
+        # ensure that point lies in direction between input and output angles
+        a = linestring_bearing(l, start_point)
+
+        if (d < min_dist) & (in_angle_range(a, a1, a2)):
+            
+            # ensure line doesn't intersect any road links
+            intersects_road_links = False
+            for i in si_road_link.intersection(l.bounds):
+                if seriesRoadLinks[i].intersects(l):
+                    intersects_road_links = True
+                    break
+
+            if intersects_road_links == False:
+                min_dist = d
+                chosen_point = p
+
+    return chosen_point, min_dist
+
+def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, series_coord_geoms, method = 'ray_intersection', angle_range = None, ray_length = 20, crs = projectCRS):
+    """Identify coordinates for ped nodes based on the bounday.
+    """
+
+    # Initialise output
+    index = []
+    geoms = []
+
+    # Loop through nodes, get corresponding road links and the boundary between them
+    for ix, row in df_ped_nodes.iterrows():
+
+        rlID1 = row['v1rlID']
+        rlID2 = row['v2rlID']
+
+        # exclude links connected to this road node to check that line to ped node doesn't intersect a road link
+        series_road_links = gdf_road_links.loc[ (gdf_road_links['MNodeFID']!=row['juncNodeID']) & (gdf_road_links['PNodeFID']!=row['juncNodeID']), 'geometry'].copy()
+        series_road_links.index = np.arange(series_road_links.shape[0])
+
+        a1 = row['a1']
+        a2 = row['a2']
+
+        road_node = Point([row['juncNodeX'], row['juncNodeY']])
+
+        if method == 'ray_intersection':
+            ped_node_geom = nearest_ray_intersection_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links, angle_range = angle_range, ray_length = ray_length)
+        else:
+            ped_node_geom = nearest_geometry_point_between_angles(a1, a2, road_node, series_coord_geoms, series_road_links, angle_range = angle_range, ray_length = ray_length)
+
+        index.append(ix)
+        geoms.append(ped_node_geom)
+
+    return pd.Series(geoms, index = index)
+
+def choose_ped_node(row, pave_node_col, boundary_node_col, road_node_x_col, road_node_y_col):
+
+    # Initialise output  
+    pave_node = row[pave_node_col]
+    boundary_node = row[boundary_node_col]
+    road_node = Point([row[road_node_x_col], row[road_node_y_col]])
+
+    if (pave_node is not None) & (boundary_node is None):
+        return pave_node
+    elif (pave_node is None) & (boundary_node is not None):
+        # Displace this node slightly towards the road nodeso it does not touch the barrier
+        v = np.array(road_node.coords[0]) - np.array(boundary_node.coords[0])
+        a = angle_between_north_and_vector(v)
+        disp = 0.5
+        displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
+        return Point(displaced_coord)
+
+    elif (pave_node is not None) & (boundary_node is not None):
+        # return the closest to the road node
+        chosen_node = None
+        pave_node_dist = road_node.distance(pave_node)
+        bound_node_dist = road_node.distance(boundary_node)
+
+        if (pave_node_dist<bound_node_dist):
+            chosen_node = pave_node
+        else:
+            # displace the boundary node
+            v = np.array(road_node.coords[0]) - np.array(boundary_node.coords[0])
+            a = angle_between_north_and_vector(v)
+            disp = 0.5
+            displaced_coord = [boundary_node.x + disp*np.sin(a), boundary_node.y + disp*np.cos(a)]
+            chosen_node = Point(displaced_coord)
+
+        return chosen_node
+
+    else:
+        return None
+
+def neighbouring_geometries_graph(gdf_polys, id_col):
+    # df to record neighbours
+    df_neighbours = neighbouring_geometries_df(gdf_polys, id_col)
+
+    g = nx.from_pandas_edgelist(df_neighbours, source=id_col, target = 'neighbourfid')
+
+    return g
+
+def neighbouring_geometries_df(gdf_polys, id_col):
+    # df to record neighbours
+    df_neighbours = pd.DataFrame()
+
+    for index, row in gdf_polys.iterrows():
+        # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
+        neighborFIDs = gdf_polys[gdf_polys.geometry.touches(row['geometry'])][id_col].tolist()
+
+        # Polygons without neighbours need to be attached to themselves so they can be identified as a cluster of one
+        if len(neighborFIDs) == 0:
+            neighborFIDs.append(row[id_col])
+
+        df = pd.DataFrame({'neighbourfid':neighborFIDs})
+        df[id_col] = row[id_col]
+        df_neighbours = pd.concat([df_neighbours, df])
+
+    g = nx.from_pandas_edgelist(df_neighbours, source=id_col, target = 'neighbourfid')
+
+    return df_neighbours
+
+
+def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
+    """Method for connecting ped nodes.
+
+    Connects all nodes on a road link.
+    """
+
+    ped_node_edges = []
+
+    for rl_id in gdfRoadLink['fid'].values:
+
+        # Get start and end node for this road link
+        node_records = gdfRoadLink.loc[ gdfRoadLink['fid'] == rl_id, ['MNodeFID','PNodeFID']].to_dict(orient='records')
+        assert len(node_records) == 1
+        u = node_records[0]['MNodeFID']
+        v = node_records[0]['PNodeFID']
+
+        # Get small section of road network connected to this road link
+        neighbour_links = [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [u], data=True)]
+        neighbour_links += [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [v], data=True)]
+
+        # Get the geometries for these road links
+        gdfLinkSub = gdfRoadLink.loc[ gdfRoadLink['fid'].isin(neighbour_links)]
+
+        # Get pairs of ped nodes
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
+
+        # Should be 4 ped nodes for each road link
+        if gdfPedNodesSub.shape[0]!=4:
+            print(rl_id)
+            print(gdfPedNodesSub)
+            print("\n")
+            continue
+
+        ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
+
+        for ped_u, ped_v in ped_node_pairs:
+            # Create linestring to join ped nodes
+            g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'geometry'].values[0]
+            g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'geometry'].values[0]
+
+            l = LineString([g_u, g_v])
+            edge_id = "pave_link_{}_{}".format(ped_u.replace("pave_node_",""), ped_v.replace("pave_node_",""))
+
+            ped_edge = {'MNodeFID':ped_u, 'PNodeFID':ped_v, 'pedRLID':None, 'pedRoadID':None, 'fid':edge_id, 'geometry':l}
+            intersect_check = gdfLinkSub['geometry'].map(lambda g: g.intersects(l))
+
+            # Check whether links crosses road or not
+            if intersect_check.any():
+                ped_edge['pedRLID'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+
+            # Could also check which ped polys edge intersects but this isn't necessary
+
+            ped_node_edges.append(ped_edge)
+
+        dfPedEdges = pd.DataFrame(ped_node_edges)
+
+    return dfPedEdges
+
+def validate_numbers_of_nodes_and_links(gdfRoadLinks, gdfPN, gdfPL):
+    """Check for road links that don't have 4 ped nodes associated.
+    Check for road links that don't have 2 non crossing links on either side of the road and 
+    4 crossing links.
+    """
+
+    for rl_id in gdfRoadLinks['fid'].values:
+
+        # Get pairs of ped nodes
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
+
+        # Should be 4 ped nodes for each road link
+        if gdfPedNodesSub.shape[0]!=4:
+            print("Road link does not have 4 ped nodes")
+            print(rl_id)
+            print(gdfPedNodesSub)
+            print("\n")
+            continue
+
+        # Get edges between these nodes
+        edge_ids = []
+        ped_node_pairs = itertools.combinations(gdfPedNodesSub['fid'].values, 2)
+        for ped_u, ped_v in ped_node_pairs:
+            edge_ida = "pave_link_{}_{}".format(ped_u.replace("pave_node_",""), ped_v.replace("pave_node_",""))
+            edge_idb = "pave_link_{}_{}".format(ped_v.replace("pave_node_",""), ped_u.replace("pave_node_",""))
+
+            edge_ids.append(edge_ida)
+            edge_ids.append(edge_idb)
+
+
+        gdfPedEdgesSub = gdfPL.loc[gdfPL['fid'].isin(edge_ids)]
+        gdfCross = gdfPedEdgesSub.loc[~gdfPedEdgesSub['pedRLID'].isnull()]
+        gdfNoCross = gdfPedEdgesSub.loc[gdfPedEdgesSub['pedRLID'].isnull()]
+
+        if gdfNoCross.shape[0]!=2:
+            print("Road link does not have 2 non-crossing edges")
+            print(rl_id)
+            print("\n")
+
+        nodesa = set(gdfNoCross.loc[:, ["MNodeFID", "PNodeFID"]].values[0])
+        nodesb = set(gdfNoCross.loc[:, ["MNodeFID", "PNodeFID"]].values[1])
+        if len(nodesa.intersection(nodesb)) > 0:
+            print("Non-corssing links overlap")
+            print(rl_id)
+            print("\n")
+
+        if gdfCross.shape[0] != 4:
+            print("Road link does not have 4 crossing ped links")
+            print(rl_id)
+            print("\n")
+
+
+
+########################################
 #
 #
-# Get nodes of the pedestrian network
+# Filter out traffic islands
+#
+# don't want pavement nodes located on traffic islands so need to filter these out.
 #
 #
-# Identify junctions in the road network
-# Get the pedestrian and vehicle polygons linked to that junctions
-# Get intersection between vehicle and ped polygonsfor each road network link of the junction
+########################################
+
+# First identify ped polygons not touching a boundary
+gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
+
+# HACK - need to do properly by making sure no ped islands have boundaries within them
+gdfTopoPedBoundary = gdfTopoPedBoundary.loc[ ~gdfTopoPedBoundary['polyID'].isin(config['ped_polygons_force_include'])]
+
+gdf_islands = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))].copy()
+
+# Then form network of neighbouring ped polygons
+G_islands = neighbouring_geometries_graph(gdf_islands, id_col = 'polyID')
+island_polys_to_remove = []
+island_polys_to_keep = []
+
+# Find connected components
+ccs = list(nx.connected_components(G_islands))
+sizes = np.array([len(cc) for cc in ccs])
+
+# If component is size 1, definitely an island
+for cc_index in np.where(sizes==1)[0]:
+    cc = ccs[cc_index]
+    for poly_id in cc:
+        island_polys_to_remove.append(poly_id)
+
+# If size > 1, only and island if not surrounded by road links
+for cc_index in np.where(sizes>1)[0]:
+    cc = ccs[cc_index]
+
+    # get road links associated with this component
+    rls = gdf_islands.loc[gdf_islands['polyID'].isin(cc), 'roadLinkID'].to_list()
+
+    # if these road links form a loop, not an island since surrounded by road links
+    edges = gdfORLink.loc[ gdfORLink['fid'].isin(rls), ['MNodeFID','PNodeFID']].to_records(index=False)
+    us, vs = list(zip(*edges))
+    G_temp = nx.subgraph(G, us+vs)
+
+    G_temp_single = nx.Graph(G_temp)
+    assert len(G_temp.edges) == len(G_temp_single.edges)
+    
+    # If the subgraph corresponding to the road nodes around the island contains a cycle, then class island as surrounded by roads and therefore not to be excluded
+    cycles = nx.cycle_basis(G_temp_single)
+    if len(cycles)==0:
+        island_polys_to_remove += list(cc)
+    elif len(cycles)==1:
+        island_polys_to_keep += list(cc)
+    else:
+        print(cc)
+        island_polys_to_keep += list(cc)
+
+
+gdf_islands_remove = gdf_islands.loc[ gdf_islands['polyID'].isin(island_polys_to_remove)].copy()
+gdf_islands_remove['area'] = gdf_islands_remove['geometry'].area
+
+gdf_islands_keep = gdf_islands.loc[ gdf_islands['polyID'].isin(island_polys_to_keep)].copy()
+gdf_islands_keep['area'] = gdf_islands_keep['geometry'].area
+
+gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_polys_to_remove))]
+
+
+# Some islands to check
+# - ped_poly_id_2256 should not be excluded - still getting exclued but not a big issue now
+
+
+
+################################
+#
+#
+# Produce nodes metadata
+#
+# For every node in the road network, create pedestrian nodes in the regions between the links in that network
+#
+################################
+
+# Node metadata
+dfPedNodes = multiple_road_node_pedestrian_nodes_metadata(G, gdfORNode)
+
+
+##################################
+#
+#
+# Assign coordinates to nodes
+#
+# Do I need to consider a connected component of walkable surfaces?
+#
 #
 ##################################
 
-# Load the Open Roads road network as a nx graph
-G = nx.Graph()
-gdfORLink['fid_dict'] = gdfORLink['fid'].map(lambda x: {"fid":x})
-edges = gdfORLink.loc[:,['MNodeFID','PNodeFID', 'fid_dict']].to_records(index=False)
-G.add_edges_from(edges)
+# Recreate index - required for spatial indexing to work
+gdfTopoPed.index = np.arange(gdfTopoPed.shape[0])
+gdfBoundary.index = np.arange(gdfBoundary.shape[0])
 
-# Get dataframe of node degrees. Useful for selecting certain junctions nodes, eg those that correspond to intersections (degree > 2)
-node_degrees = G.degree()
-df_node_degree = pd.DataFrame(node_degrees)
-df_node_degree.columns = ['nodeID', 'nodeDegree']
+# Buffer the boundary so that nodes are located slightly away from walls
+boundary_geoms = gdfBoundary['geometry']
+pavement_geoms = gdfTopoPed['geometry']
 
-# Identify traffic island pedestrian polygons, want to exclude these nodes from the network
-gdfTopoPedBoundary = gpd.sjoin(gdfTopoPed, gdfBoundary, op = 'intersects')
-non_boundary_ped_polys = gdfTopoPed.loc[ ~(gdfTopoPed['polyID'].isin(gdfTopoPedBoundary['polyID']))]
+dfPedNodes['boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, boundary_geoms, method = 'ray_intersection', angle_range = 90, ray_length = 30, crs = projectCRS)
+dfPedNodes['pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes, gdfORLink, pavement_geoms, method = 'ray_intersection', angle_range = 90, ray_length = 30, crs = projectCRS)
 
-island_poly_ids = []
+# Now choose final node
+dfPedNodes['geometry'] = dfPedNodes.apply(choose_ped_node, axis=1, pave_node_col = 'pavement_ped_node', boundary_node_col = 'boundary_ped_node', road_node_x_col = 'juncNodeX', road_node_y_col = 'juncNodeY')
+gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry')
 
-# Find the connected clusters that correspond to connected clusters
-# initialise df to recod the neighbours for each ped-vehicle space polygon. use to identify clusters
-dfPedNeighbours = pd.DataFrame()
-for index, row in gdfTopoPed.iterrows():
-    # Touches identifies polygons with at least one point in common but interiors don't intersect. So will work as long as none of my topographic polygons intersect
-    neighborFIDs = gdfTopoPed[gdfTopoPed.geometry.touches(row['geometry'])]['polyID'].tolist()
+# Run checks
+n_missing_nodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].isnull()].shape[0]
+print("Number of missing nodes: {}".format(n_missing_nodes))
 
-    # Polygons without neighbours need to be attached to themselves so they can be identified as a cluster of one
-    if len(neighborFIDs) == 0:
-    	neighborFIDs.append(row['polyID'])
-    #neighborFIDs = neighborFIDs.remove(row['fid']) polygons don't touch them selves because they intersect
-    df = pd.DataFrame({'neighbourid':neighborFIDs})
-    df['polyID'] = row['polyID']
-    dfPedNeighbours = pd.concat([dfPedNeighbours, df])
+if n_missing_nodes > 0:
+    print("Finding missing nodes by removing angular range constraint")
+    missing_index = gdfPedNodes.loc[ gdfPedNodes['geometry'].isnull()].index
 
-g = nx.from_pandas_edgelist(dfPedNeighbours, source='polyID', target = 'neighbourid')
-ccs = list(nx.connected_components(g))
+    dfPedNodes.loc[missing_index, 'boundary_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes.loc[missing_index], gdfORLink, boundary_geoms, method = 'ray_intersection', angle_range = None, ray_length = 30, crs = projectCRS)
+    dfPedNodes.loc[missing_index, 'pavement_ped_node'] = assign_boundary_coordinates_to_ped_nodes(dfPedNodes.loc[missing_index], gdfORLink, pavement_geoms, method = 'ray_intersection', angle_range = None, ray_length = 30, crs = projectCRS)
+    dfPedNodes.loc[missing_index, 'geometry'] = dfPedNodes.loc[missing_index].apply(choose_ped_node, axis=1, pave_node_col = 'pavement_ped_node', boundary_node_col = 'boundary_ped_node', road_node_x_col = 'juncNodeX', road_node_y_col = 'juncNodeY')
 
-# If nodes of connected component all do not intersect a bounday identify these nodes as belonging to a traffic island
-for cc in ccs:
-	if np.isin(np.array(list(cc)), non_boundary_ped_polys['polyID'].unique()).all():
-		island_poly_ids += list(cc)
+    gdfPedNodes = gpd.GeoDataFrame(dfPedNodes, geometry = 'geometry', crs = projectCRS)
+    n_missing_nodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].isnull()].shape[0]
+    print("Number of missing nodes: {}".format(n_missing_nodes))
 
-island_polys = gdfTopoPed.loc[ gdfTopoPed['polyID'].isin(island_poly_ids)]
-#island_polys.to_file("island_ped_polys.shp")
 
-# Exclude island polys from the ped network
-gdfTopoPed = gdfTopoPed.loc[~(gdfTopoPed['polyID'].isin(island_poly_ids))]
-gdfPedNodes = find_multiple_road_node_pedestrian_nodes(G, df_node_degree['nodeID'].values, gdfTopoVeh, gdfTopoPed)
+# check for duplicates?
 
-# Remove the multipoints - seems like these are traffic islands - might want to think about including in future
+gdfPedNodes['fid'] = ["pave_node_{}".format(i) for i in range(gdfPedNodes.shape[0])]
+gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1, inplace=True)
+
+
+###################################
+#
+#
+# Join ped nodes to create ped network
+#
+#
+###################################
+
+# Previously wrote separate functions for connecting nodes at opposite ends of a link and nodes around a junction
+
+dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
+gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectCRS)
+
+# Validate that each road link has two non crossing links and 2 diagonal crossing links
+
+
+
+###################################
+#
+#
+# Validate and save
+#
+#
+###################################
+
+validate_numbers_of_nodes_and_links(gdfORLink, gdfPedNodes, gdfPedLinks)
+gdfPedNodes.to_file(output_ped_nodes_file)
+gdfPedLinks.to_file(output_ped_links_file)
+
+
+
+
+'''
 gdfPedNodes = gdfPedNodes.loc[ gdfPedNodes['geometry'].type != 'MultiPoint']
 
 # Create id for each ped node
@@ -259,168 +692,4 @@ gdfPedNodes['fid'] = ['pave_node_{}'.format(i) for i in gdfPedNodes.index]
 gdfPedNodes.crs = projectCRS
 
 gdfPedNodes.to_file(output_ped_nodes_file)
-
-
-
-##############################
-#
-#
-# Create network by connecting nodes
-#
-# First connect pedestrian nodes that are on the same side of the road.
-# - for each road link get ped nodes
-# - make pairwise connections if link does not intersect road link (or section of road network +- 1 links from road link
-# - handle cases where connection made between nearests this side ped nodes and farther away this side ped node by checking for multiple paths between node pairs.
-#
-#
-##############################
-
-
-ped_poly_edges = connect_pavement_ped_nodes(gdfPedNodes, gdfTopoPed, gdfORLink, G)
-
-# Now when networkx graph is created duplicated edges will be ignored (since not a MultiGraph)
-G_ped_poly = nx.Graph()
-G_ped_poly.add_edges_from(ped_poly_edges)
-
-
-#############################
-#
-# Connect ped nodes across road links
-#
-#############################
-
-# Group by junctions node id
-grouped = gdfPedNodes.groupby('juncNodeID')
-group_names = list(grouped.groups.keys())
-group_sizes = grouped.apply(lambda df: df.shape[0])
-group_sizes = grouped.transform(lambda df: df.shape[0])
-
-
-# Write process for connecting nodes in a group
-# join ped nodes that have the same road link id
-pcol_re = re.compile(r'p\dpID.*')
-
-def check_ped_poly_id_repreated(row, ped_poly_col_regex = pcol_re):
-	ped_poly_cols = [i for i in row.index if pcol_re.search(i) is not None]
-	return row[ped_poly_cols].dropna().duplicated().any()
-
-def connect_junction_ped_nodes(df, ped_node_col, v1_poly_col, v2_poly_col):
-
-	# Connect nodes if they share a road link ID since this means they lie on the opposite side of the same road
-	# This process also ends up connecting nodes to themselves which is corrected for afterwards
-	junc_edges1 = pd.merge(df, df, on = v1_poly_col, how = 'inner', suffixes = ('_to', '_from'))
-	junc_edges1['road_link'] = junc_edges1[v1_poly_col]
-
-	junc_edges2 = pd.merge(df, df, left_on = v1_poly_col, right_on = v2_poly_col, how = 'inner', suffixes = ('_to', '_from'))
-	junc_edges2['road_link'] = junc_edges2[v1_poly_col+'_to']
-
-	junc_edges3 = pd.merge(df, df, on = v2_poly_col, how = 'inner', suffixes = ('_to', '_from'))
-	junc_edges3['road_link'] = junc_edges3[v2_poly_col]
-
-	junc_edges = pd.concat([junc_edges1, junc_edges2, junc_edges3])
-
-	junc_edges['edge_data'] = junc_edges.apply(lambda row: {"road_link":row["road_link"],"ped_poly":None}, axis=1)
-
-	return junc_edges
-
-# Ony connect nodes around junctions with > 2 connections, ie actual intersections rather than continuations
-junctionNodesToConnect = df_node_degree.loc[ df_node_degree["nodeDegree"] > 2, "nodeID"].values
-junc_edges = gdfPedNodes.loc[gdfPedNodes['juncNodeID'].isin(junctionNodesToConnect)].groupby('juncNodeID').apply(connect_junction_ped_nodes, 'fid','v1rlID', 'v2rlID')
-
-# Drop duplicates, drop self loops and recreate index
-junc_edges.drop_duplicates(subset=['fid_from','fid_to'], inplace = True)
-junc_edges = junc_edges.loc[ junc_edges['fid_from'] != junc_edges['fid_to']]
-junc_edges.index = np.arange(len(junc_edges))
-
-# Where the link connects nodes on the same ped poly, remove reference to road link as in these cases link does not cross road link
-junc_edges['share_ped_poly'] = junc_edges.apply(check_ped_poly_id_repreated, axis = 1)
-
-# Commented out because I realised that it might cross the link at one end of the ped polygon, even if it doesn't cross at another end.
 '''
-for i in junc_edges.loc[ junc_edges['share_ped_poly'] == True].index:
-	row = junc_edges.loc[i]
-	row['edge_data'] = {'road_link':None, 'ped_poly':None}
-	junc_edges.loc[i] = row
-'''
-
-junc_edges['edge'] = junc_edges.apply(lambda row: (row['fid_from'], row['fid_to'], row['edge_data']), axis=1)
-
-
-# Add these edges to the network
-G_junc = nx.Graph()
-G_junc.add_edges_from(junc_edges['edge'].values)
-G_ped_poly.add_edges_from(junc_edges['edge'].values)
-
-
-###################################
-#
-#
-# LineString gdf of ped network
-#
-#
-####################################
-edge_data = []
-for u,v,data in list(G_ped_poly.edges(data=True)):
-	row = {'from_node':u, 'to_node':v,'road_link':data['road_link'], 'ped_poly':data['ped_poly']}
-	edge_data.append(row)
-dfPedNetwork = pd.DataFrame(edge_data)
-
-# Now join with node coordinates
-dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['fid','geometry']), left_on = 'from_node', right_on = 'fid', how = 'left', indicator = True)
-assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
-dfPedNetwork.drop(['_merge','fid'], axis = 1, inplace = True)
-dfPedNetwork.rename(columns = {'geometry':'geometry_from'}, inplace = True)
-
-dfPedNetwork = pd.merge(dfPedNetwork, gdfPedNodes.reindex(columns = ['fid','geometry']), left_on = 'to_node', right_on = 'fid', how = 'left', suffixes = ('','_to'), indicator = True)
-assert dfPedNetwork.loc[ dfPedNetwork['_merge'] != 'both'].shape[0]==0
-dfPedNetwork.drop(['_merge','fid'], axis = 1, inplace = True)
-dfPedNetwork.rename(columns = {'geometry':'geometry_to'}, inplace = True)
-
-# Create LineString connecting edge nodes
-dfPedNetwork['geometry'] = dfPedNetwork.apply(lambda row: LineString([row['geometry_from'], row['geometry_to']]), axis = 1)
-dfPedNetwork = dfPedNetwork.reindex(columns = ['from_node','to_node','road_link','ped_poly','geometry'])
-gdfPedNetwork = gpd.GeoDataFrame(dfPedNetwork, geometry = 'geometry')
-
-# Rename node columns to match other network data columns and create fid field
-gdfPedNetwork.rename(columns = {"from_node":"MNodeFID", "to_node":"PNodeFID", "road_link":"pedRLID", "ped_poly":"pedRoadID"}, inplace=True)
-gdfPedNetwork['fid'] = "pave_link" + gdfPedNetwork['MNodeFID'].str.replace("pave_node","") + gdfPedNetwork['PNodeFID'].str.replace("pave_node","")
-
-
-###############################
-#
-# Validate - check that number of pavement nodes per road link is as expected
-#
-# Remove OR links that don't have expected number of pavement nodes
-#
-# Model requires each OR road link to have 4 pavement nodes, 2 at each end.
-# Check for this and remove OR links that don't have
-#
-# 2 nodes is ok. 3 is not, since ped could try and cross but have no default target junction.
-# 1 could also be a problem.
-#
-# This is not ideal. A temporary measure whilst I improve the data processing.
-#
-###############################
-
-# Use ped nodes. there are 2 ped rl id columns
-df1 = gdfPedNodes.groupby('v1rlID')['fid'].apply(lambda df: df.shape[0]).reset_index()
-df2 = gdfPedNodes.groupby('v2rlID')['fid'].apply(lambda df: df.shape[0]).reset_index()
-
-df1.rename(columns = {'v1rlID':'pedRLID', 'fid':'node_count'}, inplace=True)
-df2.rename(columns = {'v2rlID':'pedRLID', 'fid':'node_count'}, inplace=True)
-
-dfTot = pd.concat([df1, df2])
-dfTot = dfTot.groupby('pedRLID')['node_count'].apply(lambda df: df.sum()).reset_index()
-
-assert dfTot['pedRLID'].duplicated().any() == False
-
-rl_ids_to_remove = dfTot.loc[ dfTot['node_count'].isin([3,1]), 'pedRLID'].values
-
-# Remove these links from the OR road network
-gdfORLink = gdfORLink.loc[ ~gdfORLink['fid'].isin(rl_ids_to_remove)]
-assert gdfORLink.loc[ gdfORLink['fid'].isin(rl_ids_to_remove)].shape[0] == 0
-
-
-gdfORLink.to_file(os.path.join(output_directory, config["openroads_link_processed_file"]))
-gdfPedNetwork.crs = projectCRS
-gdfPedNetwork.to_file(output_ped_links_file)
