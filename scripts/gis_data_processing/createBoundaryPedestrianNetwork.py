@@ -207,7 +207,7 @@ def road_node_pedestrian_nodes_metadata(graph, road_node_geom, road_node_id):
     for (e1, bearing1), (e2, bearing2) in edge_pairs:
 
         # Initialise data to go into the geodataframe
-        row = {"juncNodeID":road_node_id, "juncNodeX":road_node_geom.x, "juncNodeY": road_node_geom.y, "rlID1":e1[-1]['fid'], "a1":bearing1, "rlID2":e2[-1]['fid'], "a2":bearing2}
+        row = {"juncNodeID":road_node_id, "juncNodeX":road_node_geom.x, "juncNodeY": road_node_geom.y, "v1rlID":e1[-1]['fid'], "a1":bearing1, "v2rlID":e2[-1]['fid'], "a2":bearing2}
 
         dfPedNodes = dfPedNodes.append(row, ignore_index = True)
         
@@ -318,8 +318,8 @@ def assign_boundary_coordinates_to_ped_nodes(df_ped_nodes, gdf_road_links, serie
     # Loop through nodes, get corresponding road links and the boundary between them
     for ix, row in df_ped_nodes.iterrows():
 
-        rlID1 = row['rlID1']
-        rlID2 = row['rlID2']
+        rlID1 = row['v1rlID']
+        rlID2 = row['v2rlID']
 
         # exclude links connected to this road node to check that line to ped node doesn't intersect a road link
         series_road_links = gdf_road_links.loc[ (gdf_road_links['MNodeFID']!=row['juncNodeID']) & (gdf_road_links['PNodeFID']!=row['juncNodeID']), 'geometry'].copy()
@@ -431,7 +431,7 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
         gdfLinkSub = gdfRoadLink.loc[ gdfRoadLink['fid'].isin(neighbour_links)]
 
         # Get pairs of ped nodes
-        gdfPedNodesSub = gdfPN.loc[(gdfPN['rlID1']==rl_id) | (gdfPN['rlID2']==rl_id)]
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
 
         # Should be 4 ped nodes for each road link
         if gdfPedNodesSub.shape[0]!=4:
@@ -474,7 +474,7 @@ def validate_numbers_of_nodes_and_links(gdfRoadLinks, gdfPN, gdfPL):
     for rl_id in gdfRoadLinks['fid'].values:
 
         # Get pairs of ped nodes
-        gdfPedNodesSub = gdfPN.loc[(gdfPN['rlID1']==rl_id) | (gdfPN['rlID2']==rl_id)]
+        gdfPedNodesSub = gdfPN.loc[(gdfPN['v1rlID']==rl_id) | (gdfPN['v2rlID']==rl_id)]
 
         # Should be 4 ped nodes for each road link
         if gdfPedNodesSub.shape[0]!=4:
