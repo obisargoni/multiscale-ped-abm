@@ -330,9 +330,12 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     gdf_edges['c1'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[0]))
     gdf_edges['c2'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[1]))
 
-    node_coords = pd.concat([gdf_edges['c1'], gdf_edges['c2']]).drop_duplicates()
-    node_ids = ['or_node_{}'.format(i) for i in np.arange(len(node_coords))]
-    gdf_nodes = gpd.GeoDataFrame({'node_id': node_ids, 'geometry':node_coords})
+    node_geoms = pd.concat([gdf_edges['c1'], gdf_edges['c2']])
+    node_coords = node_geoms.map(lambda x: x.coords[0]).drop_duplicates()
+    node_geoms = node_coords.map(lambda x: Point(x))
+
+    node_ids = ['or_node_{}'.format(i) for i in np.arange(len(node_geoms))]
+    gdf_nodes = gpd.GeoDataFrame({'node_fid': node_ids, 'geometry':node_geoms})
     gdf_nodes.crs = gdf_edges.crs
 
     # Join nodes to edges on coordinate
