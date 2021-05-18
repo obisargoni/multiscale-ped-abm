@@ -872,6 +872,12 @@ gdfORLink['fid'] = ["or_link_{}".format(i) for i in range(gdfORLink.shape[0])]
 gdfORLink['MNodeFID'] = gdfORLink['u'].replace(node_id_dict)
 gdfORLink['PNodeFID'] = gdfORLink['v'].replace(node_id_dict)
 
+# For some reason the above methods for linking nodes with edges not working.
+gdfORLink = gdfORLink.reindex(columns = ['fid', 'geometry', 'u','v','key'])
+assert gdfORLink['fid'].duplicated().any() == False # Fails
+gdfORNode, gdfORLink = nodes_gdf_from_edges_gdf(gdfORLink, "MNodeFID", "PNodeFID")
+
+
 for col in gdfORLink.columns:
     gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
