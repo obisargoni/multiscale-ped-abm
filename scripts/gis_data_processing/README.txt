@@ -16,7 +16,7 @@ Given a polygon covering the study area, this extracts the road links and nodes,
 
 It also processes and cleans this data, for example linking road links (both open road and ITN) with vehicle and pedestrian space
 
-4. editORRoadsToMatchPedPolys.py
+4. editORRoadsToMatchPedPolys.py DEPRECATED
 
 The processOSTopographicData.py script splits the pedestrian polygons so that they link with OR open road links. However, some links, due to being small or far from the pavement, do not get a pedestrian polygon.
 
