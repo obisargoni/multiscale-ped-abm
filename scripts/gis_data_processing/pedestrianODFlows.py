@@ -17,7 +17,7 @@ with open("config.json") as f:
     config = json.load(f)
 
 # Proportion of ITN nodes to use as vehicle ODs
-prop_random_ODs = 0.3
+prop_random_ODs = 0.1
 min_distance_of_ped_od_to_road_link = 30
 
 gis_data_dir = config['gis_data_dir']
