@@ -742,6 +742,7 @@ public class GISFunctions {
 		}
 		return roadLinkIDs;
 	}
+	
     /**
      *  Gets Road the input coordinate intersects with.
      *  
@@ -762,6 +763,44 @@ public class GISFunctions {
     	}
     	else {
     		throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
+    	}
+    	
+    	return r;
+	}
+	
+    /**
+     *  Gets Road the input coordinate intersects with.
+     *  
+     * @return
+     * 		Road the agent is on
+     * @throws RoutingException 
+     */
+	public static Road getCoordinateRoad(Coordinate c, Coordinate backupC) throws RoutingException {
+		Road r = null;
+		
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
+    	
+    	if(intersectingRoads.size() == 0) {
+    		// Method returns default value, null, if there are no intersecting roads
+    	}
+    	else if (intersectingRoads.size() == 1) {
+        	r = intersectingRoads.get(0);
+    	}
+    	else {
+    		// if backup coordiante given use this to determine which road to return
+    		// this slight hack is required since some ped ODs (eg test ped ODs) are purposefully located at the intersection of multiple road geometries
+    		if (backupC != null) {
+    			Geometry p = GISFunctions.pointGeometryFromCoordinate(backupC);
+    			for (Road candidate: intersectingRoads) {
+    				if(candidate.getGeom().intersects(p)) {
+    					r = candidate;
+    					break;
+    				}
+    			}
+    		}
+    		else {
+    			throw new RoutingException("Input coordinate intersects with multiple road objects. Unexpected");
+    		}
     	}
     	
     	return r;
