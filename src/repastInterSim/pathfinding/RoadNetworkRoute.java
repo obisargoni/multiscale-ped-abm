@@ -296,41 +296,37 @@ public class RoadNetworkRoute implements Cacheable {
 		Junction destPaveJ;
 		RoadLink currentRoad = null;
 		RoadLink destRoad = null;
+			
+		// Find the nearest pavement junctions to start and end of journey. Use these to find start and end road junctions
+		currentPaveJ = getNearestPavementJunctionToOD(currentCoord);
+		destPaveJ = getNearestPavementJunctionToOD(destCoord);
 		try {
-			
-			// Find the nearest pavement junctions to start and end of journey. Use these to find start and end road junctions
-			currentPaveJ = getNearestPavementJunctionToOD(currentCoord);
-			destPaveJ = getNearestPavementJunctionToOD(destCoord);
-			
 			// Find the road link corresponding to the pavement polygon the agents start and end pavement junctions are on
 			// I think this is quite slow and needs rethinking, eg using a cache
-			currentRoad = GISFunctions.getCoordinateRoad(currentPaveJ.getGeom().getCoordinate()).getORRoadLink();
-			destRoad = GISFunctions.getCoordinateRoad(destPaveJ.getGeom().getCoordinate()).getORRoadLink();
-			
-			List<Junction> currentORJ = new ArrayList<Junction>();
-			List<Junction> destORJ = new ArrayList<Junction>();
-			
-			// Loop through road junction geography to select start and end road nodes
-			for (Junction rJ: SpaceBuilder.orJunctionGeography.getAllObjects()) {
-				if(rJ.getFID().contentEquals(currentPaveJ.getjuncNodeID())) {
-					currentORJ.add(rJ);
-				}
-				if(rJ.getFID().contentEquals(destPaveJ.getjuncNodeID())) {
-					destORJ.add(rJ);
-				}
-			}
-			
-			assert currentORJ.size() == 1;
-			assert destORJ.size() == 1;
-				
-			setRoadLinkRoute(currentORJ, destORJ);
-
+			currentRoad = GISFunctions.getCoordinateRoad(currentPaveJ.getGeom().getCoordinate(), currentCoord).getORRoadLink();
+			destRoad = GISFunctions.getCoordinateRoad(destPaveJ.getGeom().getCoordinate(), destCoord).getORRoadLink();
 		} catch (RoutingException e) {
-			/*
-			LOGGER.log(Level.SEVERE, "Route.setRoute(): Problem creating route for " + " going from " + currentCoord.toString() + " to " + this.destination.toString());
-					*/
 			throw e;
 		}
+		
+		
+		List<Junction> currentORJ = new ArrayList<Junction>();
+		List<Junction> destORJ = new ArrayList<Junction>();
+		
+		// Loop through road junction geography to select start and end road nodes
+		for (Junction rJ: SpaceBuilder.orJunctionGeography.getAllObjects()) {
+			if(rJ.getFID().contentEquals(currentPaveJ.getjuncNodeID())) {
+				currentORJ.add(rJ);
+			}
+			if(rJ.getFID().contentEquals(destPaveJ.getjuncNodeID())) {
+				destORJ.add(rJ);
+			}
+		}
+		
+		assert currentORJ.size() == 1;
+		assert destORJ.size() == 1;
+			
+		setRoadLinkRoute(currentORJ, destORJ);
 		
 		// If no roads in path this means start and end pavement junction are on the same link. Add current road to route manually
 		if(this.roadsX.size()==0) {
