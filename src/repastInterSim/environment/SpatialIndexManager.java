@@ -303,6 +303,33 @@ public abstract class SpatialIndexManager implements Cacheable {
 	}
 	
 	/**
+	 * Search for geometries located at the given geometry. This uses the <code>query()</code> function of the
+	 * underlying spatial index so might return geometries that are close two, but do not interesect, the input geometry. 
+	 * 
+	 * @param <T> The type of object that will be returned.
+	 * @param geom
+	 *            The geometry to search around
+	 * @param geography
+	 *            The given geography to look through
+	 * @return The objects that intersect the coordinate (or are close to it) or an empty list if none could be found. 
+	 * @throws NoSuchElementException
+	 *             If there is no spatial index for the given geography.
+	 * @see STRtree
+	 */
+	@SuppressWarnings("unchecked")
+	public static synchronized <T> List<Geometry> searchGeoms(Geography<T> geog, Geometry geom) throws NoSuchElementException {
+		
+		Index<T> index = (Index<T>) indices.get(geog);
+		if (index==null) {
+			throw new NoSuchElementException("The geometry "+geog.getName()+" does not have a spatial index.");
+		}
+		
+		// Query the spatial index for the nearest objects.
+		List<Geometry> close = index.si.query(geom.getEnvelopeInternal());
+		return close;
+	}
+	
+	/**
 	 * Search for objects located at the given coordinate. This uses the <code>query()</code> function of the
 	 * underlying spatial index so might return objects that are close two, but do not interesect, the coordinate. 
 	 * 
