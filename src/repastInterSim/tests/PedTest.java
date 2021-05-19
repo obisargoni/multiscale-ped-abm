@@ -265,7 +265,7 @@ class PedTest {
 			expectedAngles[i] = eA.get(i);
 		}
 		
-		double[] expectedDistances = {10.0, 10.0, 0.5246611367487147, 0.2458762406829704, 0.1946127776812781, 0.20691517646066288};
+		double[] expectedDistances = {10.0, 10.0, 0.33716113674871473, 0.0583762406829704, 0.007112777681278104, 0.019415176460662875};
 		
 		validateOutput(output, expectedAngles, expectedDistances);
 	}
