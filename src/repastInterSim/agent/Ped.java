@@ -233,7 +233,7 @@ public class Ped extends MobileAgent {
         // Start by finding obstacle objects (Peds, Vehicles, PedObstructions close to the ped
         Polygon fieldOfVisionApprox = getPedestrianFieldOfVisionPolygon(this.a0);
         
-        List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
+        List<Geometry> obstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
         HashMap<Ped, Geometry> pedsWithGeoms = getFOVPedsAndGeoms(fieldOfVisionApprox);
         
         // Calculate acceleration due to field of vision consideration
@@ -776,7 +776,7 @@ public class Ped extends MobileAgent {
     
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox, Geography<PedObstruction> pedObstGeog) {
         // Get list of all geometries of other pedestrian agents and pedestrian obstructions that intersect field of vision
-        List<Geometry> obstacleGeoms = SpatialIndexManager.findIntersectingGeometries(pedObstGeog, fieldOfVisionApprox, "intersects");
+        List<Geometry> obstacleGeoms = SpatialIndexManager.searchGeoms(pedObstGeog, fieldOfVisionApprox);
         Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
         	if (p != this) {
