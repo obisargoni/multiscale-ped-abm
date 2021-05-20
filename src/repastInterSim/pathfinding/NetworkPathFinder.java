@@ -5,9 +5,15 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Function;
+
 import org.apache.commons.collections15.Predicate;
 
 import org.apache.commons.collections15.Transformer;
+import org.jgrapht.GraphPath;
+import org.jgrapht.alg.shortestpath.YenKShortestPath;
+import org.jgrapht.alg.shortestpath.YenShortestPathIterator;
+import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
@@ -103,6 +109,111 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 				return n.doubleValue();
 			else
 				return Double.POSITIVE_INFINITY;
+		}
+		
+
+		public List<Stack<RepastEdge<T>>> getKShortestPaths(T node, T targetNode, int k, Predicate<T> nodeFilter) {
+			// Filter graph and convert to JgraphT graph
+			this.filterGraph(nodeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
+			YenKShortestPath<T, RepastEdge<T>> ksp = new YenKShortestPath<T, RepastEdge<T>>(jgt);
+			List<Stack<RepastEdge<T>>> paths = KShortestPaths(ksp, node, targetNode, k);
+			return paths;	
+		}
+		
+
+		public List<Stack<RepastEdge<T>>> getKShortestPaths(T node, T targetNode, int k, Predicate<T> nodeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
+			
+			// Filter graph and convert to JgraphT graph
+			this.filterGraph(nodeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// convert to weighted graph with the weights given by the transformer
+			Function<RepastEdge<T>, Double> weightFunction = (RepastEdge<T> e)-> {return (double) transformer.transform(e); };
+			AsWeightedGraph<T, RepastEdge<T>> wjgt = new AsWeightedGraph<T, RepastEdge<T>>(jgt, weightFunction, false, false);
+			
+			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
+			YenKShortestPath<T, RepastEdge<T>> ksp = new YenKShortestPath<T, RepastEdge<T>>(wjgt);
+			List<Stack<RepastEdge<T>>> paths = KShortestPaths(ksp, node, targetNode, k);
+			return paths;		
+		}
+		
+		public List<Stack<RepastEdge<T>>> KShortestPaths(YenKShortestPath<T, RepastEdge<T>> ksp, T node, T targetNode, int k) {
+			List<GraphPath<T, RepastEdge<T>>> paths = ksp.getPaths(node, targetNode, k);
+			
+			List<Stack<RepastEdge<T>>> stackPaths = new ArrayList<Stack<RepastEdge<T>>>();
+			for (GraphPath<T, RepastEdge<T>> p: paths) {
+				Stack<RepastEdge<T>> stackPath = new Stack<RepastEdge<T>>();
+				stackPath.addAll(p.getEdgeList());
+				stackPaths.add(stackPath);
+			}
+			return stackPaths;
+		}
+		
+		/*
+		 * Methods to get all shortest paths from source to target node. Returns multiple paths if
+		 * there are multiple paths with join shortest length. uses JgraphT type graph.
+		 */
+		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, T targetNode, Predicate<T> nodeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
+			
+			// Filter graph and convert to JgraphT graph
+			this.filterGraph(nodeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// convert to weighted graph with the weights given by the transformer
+			Function<RepastEdge<T>, Double> weightFunction = (RepastEdge<T> e)-> {return (double) transformer.transform(e); };
+			AsWeightedGraph<T, RepastEdge<T>> wjgt = new AsWeightedGraph<T, RepastEdge<T>>(jgt, weightFunction, false, false);
+			
+			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
+			YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(wjgt, node, targetNode);
+			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator, node, targetNode);
+			return paths;		
+		}
+		
+		/*
+		 * Methods to get all shortest paths from source to target node. Returns multiple paths if
+		 * there are multiple paths with join shortest length. uses JgraphT type graph.
+		 */
+		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, T targetNode, Predicate<T> nodeFilter) {
+						
+			// Filter graph and convert to JgraphT graph
+			this.filterGraph(nodeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
+			YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(jgt, node, targetNode);
+			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator, node, targetNode);
+			return paths;
+		}
+		
+		private List<Stack<RepastEdge<T>>> allshortestPathsFromYenIterator(YenShortestPathIterator<T, RepastEdge<T>> iterator, T source, T target) {
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			GraphPath<T, RepastEdge<T>> path = iterator.next();
+			Stack<RepastEdge<T>> stackPath = new Stack<RepastEdge<T>>();
+			stackPath.addAll(path.getEdgeList());
+			output.add(stackPath);
+			
+			Double shortestPathLength = path.getWeight();
+			
+			boolean notFinished = iterator.hasNext();
+			while (notFinished) {
+				path = iterator.next();
+				Double pathLength = path.getWeight();
+				
+				// Check if this path length is equal to or less than the first path length (which should be the shortest)
+				if( Double.compare(shortestPathLength, pathLength)>=0 ) {
+					stackPath = new Stack<RepastEdge<T>>();
+					stackPath.addAll(path.getEdgeList());
+					notFinished = iterator.hasNext();
+				}
+				else {
+					notFinished = false;
+				}
+			}
+			
+			return output;
 		}
 		
 		
