@@ -214,7 +214,7 @@ public class PedPathFinder {
 	 */
 	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
-		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getSimplePaths(currentJ, targetJunctions, filter);
+		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, filter, heuristic1);
 		
 		candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);	
 			
