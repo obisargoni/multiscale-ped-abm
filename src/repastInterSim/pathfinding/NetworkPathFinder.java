@@ -8,6 +8,9 @@ import java.util.Stack;
 import org.apache.commons.collections15.Predicate;
 
 import org.apache.commons.collections15.Transformer;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DefaultUndirectedGraph;
+import org.jgrapht.graph.builder.GraphTypeBuilder;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.algorithms.filters.FilterUtils;
@@ -333,6 +336,10 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			return this.graph;
 		}
 		
+		public DefaultUndirectedGraph<T, RepastEdge<T>> getJGraphTGraph() {
+			return jgrapgtFromJung(this.graph);
+		}
+		
 		private Graph<T, RepastEdge<T>> netToGraph(Network<T> net) {
 			Graph<T, RepastEdge<T>> graph = null;
 
@@ -343,6 +350,23 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			
 			return graph;
 		}
+		
+	    private DefaultUndirectedGraph<T, RepastEdge<T>> jgrapgtFromJung(Graph<T, RepastEdge<T>> g) {
+	    	
+	    	DefaultUndirectedGraph<T, RepastEdge<T>> jgtGraph = new DefaultUndirectedGraph<T, RepastEdge<T>>((Class<? extends RepastEdge<T>>) RepastEdge.class);
+	    	
+	    	// Loop through edges in input graph and add these to the new graph
+	    	for (RepastEdge<T> e : g.getEdges()) {
+	    		T u = e.getSource();
+	    		T v = e.getTarget();
+	    		
+	    		jgtGraph.addVertex(u);
+	    		jgtGraph.addVertex(v);
+	    		jgtGraph.addEdge(u, v, e);
+	    	}
+	    	
+	    	return jgtGraph;
+	    }
 		
 		public void filterGraph(Collection<T> vertices) {
 			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
