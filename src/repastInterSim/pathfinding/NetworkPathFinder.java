@@ -168,7 +168,7 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			
 			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
 			YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(wjgt, node, targetNode);
-			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator, node, targetNode);
+			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator);
 			return paths;		
 		}
 		
@@ -184,11 +184,11 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			
 			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
 			YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(jgt, node, targetNode);
-			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator, node, targetNode);
+			List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator);
 			return paths;
 		}
 		
-		private List<Stack<RepastEdge<T>>> allshortestPathsFromYenIterator(YenShortestPathIterator<T, RepastEdge<T>> iterator, T source, T target) {
+		private List<Stack<RepastEdge<T>>> allshortestPathsFromYenIterator(YenShortestPathIterator<T, RepastEdge<T>> iterator) {
 			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
 			GraphPath<T, RepastEdge<T>> path = iterator.next();
 			Stack<RepastEdge<T>> stackPath = new Stack<RepastEdge<T>>();
