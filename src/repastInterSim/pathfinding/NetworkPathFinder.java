@@ -2,6 +2,7 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
@@ -150,6 +151,46 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 				stackPaths.add(stackPath);
 			}
 			return stackPaths;
+		}
+		
+		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, Collection<T> targetNodes, Predicate<T> nodeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
+			// Filter graph and convert to JgraphT graph
+			this.filterGraph(nodeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// convert to weighted graph with the weights given by the transformer
+			Function<RepastEdge<T>, Double> weightFunction = (RepastEdge<T> e)-> {return (double) transformer.transform(e); };
+			AsWeightedGraph<T, RepastEdge<T>> wjgt = new AsWeightedGraph<T, RepastEdge<T>>(jgt, weightFunction, false, false);
+			
+			// Find shortest path length to each of the target nodes. Then for all those of shortest length, find all shortest paths
+			org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>> dsp = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>>(wjgt);
+			
+			List<Double> distances = new ArrayList<Double>();
+			List<T> targets = new ArrayList<T>(targetNodes);
+			for (T target: targets) {
+				Double d = dsp.getPathWeight(node, target);
+				distances.add(d);
+			}
+			
+			double minDist = Collections.min(distances); 
+			List<T> shortestDistReachable = new ArrayList<T>();
+			for (int i=0; i< targets.size(); i++) {
+				if (Double.compare(minDist, distances.get(i))==0) {
+					shortestDistReachable.add(targets.get(i));
+				}
+			}
+			
+			// Now for each of the target nodes that can be reached in within min distance, find all shortest paths to target from source
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			for (T t: shortestDistReachable) {
+				YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(wjgt, node, t);
+				List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator);
+				for (Stack<RepastEdge<T>> p:paths) {
+					output.add(p);
+				}
+			}
+			
+			return output;
 		}
 		
 		/*
