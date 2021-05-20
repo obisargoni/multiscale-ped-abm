@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Stack;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
+import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -503,4 +504,30 @@ class NetworkPathFinderTest {
 		}
 		
 	}
+	
+	/*
+	 * Test producing a JgraphT object from Jung network
+	 */
+	@Test
+	public void testJGraphTFromJung() {
+		// setup road network and pavement network
+		try {
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		DefaultUndirectedGraph<Junction, RepastEdge<Junction>> jgt = np.getJGraphTGraph();
+		
+		assert jgt.vertexSet().size() == np.getGraph().getVertexCount();
+		assert jgt.edgeSet().size() == np.getGraph().getEdgeCount();
+		
+	}
+	
+	
 }
