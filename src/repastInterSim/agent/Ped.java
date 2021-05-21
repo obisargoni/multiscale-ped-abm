@@ -237,9 +237,12 @@ public class Ped extends MobileAgent {
         List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
         HashMap<Ped, Geometry> fovPedsWithGeoms = getFOVPedsAndGeoms(fieldOfVisionApprox);
         fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
-
-        // Calculate acceleration due to avoiding collisions with other agents and walls.
-        contA = totalContactAcceleration(fovObstructionGeoms, fovPedsWithGeoms);
+        
+        // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
+        Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
+        List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, thisGeom);
+        HashMap<Ped, Geometry> contactPedsWithGeoms = getFOVPedsAndGeoms(thisGeom);
+        contA = totalContactAcceleration(contactObstructionGeoms, contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
