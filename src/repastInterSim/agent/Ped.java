@@ -235,13 +235,13 @@ public class Ped extends MobileAgent {
         
         // Get obstruction geometries and ped that are within the field of vision. Use these to calculate motive acceleration
         List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
-        HashMap<Ped, Geometry> fovPedsWithGeoms = getFOVPedsAndGeoms(fieldOfVisionApprox);
+        HashMap<Ped, Geometry> fovPedsWithGeoms = getPedsAndGeomsWithinGeometry(fieldOfVisionApprox);
         fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
         
         // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
         Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
         List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, thisGeom);
-        HashMap<Ped, Geometry> contactPedsWithGeoms = getFOVPedsAndGeoms(thisGeom);
+        HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
         contA = totalContactAcceleration(contactObstructionGeoms, contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
@@ -789,7 +789,7 @@ public class Ped extends MobileAgent {
 		return obstacleGeoms;
 	}
     
-    public HashMap<Ped, Geometry> getFOVPedsAndGeoms(Geometry fieldOfVisionApprox) {
+    public HashMap<Ped, Geometry> getPedsAndGeomsWithinGeometry(Geometry fieldOfVisionApprox) {
     	HashMap<Ped, Geometry> peds = new HashMap<Ped, Geometry>();
         Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
