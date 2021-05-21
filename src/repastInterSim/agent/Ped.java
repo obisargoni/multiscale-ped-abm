@@ -786,7 +786,7 @@ public class Ped extends MobileAgent {
 		return obstacleGeoms;
 	}
     
-    public HashMap<Ped, Geometry> getFOVPedsAndGeoms(Polygon fieldOfVisionApprox) {
+    public HashMap<Ped, Geometry> getFOVPedsAndGeoms(Geometry fieldOfVisionApprox) {
     	HashMap<Ped, Geometry> peds = new HashMap<Ped, Geometry>();
         Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
