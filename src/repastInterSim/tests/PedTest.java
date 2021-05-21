@@ -306,6 +306,18 @@ class PedTest {
 		DistanceOp dist34 = new DistanceOp(g3, g4);
 		assert (dist34.distance()==0) & (g3.intersects(g4)==true);
 		
+		
+		// Check distance op with point and intersects
+		DistanceOp dist12p = new DistanceOp(p1, g2);
+		assert (dist12p.distance()<=(r1+r2)) & (g1.intersects(g2));
+		
+		DistanceOp dist13p = new DistanceOp(p1, g3);
+		assert (dist13.distance()>(r1+r3)) & (g1.intersects(g3)==false);
+		
+		// g3 and g4 should just touch, does identify as touching
+		DistanceOp dist34p = new DistanceOp(p3, g4);
+		assert (dist34.distance()<=(r3+r4)) & (g3.intersects(g4)==true);
+		
 	}
 	
 	@Test
