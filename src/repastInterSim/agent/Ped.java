@@ -242,7 +242,7 @@ public class Ped extends MobileAgent {
         Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
         List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, thisGeom);
         HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
-        contA = totalContactAcceleration(contactObstructionGeoms, contactPedsWithGeoms);
+        contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
@@ -269,11 +269,8 @@ public class Ped extends MobileAgent {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration(List<Geometry> obstrGeoms, HashMap<Ped, Geometry> peds)  {
+    public double[] totalContactAcceleration(Geometry thisGeom, List<Geometry> obstrGeoms, HashMap<Ped, Geometry> peds)  {
     	double[] cATotal = {0,0};
-    	
-    	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
     	
     	// Iterate over all other pedestrian agents and for those that touch the 
     	// ego agent calculate the interaction force
