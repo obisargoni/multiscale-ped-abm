@@ -20,6 +20,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
@@ -453,13 +454,18 @@ public class PedPathFinder {
 	 * a strategic path link.
 	 */
 	public Boolean pedOnStrategicPathRoadLink() {
-		Boolean pedOnSLink = false;
-		Road r = this.ped.getCurrentRoad();
+		Boolean pedOnSLink = false;		
+
+		NetworkEdge<Junction> currentPavementEdge = (NetworkEdge<Junction>) this.tacticalPath.getCurrentEdge();
 		for (RoadLink rl: this.strategicPath) {
-			if (rl.getFID().contentEquals(r.getRoadLinkID())) {
+			boolean notCrossing = currentPavementEdge.getRoadLink().getPedRLID().contentEquals("");
+			boolean crossingSPLink = rl.getFID().contentEquals(currentPavementEdge.getRoadLink().getPedRLID());
+			
+			if ( notCrossing | crossingSPLink) {
 				pedOnSLink = true;
 			}
 		}
+				
 		return pedOnSLink;
 	}
 	
