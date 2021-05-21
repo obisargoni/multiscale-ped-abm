@@ -309,7 +309,7 @@ class PedTest {
 	}
 	
 	@Test
-	void testcontactDistancePedWithPedObstruction() {
+	void testcontactDistancePedGeomWithPedObstruction() {
 		
 		// Create linestring object that represents a wall
 		Coordinate lc1 = new Coordinate(530511, 180900);
