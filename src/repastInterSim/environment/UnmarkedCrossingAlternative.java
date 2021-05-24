@@ -67,8 +67,11 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		int vehicleCount = 0;
 		for (int i=0; i<this.getRoad().getRoadLinks().size(); i++){
 			RoadLink rl = this.getRoad().getRoadLinks().get(i);
-			int readPos = rl.getQueue().readPos();
-			for(int vi = readPos; vi<readPos+rl.getQueue().count(); vi++){
+			for(int j = 0; j<rl.getQueue().count(); j++){
+				int vi = rl.getQueue().readPos() + i;
+				if (vi>=rl.getQueue().capacity()) {
+					vi = vi-rl.getQueue().capacity();
+				}
 				Vehicle v = rl.getQueue().elements[vi];
 				
 				// Check if crossing is in front of vehicle, if not continue to next vehicle
