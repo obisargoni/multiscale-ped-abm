@@ -115,13 +115,13 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * 		The Road geography. Contains pavement and carriageway polygons objects
 	 * @param Geography<PedObstruction> poG
 	 * 		Geography containing the ped obstructions.
-	 * @param List<RoadLink> sps
-	 * 		The strategic path road links.
+	 * @param List<RoadLink> fsp
+	 * 		The strategic path road links. Contains all strategic path links, even those the pedestrian agent has passed.
 	 * 
 	 * @returns
 	 * 		Coordinate
 	 */
-	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> sps) {
+	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> fsp) {
 		
 		// Get pedestrian roads via attributes of road link and road objects
 		
@@ -175,7 +175,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 					Coordinate intC = intersectingCoords[j];
 					
 					// Check parity to make sure coordinate is on opposite side of the road
-					int p = RoadNetworkRoute.calculateRouteParity(c, intC, sps);
+					int p = RoadNetworkRoute.calculateRouteParity(c, intC, fsp);
 					if (p==0) {
 						continue;
 					}
@@ -202,7 +202,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 
 	public Coordinate getC2() {
-		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.strategicPathsection);
+		List<RoadLink> fullStrategicPath = this.ped.getPathFinder().getFullStrategicPath();
+		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, fullStrategicPath);
 	}
 	
 	public String getType() {
