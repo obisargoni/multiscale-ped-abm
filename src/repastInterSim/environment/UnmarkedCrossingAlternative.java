@@ -21,10 +21,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	private Ped ped;
 	
 	private String type = "unmarked";
-	private Coordinate destination;
 		
 	// Road geography containing the pavement and carriageway polygons
-	private Geography<Road> roadGeography = null;
 	private List<RoadLink> strategicPathsection;
 
 
