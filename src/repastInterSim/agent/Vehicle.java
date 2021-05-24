@@ -127,7 +127,7 @@ public class Vehicle extends MobileAgent {
 		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
-		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	this.queuePos = nextRoadLink.getQueue().writePos()-1; // Since vehicle just added to queue its position is 1 away from new write pos
 		        }
 		        else {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
