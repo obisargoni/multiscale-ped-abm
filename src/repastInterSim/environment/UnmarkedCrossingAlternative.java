@@ -108,6 +108,20 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	/*
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
 	 * Used to identify the end point of unmarked crossing alternatives.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param String roadLinkID
+	 * 		The ID of the road link the pedestrian agent is currently walking beside
+	 * @param Geography<Road> rG
+	 * 		The Road geography. Contains pavement and carriageway polygons objects
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * @param List<RoadLink> sps
+	 * 		The strategic path road links.
+	 * 
+	 * @returns
+	 * 		Coordinate
 	 */
 	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> sps) {
 		
