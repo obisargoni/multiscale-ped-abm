@@ -21,10 +21,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	private Ped ped;
 	
 	private String type = "unmarked";
-		
-	// Road geography containing the pavement and carriageway polygons
-	private List<RoadLink> strategicPathsection;
-
 
 	public UnmarkedCrossingAlternative() {
 		// TODO Auto-generated constructor stub
@@ -216,10 +212,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 
 	public void setPed(Ped ped) {
 		this.ped = ped;
-	}
-
-	public void setStrategicPathSection(List<RoadLink> rls) {
-		this.strategicPathsection = rls;
 	}
 
 	@Override
