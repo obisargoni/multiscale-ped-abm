@@ -86,17 +86,18 @@ class RingBufferFillCountTest {
 		// Add elements up to capacity
 		int nElems = length;
 		for (int i=0; i<nElems; i++) {
-			assert rb.put(alphabet[i]);
+			assert rb.put(alphabet[i]) != null;
 		}
 		
 		// Try adding another, confirm that not possible to exceed capacity
-		assert rb.put(alphabet[length+1]) == false;
+		Integer elemPos = rb.put(alphabet[length+1]);
+		assert elemPos == null;
 		
 		// Remove some elems then add some
 		rb.take();
 		rb.take();
-		assert rb.put(alphabet[length+1]);
-		assert rb.put(alphabet[length+2]);
+		assert rb.put(alphabet[length+1]) != null;
+		assert rb.put(alphabet[length+2]) != null;
 		
 		// Now test read and write pos	
 		assert rb.readPos() == 2;
@@ -149,14 +150,14 @@ class RingBufferFillCountTest {
 		// Add some elements
 		int nElems = length;
 		for (int i=0; i<nElems; i++) {
-			assert rb.put(alphabet[i]);
+			assert rb.put(alphabet[i])!=null;
 		}
 		
 		// take two and add two elems
 		rb.take();
 		rb.take();
-		assert rb.put(alphabet[length+1]);
-		assert rb.put(alphabet[length+2]);
+		assert rb.put(alphabet[length+1])!=null;
+		assert rb.put(alphabet[length+2])!=null;
 		
 		// Try getting the element ahead of 'l'
 		String ea = rb.getElementAhead(11);
@@ -185,7 +186,7 @@ class RingBufferFillCountTest {
 		// Add some elements
 		int nElems = length-1;
 		for (int i=0; i<nElems; i++) {
-			assert rb.put(alphabet[i]);
+			assert rb.put(alphabet[i])!=null;
 		}
 		
 		// get element at end, 19ths character of alphabet
@@ -193,15 +194,18 @@ class RingBufferFillCountTest {
 		
 		// take one and add two elems
 		rb.take();
-		assert rb.put(alphabet[nElems]);
+		Integer elemPos =  rb.put(alphabet[nElems]);
 		
-		assert rb.writePos() == 0;
+		// The position of the last element should be at teh end of the queue (19). 
+		// Write pos will be 20 (beyond capacity), but gets reset to 0 when a new element is added
+		assert elemPos == 19;
+		assert rb.writePos() == 20;
 		
 		// Get element at end, should now have looped around
 		String ea = rb.getEndElement();
 		assert ea.contentEquals("t");
 		
-		assert rb.put(alphabet[nElems+1]);
+		assert rb.put(alphabet[nElems+1])!=null;
 		
 		ea = rb.getEndElement();
 		assert ea.contentEquals("u");
