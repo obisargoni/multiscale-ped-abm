@@ -68,7 +68,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		for (int i=0; i<this.getRoad().getRoadLinks().size(); i++){
 			RoadLink rl = this.getRoad().getRoadLinks().get(i);
 			for(int j = 0; j<rl.getQueue().count(); j++){
-				int vi = rl.getQueue().readPos() + i;
+				int vi = rl.getQueue().readPos() + j;
 				if (vi>=rl.getQueue().capacity()) {
 					vi = vi-rl.getQueue().capacity();
 				}
