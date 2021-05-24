@@ -204,7 +204,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 
 	public Coordinate getC2() {
-		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), this.roadGeography, SpaceBuilder.pedObstructGeography, this.strategicPathsection);
+		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, this.strategicPathsection);
 	}
 	
 	public String getType() {
@@ -217,14 +217,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 
 	public void setPed(Ped ped) {
 		this.ped = ped;
-	}
-	
-	public Geography<Road> getRoadGeography() {
-		return roadGeography;
-	}
-
-	public void setRoadGeography(Geography<Road> roadGeography) {
-		this.roadGeography = roadGeography;
 	}
 
 	public void setStrategicPathSection(List<RoadLink> rls) {
