@@ -303,8 +303,8 @@ public class RoadNetworkRoute implements Cacheable {
 		try {
 			// Find the road link corresponding to the pavement polygon the agents start and end pavement junctions are on
 			// I think this is quite slow and needs rethinking, eg using a cache
-			currentRoad = GISFunctions.getCoordinateRoad(currentPaveJ.getGeom().getCoordinate(), currentCoord).getORRoadLink();
-			destRoad = GISFunctions.getCoordinateRoad(destPaveJ.getGeom().getCoordinate(), destCoord).getORRoadLink();
+			currentRoad = GISFunctions.getCoordinateRoad(currentCoord, currentPaveJ.getGeom().getCoordinate()).getORRoadLink();
+			destRoad = GISFunctions.getCoordinateRoad(destCoord, destPaveJ.getGeom().getCoordinate()).getORRoadLink();
 		} catch (RoutingException e) {
 			throw e;
 		}
