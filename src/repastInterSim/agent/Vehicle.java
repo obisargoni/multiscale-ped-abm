@@ -129,8 +129,11 @@ public class Vehicle extends MobileAgent {
 		        	currentRoadLink.removeVehicleFromQueue();
 		        	this.queuePos = nextRoadLink.getQueue().writePos()-1; // Since vehicle just added to queue its position is 1 away from new write pos
 		        }
-		        else {
+		        else if (endCurrentLink & !progressedToNextLink) {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
+		        }
+		        else {
+		        	isFinal = false;
 		        }
 		        
 				// If vehicle can't go any further set distanceToTravel to zero
