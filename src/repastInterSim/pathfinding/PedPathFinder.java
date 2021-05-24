@@ -103,7 +103,7 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
-		this.fullStrategicPath = strategicPath;
+		this.fullStrategicPath = new ArrayList<RoadLink>(strategicPath);
 		
 		
 		this.startPavementJunction = routeEnds[0];
