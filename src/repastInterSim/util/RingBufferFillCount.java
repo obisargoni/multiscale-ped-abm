@@ -37,19 +37,19 @@ public class RingBufferFillCount<T> {
 		return nextSlot; 
     }
 
-    public boolean put(T element){
-
+    public Integer put(T element){
+    	Integer elemPos = null;
         if(count < capacity){
             elements[writePos] = element;
+            elemPos = writePos;
             writePos++;
             if(writePos >= capacity){
                 writePos = 0;
             }
             count++;
-            return true;
         }
 
-        return false;
+        return elemPos;
     }
 
     public T take() {

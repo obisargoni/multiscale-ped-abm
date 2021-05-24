@@ -135,7 +135,7 @@ public class RoadLink implements FixedGeography, Serializable {
 		return this.queue.count();
 	}
 	
-	public boolean addVehicleToQueue(Vehicle v) {
+	public Integer addVehicleToQueue(Vehicle v) {
 		return this.queue.put(v);
 	}
 	

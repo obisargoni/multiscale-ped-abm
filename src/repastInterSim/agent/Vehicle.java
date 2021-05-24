@@ -116,10 +116,14 @@ public class Vehicle extends MobileAgent {
 				// If vehicle has moved distance such that it can enter the next road link, check if the next link has capacity and progress as appropriate
 				boolean endCurrentLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
 				boolean progressedToNextLink=false;
+				Integer newQPos = null;
 		        if (endCurrentLink) {
 		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
 		        	// If successfully added will return true
-		        	progressedToNextLink = nextRoadLink.addVehicleToQueue(this); 
+		        	newQPos = nextRoadLink.addVehicleToQueue(this);
+		        	if (newQPos!=null) {
+		        		progressedToNextLink = true;
+		        	}
 		        }
 				
 
@@ -127,7 +131,7 @@ public class Vehicle extends MobileAgent {
 		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
-		        	this.queuePos = nextRoadLink.getQueue().writePos()-1; // Since vehicle just added to queue its position is 1 away from new write pos
+		        	this.queuePos = newQPos;
 		        }
 		        else if (endCurrentLink & !progressedToNextLink) {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
