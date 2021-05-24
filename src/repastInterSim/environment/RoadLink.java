@@ -55,7 +55,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	}
 	
 	private void initQueue(double roadLength) {
-		int capacity = Math.min(1, (int) (roadLength / GlobalVars.vehicleLength)); 
+		int capacity = Math.max(1, (int) (roadLength / GlobalVars.vehicleLength)); 
 		Vehicle[] queueArr = new Vehicle[capacity];
 		this.queue = new RingBufferFillCount<Vehicle>(queueArr);
 	}
