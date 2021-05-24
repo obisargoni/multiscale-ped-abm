@@ -1,5 +1,6 @@
 package repastInterSim.environment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -12,6 +13,7 @@ import com.vividsolutions.jts.geom.LineString;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class UnmarkedCrossingAlternative extends CrossingAlternative {
@@ -107,10 +109,22 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
 	 * Used to identify the end point of unmarked crossing alternatives.
 	 */
-	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, List<RoadLink> sps) {
+	public Coordinate nearestOppositePedestrianCoord(Coordinate c, String roadLinkID, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> sps) {
 		
 		// Get pedestrian roads via attributes of road link and road objects
+		
+		// Identify geometries that demark the edge of the road. First try pedestrian pavement polygons. Failing that try obstruction geometries.
+		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
 		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		if (caPedRoads.size()==0) {
+			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
+			roadEdgeGeoms = SpatialIndexManager.searchGeoms(poG, nearby);
+		}
+		else {
+			for (Road rd: caPedRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+		}
 		
 		// Get rays perpendicular to agent's bearing to find crossing coordinate
 		LineString ray1 = GISFunctions.linestringRay(c, this.ped.getBearing() - (Math.PI/2), 50.0);
@@ -124,7 +138,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		int iRay = 0;
 		boolean oppRoadSideUnknown = true;
 		while (oppRoadSideUnknown) {		
-			for (Road rd:caPedRoads) {
+			for (Geometry g: roadEdgeGeoms) {
 
 				// First check whether both rays have been tried
 				// If not all rays tried use ray intersection method
@@ -133,10 +147,10 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 				if (iRay<rays.length) {
 					LineString ray = rays[iRay];
 					// Get intersection between ray and this polygon
-					intersectingCoords = rd.getGeom().intersection(ray).getCoordinates();
+					intersectingCoords = g.intersection(ray).getCoordinates();
 				}
 				else {
-					Coordinate nearC = GISFunctions.xestGeomCoordinate(c, rd.getGeom(), false);
+					Coordinate nearC = GISFunctions.xestGeomCoordinate(c, g, false);
 					intersectingCoords = new Coordinate[1];
 					intersectingCoords[0] = nearC;
 				}
@@ -176,7 +190,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 
 	public Coordinate getC2() {
-		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), this.roadGeography, this.strategicPathsection);
+		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), this.roadGeography, SpaceBuilder.pedObstructGeography, this.strategicPathsection);
 	}
 	
 	public String getType() {
