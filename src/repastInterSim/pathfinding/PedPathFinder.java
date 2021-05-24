@@ -38,6 +38,7 @@ public class PedPathFinder {
 	private OD origin;
 	private OD destination;
 	
+	private List<RoadLink> fullStrategicPath; // Retain version of strategic path that doesn't have links removed as agent progressed
 	private List<RoadLink> strategicPath;
 	private static int nLinksPerTacticalUpdate = 1;
 	private boolean firstUpdateDone = false;
@@ -102,6 +103,7 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
+		this.fullStrategicPath = strategicPath;
 		
 		
 		this.startPavementJunction = routeEnds[0];
@@ -503,6 +505,10 @@ public class PedPathFinder {
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
+	}
+	
+	public List<RoadLink> getFullStrategicPath(){
+		return this.fullStrategicPath;
 	}
 	
 	public TacticalRoute getTacticalPath() {
