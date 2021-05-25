@@ -523,5 +523,44 @@ public class Vehicle extends MobileAgent {
     public double getAcc() {
     	return this.acc;
     }
+    
+    private Polygon vehicleRectangePolygon(Coordinate loc, double bearing) {
+    	
+    	// Bearing is clockwise angle from north so use -ve bearing since rotation matrix is for counter clockwise turn
+    	double[][] rotationMatrix = {{Math.cos(-bearing), -Math.sin(-bearing)},{Math.sin(-bearing), Math.cos(-bearing)}};
+    	
+    	// Get points of north facing vehicle rectangle, relative to centre
+    	double[] p1 = {-GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2};
+    	double[] p2 = {GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2};
+    	double[] p3 = {GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2};
+    	double[] p4 = {-GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2};
+    	
+    	double[][] corners = {p1,p2,p3,p4};
+    	
+    	// Rotate corners
+    	for(int p=0; p<corners.length; p++) {
+    		for (int i=0; i<rotationMatrix.length; i++) {
+    			double[] mRow = rotationMatrix[i];
+    			corners[p][i] = corners[p][0]*mRow[0] + corners[p][1]*mRow[1];
+    		}
+    	}
+    	
+    	// Get coordinates of corners of vehicle rectangle
+    	Coordinate[] recCoords = new Coordinate[corners.length+1];
+    	for (int i=0; i<corners.length; i++) {
+    		Coordinate c = new Coordinate(loc.x+corners[i][0], loc.y+corners[i][1]);
+    		recCoords[i] = c;
+    	}
+    	recCoords[corners.length] = recCoords[0];
+    	
+    	Polygon vehicleRec = null;
+    	try {
+        	vehicleRec = GISFunctions.polygonGeometryFromCoordinates(recCoords);
+    	} catch (IllegalArgumentException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return vehicleRec;
+    }
 
 }
