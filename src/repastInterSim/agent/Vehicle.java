@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -163,9 +164,8 @@ public class Vehicle extends MobileAgent {
 			
 		}
 		
-		Point p = GISFunctions.pointGeometryFromCoordinate(vehicleLoc);
-		Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+		Polygon vehicleGeom = vehicleRectangePolygon(vehicleLoc, this.bearing);
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, vehicleGeom, this);
 		
 		setLoc();
 		
