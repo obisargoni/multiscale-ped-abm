@@ -669,6 +669,17 @@ public class GISFunctions {
 		return l;
 	}
 	
+	/*
+	 * Method to create linestring geometry from array of coordinates
+	 */
+	public static Polygon polygonGeometryFromCoordinates(Coordinate[] coords) {
+		
+		// Create coordinate sequence and create linestring from this
+	    GeometryFactory fac = new GeometryFactory();
+		Polygon p = fac.createPolygon(coords);
+		return p;
+	}
+	
 	/** */
 	public static ArrayList<Geometry> getIntersectionGeometries (Geometry[] geoms1, Geometry[] geoms2) {
 		
