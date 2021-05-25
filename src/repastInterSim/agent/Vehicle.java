@@ -100,7 +100,10 @@ public class Vehicle extends MobileAgent {
 			double distToCoord = vehicleLoc.distance(routeCoord);
 			
 			// Calculate the angle
-			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			double newBearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			if (Double.isNaN(newBearing)==false) {
+				this.bearing = newBearing;
+			}
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (Double.compare(distToCoord, distanceToTravel) > 0) {
