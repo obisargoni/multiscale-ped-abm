@@ -191,6 +191,11 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 				}
 			}
 			iRay++;
+			
+			// Break loop if agent can't find opposite coord
+			if (iRay>10) {
+				break;
+			}
 		}
 		
 		return nearestOpCoord;
