@@ -99,6 +99,7 @@ cc_norm = [i/max_cc for i in edge_data[:,3]]
 edge_palette = [cmap(i) for i in cc_norm]
 #widths = [i*6 for i in list_edge_betcen_norm]
 
+plt.style.use('dark_background')
 plt.figure(figsize = (15,15))
 nx.draw_networkx_nodes(G, geo_pos, nodelist=G.nodes(), node_color = 'grey', node_size = 1, alpha = 0.5)
 nx.draw_networkx_edges(G, geo_pos, edgelist=G.edges(), width = 3, edge_color = edge_palette, alpha=1)
