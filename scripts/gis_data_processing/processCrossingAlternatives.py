@@ -41,7 +41,7 @@ gdfPaveLink = gpd.read_file(os.path.join(output_directory, config["pavement_link
 gdfPaveNode.crs = projectCRS
 gdfPaveLink.crs = projectCRS
 
-output_crossings_path = os.path.join(output_directory, 'testCrossingAlternatives.shp')
+output_crossings_path = os.path.join(output_directory, 'CrossingAlternatives.shp')
 
 # Load the Open Roads road network as a nx graph
 G = nx.MultiGraph()
@@ -79,7 +79,7 @@ def unsignalised_crossing_node_from_junction_node(dfJunctionNodes):
 	'''
 
 	tolerance = 0.3
-	data = {'u':[], 'v':[], 'geometry':[]}
+	data = {'u':[], 'v':[], 'geometry':[], 'roadLinkID':[]}
 	
 	is_four_way = dfJunctionNodes.shape[0]==4
 
@@ -90,11 +90,12 @@ def unsignalised_crossing_node_from_junction_node(dfJunctionNodes):
 		row2 = dfJunctionNodes.loc[j]
 
 		# Check they are adjacent (have a shared rl id)
-		rls1 = set(row1[['v1rlID', 'v2rlID']])
-		rls2 = set(row2[['v1rlID', 'v2rlID']])
-
-		if len(rls1.intersection(rls2)) == 0:
+		rls1 = set(row1[['v1rlID', 'v2rlID']].values)
+		rls2 = set(row2[['v1rlID', 'v2rlID']].values)
+		shared_links = list(rls1.intersection(rls2))
+		if len(shared_links) != 1:
 			continue
+		#print(shared_links)
 
 		# Check total angular range between pairs. If meets threshold, consider nodes to be valid unsignalised crossing location
 		range1 = angle_range(*row1[['a1','a2']])
@@ -108,6 +109,7 @@ def unsignalised_crossing_node_from_junction_node(dfJunctionNodes):
 		if (meets_angle_criteria) | (is_four_way):
 			data['u'].append(row1['fid'])
 			data['v'].append(row2['fid'])
+			data['roadLinkID'].append(shared_links[0])
 			data['geometry'].append(LineString([row1['geometry'], row2['geometry']]))
 
 	return pd.DataFrame(data)
@@ -133,4 +135,7 @@ gdfPaveNode = gdfPaveNode.loc[ gdfPaveNode['juncNodeID'].isin(junction_nodes)]
 
 dfUC = gdfPaveNode.groupby('juncNodeID').apply(unsignalised_crossing_node_from_junction_node)
 gdfUC = gpd.GeoDataFrame(dfUC, geometry = 'geometry', crs = projectCRS)
+gdfUC['type'] = 'unsignalised'
+gdfUC['sigPhases'] = None
+gdfUC['phaseDurs'] = None
 gdfUC.to_file(output_crossings_path)
