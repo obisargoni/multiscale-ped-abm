@@ -95,7 +95,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	public String getRoadLinkID() {
-		return this.getRoad().getRoadLinkID();
+		return this.ped.getPathFinder().getStrategicPath().get(0).getFID();
 	}
 	
 	public Road getRoad() {
