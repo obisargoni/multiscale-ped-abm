@@ -265,7 +265,7 @@ class PedTest {
 			expectedAngles[i] = eA.get(i);
 		}
 		
-		double[] expectedDistances = {10.0, 10.0, 0.5246611367487147, 0.2458762406829704, 0.1946127776812781, 0.20691517646066288};
+		double[] expectedDistances = {10.0, 10.0, 0.33716113674871473, 0.0583762406829704, 0.007112777681278104, 0.019415176460662875};
 		
 		validateOutput(output, expectedAngles, expectedDistances);
 	}
@@ -306,10 +306,22 @@ class PedTest {
 		DistanceOp dist34 = new DistanceOp(g3, g4);
 		assert (dist34.distance()==0) & (g3.intersects(g4)==true);
 		
+		
+		// Check distance op with point and intersects
+		DistanceOp dist12p = new DistanceOp(p1, g2);
+		assert (dist12p.distance()<=(r1+r2)) & (g1.intersects(g2));
+		
+		DistanceOp dist13p = new DistanceOp(p1, g3);
+		assert (dist13.distance()>(r1+r3)) & (g1.intersects(g3)==false);
+		
+		// g3 and g4 should just touch, does identify as touching
+		DistanceOp dist34p = new DistanceOp(p3, g4);
+		assert (dist34.distance()<=(r3+r4)) & (g3.intersects(g4)==true);
+		
 	}
 	
 	@Test
-	void testcontactDistancePedWithPedObstruction() {
+	void testcontactDistancePedGeomWithPedObstruction() {
 		
 		// Create linestring object that represents a wall
 		Coordinate lc1 = new Coordinate(530511, 180900);
@@ -349,6 +361,102 @@ class PedTest {
 		Coordinate mid = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[1]);
 		assert mid.equals2D(expectedMid);
 		
+	}
+	
+	/*
+	 * Test whether using DistanceOp with the ped's centroid can identify the midpoint 
+	 * of the peds circle geometry with line obstructions
+	 */
+	@Test
+	void testcontactDistancePedCentroidWithPedObstruction1() {
+		
+		// Create linestring object that represents a wall
+		Coordinate lc1 = new Coordinate(530511, 180900);
+		Coordinate lc2 = new Coordinate(530511, 180910);
+		Coordinate[] lcs = {lc1, lc2};
+		Geometry l = GISFunctions.lineStringGeometryFromCoordinates(lcs);
+
+		
+		Coordinate c3 = new Coordinate(530512, 180907);
+		Point p3 = GISFunctions.pointGeometryFromCoordinate(c3);
+		double r3 = 0.5;
+		Geometry g3 = p3.buffer(r3);
+		
+		Coordinate c4 = new Coordinate(530511.3, 180907);
+		Point p4 = GISFunctions.pointGeometryFromCoordinate(c4);
+		double r4 = 0.5;
+		Geometry g4 = p4.buffer(r4);
+
+		
+		// Now check distOp and intersects
+		DistanceOp distl3 = new DistanceOp(l, p3);
+		assert (distl3.distance()>r3) & (l.intersects(g3)==false);
+		
+		// Check dist op identifies the same coordiante that intersection does
+		DistanceOp distl4 = new DistanceOp(l, p4);
+		assert (distl4.distance()<=r4) & (l.intersects(g4)==true);
+		
+		// Also check that intersecting coords is as expected
+		Coordinate i = distl4.nearestPoints()[0];
+		Coordinate[] intCoords = l.intersection(g4).getCoordinates();
+		assert intCoords.length==2;
+		Coordinate expectedMid = new Coordinate(530511.0, 180907.0);
+		Coordinate mid = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[1]);
+		assert mid.equals2D(expectedMid);
+		
+		// Expected nearest point is the mid point between the intersecting geometries
+		assert  (Math.abs(i.x - expectedMid.x) < 0.0001) & (Math.abs(i.y - expectedMid.y) < 0.0001);
+	}
+	
+	
+	/*
+	 * Further tests of DistanceOp using peds centroid.
+	 * 
+	 * Test that it identifies when ped just touches barrier.
+	 * 
+	 * Test that distance given by DistanceOp is the distance from the ped centroid to the nearest
+	 * point on the line.
+	 */
+	@Test
+	void testcontactDistancePedCentroidWithPedObstruction2() {
+		
+		// Create linestring object that represents a wall
+		Coordinate lc1 = new Coordinate(530511, 180910);
+		Coordinate lc2 = new Coordinate(530521, 180910);
+		Coordinate[] lcs = {lc1, lc2};
+		Geometry l = GISFunctions.lineStringGeometryFromCoordinates(lcs);
+
+		
+		Coordinate c3 = new Coordinate(530515, 180910.5);
+		Point p3 = GISFunctions.pointGeometryFromCoordinate(c3);
+		double r3 = 0.5;
+		Geometry g3 = p3.buffer(r3);
+		
+		Coordinate c4 = new Coordinate(530515, 180910.2);
+		Point p4 = GISFunctions.pointGeometryFromCoordinate(c4);
+		double r4 = 0.5;
+		Geometry g4 = p4.buffer(r4);
+
+		
+		// Now check distOp and intersects
+		DistanceOp distl3 = new DistanceOp(l, p3);
+		assert (distl3.distance()<=r3) & (l.intersects(g3)==true);
+		
+		// Check dist op identifies the same coordiante that intersection does
+		DistanceOp distl4 = new DistanceOp(l, p4);
+		assert (distl4.distance()<=r4) & (l.intersects(g4)==true);
+		
+		// Also check that intersecting coords is as expected
+		Coordinate i = distl4.nearestPoints()[0];
+		Coordinate[] intCoords = l.intersection(g4).getCoordinates();
+		assert intCoords.length==2;
+		Coordinate expectedMid = new Coordinate(530515.0, 180910.0);
+		Coordinate mid = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[1]);
+		assert mid.equals2D(expectedMid);
+		
+		// Expected nearest point is the mid point between the intersecting geometries
+		assert  (Math.abs(i.x - expectedMid.x) < 0.0001) & (Math.abs(i.y - expectedMid.y) < 0.0001);
+		assert Double.compare(distl4.distance(), mid.distance(c4))==0;
 	}
 	
 	

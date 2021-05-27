@@ -1,18 +1,18 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Pedestrian Locations</name>
+  <name>Pedestrian Pavement Route Crossings</name>
   <type>NON_AGGREGATE</type>
   <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
-  <inclRandomSeed>false</inclRandomSeed>
+  <inclRandomSeed>true</inclRandomSeed>
   <scheduleParams>
     <start>1.0</start>
-    <interval>1.0</interval>
+    <interval>10.0</interval>
     <priority>-Infinity</priority>
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-183461191</hashCode>
+    <hashCode>624278341</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -25,27 +25,19 @@
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocXString</string>
+      <string>CrossingCoordsString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocXString</id>
+        <id>CrossingCoordsString</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocXString</methodName>
+        <methodName>getCrossingCoordsString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocYString</string>
+      <string>TraversedPavementLinkID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocYString</id>
+        <id>TraversedPavementLinkID</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocYString</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>CrossingChoice</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>CrossingChoice</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getChosenCrossingTypeString</methodName>
+        <methodName>getTraversedPavementLinkID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

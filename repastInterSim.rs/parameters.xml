@@ -7,7 +7,7 @@
 									
 		/>
 				<parameter name="addVehicleTicks" displayName="Ticks between vehicle creation" type="int" 
-						defaultValue="50" 
+						defaultValue="200" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									

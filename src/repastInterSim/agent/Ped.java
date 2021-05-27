@@ -233,14 +233,16 @@ public class Ped extends MobileAgent {
         // Start by finding obstacle objects (Peds, Vehicles, PedObstructions close to the ped
         Polygon fieldOfVisionApprox = getPedestrianFieldOfVisionPolygon(this.a0);
         
-        List<Geometry> obstructionGeoms = SpatialIndexManager.findIntersectingGeometries(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox, "intersects");
-        HashMap<Ped, Geometry> pedsWithGeoms = getFOVPedsAndGeoms(fieldOfVisionApprox);
+        // Get obstruction geometries and ped that are within the field of vision. Use these to calculate motive acceleration
+        List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, fieldOfVisionApprox);
+        HashMap<Ped, Geometry> fovPedsWithGeoms = getPedsAndGeomsWithinGeometry(fieldOfVisionApprox);
+        fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
         
-        // Calculate acceleration due to field of vision consideration
-        fovA = motiveAcceleration(obstructionGeoms, pedsWithGeoms.keySet());
-
-        // Calculate acceleration due to avoiding collisions with other agents and walls.
-        contA = totalContactAcceleration(obstructionGeoms, pedsWithGeoms);
+        // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
+        Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
+        List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(SpaceBuilder.pedObstructGeography, thisGeom);
+        HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
+        contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
@@ -267,11 +269,8 @@ public class Ped extends MobileAgent {
      * agents and sums the forces and divides by the ego agent's mass to produce
      * the acceleration. 
      */
-    public double[] totalContactAcceleration(List<Geometry> obstrGeoms, HashMap<Ped, Geometry> peds)  {
+    public double[] totalContactAcceleration(Geometry thisGeom, List<Geometry> obstrGeoms, HashMap<Ped, Geometry> peds)  {
     	double[] cATotal = {0,0};
-    	
-    	// Get the geometry  and context of the ego agent
-    	Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
     	
     	// Iterate over all other pedestrian agents and for those that touch the 
     	// ego agent calculate the interaction force
@@ -287,9 +286,11 @@ public class Ped extends MobileAgent {
         }
 
         for (Geometry obstrGeom :obstrGeoms) {
-        	Coordinate[] intersectionCoords = thisGeom.intersection(obstrGeom).getCoordinates();
-           	if (intersectionCoords.length>0) {
-           		double[] oCA = obstructionContactAcceleration(thisGeom, intersectionCoords);
+        	Geometry pCentroid = thisGeom.getCentroid();
+        	DistanceOp pedDist = new DistanceOp(obstrGeom, pCentroid);
+        	double dist = pedDist.distance();
+           	if (dist<=this.rad) {
+           		double[] oCA = obstructionContactAcceleration(thisGeom, dist, pedDist.nearestPoints()[0]);
            		cATotal = Vector.sumV(cATotal, oCA);
            	}
         } 
@@ -317,20 +318,15 @@ public class Ped extends MobileAgent {
     	return A;
     }
     
-    public double[] obstructionContactAcceleration(Geometry egoGeom, Coordinate[] intCoords) {
+    public double[] obstructionContactAcceleration(Geometry egoGeom, double d_ij, Coordinate cObstruction) {
     	
     	// Get the radius of the circles representing the pedestrians and the distance between the circles' centroids
     	double r_i = this.rad;
-    	
-    	// Find midpoint between intersecting coords
-    	int nCoords = intCoords.length;
-    	Coordinate midPoint = GISFunctions.midwayBetweenTwoCoordinates(intCoords[0], intCoords[nCoords-1]);
-    	double d_ij = maLoc.distance(midPoint);
-    	
+    	    	
     	// Get the vector that points from centroid of other agent to the ego agent,
     	// this is the direction that the force acts in.
     	// This should also be perpendicular to the obstacle 
-    	double[] n = {maLoc.x - midPoint.x, maLoc.y - midPoint.y};
+    	double[] n = {maLoc.x - cObstruction.x, maLoc.y - cObstruction.y};
     	n = Vector.unitV(n);
     	
     	double magA = this.k * (r_i - d_ij) / this.m;
@@ -776,7 +772,7 @@ public class Ped extends MobileAgent {
     
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox, Geography<PedObstruction> pedObstGeog) {
         // Get list of all geometries of other pedestrian agents and pedestrian obstructions that intersect field of vision
-        List<Geometry> obstacleGeoms = SpatialIndexManager.findIntersectingGeometries(pedObstGeog, fieldOfVisionApprox, "intersects");
+        List<Geometry> obstacleGeoms = SpatialIndexManager.searchGeoms(pedObstGeog, fieldOfVisionApprox);
         Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
         	if (p != this) {
@@ -787,7 +783,7 @@ public class Ped extends MobileAgent {
 		return obstacleGeoms;
 	}
     
-    public HashMap<Ped, Geometry> getFOVPedsAndGeoms(Polygon fieldOfVisionApprox) {
+    public HashMap<Ped, Geometry> getPedsAndGeomsWithinGeometry(Geometry fieldOfVisionApprox) {
     	HashMap<Ped, Geometry> peds = new HashMap<Ped, Geometry>();
         Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {

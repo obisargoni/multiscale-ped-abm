@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
@@ -100,7 +101,10 @@ public class Vehicle extends MobileAgent {
 			double distToCoord = vehicleLoc.distance(routeCoord);
 			
 			// Calculate the angle
-			this.bearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			double newBearing = GISFunctions.bearingBetweenCoordinates(maLoc, routeCoord);
+			if (Double.isNaN(newBearing)==false) {
+				this.bearing = newBearing;
+			}
 			
 			// If vehicle travel distance is too small to get to the next route coordinate move towards next coordinate
 			if (Double.compare(distToCoord, distanceToTravel) > 0) {
@@ -116,10 +120,14 @@ public class Vehicle extends MobileAgent {
 				// If vehicle has moved distance such that it can enter the next road link, check if the next link has capacity and progress as appropriate
 				boolean endCurrentLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
 				boolean progressedToNextLink=false;
+				Integer newQPos = null;
 		        if (endCurrentLink) {
 		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
 		        	// If successfully added will return true
-		        	progressedToNextLink = nextRoadLink.addVehicleToQueue(this); 
+		        	newQPos = nextRoadLink.addVehicleToQueue(this);
+		        	if (newQPos!=null) {
+		        		progressedToNextLink = true;
+		        	}
 		        }
 				
 
@@ -127,10 +135,13 @@ public class Vehicle extends MobileAgent {
 		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
-		        	this.queuePos = nextRoadLink.getQueue().writePos();
+		        	this.queuePos = newQPos;
+		        }
+		        else if (endCurrentLink & !progressedToNextLink) {
+		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
 		        }
 		        else {
-		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
+		        	isFinal = false;
 		        }
 		        
 				// If vehicle can't go any further set distanceToTravel to zero
@@ -153,9 +164,8 @@ public class Vehicle extends MobileAgent {
 			
 		}
 		
-		Point p = GISFunctions.pointGeometryFromCoordinate(vehicleLoc);
-		Geometry g = p.buffer(1); // For now represent cars by 1m radius circles. Later will need to change to rectangles
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, g, this);
+		Polygon vehicleGeom = vehicleRectangePolygon(vehicleLoc, this.bearing);
+		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, vehicleGeom, this);
 		
 		setLoc();
 		
@@ -503,8 +513,7 @@ public class Vehicle extends MobileAgent {
     
     public void setCurrentRoadLinkAndQueuePos(RoadLink rl) {
     	this.currentRoadLink = rl;
-		this.queuePos = currentRoadLink.getQueue().writePos();
-		currentRoadLink.addVehicleToQueue(this);
+		this.queuePos = currentRoadLink.addVehicleToQueue(this);
     }
     
     public double getDMax() {
@@ -513,6 +522,45 @@ public class Vehicle extends MobileAgent {
     
     public double getAcc() {
     	return this.acc;
+    }
+    
+    private Polygon vehicleRectangePolygon(Coordinate loc, double bearing) {
+    	
+    	// Bearing is clockwise angle from north so use -ve bearing since rotation matrix is for counter clockwise turn
+    	double[][] rotationMatrix = {{Math.cos(-bearing), -Math.sin(-bearing)},{Math.sin(-bearing), Math.cos(-bearing)}};
+    	
+    	// Get points of north facing vehicle rectangle, relative to centre
+    	double[] p1 = {-GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2};
+    	double[] p2 = {GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2};
+    	double[] p3 = {GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2};
+    	double[] p4 = {-GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2};
+    	
+    	double[][] corners = {p1,p2,p3,p4};
+    	
+    	// Rotate corners
+    	for(int p=0; p<corners.length; p++) {
+    		for (int i=0; i<rotationMatrix.length; i++) {
+    			double[] mRow = rotationMatrix[i];
+    			corners[p][i] = corners[p][0]*mRow[0] + corners[p][1]*mRow[1];
+    		}
+    	}
+    	
+    	// Get coordinates of corners of vehicle rectangle
+    	Coordinate[] recCoords = new Coordinate[corners.length+1];
+    	for (int i=0; i<corners.length; i++) {
+    		Coordinate c = new Coordinate(loc.x+corners[i][0], loc.y+corners[i][1]);
+    		recCoords[i] = c;
+    	}
+    	recCoords[corners.length] = recCoords[0];
+    	
+    	Polygon vehicleRec = null;
+    	try {
+        	vehicleRec = GISFunctions.polygonGeometryFromCoordinates(recCoords);
+    	} catch (IllegalArgumentException e) {
+    		e.printStackTrace();
+    	}
+    	
+    	return vehicleRec;
     }
 
 }

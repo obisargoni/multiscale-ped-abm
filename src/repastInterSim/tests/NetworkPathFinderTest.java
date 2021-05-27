@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Stack;
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
+import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -201,6 +202,58 @@ class NetworkPathFinderTest {
 	}
 	
 	@Test
+	void testPathsBetweenNodePavementJunctionsYens() {
+		try {
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Initialise the path finder
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		// Get the start and end nodes to find paths between
+		String sourceID = "pave_node_111";
+		String targetID = "pave_node_112";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String roadJuncID = source.getjuncNodeID();
+		
+		// Now get just the paths around the road node
+		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
+		List<Stack<RepastEdge<Junction>>> edgePaths = np.getKShortestPaths(source, target, 2, filter);
+		
+		assert edgePaths.size()==2;
+		
+		// Finally convert these paths to edge paths and check the edges
+		String[] expectedLinks = {"pave_link_111_113", "pave_link_113_114", "pave_link_112_114"};
+		for (Stack<RepastEdge<Junction>> edgePath:edgePaths) {
+			if (edgePath.size()==1) {
+				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edgePath.get(0);
+				assert ne.getRoadLink().getFID().contentEquals("pave_link_111_112");
+			}
+			else {
+				for (int i=0; i<edgePath.size(); i++) {
+					NetworkEdge<Junction> ne = (NetworkEdge<Junction>)edgePath.get(i);
+					assert ne.getRoadLink().getFID().contentEquals(expectedLinks[i]);
+				}
+			}
+		}
+	}
+	
+	@Test
 	void testPathToSelf() {
 		try {
 			setUpPavementJunctions();
@@ -228,6 +281,42 @@ class NetworkPathFinderTest {
 		// Now get just the paths around the road node
 		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
 		List<Stack<RepastEdge<Junction>>> selfPaths = np.getSimplePaths(source, source, filter);
+		
+		assert selfPaths.size()==1;
+		
+		// Check that the edge path for this single entry node path is empty
+		Stack<RepastEdge<Junction>> edgePath = selfPaths.get(0);
+		assert edgePath.size()==0;
+	}
+	
+	@Test
+	void testPathToSelfYens() {
+		try {
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Initialise the path finder
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		// Get the start and end nodes to find paths between
+		String sourceID = "pave_node_114";
+		Junction source = null;
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+		}
+		
+		String roadJuncID = source.getjuncNodeID();
+		
+		// Now get just the paths around the road node
+		Predicate<Junction> filter = j -> j.getjuncNodeID().contentEquals(roadJuncID);
+		List<Stack<RepastEdge<Junction>>> selfPaths = np.getAllShortestPaths(source, source, filter);
 		
 		assert selfPaths.size()==1;
 		
@@ -451,14 +540,16 @@ class NetworkPathFinderTest {
 		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
-		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
 		
 		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
 		Transformer<RepastEdge<Junction>, Integer> crossingTransformer = new EdgeRoadLinkIDTransformer<Junction>();
 		
-		
+		double start = System.currentTimeMillis();
+		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
 		List<Stack<RepastEdge<Junction>>> shortestDistancePaths = np.getShortestOfMultiplePaths(paths, distanceTransformer);
 		List<Stack<RepastEdge<Junction>>> leastCrossingsPaths = np.getShortestOfMultiplePaths(paths, crossingTransformer);
+		double duration = System.currentTimeMillis() - start;
+		System.out.print(duration);
 		
 		assert shortestDistancePaths.size() == 1;
 		assert leastCrossingsPaths.size() == 1;
@@ -503,4 +594,177 @@ class NetworkPathFinderTest {
 		}
 		
 	}
+	
+	/*
+	 * Test producing a JgraphT object from Jung network
+	 */
+	@Test
+	public void testJGraphTFromJung() {
+		// setup road network and pavement network
+		try {
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		DefaultUndirectedGraph<Junction, RepastEdge<Junction>> jgt = np.getJGraphTGraph();
+		
+		assert jgt.vertexSet().size() == np.getGraph().getVertexCount();
+		assert jgt.edgeSet().size() == np.getGraph().getEdgeCount();
+		
+	}
+	
+	/*
+	 * Test choosing the shortest of a collection of simple paths based on heruistic.
+	 * 
+	 * Compares the Yens shorest paths to the Dijkstras shortest path
+	 * 
+	 */
+	@Test
+	public void testShortestPathsYens1() {
+		// setup road network and pavement network
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_85";
+		String targetID = "pave_node_112";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		List<RoadLink> sP = planStrategicPath(o, d, startJunctionID, endJunctionID);
+		
+		List<Junction> sPNodes = new ArrayList<Junction>();
+		for (RoadLink rl: sP) {
+			rl.getJunctions().stream().forEach(sPNodes::add);
+		}
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		List<Stack<RepastEdge<Junction>>> paths = np.getSimplePaths(source, target, filter);
+		
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		List<Stack<RepastEdge<Junction>>> shortestPaths = np.getAllShortestPaths(source, target, filter, distanceTransformer);
+		
+		assert shortestPaths.size() == 1;
+		
+		Stack<RepastEdge<Junction>> shortestPath = shortestPaths.get(0);
+		
+		// Check that this gives the same paths as dijkstras on the filtered network
+		np.filterGraph(filter);
+		List<RepastEdge<Junction>> shortestPathDijkstra = np.getShortestPath(source, target);
+		
+		for (int i=0; i<Math.max(shortestPath.size(), shortestPathDijkstra.size()); i++) {
+			NetworkEdge<Junction> e1 = (NetworkEdge<Junction>) shortestPath.get(i);
+			NetworkEdge<Junction> e2 = (NetworkEdge<Junction>) shortestPathDijkstra.get(i);
+			assert e1.getRoadLink().getFID().contentEquals(e2.getRoadLink().getFID());
+		}
+	}
+	
+	/*
+	 * Test getting shortest paths using the Yens K shortest method. Tests the shortest path returns for two weight transformers
+	 */
+	@Test
+	public void testShortestPathsYens2() {
+		// setup road network and pavement network
+		try {
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_87";
+		String targetID = "pave_node_112";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		List<RoadLink> sP = planStrategicPath(o, d, startJunctionID, endJunctionID);
+		
+		List<Junction> sPNodes = new ArrayList<Junction>();
+		for (RoadLink rl: sP) {
+			rl.getJunctions().stream().forEach(sPNodes::add);
+		}
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		Transformer<RepastEdge<Junction>, Integer> crossingTransformer = new EdgeRoadLinkIDTransformer<Junction>();
+		
+		double start = System.currentTimeMillis();
+		List<Stack<RepastEdge<Junction>>> shortestDistancePaths = np.getAllShortestPaths(source, target, filter, distanceTransformer);
+		List<Stack<RepastEdge<Junction>>> leastCrossingsPaths = np.getAllShortestPaths(source, target, filter, crossingTransformer);
+		double duration = System.currentTimeMillis() - start;
+		System.out.print(duration);
+		
+		assert shortestDistancePaths.size() == 1;
+		assert leastCrossingsPaths.size() == 1;
+		
+		Stack<RepastEdge<Junction>> shortestDistancePath = shortestDistancePaths.get(0);
+		Stack<RepastEdge<Junction>> leastCrossingPath = leastCrossingsPaths.get(0);
+		
+        // But rest of path will differ
+        String [] expectedNodesMinDist = {"pave_node_87", "pave_node_81", "pave_node_90", "pave_node_112"};
+        String [] expectedNodesMinCross = {"pave_node_87", "pave_node_81", "pave_node_89", "pave_node_91", "pave_node_112"};
+
+        List<Junction> pathNodesMinDist = np.nodePathFromEdges(shortestDistancePath, source);
+        List<Junction> pathNodesMinCross = np.nodePathFromEdges(leastCrossingPath, source);
+		
+		for (int i=0; i<Math.max(expectedNodesMinDist.length, pathNodesMinDist.size()); i++) {
+			assert pathNodesMinDist.get(i).getFID().contentEquals(expectedNodesMinDist[i]);
+		}
+		
+		for (int i=0; i<Math.max(expectedNodesMinCross.length, pathNodesMinCross.size()); i++) {
+			assert pathNodesMinCross.get(i).getFID().contentEquals(expectedNodesMinCross[i]);
+		}
+		
+		
+	}
+	
+	
 }

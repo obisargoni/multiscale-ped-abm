@@ -50,6 +50,7 @@ hs_err_pid*
 /launchers/ReadMe.txt
 /launchers/repastSocialForce Model.launch
 /lib/ReadMe.txt
+/lib/jgrapht-1.5.1/*
 /MessageCenter.log4j.properties
 /model_description.txt
 /Repast.settings

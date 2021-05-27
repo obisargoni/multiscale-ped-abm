@@ -20,6 +20,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
@@ -37,6 +38,7 @@ public class PedPathFinder {
 	private OD origin;
 	private OD destination;
 	
+	private List<RoadLink> fullStrategicPath; // Retain version of strategic path that doesn't have links removed as agent progressed
 	private List<RoadLink> strategicPath;
 	private static int nLinksPerTacticalUpdate = 1;
 	private boolean firstUpdateDone = false;
@@ -101,6 +103,7 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
+		this.fullStrategicPath = new ArrayList<RoadLink>(strategicPath);
 		
 		
 		this.startPavementJunction = routeEnds[0];
@@ -214,7 +217,7 @@ public class PedPathFinder {
 	 */
 	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
-		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getSimplePaths(currentJ, targetJunctions, filter);
+		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, filter, heuristic1);
 		
 		candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);	
 			
@@ -453,13 +456,18 @@ public class PedPathFinder {
 	 * a strategic path link.
 	 */
 	public Boolean pedOnStrategicPathRoadLink() {
-		Boolean pedOnSLink = false;
-		Road r = this.ped.getCurrentRoad();
+		Boolean pedOnSLink = false;		
+
+		NetworkEdge<Junction> currentPavementEdge = (NetworkEdge<Junction>) this.tacticalPath.getCurrentEdge();
 		for (RoadLink rl: this.strategicPath) {
-			if (rl.getFID().contentEquals(r.getRoadLinkID())) {
+			boolean notCrossing = currentPavementEdge.getRoadLink().getPedRLID().contentEquals("");
+			boolean crossingSPLink = rl.getFID().contentEquals(currentPavementEdge.getRoadLink().getPedRLID());
+			
+			if ( notCrossing | crossingSPLink) {
 				pedOnSLink = true;
 			}
 		}
+				
 		return pedOnSLink;
 	}
 	
@@ -497,6 +505,10 @@ public class PedPathFinder {
 	
 	public List<RoadLink> getStrategicPath() {
 		return this.strategicPath;
+	}
+	
+	public List<RoadLink> getFullStrategicPath(){
+		return this.fullStrategicPath;
 	}
 	
 	public TacticalRoute getTacticalPath() {

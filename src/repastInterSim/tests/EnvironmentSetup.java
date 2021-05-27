@@ -337,8 +337,8 @@ public class EnvironmentSetup {
 	}
 	
 	static Ped createPedestrian(int oID, int dID, boolean minimisesCrossing) {
-		double s = 0.0;
-		double m = 0.0;
+		double s = GlobalVars.pedVavg;
+		double m = GlobalVars.pedMassAv;
 		double alpha = 0.5;
 		double lambda = 1.0;
 		double gamma = 0.9;

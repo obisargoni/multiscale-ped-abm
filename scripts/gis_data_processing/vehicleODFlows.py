@@ -82,7 +82,8 @@ gdfOD.to_file(OD_shapefile_path)
 ###########################
 
 # Now iterate between all OD pairs and find which paths are possible and which are not
-dfPossibleFlows = pd.DataFrame(columns = ['O','D', 'flowPossible'])
+init_data = {'O':[], 'D':[], 'flowPossible':[]}
+dfPossibleFlows = pd.DataFrame(init_data)
 excludeFIDs = [] # Nodes that shouldn't be considered as ODs
 ODfids = gdfOD['fid']
 for o in ODfids:

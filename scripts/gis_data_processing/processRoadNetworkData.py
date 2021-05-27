@@ -14,8 +14,10 @@ import geopandas as gpd
 import os
 import networkx as nx
 import osmnx
-from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString
+from shapely.geometry import Point, MultiPoint, Polygon, MultiPolygon, LineString, MultiLineString
 from shapely import ops
+import itertools
+import copy
 
 ######################
 #
@@ -108,6 +110,55 @@ def simplify_line_angle(l, angle_threshold = 10):
 
     return simplified_lines
 
+def break_line_by_angle(l, angle_threshold = 10, min_link_length = 15):
+    '''Break a linestring into components such that the anglular distance along each component 
+    is below the threshold. Also simplify the linestrings to be two coordinates only. Cleans road network so that each line string
+    acts as maximal angular deviation unit of angular distance
+    
+    Might want to separate these two cleaning operations
+    '''
+    simplified_lines = []
+    
+    split_lines = list(split_line(l, 2))
+
+    la = split_lines[0]
+    lb = None
+    c1 = la.coords[0]
+    angle = 0.0
+    dist = la.length
+    break_line = False
+    for i in range(1, len(split_lines)):
+        lb = split_lines[i]
+
+        angle+=abs(ang(la,lb))
+
+        # First check if enough distance covered or angular deviation to break link, if not continue
+        if (dist>min_link_length) & (angle >= angle_threshold):
+
+            # Also need to check that next link will surpass distance threshold
+            remaining_dist = lb.length
+            for j in range(i+1, len(split_lines)):
+                remaining_dist += split_lines[j].length
+
+            if (remaining_dist > min_link_length):
+                break_line = True
+
+        # If angle and distance conditions satisfied create simplified linestring
+        if break_line:
+            c2 = la.coords[-1]
+            simplified_lines.append(LineString((c1,c2)))
+            c1 = c2
+            angle = 0
+            dist = 0
+            break_line = False
+        la = lb
+        dist += la.length
+
+    c2 = lb.coords[-1]
+    simplified_lines.append(LineString((c1,c2)))
+
+    return simplified_lines
+
 # Disolved geometries are multi polygons, explode to single polygons
 def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
     outdf = gpd.GeoDataFrame(columns=indf.columns)
@@ -128,8 +179,126 @@ def simplify_line_gdf_by_angle(indf, angle_threshold, id_col, new_id_col):
             outdf = outdf.append(multdf,ignore_index=True)
     return outdf
 
+def _is_point_in_nodes(p, nodes):
+    # Search new nodes for this coordinate
+    point_in_node = False
+    for v in nodes.values():
+        if (p.x == v['x']) & (p.y == v['y']):
+            # This coordiante has already been recorded as a new node
+            point_in_node = False
+            break
+    return point_in_node
+
+def _node_data_from_point(p):
+    d = {}
+    d['x'] = p.x
+    d['y'] = p.y
+    d['geometry'] = p
+    return d
+
+def _match_nodes_to_geometry(g, u, v, graph_nodes, other_nodes):
+    """Find start and end nodes for the new edge geometry. 
+
+    First check if input u and v nodes match start and end point of geometry. Then search through input list of nodes.
+    Allows distingusing between nodes that already are in a graph (u and v) and node that need to be added.
+    """
+
+    new_u = None
+    new_u_data = None
+    if (g.coords[0][0] == graph_nodes[u]['x']) & (g.coords[0][1] == graph_nodes[u]['y']):
+        new_u = u
+        new_u_data = graph_nodes[new_u]
+    elif (g.coords[0][0] == graph_nodes[v]['x']) & (g.coords[0][1] == graph_nodes[v]['y']):
+        new_u = v
+        new_u_data = graph_nodes[new_u]
+    else:
+        # Find which newly created nodes matched the end of this line string
+        for node_id, node_data in other_nodes.items():
+            if (g.coords[0][0] == node_data['x']) & (g.coords[0][1] == node_data['y']):
+                new_u = node_id
+                new_u_data = node_data
+                break
+    
+    new_v = None
+    new_v_data = None
+    if (g.coords[-1][0] == graph_nodes[u]['x']) & (g.coords[-1][1] == graph_nodes[u]['y']):
+        new_v = u
+        new_v_data = graph_nodes[new_v]
+    elif (g.coords[-1][0] == graph_nodes[v]['x']) & (g.coords[-1][1] == graph_nodes[v]['y']):
+        new_v = v
+        new_v_data = graph_nodes[new_v]
+    else:
+        # Find which newly created nodes matched the end of this line string
+        for node_id, node_data in other_nodes.items():
+            if (g.coords[-1][0] == node_data['x']) & (g.coords[-1][1] == node_data['y']):
+                new_v = node_id
+                new_v_data = node_data
+                break
+
+    return (new_u, new_u_data), (new_v, new_v_data)
+                
+
+# Disolved geometries are multi polygons, explode to single polygons
+def break_edges_by_angle(G, angle_threshold, min_link_length, id_col, new_id_col):
+    """Given and input graph, break up edges that contain more than two coordinates where
+    the angle between edge segments is greater thatn the input angle threshold.
+    """
+    H = nx.MultiGraph()
+    H.graph = G.graph
+
+    new_nodes = {} # Record the points of intersections between edge geometries and use these as addition nodes
+    nodes = G.nodes(data=True)
+    new_node_index = 0
+
+    # loop over the edges in the graph
+    for e in G.edges(data=True, keys = True):
+        e_data = copy.deepcopy(e[-1])
+        g = e_data['geometry']
+
+        if len(g.coords) == 2:
+            e_data[new_id_col] = e_data[id_col]
+            H.add_edge(e[0], e[1], key = e[2], **e_data)
+        else:
+            # Break geometry into component edges
+            component_geoms = break_line_by_angle(g, angle_threshold, min_link_length)
+
+            # Add these component edges to the graph
+            for i, cg in enumerate(component_geoms):
+                comp_e_data = copy.deepcopy(e_data)
+                comp_e_data[new_id_col] = "{}_{}".format(comp_e_data[id_col], i)
+                comp_e_data['geometry'] = cg
+
+                # Add start and end points of geometry to new nodes
+                for p in (Point(cg.coords[0]), Point(cg.coords[-1])):
+
+                    point_in_nodes = _is_point_in_nodes(p, new_nodes)
+                    
+                    if point_in_nodes:
+                        continue
+                    else:
+                        node_id = "break_angle_node_{}".format(new_node_index)
+                        new_node_index += 1
+                        new_nodes[node_id] = _node_data_from_point(p)
+
+
+                # Get the nodes for this geometry
+                (new_u, new_u_data), (new_v, new_v_data) = _match_nodes_to_geometry(cg, e[0], e[1], nodes, new_nodes)
+
+                # Finally add the edge to the new graph
+                if (new_u is None) | (new_v is None):
+                    print("New nodes not found for edge {}".format(e))
+                else:
+                    H.add_node(new_v, **new_v_data) # If node has already been added the graph will be unchanged
+                    H.add_node(new_u, **new_u_data) # If node has already been added the graph will be unchanged
+                    H.add_edge(new_u, new_v, **comp_e_data)
+
+    return H
+
 def largest_connected_component_nodes_within_dist(G, source_node, dist, weight):
-    lccNodes = max(nx.connected_components(G), key=len)
+    if G.is_directed():
+        lccNodes = max(nx.weakly_connected_components(G), key=len)
+    else:
+        lccNodes = max(nx.connected_components(G), key=len)
 
     lccG = G.subgraph(lccNodes).copy()
     
@@ -161,22 +330,25 @@ def nodes_gdf_from_edges_gdf(gdf_edges, u, v):
     gdf_edges['c1'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[0]))
     gdf_edges['c2'] = gdf_edges['geometry'].map(lambda g: Point(g.coords[1]))
 
-    node_coords = pd.concat([gdf_edges['c1'], gdf_edges['c2']]).drop_duplicates()
-    node_ids = ['or_node_{}'.format(i) for i in np.arange(len(node_coords))]
-    gdf_nodes = gpd.GeoDataFrame({'node_id': node_ids, 'geometry':node_coords})
+    node_geoms = pd.concat([gdf_edges['c1'], gdf_edges['c2']])
+    node_coords = node_geoms.map(lambda x: x.coords[0]).drop_duplicates()
+    node_geoms = node_coords.map(lambda x: Point(x))
+
+    node_ids = ['or_node_{}'.format(i) for i in np.arange(len(node_geoms))]
+    gdf_nodes = gpd.GeoDataFrame({'node_fid': node_ids, 'geometry':node_geoms})
     gdf_nodes.crs = gdf_edges.crs
 
     # Join nodes to edges on coordinate
     gdf_edges = gdf_edges.set_geometry("c1")
     gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes, how='inner', op='intersects', lsuffix='left', rsuffix='right')
-    assert gdf_edges['node_id'].isnull().any() == False
-    gdf_edges.rename(columns={'node_id':u}, inplace=True)
+    assert gdf_edges['node_fid'].isnull().any() == False
+    gdf_edges.rename(columns={'node_fid':u}, inplace=True)
     gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
 
     gdf_edges = gdf_edges.set_geometry("c2")
     gdf_edges = gpd.geopandas.sjoin(gdf_edges, gdf_nodes    , how='inner', op='intersects', lsuffix='left', rsuffix='right')
-    assert gdf_edges['node_id'].isnull().any() == False 
-    gdf_edges.rename(columns={'node_id':'endNode'}, inplace=True)
+    assert gdf_edges['node_fid'].isnull().any() == False 
+    gdf_edges.rename(columns={'node_fid':v}, inplace=True)
     gdf_edges = gdf_edges.drop(['index_right'], axis = 1)
 
     # Tidy up
@@ -245,13 +417,21 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
                 if key in edge_attributes:
                     # if this key already exists in the dict, append it to the
                     # value list
-                    edge_attributes[key].append(edge[key])
+                    if isinstance(edge[key], (list, tuple)):
+                        for item in edge[key]:
+                            edge_attributes[key].append(item)
+                    else:
+                        edge_attributes[key].append(edge[key])
                 else:
-                    # if this key doesn't already exist, set the value to a list
-                    # containing the one value
-                    edge_attributes[key] = [edge[key]]
+                    # if this key doesn't already exist, but the value is a list set the value to the edge value
+                    # otherwise set the value to a list containing the one value
+                    if isinstance(edge[key], (list, tuple)):
+                        edge_attributes[key] = list(edge[key])
+                    else:
+                        edge_attributes[key] = [edge[key]]
 
         for key in edge_attributes:
+
             # don't touch the length or geometry attribute, we'll sum it at the end
             if key in ["length", "geometry"]:
                 continue
@@ -308,6 +488,166 @@ def simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False):
     )
     osmnx.utils.log(msg)
     return G
+
+def break_overlapping_edges(G, id_attr = 'strg_id'):
+    """Used to deal with edges geometries that overlap. Create nodes at intersection between edges
+    and break edge geometries at these points. Rebuild graph by assigning nodes to start and end of graph.
+
+    --------------
+    Returns:
+        geopandas.GeoDataFrame, geopandas.GeoDataFrame
+
+        gdfNodes, gdfLinks
+    """
+    print("Breaking overlapping edges")
+    H = nx.MultiGraph()
+    H.graph = G.graph
+
+    new_nodes = {} # Record the points of intersections between edge geometries and use these as addition nodes
+    nodes = G.nodes(data=True)
+    new_node_index = 0
+    for n in nodes:
+        u = n[0]
+        # Now loop through pairs of edges attached to this node
+        for e1, e2 in itertools.combinations(G.edges(u,data=True, keys=True), 2):
+
+            # Unpack for ease
+            u1,v1,k1,d1 = e1
+            u2,v2,k2,d2 = e2
+
+            g1 = copy.deepcopy(d1['geometry'])
+            g2 = copy.deepcopy(d2['geometry'])
+
+            # Remove overlaps between geometries
+            g1 = g1.difference(g2)
+
+            if (g1.is_empty) & ~(g2.is_empty):
+                print("Empty line. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                continue
+            elif ~(g1.is_empty) & (g2.is_empty):
+                print("Empty line. e1:{}, e2:{}".format((u1,v1), (u2,v2)))
+                continue
+
+            # Find intersecting points of geometries
+            intersection = g1.intersection(g2)
+
+            if isinstance(intersection, Point):
+                #node_data['geometry'].append(intersection)
+                intersection = MultiPoint([intersection])
+            elif isinstance(intersection, MultiPoint):
+                pass
+            else:
+                print("Unexpected intersection. e1:{}, e2:{}".format((u1,v1,k1), (u2,v2,k2)))
+
+            # Add intersection points to dict of new nodes
+            for p in intersection:
+
+                point_in_nodes = _is_point_in_nodes(p, new_nodes)
+                
+                if point_in_nodes:
+                    continue
+                else:
+                    node_id = "overlap_node_{}".format(new_node_index)
+                    new_node_index += 1
+                    new_nodes[node_id] = _node_data_from_point(p)
+
+    # Create multipoint geometry containing all the nodes, use this to split edges
+    points = [Point(n[-1]['x'],n[-1]['y']) for n in nodes]
+    points += [v['geometry'] for k,v in new_nodes.items()]
+    mp = MultiPoint(points)
+
+    # Split edge geometries by the intersecting points
+    for e in G.edges(data=True, keys=True):
+        data = copy.deepcopy(e[-1])
+        g = data['geometry']
+        new_edge_index = 0
+        for new_geom in ops.split(g, mp):
+            # Find start and end nodes for the new edge geometry
+            # Although start and end coords might match points of intersection, retain original node IDs where possible
+            # Means that only intersection node sthat are used should be added to the graph, otherwise will get duplicated node geometries
+            (new_u, new_u_data), (new_v, new_v_data) = _match_nodes_to_geometry(new_geom, e[0], e[1], nodes, new_nodes)
+
+            # Finally add the edge to the new graph
+            if (new_u is None) | (new_v is None):
+                print("New nodes not found for edge {}".format(e))
+            else:
+                H.add_node(new_v, **new_v_data) # If node has already been added the graph will be unchanged
+                H.add_node(new_u, **new_u_data) # If node has already been added the graph will be unchanged
+                
+                new_data = data
+                new_data['geometry'] = new_geom
+                new_data['sub_'+id_attr] = "sub_{}".format(new_edge_index)
+                new_edge_index += 1
+                H.add_edge(new_u, new_v, **new_data)
+
+    return H
+
+def remove_duplicated_edges(G):
+    """Breaking up edges where they overlap can create multiple links between the same two nodes with the same geometry.
+    These are considered duplicate link. This functions removes these links from the graph.
+    """
+    D = G.copy()
+
+    # Loop through node pairs, if multiple keys check if geometry is duplicated and delete if so
+    for u in D.nodes():
+
+        if isinstance(G, nx.MultiGraph):
+            neighbours = set(D.neighbors(u))
+        elif isinstance(G, nx.MultiDiGraph):
+            neighbours = set(list(D.predecessors(u)) + list(D.successors(u)))
+
+        for v in neighbours:
+
+            keys = list(D[u][v].keys())
+
+            if len(keys)==1:
+                # no multi edge between these nodes
+                continue
+            else:
+                # Check for duplicate geometries
+                geoms = [D[u][v][k]['geometry'] for k in keys]
+
+                for k1, k2 in itertools.combinations(keys, 2):
+                    try:
+                        g1 = D[u][v][k1]['geometry']
+                        g2 = D[u][v][k2]['geometry']
+                    except KeyError as ke:
+                        # Get key error if an edge has been removed
+                        continue
+
+                    if g1.equals(g2):
+                        D.remove_edge(u,v,key = k2)
+
+                # Check there is still an edge between u and v
+                try:
+                    e = D[u][v]
+                except KeyError:
+                    assert False
+    return D
+
+
+
+def duplicate_geometry_row_ids(gdf, geometry = 'geometry'):
+    dup_ids = []
+    for ix, row in gdf.iterrows():
+        g1 = row[geometry]
+        temp = [ix]
+        for ix_, row_ in gdf.loc[ix:,].iterrows():
+            if ix_ == ix:
+                continue
+            g2 = row_[geometry]
+            if g1.equals(g2):
+                temp.append(ix_)
+        if len(temp) > 1:
+            dup_ids.append(temp)
+    return dup_ids
+
+def drop_duplicate_geometries(gdf, geometry = 'geometry', **kwargs):
+    duplicated_ids = duplicate_geometry_row_ids(gdf, geometry = geometry)
+    for id_group in duplicated_ids:
+        gdf = gdf.drop(id_group[1:], axis=0, errors = 'ignore') # Keep the first entry, ignore errors since possible that this will try to drop the same row multiple times
+    return gdf
+
 
 ######################
 #
@@ -380,7 +720,7 @@ SelectPolygon = gdfSelect.loc[0,'geometry']
 centre_poi = gdfPOIs.loc[gdfPOIs['ref_no'] == config['centre_poi_ref']] 
 centre_poi_geom = centre_poi['geometry'].values[0]
 
-seriesStudyArea = centre_poi.buffer(config['study_area_dist']+500)
+seriesStudyArea = centre_poi.buffer(config['study_area_dist']+100)
 seriesStudyArea.to_file(os.path.join(gis_data_dir, "study_area.shp"))
 gsStudyAreaWSG84 = seriesStudyArea.to_crs(epsg=4326)
 
@@ -417,8 +757,20 @@ gdfITNNode.rename(columns = {'fid_node':'fid'}, inplace = True)
 
 # Get into format required for osmnx compliant graph
 gdfORLink = gdfORLink[ gdfORLink['geometry'].type == "LineString"]
+
+# Handle multi links
+gdfORLink['key'] = None
+gdfORLink['key'] = gdfORLink.groupby(['startNode','endNode'])['key'].transform(lambda df: np.arange(df.shape[0]))
+assert gdfORLink.loc[:, ['startNode','endNode', 'key']].duplicated().any() == False
+
+# Represent undirected network as directed graph
+gdfORLinkReversed = gdfORLink.copy()
+gdfORLinkReversed = gdfORLink.rename(columns = {'startNode':'endNode', 'endNode':'startNode'})
+gdfORLinkReversed['geometry'] = gdfORLinkReversed['geometry'].map(lambda g: LineString(g.coords[::-1]))
+gdfORLink = pd.concat([gdfORLink, gdfORLinkReversed])
+
+# Format for osmnx
 gdfORLink = gdfORLink.rename(columns = {"identifier": "osmid", 'startNode':'u', 'endNode':'v'})
-gdfORLink['key'] = 0
 gdfORLink.set_index(['u','v','key'], inplace=True)
 gdfORLink['geometry'] = gdfORLink['geometry'].map(make_linestring_coords_2d)
 
@@ -428,38 +780,33 @@ gdfORNode['x'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.x)
 gdfORNode['y'] = gdfORNode.loc[:, 'geometry'].map(lambda g: g.y)
 gdfORNode.set_index('osmid', inplace=True)
 
-# Get largest connected component
-'''
-edges = gdfORLink.loc[:,['startNode','endNode','length']].values
-edges_ids = gdfORLink['fid'].values
-G = nx.Graph()
-G.add_weighted_edges_from(edges, weight='length', fid = edges_ids)
-'''
 
 # Makes sense to set up graph as osmnx compliant object. But need to make sure I can keep track of edge ids
 G = osmnx.graph_from_gdfs(gdfORNode, gdfORLink, graph_attrs=None)
-
-# Convert to undirected
-U = G.to_undirected()
 
 # Find the or node nearest the centre poi
 gdfORNode['dist_to_centre'] = gdfORNode.distance(centre_poi_geom)
 nearest_node_id = gdfORNode.sort_values(by = 'dist_to_centre', ascending=True).index[0]
 
-reachable_nodes = largest_connected_component_nodes_within_dist(U, nearest_node_id, config['study_area_dist'], 'length')
+# Get largest connected component
+print("Selecting OR study area")
+reachable_nodes = largest_connected_component_nodes_within_dist(G, nearest_node_id, config['study_area_dist'], 'length')
 
-U = U.subgraph(reachable_nodes).copy()
+G = G.subgraph(reachable_nodes).copy()
 
 # Remove dead ends by removing nodes with degree 1 continually  until no degree 1 nodes left
+print("Removing Dead Ends")
+U = G.to_undirected()
 dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
 dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
+removed_nodes = []
 while(len(dead_end_nodes)>0):
     U.remove_nodes_from(dead_end_nodes)
-
+    removed_nodes = np.concatenate([removed_nodes, dead_end_nodes])
     dfDegree = pd.DataFrame(U.degree(), columns = ['nodeID','degree'])
     dead_end_nodes = dfDegree.loc[dfDegree['degree']==1, 'nodeID'].values
 
-G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed from undirected should maintain undirected nnature but make this explicit
+G.remove_nodes_from(removed_nodes)
 
 ###################################
 #
@@ -470,62 +817,83 @@ G = U.to_directed().copy() # osmnx expected MultiDiGraph. Setting to directed fr
 #
 ####################################
 
-# simplify intersections - not working for some reason - don't think this does what I want
-#G_simplified = osmnx.simplification.consolidate_intersections(G, tolerance=10, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
-
-
 # simplify topology before breaking up edges based on angular deviation
 G_simp = simplify_graph(G, strict=True, remove_rings=True, rebuild_geoms = False)
 
+# simplify intersections
+G_simp = osmnx.consolidate_intersections(G_simp, tolerance=15, rebuild_graph=True, dead_ends=True, reconnect_edges=True)
+
+# At this stage reset the road link IDs. These road links correspond to strtegic routing.
+# This code keeps the old attributes but not sure that's needed.
+new_attributes = {}
+for i, edge in enumerate(G_simp.edges(data = True, keys = True)):
+    edge_id = "strategic_{}".format(i)
+    edge_attributes = {}
+    edge_attributes['strg_id'] = edge_id
+    new_attributes[edge[:-1]] = edge_attributes
+nx.set_edge_attributes(G_simp, new_attributes)
 
 # Convert to undirected for next bit of cleaning. Keep multi edge representation though. Need to think about this - but think it makes sense to retain most general structure
 U = G_simp.to_undirected()
-gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U)
+U_clip = U.copy()
+U_clip = break_overlapping_edges(U_clip)
+
+
+U_clip = remove_duplicated_edges(U_clip)
+
+U_clip = U_clip.to_directed()
+U_clip.graph['simplified'] = False
+U_clip = simplify_graph(U_clip, strict=True, remove_rings=True, rebuild_geoms = False)
+U_clip = U_clip.to_undirected()
+
+U_ang = break_edges_by_angle(U_clip, 10, 15, "strg_id", "strg_ang_id")
+
+# Convert graph to data frames and clean up
+gdfORNode, gdfORLink = osmnx.graph_to_gdfs(U_ang)
+
+# Reset indexes and convert ids to string data
+gdfORNode.reset_index(inplace=True)
+gdfORNode['osmid'] = gdfORNode['osmid'].map(lambda x: str(x))
+gdfORNode['node_fid'] = ["or_node_{}".format(i) for i in gdfORNode.index]
+
+node_id_dict = gdfORNode.set_index('osmid')['node_fid'].to_dict()
 
 gdfORLink.reset_index(inplace=True)
-gdfORNode.reset_index(inplace=True)
+gdfORLink['u'] = gdfORLink['u'].map(lambda x: str(x))
+gdfORLink['v'] = gdfORLink['v'].map(lambda x: str(x))
+gdfORLink['key'] = gdfORLink['key'].map(lambda x: str(x))
+
+gdfORLink = gdfORLink.reindex(columns = ['u','v','key','osmid','u_original','v_original', 'strg_id', 'sub_strg_id', 'strg_ang_id', 'geometry'])
+gdfORLink['fid'] = gdfORLink['strg_ang_id'].map(str) + "_" + gdfORLink['sub_strg_id'].map(str)
+
+# remake Link IDs for clarity
+gdfORLink['fid'] = ["or_link_{}".format(i) for i in range(gdfORLink.shape[0])]
+
+gdfORLink['MNodeFID'] = gdfORLink['u'].replace(node_id_dict)
+gdfORLink['PNodeFID'] = gdfORLink['v'].replace(node_id_dict)
+
+# For some reason the above methods for linking nodes with edges not working.
+gdfORLink = gdfORLink.reindex(columns = ['fid', 'geometry', 'u','v','key'])
+assert gdfORLink['fid'].duplicated().any() == False # Fails
+gdfORNode, gdfORLink = nodes_gdf_from_edges_gdf(gdfORLink, "MNodeFID", "PNodeFID")
+
 
 for col in gdfORLink.columns:
     gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col] = gdfORLink.loc[gdfORLink[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
-
-# At this stage can have some duplicated geometries. Check for this and delete duplications
-gdfORLink['geom_coords'] = gdfORLink['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords))) # Have to convert to string for .duplicated() to work
-gdfORLink.drop_duplicates('geom_coords', inplace=True)
-gdfORLink.drop('geom_coords', axis=1, inplace=True)
-
-# Clean data to ensure minimum angular deviation along road link
-assert gdfORLink['geometry'].type.unique().size == 1
-assert gdfORLink['osmid'].unique().size == gdfORLink.shape[0]
-
-
-gdfORLink_simplified = simplify_line_gdf_by_angle(gdfORLink, 10, "osmid", "fid")
-
-assert gdfORLink_simplified['fid'].duplicated().any() == False
-
-gdfORNode_simplified, gdfORLink_simplified = nodes_gdf_from_edges_gdf(gdfORLink_simplified, 'startNode','endNode')
-
-# Rename fid columns and node columns to match other road network data columns
-gdfORNode_simplified = gdfORNode_simplified.rename(columns = {'node_id':'node_fid'})
-gdfORLink_simplified = gdfORLink_simplified.rename(columns = {"osmid":"old_fid", "startNode":"MNodeFID", "endNode":"PNodeFID"})
-
-
-# At this stage can have some duplicated geometries. Check for this and delete duplications
-gdfORLink_simplified['geom_coords'] = gdfORLink_simplified['geometry'].map(lambda g: ",".join( str(u) + "-" + str(v) for (u,v) in set(g.coords)))
-gdfORLink_simplified.drop_duplicates('geom_coords', inplace=True)
-gdfORLink_simplified.drop('geom_coords', axis=1, inplace=True)
+for col in gdfORNode.columns:
+    gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col] = gdfORNode.loc[gdfORNode[col].map(lambda v: isinstance(v, list)), col].map(lambda v: "_".join(str(i) for i in v))
 
 # Checking that all node ids in link data match with a node id in nodes data
-assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['MNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
-assert gdfORLink_simplified.loc[ ~(gdfORLink_simplified['PNodeFID'].isin(gdfORNode_simplified['node_fid']))].shape[0] == 0
+assert gdfORLink.loc[:, ['MNodeFID','PNodeFID','key']].duplicated().any() == False
+assert gdfORLink['fid'].duplicated().any() == False # Fails
+assert gdfORNode['node_fid'].duplicated().any() == False
 
-assert gdfORLink_simplified['fid'].duplicated().any() == False
-assert gdfORNode_simplified['node_fid'].duplicated().any() == False
+assert gdfORLink.loc[ ~(gdfORLink['MNodeFID'].isin(gdfORNode['node_fid']))].shape[0] == 0
+assert gdfORLink.loc[ ~(gdfORLink['PNodeFID'].isin(gdfORNode['node_fid']))].shape[0] == 0
 
-
-gdfORLink_simplified.crs = projectCRS
-gdfORNode_simplified.crs = projectCRS
-
+gdfORNode.crs = projectCRS
+gdfORLink.crs = projectCRS
 
 ################################
 #
@@ -578,8 +946,8 @@ for col in gdf_edges.columns:
 gdfITNLink.to_file(output_itn_link_file)
 gdfITNNode.to_file(output_itn_node_file)
 
-gdfORLink_simplified.to_file(output_or_link_file)
-gdfORNode_simplified.to_file(output_or_node_file)
+gdfORLink.to_file(output_or_link_file)
+gdfORNode.to_file(output_or_node_file)
 
 gdf_edges.to_file(os.path.join(output_directory, "osmnx_edges.shp"))
 gdf_nodes.to_file(os.path.join(output_directory, "osmnx_nodes.shp"))

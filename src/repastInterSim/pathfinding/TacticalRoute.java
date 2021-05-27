@@ -217,8 +217,6 @@ public class TacticalRoute {
 		// Don't set road for unmarked crossings
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);
-		caU.setRoadGeography(rG);
-		caU.setStrategicPathSection(rls);
 		cas.add(caU);
 		
 		return cas;		

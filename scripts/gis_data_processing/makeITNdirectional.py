@@ -179,7 +179,8 @@ dfRLNode.drop("_merge", axis = 1, inplace = True)
 dfRLNode = pd.merge(dfRLNode, gdf_itn_link.reindex(columns = ['fid','weight']), left_on = "RoadLinkFID", right_on = "fid", how = "outer", indicator = True)
 
 # Now build the edge list
-dfEdgeList = pd.DataFrame(columns = ['start_node', 'end_node'])
+init_data = {'start_node':[], 'end_node':[]}
+dfEdgeList = pd.DataFrame(init_data)
 dfRLNode.drop("_merge", axis = 1, inplace = True)
 
 # df1 are teh links that go from minus node to plus node, orientation = +
