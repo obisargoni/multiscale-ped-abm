@@ -19,8 +19,8 @@ import batch_data_utils as bd_utils
 with open(".//gis_data_processing//config.json") as f:
     config = json.load(f)
 
-gis_data_dir = os.path.join(config['gis_data_dir'], "processed_gis_data")
-data_dir = config['batch_data_dir'] #"..\\output\\batch\\model_run_data\\"
+gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
+data_dir = config['batch_data_dir']
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 output_directory = "..\\output\\processed_data\\"
 
