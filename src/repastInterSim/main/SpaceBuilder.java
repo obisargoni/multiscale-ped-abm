@@ -6,6 +6,9 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -52,6 +55,8 @@ import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
+	
+	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
 	private static Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. 
 	
