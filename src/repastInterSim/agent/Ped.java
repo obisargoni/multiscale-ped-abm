@@ -182,9 +182,8 @@ public class Ped extends MobileAgent {
     	
     	// Remove stuck agents from the simulation
     	if (this.stepsSinceReachedTarget>GlobalVars.stuckPedNSteps) {
-    		LOGGER.log(Level.FINE, "Removed stuck ped. Origin ID: " + this.origin.getFID() + " Dest ID: " + this.destination.getFID());
-    		this.tidyForRemoval();
-    		SpaceBuilder.context.remove(this);
+    		String msg = "Removed stuck ped. Origin ID: " + this.origin.getFID() + " Dest ID: " + this.destination.getFID();
+    		SpaceBuilder.removeMobileAgent(this, msg);
     	}
     }
     
