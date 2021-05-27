@@ -349,7 +349,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 	    // Schedule method that removes agents
 		ScheduleParameters removeMAgentScheduleParameters = ScheduleParameters.createRepeating(1, 1, ScheduleParameters.LAST_PRIORITY);
-		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgent");
+		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
 	    // Stop adding agents to the simulation at 1500 ticks
 	    int endTick = 1000;
@@ -612,7 +612,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return V;
     }
     
-	public void removeAgent() {
+	public void removeAgentsAtDestinations() {
         ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
         
         // Iterate over peds and remove them if they have arrived at the destination
