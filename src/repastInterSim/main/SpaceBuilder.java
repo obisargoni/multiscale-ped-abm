@@ -647,7 +647,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         }
     }
 	
-	public void removeMobileAgent(MobileAgent mA, String msg) {
+	public static void removeMobileAgent(MobileAgent mA, String msg) {
 		if (msg!=null) {
     		LOGGER.log(Level.FINE, msg);
 		}
