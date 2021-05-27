@@ -448,32 +448,44 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Get number of possible origins/destinations
 		int nOD = pedestrianDestinationGeography.size();
 		
-		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
-		for (int iO = 0; iO<nOD; iO++) {						
-			int iD = pDI % nOD;
+		List<Integer> originsThisStep = new ArrayList<Integer>();
+		
+		// Iterate through all OD pairs and initialise ped moving between these two if prob is above threshold
+		// And ped hasn't been created at this origin already
+		for (int iO = 0; iO<nOD; iO++) {
 			
-			// First row of data is the IDs of the ODs
-			String[] ids = odData.get(0);
-			String idO = ids[iO];
-			String idD = ids[iD];
+			// If ped already going to be created at this origin skip it, can have two peds created at same location
+			boolean inList = originsThisStep.contains(iO);
+			if (inList) {
+				continue;
+			}
 			
-			// Get the OD matrix entry
-			Float flow = Float.parseFloat(odData.get(iO+1)[iD]);
-			double threshold = RandomHelper.nextDouble();
+			for (int iD = 0; iD<nOD; iD++) {
 			
-			// Create vehicle instance probabilistically according to flow rates
-			if (flow > threshold) {
-				OD o = null;
-				OD d = null;
-				for (OD j: pedestrianDestinationContext.getObjects(OD.class)) {
-					if (j.getFID().contentEquals(idO)) {
-						o = j;
+				// First row of data is the IDs of the ODs
+				String[] ids = odData.get(0);
+				String idO = ids[iO];
+				String idD = ids[iD];
+				
+				// Get the OD matrix entry
+				Float flow = Float.parseFloat(odData.get(iO+1)[iD]);
+				double threshold = RandomHelper.nextDouble();
+				
+				// Create vehicle instance probabilistically according to flow rates
+				if (flow > threshold) {
+					originsThisStep.add(iO);
+					OD o = null;
+					OD d = null;
+					for (OD j: pedestrianDestinationContext.getObjects(OD.class)) {
+						if (j.getFID().contentEquals(idO)) {
+							o = j;
+						}
+						else if (j.getFID().contentEquals(idD)) {
+							d = j;
+						}
 					}
-					else if (j.getFID().contentEquals(idD)) {
-						d = j;
-					}
+					addPed(o, d);
 				}
-				addPed(o, d);
 			}
 		}
 		
