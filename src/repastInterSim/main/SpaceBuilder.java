@@ -643,10 +643,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         // Now iterate over all of the peds to remove and remove them from the context
         // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
         for (MobileAgent mA : AgentsToRemove) {
-        	mA.tidyForRemoval();
-        	context.remove(mA);
+        	removeMobileAgent(mA, null);
         }
     }
+	
+	public void removeMobileAgent(MobileAgent mA, String msg) {
+		if (msg!=null) {
+    		LOGGER.log(Level.FINE, msg);
+		}
+    	mA.tidyForRemoval();
+    	context.remove(mA);		
+	}
 	
 	
 	/*
