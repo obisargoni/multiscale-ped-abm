@@ -95,7 +95,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	public String getRoadLinkID() {
-		return this.getRoad().getRoadLinkID();
+		return this.ped.getPathFinder().getStrategicPath().get(0).getFID();
 	}
 	
 	public Road getRoad() {
@@ -191,6 +191,11 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 				}
 			}
 			iRay++;
+			
+			// Break loop if agent can't find opposite coord
+			if (iRay>10) {
+				break;
+			}
 		}
 		
 		return nearestOpCoord;

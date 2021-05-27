@@ -6,6 +6,9 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -52,6 +55,8 @@ import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
+	
+	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
 	private static Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. 
 	
@@ -349,7 +354,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 	    // Schedule method that removes agents
 		ScheduleParameters removeMAgentScheduleParameters = ScheduleParameters.createRepeating(1, 1, ScheduleParameters.LAST_PRIORITY);
-		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgent");
+		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
 	    // Stop adding agents to the simulation at 1500 ticks
 	    int endTick = 1000;
@@ -612,7 +617,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return V;
     }
     
-	public void removeAgent() {
+	public void removeAgentsAtDestinations() {
         ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
         
         // Iterate over peds and remove them if they have arrived at the destination
@@ -638,10 +643,17 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         // Now iterate over all of the peds to remove and remove them from the context
         // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
         for (MobileAgent mA : AgentsToRemove) {
-        	mA.tidyForRemoval();
-        	context.remove(mA);
+        	removeMobileAgent(mA, null);
         }
     }
+	
+	public static void removeMobileAgent(MobileAgent mA, String msg) {
+		if (msg!=null) {
+    		LOGGER.log(Level.FINE, msg);
+		}
+    	mA.tidyForRemoval();
+    	context.remove(mA);		
+	}
 	
 	
 	/*
