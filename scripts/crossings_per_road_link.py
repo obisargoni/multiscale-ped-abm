@@ -37,8 +37,8 @@ file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings")
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
-file_re = get_file_regex("pedestrian_pave_link_crossings", file_datetime = None, suffix = 'batch_param_map')
-batch_file = most_recent_directory_file(data_dir, file_re)
+file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = None, suffix = 'batch_param_map')
+#batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # Output paths
 img_dir = "..\\output\\img\\"
