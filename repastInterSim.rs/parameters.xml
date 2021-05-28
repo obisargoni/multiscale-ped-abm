@@ -20,13 +20,13 @@
 		/>
 
 						<parameter name="alpha" displayName="Controls weighting betweem traffic exposure and journey time" type="double" 
-						defaultValue="0.5" 
+						defaultValue="0.7" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 								<parameter name="lambda" displayName="Controls the effect of salience distance on sampling probability" type="double" 
-						defaultValue="0.1" 
+						defaultValue="0.7" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
@@ -38,7 +38,7 @@
 									
 		/>
 								<parameter name="epsilon" displayName="Activation threshold for crossing choice" type="double" 
-						defaultValue="4" 
+						defaultValue="2.5" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
