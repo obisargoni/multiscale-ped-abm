@@ -278,18 +278,11 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 					
 					Coordinate intC = intersectingCoords[j];
 					
-					// Check parity to make sure coordinate is on opposite side of the road
-					int p = RoadNetworkRoute.calculateRouteParity(c, intC, fsp);
-					if (p==0) {
-						continue;
-					}
-					else {						
-						// Check if nearer
-						double d = c.distance(intC);
-						if (d > maxDist) {
-							maxDist = d;
-							nearestOpCoord = intC;
-						}
+					// Check if nearer
+					double d = c.distance(intC);
+					if (d > maxDist) {
+						maxDist = d;
+						nearestOpCoord = intC;
 					}
 				}
 			}
