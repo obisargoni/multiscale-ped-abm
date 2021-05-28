@@ -223,7 +223,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * @returns
 	 * 		Coordinate
 	 */
-	public Coordinate oppositeSideOfRoadCoord(Coordinate c, RoadLink roadLink, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> fsp) {
+	public Coordinate oppositeSideOfRoadCoord(Coordinate c, RoadLink roadLink, Geography<Road> rG, Geography<PedObstruction> poG) {
 		
 		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
 		Coordinate[] rlCoords = roadLink.getGeom().getCoordinates(); 
@@ -297,9 +297,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 
 	public Coordinate getC2() {
-		List<RoadLink> fullStrategicPath = this.ped.getPathFinder().getFullStrategicPath();
 		RoadLink currentRL = this.ped.getPathFinder().getStrategicPath().get(0);
-		return oppositeSideOfRoadCoord(this.ped.getLoc(), currentRL, SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, fullStrategicPath);
+		return oppositeSideOfRoadCoord(this.ped.getLoc(), currentRL, SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography);
 	}
 	
 	public String getType() {
