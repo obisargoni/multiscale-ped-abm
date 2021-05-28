@@ -5,7 +5,14 @@ import java.net.MalformedURLException;
 
 import org.junit.jupiter.api.Test;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
+
+import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.main.SpaceBuilder;
 
 class CrossingAlternativeTest {
@@ -174,6 +181,98 @@ class CrossingAlternativeTest {
 		
 		assert us1.getPhaseDurations() == null;
 		assert us1.getPhases() == null;
+		
+	}
+	
+	@Test
+	void testUnmarkedCrossingAlternativeCoordinates1() {
+		// Setup environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530420.5, 180821.69);
+		double bearing = 2*Math.PI * (55.0/360); // 55 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setPed(p);
+		
+		Coordinate c1 = caU.getC1();
+		Coordinate c2 = caU.getC2();
+		
+		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c2.equals2D(new Coordinate(530416.3156369732,180827.66588971615));
+		
+	}
+	
+	@Test
+	void testUnmarkedCrossingAlternativeCoordinates2() {
+		// Setup environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530675.6, 180764.7);
+		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setPed(p);
+		
+		Coordinate c1 = caU.getC1();
+		Coordinate c2 = caU.getC2();
+		
+		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c2.equals2D(new Coordinate(530668.0,180759.0));
 		
 	}
 }

@@ -377,5 +377,18 @@ public class EnvironmentSetup {
 		RoadNetworkRoute.clearCaches();
 		SpatialIndexManager.clearCaches();
 	}
+	
+	public static Ped createPedAtLocation(int oID, int dID, boolean minimisesDistance, Coordinate c, double b) {
+		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
+		Ped ped = EnvironmentSetup.createPedestrian(oID, dID, minimisesDistance);
+		
+		// Move ped to position and bearing that has caused an error in the simulation
+        Point pt = GISFunctions.pointGeometryFromCoordinate(c);
+		Geometry pGeomNew = pt.buffer(ped.getRad());
+        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, ped);
+		ped.setLoc();
+		ped.setBearing(b);
+		return ped;
+	}
 
 }
