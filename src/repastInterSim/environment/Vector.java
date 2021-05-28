@@ -130,5 +130,17 @@ public class Vector {
 		a = Math.toDegrees(a);
 		return a;
 	}
+	
+	public static double acuteRangeBetweenAngles(double a1, double a2) {
+		// Map to range 0-2pi
+		a1 = a1%(2*Math.PI);
+		a2 = a2%(2*Math.PI);
+		
+		double r = Math.abs(a1-a2);
+	    if (r>Math.PI) {
+	        r = 2*Math.PI - r;
+	    }
+	    return r;
+	}
     
 }
