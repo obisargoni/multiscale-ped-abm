@@ -226,7 +226,7 @@ class CrossingAlternativeTest {
 		Coordinate c2 = caU.getC2();
 		
 		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
-		assert c2.equals2D(new Coordinate(530416.3156369732,180827.66588971615));
+		assert c2.equals2D(new Coordinate(530415.9632746808,180827.40001635003));
 		
 	}
 	
@@ -272,7 +272,7 @@ class CrossingAlternativeTest {
 		Coordinate c2 = caU.getC2();
 		
 		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
-		assert c2.equals2D(new Coordinate(530668.0,180759.0));
+		assert c2.equals2D(new Coordinate(530667.7059116581,180760.6800486437));
 		
 	}
 }
