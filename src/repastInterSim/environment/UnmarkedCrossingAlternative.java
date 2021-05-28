@@ -289,7 +289,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 			
 			// If unable to find an opp road coord, increase length of ray.
 			if ( (nearestOpCoord==null) & (ray.getLength()<50.0) ) {
-				ray = GISFunctions.linestringRay(c, oppRoadAngle, 50.0);
+				ray = GISFunctions.linestringRay(c, oppRoadAngle, 50.1);
 			}
 			else {
 				break;
