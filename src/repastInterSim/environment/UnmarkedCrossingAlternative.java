@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
@@ -236,7 +238,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		double range1 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp1);
 		double range2 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp2);
 		
-		// Bearing to opposite side will be more than 90 deg from bearing to ped
+		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
+		// Use this to identify if a coordinate is on the opposite side of the road
 		double oppRoadAngle;
 		if (range1>Math.PI/2) {
 			oppRoadAngle = perp1;
@@ -245,57 +248,47 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 			oppRoadAngle = perp2;
 		}
 		
-		// Identify geometries that demark the edge of the road. Try carriadgeway polygons. Failing that try obstruction geometries.
+		
+		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("vehicle")).collect(Collectors.toList());
-		if (caPedRoads.size()==0) {
-			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
-			roadEdgeGeoms = SpatialIndexManager.searchGeoms(poG, nearby);
-		}
-		else {
-			for (Road rd: caPedRoads) {
-				roadEdgeGeoms.add(rd.getGeom());
-			}
+		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		for (Road rd: caPedRoads) {
+			roadEdgeGeoms.add(rd.getGeom());
 		}
 		
-		// Get ray that points in direction of opposite side of the road from ped
-		LineString ray = GISFunctions.linestringRay(c, oppRoadAngle, 30.0);
+		// Add in ped obstruction geoms
+		Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
+		for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
+			roadEdgeGeoms.add(g);
+		}
 				
 		// Loop through ped roads and find nearest coordinate on each
-		Double maxDist = Double.MIN_VALUE;
+		Double minDist = Double.MAX_VALUE;
 		Coordinate nearestOpCoord = null;
-		while (nearestOpCoord==null) {		
-			for (Geometry g: roadEdgeGeoms) {
+		Point p = GISFunctions.pointGeometryFromCoordinate(c);	
+		for (Geometry g: roadEdgeGeoms) {
+			
+			// Find the point nearest to the pedestrian
+			DistanceOp distOP = new DistanceOp(p, g);
+			Coordinate nearC = distOP.nearestPoints()[1];
 
-				// Intersect ray with geometry that demarks where the other side of the road is
-				Coordinate[] intersectingCoords = null;
-				intersectingCoords = g.intersection(ray).getCoordinates();
-
-				// Now loop through these intersecting coords to find one that is
-				// - on the opposite side of the road
-				// - nearest to ped
-				for (int j=0; j<intersectingCoords.length; j++) {
-					
-					Coordinate intC = intersectingCoords[j];
-					
-					// Check if nearer
-					double d = c.distance(intC);
-					if (d > maxDist) {
-						maxDist = d;
-						nearestOpCoord = intC;
-					}
-				}
+			// Check if this coordinate is on the opposite side of the road
+			double angToC = GISFunctions.bearingBetweenCoordinates(rlCent, nearC);
+			double angRange = Vector.acuteRangeBetweenAngles(angToC, oppRoadAngle);
+			
+			// If angle between bearing from centre of road link and coord and direction perpendicular to road link towards opposite side of the road
+			// is greater than 90 degs this coordinate is not on the other side of the road
+			if (angRange>Math.PI/2) {
+				continue;
 			}
 			
-			// If unable to find an opp road coord, increase length of ray.
-			if ( (nearestOpCoord==null) & (ray.getLength()<50.0) ) {
-				ray = GISFunctions.linestringRay(c, oppRoadAngle, 50.1);
+			// Check if this coordinate is the nearest on the other side of the raod, if so update the chosen coord
+			double d = c.distance(nearC);
+			if (d < minDist) {
+				minDist = d;
+				nearestOpCoord = nearC;
 			}
-			else {
-				break;
-			}
-		}
-		
+		}		
 		return nearestOpCoord;
 	}
 	
