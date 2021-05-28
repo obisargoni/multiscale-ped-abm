@@ -400,41 +400,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	public void addVehicleAgents(List<String[]> odData) {
 		
-		// Get number of possible origins/destinations
-		int nOD = vehicleDestinationGeography.size();
+		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData);
 		
-		// Iterate through all OD pairs and initialise vehicle moving between these two if prob is above threshold
-		for (int iO = 0; iO<nOD; iO++) {
-			int iD = vDI % nOD;
-			
-			// First row of data is the IDs of the ODs
-			String[] ids = odData.get(0);
-			String idO = ids[iO];
-			String idD = ids[iD];
-			
-			// Get the OD matrix entry. Add one to row index to skip header of ids
-			Float flow = Float.parseFloat(odData.get(iO + 1)[iD]);
-			double threshold = RandomHelper.nextDouble();
-
-			
-			// Create vehicle instance probabilistically according to flow rates
-			if (flow > threshold) {
-				OD o = null;
-				OD d = null;
-				for (OD j: vehicleDestinationContext.getObjects(OD.class)) {
-					if (j.getFID().contentEquals(idO)) {
-						o = j;
-					}
-					else if (j.getFID().contentEquals(idD)) {
-						d = j;
-					}
-				}
-				addVehicle(o, d);
-			}
+		for (int i=0; i< ods.size(); i++) {
+			OD[] od = ods.get(i);
+			addVehicle(od[0], od[1]);
 		}
-		
-		// Increment the vehicle destination index so that a different destination is considered next time.
-		vDI++;
 	}
 	
     /*
@@ -444,9 +415,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      * @param odData The OD flow data used to create pedestrian agents with origins and destinations that match the flow data
      */
 	public void addPedestrianAgents(List<String[]> odData) {
-		
-		// Get number of possible origins/destinations
-		int nOD = pedestrianDestinationGeography.size();
 		
 		List<OD[]> ods = mobileAgentODs(pedestrianDestinationGeography, odData);
 		
