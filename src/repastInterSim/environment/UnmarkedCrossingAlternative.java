@@ -201,13 +201,119 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		return nearestOpCoord;
 	}
 	
+	/*
+	 * Find the coordiante on the opposite side of the road to the pedestrians current position.
+	 * 
+	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
+	 * and at the far edge of the carriadgeway from the pedestrian.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param RoadLink roadLink
+	 * 		The road link the pedestrian agent is currently walking beside
+	 * @param Geography<Road> rG
+	 * 		The Road geography. Contains pavement and carriageway polygons objects
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * @param List<RoadLink> fsp
+	 * 		The strategic path road links. Contains all strategic path links, even those the pedestrian agent has passed.
+	 * 
+	 * @returns
+	 * 		Coordinate
+	 */
+	public Coordinate oppositeSideOfRoadCoord(Coordinate c, RoadLink roadLink, Geography<Road> rG, Geography<PedObstruction> poG, List<RoadLink> fsp) {
+		
+		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
+		Coordinate[] rlCoords = roadLink.getGeom().getCoordinates(); 
+		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
+		double perp1 = rlBearing - Math.PI / 2;
+		double perp2 = rlBearing + Math.PI / 2;
+		
+		// Find which of these bearings points to opp side of road to ped
+		Coordinate rlCent = roadLink.getGeom().getCentroid().getCoordinate();
+		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
+		
+		double range1 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp1);
+		double range2 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp2);
+		
+		// Bearing to opposite side will be more than 90 deg from bearing to ped
+		double oppRoadAngle;
+		if (range1>Math.PI/2) {
+			oppRoadAngle = perp1;
+		} 
+		else {
+			oppRoadAngle = perp2;
+		}
+		
+		// Identify geometries that demark the edge of the road. Try carriadgeway polygons. Failing that try obstruction geometries.
+		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
+		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("vehicle")).collect(Collectors.toList());
+		if (caPedRoads.size()==0) {
+			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
+			roadEdgeGeoms = SpatialIndexManager.searchGeoms(poG, nearby);
+		}
+		else {
+			for (Road rd: caPedRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+		}
+		
+		// Get ray that points in direction of opposite side of the road from ped
+		LineString ray = GISFunctions.linestringRay(c, oppRoadAngle, 30.0);
+				
+		// Loop through ped roads and find nearest coordinate on each
+		Double maxDist = Double.MIN_VALUE;
+		Coordinate nearestOpCoord = null;
+		while (nearestOpCoord==null) {		
+			for (Geometry g: roadEdgeGeoms) {
+
+				// Intersect ray with geometry that demarks where the other side of the road is
+				Coordinate[] intersectingCoords = null;
+				intersectingCoords = g.intersection(ray).getCoordinates();
+
+				// Now loop through these intersecting coords to find one that is
+				// - on the opposite side of the road
+				// - nearest to ped
+				for (int j=0; j<intersectingCoords.length; j++) {
+					
+					Coordinate intC = intersectingCoords[j];
+					
+					// Check parity to make sure coordinate is on opposite side of the road
+					int p = RoadNetworkRoute.calculateRouteParity(c, intC, fsp);
+					if (p==0) {
+						continue;
+					}
+					else {						
+						// Check if nearer
+						double d = c.distance(intC);
+						if (d > maxDist) {
+							maxDist = d;
+							nearestOpCoord = intC;
+						}
+					}
+				}
+			}
+			
+			// If unable to find an opp road coord, increase length of ray.
+			if ( (nearestOpCoord==null) & (ray.getLength()<50.0) ) {
+				ray = GISFunctions.linestringRay(c, oppRoadAngle, 50.0);
+			}
+			else {
+				break;
+			}
+		}
+		
+		return nearestOpCoord;
+	}
+	
 	public Coordinate getC1() {
 		return this.ped.getLoc();
 	}
 
 	public Coordinate getC2() {
 		List<RoadLink> fullStrategicPath = this.ped.getPathFinder().getFullStrategicPath();
-		return nearestOppositePedestrianCoord(this.ped.getLoc(), this.getRoadLinkID(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, fullStrategicPath);
+		RoadLink currentRL = this.ped.getPathFinder().getStrategicPath().get(0);
+		return oppositeSideOfRoadCoord(this.ped.getLoc(), currentRL, SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography, fullStrategicPath);
 	}
 	
 	public String getType() {
