@@ -436,15 +436,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Iterate through all OD pairs and initialise ped moving between these two if prob is above threshold
 		// And ped hasn't been created at this origin already
 		int nOD = odGeography.size();
-		for (int iO = 0; iO<nOD; iO++) {
-			
-			// If ped already going to be created at this origin skip it, can have two peds created at same location
-			boolean inList = originsThisStep.contains(iO);
-			if (inList) {
-				continue;
-			}
-			
-			for (int iD = 0; iD<nOD; iD++) {
+		for (int iD = 0; iD<nOD; iD++) {			
+			for (int iO = 0; iO<nOD; iO++) {
+				// If ped already going to be created at this origin skip it, can have two peds created at same location
+				boolean inList = originsThisStep.contains(iO);
+				if (inList) {
+					continue;
+				}
 			
 				// First row of data is the IDs of the ODs
 				String[] ids = odFlows.get(0);
