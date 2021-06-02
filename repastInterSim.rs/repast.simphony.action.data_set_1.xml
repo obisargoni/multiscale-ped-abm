@@ -1,18 +1,18 @@
-<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Pedestrian Locations</name>
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
+  <name>Pedestrian Pavement Route Crossings</name>
   <type>NON_AGGREGATE</type>
   <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
-  <inclRandomSeed>false</inclRandomSeed>
+  <inclRandomSeed>true</inclRandomSeed>
   <scheduleParams>
     <start>1.0</start>
-    <interval>1.0</interval>
+    <interval>2.0</interval>
     <priority>-Infinity</priority>
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-183461191</hashCode>
+    <hashCode>-235215049</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -25,27 +25,35 @@
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocXString</string>
+      <string>CrossingCoordsString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocXString</id>
+        <id>CrossingCoordsString</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocXString</methodName>
+        <methodName>getCrossingCoordsString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocYString</string>
+      <string>ChosenCrossingTypeString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocYString</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocYString</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>CrossingChoice</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>CrossingChoice</id>
+        <id>ChosenCrossingTypeString</id>
         <className>repastInterSim.agent.Ped</className>
         <methodName>getChosenCrossingTypeString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>FullStrategicPathString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>FullStrategicPathString</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getFullStrategicPathString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>CurrentPavementLinkID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>CurrentPavementLinkID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getCurrentPavementLinkID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>
