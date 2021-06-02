@@ -924,4 +924,8 @@ public class Ped extends MobileAgent {
     	}
     	return ccString;
     }
+    
+    public String getFullStrategicPathString() {
+    	return this.pathFinder.getFullStrategicPathString();
+    }
 }

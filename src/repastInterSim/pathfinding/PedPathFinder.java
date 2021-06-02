@@ -38,7 +38,7 @@ public class PedPathFinder {
 	private OD origin;
 	private OD destination;
 	
-	private List<RoadLink> fullStrategicPath; // Retain version of strategic path that doesn't have links removed as agent progressed
+	private String fullStrategicPathString = ""; // Used to analyse crossings locations in relation to a pedestrian's route
 	private List<RoadLink> strategicPath;
 	private static int nLinksPerTacticalUpdate = 1;
 	private boolean firstUpdateDone = false;
@@ -103,7 +103,9 @@ public class PedPathFinder {
 		
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
-		this.fullStrategicPath = new ArrayList<RoadLink>(strategicPath);
+		for (RoadLink rl: this.strategicPath) {
+			this.fullStrategicPathString = this.fullStrategicPathString + "_" + rl.getFID();
+		}
 		
 		
 		this.startPavementJunction = routeEnds[0];
@@ -507,8 +509,8 @@ public class PedPathFinder {
 		return this.strategicPath;
 	}
 	
-	public List<RoadLink> getFullStrategicPath(){
-		return this.fullStrategicPath;
+	public String getFullStrategicPathString(){
+		return this.fullStrategicPathString;
 	}
 	
 	public TacticalRoute getTacticalPath() {
