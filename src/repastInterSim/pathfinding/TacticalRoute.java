@@ -90,12 +90,20 @@ public class TacticalRoute {
 	/*
 	 * First tries to remove the top coordiante from the coordinates stack. If the coordinates stack is empty then the top junction is removed from the junction stack.
 	 */
-	public void updateTargetCoordiante() {
+	public void updateTargetCoordiante() {		
 		if (this.getAccumulatorRoute().getCrossingCoordinates().size()>0) {
 			this.getAccumulatorRoute().removeCrossingCoordinate();
 		}
 		else {
 			updateCurrentJunction();
+		}
+		
+		// Update ped attributes that are recorded for analysis
+		// If currentEdge is null after update then the tactical route needs updateing. This method is called once tactical path is updated, to the next link will be recorded immediately
+		if (this.currentEdge != null) {
+			this.ped.setChosenCrossingType("none");
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
+			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 		}
 	}
 	
@@ -107,7 +115,7 @@ public class TacticalRoute {
 			// do not update the current junction if crossing is required but crossing location is not chosen and ped is at the end of their route			
 		}
 		
-		else {
+		else {			
 			// Update the current edge			
 			this.currentEdge = this.routePath.poll();
 			
@@ -271,6 +279,11 @@ public class TacticalRoute {
 		// If a crossing has been chosen, update the tactical path to reflect this
 		if (this.accumulator.getChosenCA() != null) {
 			caChosenUpdateCurrentJunction();
+			
+			// Update the ped attributes that are collected for data analysis
+			this.ped.setChosenCrossingType(this.accumulator.getChosenCA().getType());
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
+			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 		}
 	}
 	

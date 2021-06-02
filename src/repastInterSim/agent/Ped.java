@@ -175,8 +175,6 @@ public class Ped extends MobileAgent {
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
     		this.stepsSinceReachedTarget=0;
-    		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge(); 
-    		this.lastTraversedPavementLinkID = ne.getRoadLink().getFID();
     		this.pathFinder.getTacticalPath().updateTargetCoordiante();
     	}
     	
