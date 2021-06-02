@@ -310,12 +310,13 @@ public class RoadNetworkRouteTest {
 		// Get current and destination junction using the cache
 		File odFile = new File(TestDataDir + "OD_pedestrian_nodes_test.shp");
 		File pavementJunctionFile = new File(TestDataDir + IO.getProperty(GlobalVars.PavementJunctionShapeFile));
+		File ORRoadLinkShapefile = new File(TestDataDir + IO.getProperty(GlobalVars.ORRoadLinkShapefile));
 		File paveJuncSeriealizedLoc = new File(TestDataDir + IO.getProperty(GlobalVars.ODPavementJunctionCache));
 		Junction oPavementJ = null;
 		Junction dPavementJ = null;
 		try {
-			oPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(o, odFile, pavementJunctionFile, paveJuncSeriealizedLoc);
-			dPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(d, odFile, pavementJunctionFile, paveJuncSeriealizedLoc);
+			oPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(o, odFile, pavementJunctionFile, ORRoadLinkShapefile, paveJuncSeriealizedLoc);
+			dPavementJ = RoadNetworkRoute.getNearestpavementJunctionToOD(d, odFile, pavementJunctionFile, ORRoadLinkShapefile, paveJuncSeriealizedLoc);
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
