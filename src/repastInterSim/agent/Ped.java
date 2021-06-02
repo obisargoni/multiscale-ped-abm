@@ -71,8 +71,8 @@ public class Ped extends MobileAgent {
     
     private Color col; // Colour of the pedestrian
     
-    private String chosenCrossingType = "none";
-	private String lastTraversedPavementLinkID = "";
+    private String currentCrossingType = "none";
+	private String currentPavementLinkID = "";
 
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
@@ -884,16 +884,20 @@ public class Ped extends MobileAgent {
 
 
 	public String getChosenCrossingType() {
-		return chosenCrossingType;
+		return currentCrossingType;
 	}
 	
 	public String getChosenCrossingTypeString() {
-		return chosenCrossingType.toString();
+		return currentCrossingType.toString();
 	}
 
 
 	public void setChosenCrossingType(String chosenCrossingType) {
-		this.chosenCrossingType = chosenCrossingType;
+		this.currentCrossingType = chosenCrossingType;
+	}
+	
+	public void setCurrentPavementLinkID(String paveLinkID) {
+		this.currentPavementLinkID = paveLinkID;
 	}
 	
 	/*
@@ -912,8 +916,8 @@ public class Ped extends MobileAgent {
     	this.v = v;
     }
     
-    public String getTraversedPavementLinkID() { 
-    	return this.lastTraversedPavementLinkID;
+    public String getCurrentPavementLinkID() { 
+    	return this.currentPavementLinkID;
     }
     
     public String getCrossingCoordsString() {
