@@ -1051,7 +1051,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 	private static Logger LOGGER = Logger.getLogger(NearestPavementJunctionCoordCache.class.getName());
 
 	private static final long serialVersionUID = 1L;
-	private Hashtable<Coordinate, Junction> theCache; // The actual cache
+	private Hashtable<Coordinate, String> theCache; // The actual cache
 	// Check that the road/building data hasn't been changed since the cache was
 	// last created
 	private File odFile;
@@ -1072,7 +1072,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		this.pavementJunctionFile = pavementJunctionFile;
 		this.ORRoadLinkShpaeFile = ORRoadLinkShapefile;
 		this.serialisedLoc = serialisedLoc;
-		this.theCache = new Hashtable<Coordinate, Junction>();
+		this.theCache = new Hashtable<Coordinate, String>();
 		this.geomFac = geomFac;
 
 		LOGGER.log(Level.FINE, "NearestPavementJunctionCoordCache() creating new cache with data (and modification date):\n\t"
@@ -1094,12 +1094,12 @@ class NearestPavementJunctionCoordCache implements Serializable {
 	private void populateCache(Geography<OD> odGeography, Geography<Junction> pavementJunctionGeography, Geography<RoadLink> orRoadLinkGeography)
 			throws Exception {
 		double time = System.nanoTime();
-		theCache = new Hashtable<Coordinate, Junction>();
+		theCache = new Hashtable<Coordinate, String>();
 		// Iterate over every building and find the nearest road point
 		for (OD od : odGeography.getAllObjects()) {
 			Geometry odGeom = od.getGeom();
-			Junction nearestJ = RoadNetworkRoute.findNearestObject(odGeom.getCoordinate(), pavementJunctionGeography, null,	GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
-			theCache.put(odGeom.getCoordinate(), nearestJ);
+			Junction nearestJ = getSameSideNearestJunction(odGeom.getCoordinate(), pavementJunctionGeography, orRoadLinkGeography);
+			theCache.put(odGeom.getCoordinate(), nearestJ.getFID());
 		}// for Buildings
 		LOGGER.log(Level.FINER, "Finished caching nearest roads (" + (0.000001 * (System.nanoTime() - time)) + "ms)");
 	} // if nearestRoadCoordCache = null;
@@ -1115,13 +1115,24 @@ class NearestPavementJunctionCoordCache implements Serializable {
 			throw new Exception("NearestPavementJunctionCoordCache.get() error: the given coordinate is null.");
 		}
 		double time = System.nanoTime();
-		Junction nearestJ = this.theCache.get(c);
-		if (nearestJ != null) {
-			LOGGER.log(Level.FINER, "NearestRoadCoordCache.get() (using cache) - ("
-					+ (0.000001 * (System.nanoTime() - time)) + "ms)");
-			return nearestJ;
+		String nearestJFID = this.theCache.get(c);
+		if (nearestJFID != null) {
+			for(Junction j: pavementJunctionGeography.getAllObjects()) {
+				if (j.getFID().contentEquals(nearestJFID)) {
+					LOGGER.log(Level.FINER, "NearestRoadCoordCache.get() (using cache) - ("
+							+ (0.000001 * (System.nanoTime() - time)) + "ms)");
+					return j;
+				}
+			}
 		}
 		// If get here then the coord is not in the cache, agent not starting their journey from an OD already cached.
+		Junction nearestJ = getSameSideNearestJunction(c, pavementJunctionGeography, orRoadLinkGeography);
+		return nearestJ;
+	}
+	
+	private Junction getSameSideNearestJunction(Coordinate c, Geography<Junction> pavementJunctionGeography, Geography<RoadLink> orRoadLinkGeography) throws Exception {
+		double time = System.nanoTime();
+
 		// Search for it manually. Search all junctions in the vicinity, looking for the junction which is nearest the agent.
 		double minDist = Double.MAX_VALUE;
 		Junction nearestJunc = null;
@@ -1179,7 +1190,6 @@ class NearestPavementJunctionCoordCache implements Serializable {
 				SpaceBuilder.sizeOfIterable(candidates) + " roads, printing debugging info:\n");
 		debugIntro.append(debug);
 		throw new Exception(debugIntro.toString());
-
 	}
 
 	private void serialise() throws IOException {
