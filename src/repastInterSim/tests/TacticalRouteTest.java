@@ -150,6 +150,8 @@ class TacticalRouteTest {
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.setUpPedODs();
 			
+			EnvironmentSetup.setUpPedObstructions();
+			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
