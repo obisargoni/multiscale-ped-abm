@@ -136,7 +136,7 @@ public class TacticalRoute {
 					
 					// Record the desired route edge, and overwrite route edge with the default route edge the ped follows while choosing crossing position
 					RepastEdge<Junction> targetRouteEdge = this.currentEdge;
-					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, nextJunction);
+					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, defaultJunction);
 					this.currentEdge = defaultEdge;
 					
 					// Get road length - the length of the road that crossing alternatives are being considered for
