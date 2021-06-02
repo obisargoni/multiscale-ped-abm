@@ -150,7 +150,7 @@ public class PedPathFinder {
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
 		// Calculate number of links in planning horizon
 		int tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
-		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);;
+		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
     }
 	
 	/*
