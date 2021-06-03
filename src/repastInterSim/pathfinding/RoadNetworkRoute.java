@@ -1083,7 +1083,7 @@ class NearestPavementJunctionCoordCache implements Serializable {
 		
 		populateCache(odGeography, pavementJunctionGeography, orRoadLinkGeography);
 		this.createdTime = new Date().getTime();
-		//serialise();
+		serialise();
 	}
 
 	public void clear() {
