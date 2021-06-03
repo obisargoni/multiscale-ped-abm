@@ -83,8 +83,8 @@ dict_node_pos = dict(zip(points_pos.index, node_posistions))
 ########################################
 
 # Filter to just include pavement links used for crossing
-dfPedCrossings = dfPedCrossings.loc[ ~dfPedCrossings['TraversedPavementLinkID'].isnull()]
-dfPedCrossings = dfPedCrossings.merge(gdfPaveNetwork, left_on = 'TraversedPavementLinkID', right_on = 'fid', how = 'left', indicator=True)
+dfPedCrossings = dfPedCrossings.loc[ ~dfPedCrossings['CurrentPavementLinkID'].isnull()]
+dfPedCrossings = dfPedCrossings.merge(gdfPaveNetwork, left_on = 'CurrentPavementLinkID', right_on = 'fid', how = 'left', indicator=True)
 assert dfPedCrossings.loc[ dfPedCrossings['_merge']!='both'].shape[0]==0
 dfPedCrossings.drop('_merge', axis=1, inplace=True)
 
