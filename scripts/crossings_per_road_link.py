@@ -217,13 +217,13 @@ single_fig.show()
 groupby_columns = ['tacticalPlanHorizon', 'minCrossingProp']
 batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Crossings per pedestrian on road link", value_col = 'cmap_value', cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
 
-batch_fig_path = os.path.join(img_dir, "figure_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
+batch_fig_path = os.path.join(img_dir, "network_figure_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 batch_fig.savefig(batch_fig_path)
 batch_fig.show()
 
 
 um_batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Informal crossings per pedestrian on road link", value_col = 'um_cmap_value', cmap_name = 'plasma', edge_width = 3, edge_alpha = 1)
 
-um_batch_fig_path = os.path.join(img_dir, "figure_informal"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
+um_batch_fig_path = os.path.join(img_dir, "network_figure_informal_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 um_batch_fig.savefig(um_batch_fig_path)
 um_batch_fig.show()
