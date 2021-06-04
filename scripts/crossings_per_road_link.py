@@ -132,7 +132,7 @@ def road_network_figure(G, dict_node_pos, dict_edge_values, title, cmap_name = '
     ax = road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = cmap_name, edge_width=edge_width, edge_alpha=edge_alpha)
     return f
 
-def road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1):
+def road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, title_font = {'size': 12}):
     # Get edge colour map based on number of crossings
     cmap = cm.get_cmap(cmap_name)
     edge_palette = []
@@ -147,11 +147,11 @@ def road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_n
 
     nx.draw_networkx_nodes(G, dict_node_pos, ax = ax, nodelist=G.nodes(), node_color = 'grey', node_size = 1, alpha = 0.5)
     nx.draw_networkx_edges(G, dict_node_pos, ax = ax, edgelist=G.edges(), width = 3, edge_color = edge_palette, alpha=1)
-    ax.set_title(title)
+    ax.set_title(title, fontdict = title_font)
     ax.axis('off')
     return ax
 
-def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1):
+def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16}):
     '''Loop through batch run groups and get edge pallet data for each group. Use this to make road crossings
     figure for each group.
     '''
@@ -179,14 +179,15 @@ def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, f
             dfRun = grouped.get_group(group_key)
             dict_edge_values = dfRun.set_index('fid')['cmap_value'].to_dict()
 
-            title = "Tactical planning horizon:{} degrees\nProportion crossing minimising pedestrians:{}".format(group_key[0], group_key[1])
+            rename_dict = {'0':'minimise distance', '1':'minimise crossings'}
+            title = "Tactical planning horizon: {}".format(group_key[0])+r"$\degree$"+"\nTactical planning heuristic: {}".format(rename_dict[str(int(group_key[1]))])
 
             # Select the corresponding axis
             ax = axs[pi, qi]
 
-            road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
+            road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, title_font = sub_title_font)
 
-    f.suptitle(fig_title, fontsize=16, y = 1)
+    f.suptitle(fig_title, fontdict = title_font)
     return f
 
 # Plot crossing counts for each group
@@ -204,7 +205,7 @@ single_fig.show()
 '''
 
 groupby_columns = ['tacticalPlanHorizon', 'minCrossingProp']
-batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Batch Crossing Counts", cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
+batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Crossings per pedestrian on road link", cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
 
 batch_fig_path = os.path.join(img_dir, "figure_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 batch_fig.savefig(batch_fig_path)
