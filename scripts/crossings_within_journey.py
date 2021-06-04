@@ -39,8 +39,6 @@ batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # Output paths
 img_dir = "..\\output\\img\\"
-crossings_in_journey_fig = os.path.join(img_dir, "cross_in_journey.png")
-
 
 #####################################
 #
@@ -109,15 +107,15 @@ dfCrossingJourney = dfCrossingJourney.loc[ dfCrossingJourney['ChosenCrossingType
 dfIndexCounts = dfCrossingJourney.groupby(['run', 'strategicCrossIndex']).apply(lambda g: g.shape[0]).reset_index()
 dfIndexCounts.rename(columns = {0:'index_count'}, inplace=True)
 
-# Join with run data
-#gdfIndexCounts = pd.merge(gdfORLinks, dfIndexCounts, left_on = 'fid', right_on = 'pedRLID', how = 'left')
-#gdfIndexCounts['cross_count'] = gdfIndexCounts['cross_count'].fillna(0)
-#dfIndexCounts = pd.merge(dfIndexCounts, dfRun, on = 'run')
 dfIndexCounts = dfIndexCounts.set_index(["run","strategicCrossIndex"]).unstack()
 dfIndexCounts.columns = [c[1] for c in dfIndexCounts.columns]
-dfIndexCounts['9+'] = dfIndexCounts.iloc[:, 9:].sum(axis=1)
-dfIndexCounts = dfIndexCounts.iloc[:, [0,1,2,3,4,5,6,7,8,-1]]
+dfIndexCounts['12+'] = dfIndexCounts.iloc[:, 12:].sum(axis=1)
+dfIndexCounts = dfIndexCounts.iloc[:, [0,1,2,3,4,5,6,7,8,9,10,11,-1]]
 dfIndexCounts.fillna(0, inplace=True)
+data_columns = dfIndexCounts.columns
+
+# Join with run data
+dfIndexCounts = pd.merge(dfIndexCounts, dfRun, on = 'run')
 
 ##########################################
 #
@@ -129,28 +127,40 @@ dfIndexCounts.fillna(0, inplace=True)
 
 from matplotlib import pyplot as plt
 
-groups = ["Run {}".format(i) for i in dfIndexCounts.index]
+rename_dict = {'0':'minimise distance', '1':'minimise crossings'}
+name1 = "Tactical planning horizon: {}"
+name2 = "\nTactical planning heuristic: {}"
+group_names = [name1.format(row['tacticalPlanHorizon']) + r"$\degree$" + name2.format(rename_dict[str(int(row['minCrossingProp']))]) 
+                for i, row in dfIndexCounts.iterrows()]
+
+
 ordinal = lambda n: "%d%s" % (n,"tsnrhtdd"[(n//10%10!=1)*(n%10<4)*n%10::4])
-labels = [ordinal(n+1) for n in range(len(dfIndexCounts.columns))]
+labels = [ordinal(n+1) if n < len(data_columns)-1 else ordinal(n+1)+"+" for n in range(len(data_columns))]
 x = np.arange(len(labels))  # the label locations
-width = 0.8 / len(labels)  # the width of the bars, leave 0.2 spacing between groups
+width = 0.8 / len(group_names)  # the width of the bars, leave 0.2 spacing between group_names
+
 
 fig, ax = plt.subplots(figsize = (15,15))
 rects = []
+colors = ['grey', 'lightblue']
+patterns = [None, None, ".", "."]
 for ix, i in enumerate(dfIndexCounts.index):
-    data = dfIndexCounts.loc[i].values
-    data_rects = ax.bar(x + (ix * width), data, width, label=groups[ix])
+    col_index = ix % 2
+    pat_index = ix
+    data = dfIndexCounts.loc[i, data_columns].values
+    x_pos = x + ( (ix - len(group_names)/2) * width) + width/2
+    data_rects = ax.bar(x_pos, data, width, label=group_names[ix], color = colors[col_index], hatch = patterns[pat_index])
     rects.append(data_rects)
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Number of crossings')
-ax.set_xlabel('Strategic Link Crossed On')
-ax.set_title('Where along the journey peds cross')
+ax.set_ylabel('Crossing Count')
+ax.set_xlabel('Route Link Crossed On')
+ax.set_title('Where along their journey pedestrians cross')
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.legend()
-
 fig.tight_layout()
 
+batch_fig_path = os.path.join(img_dir, "cross_index_figure_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 plt.show()
-plt.savefig(crossings_in_journey_fig)
+plt.savefig(batch_fig_path)
