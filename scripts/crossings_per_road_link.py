@@ -87,19 +87,30 @@ dfPedCrossings = dfPedCrossings.loc[ ~dfPedCrossings['CurrentPavementLinkID'].is
 dfPedCrossings = dfPedCrossings.merge(gdfPaveNetwork, left_on = 'CurrentPavementLinkID', right_on = 'fid', how = 'left', indicator=True)
 assert dfPedCrossings.loc[ dfPedCrossings['_merge']!='both'].shape[0]==0
 dfPedCrossings.drop('_merge', axis=1, inplace=True)
+dfPedCrossings['FullStrategicPathString'] = dfPedCrossings['FullStrategicPathString'].map(lambda s: s.strip('-').split('-'))
 
 # Aggregate crossing counts
 dfCrossingCounts = dfPedCrossings.groupby(['run', 'pedRLID']).apply(lambda g: g.shape[0]).reset_index()
 dfCrossingCounts.rename(columns = {0:'cross_count'}, inplace=True)
+
+# Get number of pedestrians per road link, use this to normalise crossing counts - crossings per ped on link
+# Given fixed ODs and flows should get same number of peds per road link but different numbers crossing.
+road_links = pd.Series(np.concatenate(dfPedCrossings['FullStrategicPathString'].values))
+peds_per_link = road_links.value_counts()
+peds_per_link.name = 'peds_per_link'
 
 # Join with pavement Road link data and run data
 gdfCrossingCounts = pd.merge(gdfORLinks, dfCrossingCounts, left_on = 'fid', right_on = 'pedRLID', how = 'left')
 gdfCrossingCounts['cross_count'] = gdfCrossingCounts['cross_count'].fillna(0)
 gdfCrossingCounts = pd.merge(gdfCrossingCounts, dfRun, on = 'run')
 
+# Join with number of peds per link and calculate crossings per ped
+gdfCrossingCounts = pd.merge(gdfCrossingCounts, peds_per_link, left_on = 'fid', right_index = True)
+gdfCrossingCounts['cross_count_pp'] = gdfCrossingCounts['cross_count'] / gdfCrossingCounts['peds_per_link']
+
 # Map crossing counts to range for colormap
-max_cc = gdfCrossingCounts['cross_count'].max()
-gdfCrossingCounts['cmap_value'] = gdfCrossingCounts['cross_count'].map(lambda c: 255*(c/max_cc))
+max_cc_pp = gdfCrossingCounts['cross_count_pp'].max()
+gdfCrossingCounts['cmap_value'] = gdfCrossingCounts['cross_count'].map(lambda c: 255*(c/max_cc_pp))
 
 ##########################################
 #
