@@ -93,6 +93,11 @@ dfPedCrossings['FullStrategicPathString'] = dfPedCrossings['FullStrategicPathStr
 dfCrossingCounts = dfPedCrossings.groupby(['run', 'pedRLID']).apply(lambda g: g.shape[0]).reset_index()
 dfCrossingCounts.rename(columns = {0:'cross_count'}, inplace=True)
 
+# Aggregate unmarked crossing counts
+dfUmCC = dfPedCrossings.loc[dfPedCrossings['ChosenCrossingTypeString']=='unmarked'].groupby(['run', 'pedRLID']).apply(lambda g: g.shape[0]).reset_index()
+dfUmCC.rename(columns = {0:'um_cross_count'}, inplace=True)
+dfCrossingCounts = pd.merge(dfCrossingCounts, dfUmCC, on = ['run', 'pedRLID'], how = 'left')
+
 # Get number of pedestrians per road link, use this to normalise crossing counts - crossings per ped on link
 # Given fixed ODs and flows should get same number of peds per road link but different numbers crossing.
 road_links = pd.Series(np.concatenate(dfPedCrossings['FullStrategicPathString'].values))
@@ -102,15 +107,20 @@ peds_per_link.name = 'peds_per_link'
 # Join with pavement Road link data and run data
 gdfCrossingCounts = pd.merge(gdfORLinks, dfCrossingCounts, left_on = 'fid', right_on = 'pedRLID', how = 'left')
 gdfCrossingCounts['cross_count'] = gdfCrossingCounts['cross_count'].fillna(0)
+gdfCrossingCounts['um_cross_count'] = gdfCrossingCounts['um_cross_count'].fillna(0)
 gdfCrossingCounts = pd.merge(gdfCrossingCounts, dfRun, on = 'run')
 
 # Join with number of peds per link and calculate crossings per ped
 gdfCrossingCounts = pd.merge(gdfCrossingCounts, peds_per_link, left_on = 'fid', right_index = True)
 gdfCrossingCounts['cross_count_pp'] = gdfCrossingCounts['cross_count'] / gdfCrossingCounts['peds_per_link']
+gdfCrossingCounts['um_cross_count_pp'] = gdfCrossingCounts['um_cross_count'] / gdfCrossingCounts['peds_per_link']
 
 # Map crossing counts to range for colormap
 max_cc_pp = gdfCrossingCounts['cross_count_pp'].max()
-gdfCrossingCounts['cmap_value'] = gdfCrossingCounts['cross_count'].map(lambda c: 255*(c/max_cc_pp))
+gdfCrossingCounts['cmap_value'] = gdfCrossingCounts['cross_count_pp'].map(lambda c: 255*(c/max_cc_pp))
+
+um_max_cc_pp = gdfCrossingCounts['um_cross_count_pp'].max()
+gdfCrossingCounts['um_cmap_value'] = gdfCrossingCounts['um_cross_count_pp'].map(lambda c: 255*(c/max_cc_pp))
 
 ##########################################
 #
@@ -151,7 +161,7 @@ def road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_n
     ax.axis('off')
     return ax
 
-def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16}):
+def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, value_col = 'cmap_value', cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16}):
     '''Loop through batch run groups and get edge pallet data for each group. Use this to make road crossings
     figure for each group.
     '''
@@ -177,7 +187,7 @@ def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, f
             key_index = key_indices[pi, qi]
             group_key = keys[key_index]
             dfRun = grouped.get_group(group_key)
-            dict_edge_values = dfRun.set_index('fid')['cmap_value'].to_dict()
+            dict_edge_values = dfRun.set_index('fid')[value_col].to_dict()
 
             rename_dict = {'0':'minimise distance', '1':'minimise crossings'}
             title = "Tactical planning horizon: {}".format(group_key[0])+r"$\degree$"+"\nTactical planning heuristic: {}".format(rename_dict[str(int(group_key[1]))])
@@ -185,7 +195,7 @@ def batch_runs_road_network_figure(G, dict_node_pos, dfBatch, groupby_columns, f
             # Select the corresponding axis
             ax = axs[pi, qi]
 
-            road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = 'viridis', edge_width = 3, edge_alpha = 1, title_font = sub_title_font)
+            road_network_subfigure(ax, G, dict_node_pos, dict_edge_values, title, cmap_name = cmap_name, edge_width = 3, edge_alpha = 1, title_font = sub_title_font)
 
     f.suptitle(fig_title, fontdict = title_font)
     return f
@@ -205,8 +215,15 @@ single_fig.show()
 '''
 
 groupby_columns = ['tacticalPlanHorizon', 'minCrossingProp']
-batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Crossings per pedestrian on road link", cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
+batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Crossings per pedestrian on road link", value_col = 'cmap_value', cmap_name = 'viridis', edge_width = 3, edge_alpha = 1)
 
 batch_fig_path = os.path.join(img_dir, "figure_"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 batch_fig.savefig(batch_fig_path)
 batch_fig.show()
+
+
+um_batch_fig = batch_runs_road_network_figure(G, dict_node_pos, gdfCrossingCounts, groupby_columns, "Informal crossings per pedestrian on road link", value_col = 'um_cmap_value', cmap_name = 'plasma', edge_width = 3, edge_alpha = 1)
+
+um_batch_fig_path = os.path.join(img_dir, "figure_informal"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
+um_batch_fig.savefig(um_batch_fig_path)
+um_batch_fig.show()
