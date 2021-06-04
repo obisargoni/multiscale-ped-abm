@@ -104,7 +104,7 @@ public class PedPathFinder {
 		// Get path of road links and set this as the strategic path
 		this.strategicPath = rnr.getRoadsX();
 		for (RoadLink rl: this.strategicPath) {
-			this.fullStrategicPathString = this.fullStrategicPathString + "-" + rl.getFID();
+			this.fullStrategicPathString = this.fullStrategicPathString + ":" + rl.getFID();
 		}
 		
 		
