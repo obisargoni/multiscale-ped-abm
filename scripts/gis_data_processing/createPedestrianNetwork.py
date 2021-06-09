@@ -665,9 +665,8 @@ gdfPedNodes.drop(['boundary_ped_node','pavement_ped_node'],axis=1, inplace=True)
 dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
 gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectCRS)
 
-# Validate that each road link has two non crossing links and 2 diagonal crossing links
-
-
+# Drop duplicated edges - don't expect any multi edges so drop duplicated fids since this implies duplicated edge between nodes
+dfPedLinks = dfPedLinks.drop_duplicates(subset = ['fid'])
 
 ###################################
 #
@@ -676,6 +675,13 @@ gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectC
 #
 #
 ###################################
+
+# Check there are no duplicated edges by checking for duplicated node pairs
+node_pairs_a = gdfPLND.loc[:, ['MNodeFID', 'PNodeFID']]
+node_pairs_b = gdfPLND.loc[:, ['PNodeFID', 'MNodeFID']].rename(columns = {'PNodeFID':'MNodeFID', 'MNodeFID':'PNodeFID'})
+node_pairs = pd.concat([node_pairs_a, node_pairs_b])
+assert node_pairs.duplicated().any() == False
+
 
 validate_numbers_of_nodes_and_links(gdfORLink, gdfPedNodes, gdfPedLinks)
 gdfPedNodes.to_file(output_ped_nodes_file)
