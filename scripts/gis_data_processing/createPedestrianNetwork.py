@@ -678,7 +678,7 @@ dfPedLinks = connect_ped_nodes(gdfPedNodes, gdfORLink, G)
 gdfPedLinks = gpd.GeoDataFrame(dfPedLinks, geometry = 'geometry', crs = projectCRS)
 
 # Drop duplicated edges - don't expect any multi edges so drop duplicated fids since this implies duplicated edge between nodes
-dfPedLinks = dfPedLinks.drop_duplicates(subset = ['fid'])
+gdfPedLinks = gdfPedLinks.drop_duplicates(subset = ['fid'])
 
 ###################################
 #
@@ -689,8 +689,8 @@ dfPedLinks = dfPedLinks.drop_duplicates(subset = ['fid'])
 ###################################
 
 # Check there are no duplicated edges by checking for duplicated node pairs
-node_pairs_a = gdfPLND.loc[:, ['MNodeFID', 'PNodeFID']]
-node_pairs_b = gdfPLND.loc[:, ['PNodeFID', 'MNodeFID']].rename(columns = {'PNodeFID':'MNodeFID', 'MNodeFID':'PNodeFID'})
+node_pairs_a = gdfPedLinks.loc[:, ['MNodeFID', 'PNodeFID']]
+node_pairs_b = gdfPedLinks.loc[:, ['PNodeFID', 'MNodeFID']].rename(columns = {'PNodeFID':'MNodeFID', 'MNodeFID':'PNodeFID'})
 node_pairs = pd.concat([node_pairs_a, node_pairs_b])
 assert node_pairs.duplicated().any() == False
 
