@@ -7,6 +7,7 @@ import geopandas as gpd
 import networkx as nx
 import os
 from shapely.geometry import Point, Polygon, MultiPolygon, LineString, MultiLineString, MultiPoint, GeometryCollection
+from shapely import ops
 import itertools
 import re
 
@@ -428,6 +429,7 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
         neighbour_links += [edge_data['fid'] for u, v, edge_data in road_graph.edges(nbunch = [v], data=True)]
 
         # Get the geometries for these road links
+        rl_g = gdfRoadLink.loc[ gdfRoadLink['fid']==rl_id, 'geometry'].values[0]
         gdfLinkSub = gdfRoadLink.loc[ gdfRoadLink['fid'].isin(neighbour_links)]
 
         # Get pairs of ped nodes
@@ -447,6 +449,10 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
             g_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'geometry'].values[0]
             g_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'geometry'].values[0]
 
+            # Get or nodes associated to each of these pavement nodes to check whether they are located around same junction
+            j_u = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_u, 'juncNodeID'].values[0]
+            j_v = gdfPedNodesSub.loc[ gdfPedNodesSub['fid'] == ped_v, 'juncNodeID'].values[0]
+
             l = LineString([g_u, g_v])
             edge_id = "pave_link_{}_{}".format(ped_u.replace("pave_node_",""), ped_v.replace("pave_node_",""))
 
@@ -455,7 +461,13 @@ def connect_ped_nodes(gdfPN, gdfRoadLink, road_graph):
 
             # Check whether links crosses road or not
             if intersect_check.any():
-                ped_edge['pedRLID'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid']) 
+                ped_edge['pedRLID'] = " ".join(gdfLinkSub.loc[intersect_check, 'fid'])
+            elif j_u==j_v:
+                # Check for intersection using merged linestrings
+                ml = MultiLineString(gdfLinkSub.geometry.values)
+                roads_g = ops.linemerge(ml)
+                if roads_g.intersects(l):
+                    ped_edge['pedRLID'] = rl_id
 
             # Could also check which ped polys edge intersects but this isn't necessary
 
