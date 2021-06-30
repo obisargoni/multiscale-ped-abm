@@ -297,7 +297,7 @@ um_batch_fig_path = os.path.join(img_dir, "network_figure_informal_"+ os.path.sp
 um_batch_fig.savefig(um_batch_fig_path)
 um_batch_fig.show()
 
-um_batch_fig_path = os.path.join(img_dir, "crossing_points_figure"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
+points_batch_fig_path = os.path.join(img_dir, "crossing_points_figure"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
 points_batch_fig = batch_runs_crossing_points_figure(G, dict_node_pos, dfPedCrossingsRun, groupby_columns, "Crossing Locations", point_size = 3, point_col_dict = {'unmarked':'red', 'unsignalised':'green'}, point_alpha = 0.5, edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16})
 points_batch_fig.savefig(points_batch_fig_path)
 points_batch_fig.show()
