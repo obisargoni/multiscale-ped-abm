@@ -289,7 +289,7 @@ public class PedPathFinder {
 		Junction prev = startJunction;
 		boolean reachedEndJunction = false;
 		int i = 0;
-		while (reachedEndJunction == false) {
+		while ( (reachedEndJunction == false) & (path.size()>0) ) {
 			RepastEdge<Junction> e = path.get(i);
 			
 			Junction next = null;
