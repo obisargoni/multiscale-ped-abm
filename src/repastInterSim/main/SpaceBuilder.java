@@ -356,10 +356,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		ScheduleParameters removeMAgentScheduleParameters = ScheduleParameters.createRepeating(1, 1, ScheduleParameters.LAST_PRIORITY);
 		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
-	    // Stop adding agents to the simulation at 1500 ticks
+	    // Stop adding agents to the simulation at endTick ticks
 	    int endTick = 1000;
 	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
-	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingAgents");
+	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
 	    
 	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
@@ -374,11 +374,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * @param endTick
 	 * 		Number of ticks at which to stop adding mobile agents
 	 */
-	public void stopAddingAgents() {
+	public void stopAddingPedAgents() {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 
 		// Remove add agents methods from the scedule
-		schedule.removeAction(addVehicleAction);
 		schedule.removeAction(addPedAction);
 	}
 	
@@ -386,6 +385,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * End the simulation if there are no mobile agents in the context.
 	 */
 	public void endSimulation() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		
+		// First stop adding vehicle agents if no more pedestrian agents
+		if (context.getObjects(Ped.class).size()==0) {
+			schedule.removeAction(addVehicleAction);
+		}
+		
+		// Then if all agents have completed trips end simulation
 		if (context.getObjects(MobileAgent.class).size() == 0) {			
 			RunEnvironment.getInstance().endRun();
 		}
