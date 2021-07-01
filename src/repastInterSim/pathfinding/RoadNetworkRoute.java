@@ -336,33 +336,48 @@ public class RoadNetworkRoute implements Cacheable {
 		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
 		Junction startPaveJ = null;
 		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
-			this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
 			
-			// Set the current pavement junction to be that connected to the nearest pavement junction but at the other end of the starting road link
-			
-			// Get road junction that is not near to the pavement junction
-			Junction roadNode = currentRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
-			
-			startPaveJ = sameSideOppEndPavementJunction(pavementNetwork, currentPaveJ, roadNode);
+			// Check whether the road the Origin belongs to, curentRoad, connects with the start of the road link route
+			// If is does prefix the route with the currentRoad. This check is required to esure the links in the road link route form a path.
+			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(currentORJ.get(0))) {
+				if (re.equals(currentRoad.getEdge())) {
+					this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
+					
+					// Set the current pavement junction to be that connected to the nearest pavement junction but at the other end of the starting road link
+					
+					// Get road junction that is not near to the pavement junction
+					Junction roadNode = currentRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(currentPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
+					
+					startPaveJ = sameSideOppEndPavementJunction(pavementNetwork, currentPaveJ, roadNode);
+				}
+			}
 		}
-		else {
+		
+		if (startPaveJ==null){
 			startPaveJ = currentPaveJ;
 		}
 		
 		// Do the same for the end of the route
 		Junction endPaveJ = null;
 		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
-			this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
 			
-			// Update the dest pavement junction to be that connected to the nearest pavement junction but at the other end of the ending road link
-			
-			// Get road junction that is not near to the pavement junction
-			Junction roadNode = destRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
-			
-			// Find connecting pavement node that is associated with this road node
-			endPaveJ = sameSideOppEndPavementJunction(pavementNetwork, destPaveJ, roadNode);
+			// Again, add the destination road to the route if it connects to end junction
+			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(destORJ.get(0))) {
+				if (re.equals(destRoad.getEdge())) {
+					this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
+					
+					// Update the dest pavement junction to be that connected to the nearest pavement junction but at the other end of the ending road link
+					
+					// Get road junction that is not near to the pavement junction
+					Junction roadNode = destRoad.getJunctions().stream().filter(n -> !n.getFID().contentEquals(destPaveJ.getjuncNodeID())).collect(Collectors.toList()).get(0);
+					
+					// Find connecting pavement node that is associated with this road node
+					endPaveJ = sameSideOppEndPavementJunction(pavementNetwork, destPaveJ, roadNode);
+				}
+			}
 		}
-		else {
+		
+		if (endPaveJ==null) {
 			endPaveJ = destPaveJ;
 		}
 		
