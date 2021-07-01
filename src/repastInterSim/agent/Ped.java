@@ -131,23 +131,20 @@ public class Ped extends MobileAgent {
     public void step() throws Exception {        
     	
     	this.stepsSinceReachedTarget++;
+    	int nUpdates = 0;
     	
     	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
     	// its route coordinate because this involves removing coordinates from the route.
    		//decideYield();
-    	
-    	// If the ped has reached the end of its tactical path, this update will result in a null current junction
-    	// In this case need to update the tactical path
-    	Boolean tacticalCoordUpdateRequired = false;
-    	if(this.pathFinder.getTacticalPath().getCurrentJunction()==null) {
-    		tacticalCoordUpdateRequired = true;
-    	}
 
     	
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
-        	if (tacticalCoordUpdateRequired) {
+   			
+   			// If the current junction is null, tactical path needs to be updated. Using while enables handling empty tactical paths caused by issues with pavement network data
+        	while ( (this.pathFinder.getTacticalPath().getCurrentJunction()==null) & (nUpdates<2) ) {
         		pathFinder.updateTacticalPath();
+        		nUpdates++;
         	}
         	walk(pathFinder.getTacticalPath().getTargetCoordinate());
         	pathFinder.step();
@@ -160,8 +157,11 @@ public class Ped extends MobileAgent {
     		double distanceToCrossing = this.maLoc.distance(pathFinder.getNextCrossingCoord());
         	if (distanceToCrossing > 2) {
             	// Walk towards the next coordinate along the route
-            	if (tacticalCoordUpdateRequired) {
-            		pathFinder.updateTacticalPath();
+            	
+        		// If the current junction is null, tactical path needs to be updated. Using while enables handling empty tactical paths caused by issues with pavement network data
+        		while ( (this.pathFinder.getTacticalPath().getCurrentJunction()==null) & (nUpdates<2) ) {
+        			pathFinder.updateTacticalPath();
+        			nUpdates++;
             	}
             	walk(pathFinder.getTacticalPath().getTargetCoordinate());
             	pathFinder.step();
