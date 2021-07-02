@@ -10,6 +10,6 @@
     <string>RoadLinkID</string>
     <string>RoadLinksVehicleCount</string>
   </sourceIds>
-  <fileName>.\batch\model_run_data\vehicle_counts.txt</fileName>
+  <fileName>.\batch\model_run_data\vehicle_counts.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
