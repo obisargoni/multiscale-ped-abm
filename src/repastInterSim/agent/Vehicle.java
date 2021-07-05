@@ -27,7 +27,7 @@ public class Vehicle extends MobileAgent {
 	private double acc;
 	private double dmax;	    
 	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
-	private int queuePos;
+	private Integer queuePos;
 	private Route route;
 
 
@@ -55,12 +55,17 @@ public class Vehicle extends MobileAgent {
     	// Check that a route has been generated
     	if (this.route.getRouteX() == null) {
     		this.route.setRoute();
+    	}
+    	
+    	if (this.queuePos==null) {
+    		// Set queue pos. If no capacity on link will return null and vehicle will not be able to drive
     		this.setCurrentRoadLinkAndQueuePos(this.route.getRoadsX().get(0));
 		}
 
-		// Drive
-		drive();
-		// moveForward();
+		// Drive only if vehicle has been added to road link
+    	if(this.queuePos!=null) {
+    		drive();
+    	}
 	}
 	
 	/*
