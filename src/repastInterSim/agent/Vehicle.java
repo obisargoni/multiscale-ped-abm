@@ -87,6 +87,7 @@ public class Vehicle extends MobileAgent {
 		
 		// get the next coordinate along the route
 		double distanceTraveled = 0;
+		boolean isFinal = false;
 		
 		while (Double.compare(distanceToTravel, distanceTraveled) > 0) {
 			// Get next coordinate along the route
@@ -95,7 +96,7 @@ public class Vehicle extends MobileAgent {
 	        
 	        // Is this the final destination?
 	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
-	        boolean isFinal = (routeCoord.equals2D(destC));
+	        isFinal = (routeCoord.equals2D(destC));
 	        
 	        // Calculate the distance to this coordinate
 			double distToCoord = vehicleLoc.distance(routeCoord);
@@ -139,9 +140,6 @@ public class Vehicle extends MobileAgent {
 		        }
 		        else if (endCurrentLink & !progressedToNextLink) {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
-		        }
-		        else {
-		        	isFinal = false;
 		        }
 		        
 				// If vehicle can't go any further set distanceToTravel to zero
