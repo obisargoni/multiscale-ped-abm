@@ -119,26 +119,26 @@ public class Vehicle extends MobileAgent {
 				vehicleLoc = routeCoord;
 				
 				// If vehicle has moved distance such that it can enter the next road link, check if the next link has capacity and progress as appropriate
-				boolean endCurrentLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
-				boolean progressedToNextLink=false;
+				boolean routeCoordIsOnNextLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
+				boolean canProgressToNextLink=false;
 				Integer newQPos = null;
-		        if (endCurrentLink) {
+		        if (routeCoordIsOnNextLink) {
 		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
 		        	// If successfully added will return true
 		        	newQPos = nextRoadLink.addVehicleToQueue(this);
 		        	if (newQPos!=null) {
-		        		progressedToNextLink = true;
+		        		canProgressToNextLink = true;
 		        	}
 		        }
 				
 
-		        if (progressedToNextLink) {
+		        if (canProgressToNextLink) {
 		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
 		        	this.queuePos = newQPos;
 		        }
-		        else if (endCurrentLink & !progressedToNextLink) {
+		        else if (routeCoordIsOnNextLink & !canProgressToNextLink) {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
 		        }
 		        
@@ -153,7 +153,7 @@ public class Vehicle extends MobileAgent {
 					distanceToTravel-=distToCoord;
 				}
 				
-				if( (endCurrentLink==false) | (progressedToNextLink==true) ) {
+				if( (routeCoordIsOnNextLink==false) | (canProgressToNextLink==true) ) {
 					this.route.routeX.remove(routeCoord);
 					currentRoadLink = nextRoadLink;
 					this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
