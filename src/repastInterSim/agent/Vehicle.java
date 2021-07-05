@@ -92,6 +92,7 @@ public class Vehicle extends MobileAgent {
 		
 		// get the next coordinate along the route
 		double distanceTraveled = 0;
+		boolean isFinal = false;
 		
 		while (Double.compare(distanceToTravel, distanceTraveled) > 0) {
 			// Get next coordinate along the route
@@ -100,7 +101,7 @@ public class Vehicle extends MobileAgent {
 	        
 	        // Is this the final destination?
 	        Coordinate destC = this.destination.getGeom().getCentroid().getCoordinate();
-	        boolean isFinal = (routeCoord.equals2D(destC));
+	        isFinal = (routeCoord.equals2D(destC));
 	        
 	        // Calculate the distance to this coordinate
 			double distToCoord = vehicleLoc.distance(routeCoord);
@@ -123,30 +124,27 @@ public class Vehicle extends MobileAgent {
 				vehicleLoc = routeCoord;
 				
 				// If vehicle has moved distance such that it can enter the next road link, check if the next link has capacity and progress as appropriate
-				boolean endCurrentLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
-				boolean progressedToNextLink=false;
+				boolean routeCoordIsOnNextLink = !nextRoadLink.getFID().contentEquals(currentRoadLink.getFID()); 
+				boolean canProgressToNextLink=false;
 				Integer newQPos = null;
-		        if (endCurrentLink) {
+		        if (routeCoordIsOnNextLink) {
 		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
 		        	// If successfully added will return true
 		        	newQPos = nextRoadLink.addVehicleToQueue(this);
 		        	if (newQPos!=null) {
-		        		progressedToNextLink = true;
+		        		canProgressToNextLink = true;
 		        	}
 		        }
 				
 
-		        if (progressedToNextLink) {
+		        if (canProgressToNextLink) {
 		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
 		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
 		        	this.queuePos = newQPos;
 		        }
-		        else if (endCurrentLink & !progressedToNextLink) {
+		        else if (routeCoordIsOnNextLink & !canProgressToNextLink) {
 		        	isFinal = true; // If can't progress to next link must stop here, for now. Can resume next tick.
-		        }
-		        else {
-		        	isFinal = false;
 		        }
 		        
 				// If vehicle can't go any further set distanceToTravel to zero
@@ -160,7 +158,7 @@ public class Vehicle extends MobileAgent {
 					distanceToTravel-=distToCoord;
 				}
 				
-				if( (endCurrentLink==false) | (progressedToNextLink==true) ) {
+				if( (routeCoordIsOnNextLink==false) | (canProgressToNextLink==true) ) {
 					this.route.routeX.remove(routeCoord);
 					currentRoadLink = nextRoadLink;
 					this.route.getRoadsX().remove(0); // Every route coordinate has its corresponding road link added to roadsX. Removing a link doesn't necessarily mean the vehicle has progressed to the next link.
