@@ -7,13 +7,13 @@
 									
 		/>
 				<parameter name="addVehicleTicks" displayName="Ticks between vehicle creation" type="int" 
-						defaultValue="300" 
+						defaultValue="200" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="addPedTicks" displayName="Ticks between pedestrian creation" type="int" 
-						defaultValue="300" 
+						defaultValue="10" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
