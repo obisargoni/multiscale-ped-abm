@@ -348,14 +348,17 @@ public class Vehicle extends MobileAgent {
     
     /*
      * Gets the pedestrians on the current road link that are crossing the road.
+     * 
+     * Change this to get OR link from ITN link via SpaceBuilder lookups.
      */
     public List<Ped> getCrossingPedestrians() {
     	// Get peds on current road by getting the OR road link associated to the vehicle's current ITN road link
     	RoadLink currentITNLink = this.route.getRoadsX().get(0);
     	List<Ped> crossingPedsOnRoad = new ArrayList<Ped>();
-    	if(currentITNLink.getRoads().size()>0) {
-    		crossingPedsOnRoad = currentITNLink.getRoads().get(0).getORRoadLink().getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
-    	}
+    	
+    	// Get crossing peds via OR Link this ITN link is associated to
+    	RoadLink orLink = SpaceBuilder.itnToOR.get(currentITNLink);
+    	crossingPedsOnRoad = orLink.getPeds().stream().filter(p -> p.isCrossing()).collect(Collectors.toList());
     	return crossingPedsOnRoad;
     }
 
