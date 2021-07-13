@@ -20,10 +20,6 @@ public class Road implements FixedGeography, Serializable {
 	private Geometry geom;	
 	private String priority = ""; // Priority information comes from GIS data
 	
-	// Allows road agents to be joined with a particular RoadLink agent - ITN links and OR links
-	private List<RoadLink> roadLinks = null;
-	private RoadLink orRoadLink = null;
-	
 	
 	/*
 	 * Instance method
@@ -33,10 +29,6 @@ public class Road implements FixedGeography, Serializable {
 	
 	public Road(String pri) {
 		this.priority = pri;
-	}
-	
-	public List<RoadLink> getRoadLinks() {
-		return this.roadLinks;
 	}
 	
 	public void setPriority(String pri) {
@@ -62,17 +54,4 @@ public class Road implements FixedGeography, Serializable {
 	public String getRoadLinkID() {
 		return this.roadLinkID;
 	}
-
-	public void setRoadLinks(List<RoadLink> rLs) {
-		this.roadLinks = rLs;
-	}
-	
-	public void setORRoadLink(RoadLink orRL) {
-		this.orRoadLink = orRL;
-	}
-	
-	public RoadLink getORRoadLink() {
-		return this.orRoadLink;
-	}
-
 }
