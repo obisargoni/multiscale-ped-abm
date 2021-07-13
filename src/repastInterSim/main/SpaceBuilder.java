@@ -106,8 +106,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Network<Junction> pavementNetwork;
 	
 	// Lookups between or and itn road links
-	public static HashMap<RoadLink, List<RoadLink>> orToITN;
-	public static HashMap<RoadLink, RoadLink> itnToOR;	
+	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
+	public static HashMap<RoadLink, RoadLink> itnToOR = new HashMap<RoadLink, RoadLink>();
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
