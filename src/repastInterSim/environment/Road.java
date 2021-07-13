@@ -35,30 +35,6 @@ public class Road implements FixedGeography, Serializable {
 		this.priority = pri;
 	}
 	
-	public int getRoadLinksVehicleCount() {
-		int count = 0;
-		for(RoadLink rl:getRoadLinks()) {
-			count += rl.getVehicleCount();
-		}
-		return count;
-	}
-	
-	/**
-	 * Estimate number of leader vehicles by increasing count by one for each road link with
-	 * a non-zero vehicle count. If a road link has a non-zero vehicle count then it has a leader vehicle
-	 * @return
-	 * 		Count of leader vehicles
-	 */
-	public int getNumberLeadVehicles() {
-		int leaderCount = 0;
-		for(RoadLink rl: getRoadLinks()) {
-			if(rl.getVehicleCount() > 0) {
-				leaderCount++;
-			}
-		}
-		return leaderCount;
-	}
-	
 	public List<RoadLink> getRoadLinks() {
 		return this.roadLinks;
 	}

@@ -10,6 +10,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
@@ -100,7 +101,16 @@ class TestCrossingAlternative {
 		}
 		
 		// Check that vehicle is still on road but that vehicle flow passing through crossing has fallen to zero
-		assert uc.getRoad().getRoadLinksVehicleCount()>0;
+		int count = 0;
+		for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+			if(orRL.getFID().contentEquals(uc.getRoadLinkID())) {
+				List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(orRL);
+				for (int i=0; i<itnLinks.size(); i++) {
+					count += itnLinks.get(i).getVehicleCount();
+				}
+			}
+		}
+		assert count>0;
 		assert uc.getvFlow()==0;
 		
 	}
