@@ -283,30 +283,24 @@ public class EnvironmentSetup {
 	 * Code taken from SpaceBuilder that connects Roads with Road Links and visa versa.
 	 */
 	static void assocaiteRoadsWithRoadLinks() {
-		// Link road with itn and OR road links
-		// Also assigns the Road objects to the road links. This enables lookups between OR and ITN road links, through the road objects.
-		for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
-			List<RoadLink> roadLinks = new ArrayList<RoadLink>();
-			for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
-				// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
-				if (rl.getPedRLID().contentEquals(r.getRoadLinkID())) {
-					roadLinks.add(rl);
-					rl.getRoads().add(r);
+		// Create lookups from OR road links to ITN links and visa versa
+		for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+			List<RoadLink> itnLinks = new ArrayList<RoadLink>();
+			
+			for(RoadLink itnLink: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+				if (itnLink.getPedRLID().contentEquals(orRL.getFID())) {
+					SpaceBuilder.itnToOR.put(itnLink, orRL);
+					itnLinks.add(itnLink);
 				}
 			}
+			SpaceBuilder.orToITN.put(orRL, itnLinks);
 			
-			RoadLink orLink = null;
-			for(RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
-				// Iterating over the vehicle road links (ITN) but using their corresponding ped road link (open road) id to check whether they belong to this vehicle polygon
-				if (rl.getFID().contentEquals(r.getRoadLinkID())) {
-					orLink = rl;
-					orLink.getRoads().add(r);
-					break;
+			// Also assign Road objects to OR road links, so pedestrians can identify pavement polygons nearby.
+			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
+				if(r.getRoadLinkID().contentEquals(orRL.getFID())) {
+					orRL.getRoads().add(r);
 				}
 			}
-			
-			r.setRoadLinks(roadLinks);
-			r.setORRoadLink(orLink);
 		}
 	}
 	
