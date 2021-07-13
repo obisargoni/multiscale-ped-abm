@@ -268,7 +268,7 @@ class GISFunctionsTest {
 		SpaceBuilder.pedestrianDestinationGeography.getAllObjects().iterator().forEachRemaining(ods::add);
 		Coordinate o = ods.get(0).getGeom().getCoordinate();
 		
-		String roadLinkID = "osgb4000000030238946";
+		String roadLinkID = "A8675945-DE94-4E22-9905-B0623A326221_0";
 		
 		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
@@ -305,7 +305,7 @@ class GISFunctionsTest {
 		SpaceBuilder.pedestrianDestinationGeography.getAllObjects().iterator().forEachRemaining(ods::add);
 		Coordinate o = ods.get(0).getGeom().getCoordinate();
 		
-		String roadLinkID = "osgb4000000030238946";
+		String roadLinkID = "A8675945-DE94-4E22-9905-B0623A326221_0";
 		
 		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		

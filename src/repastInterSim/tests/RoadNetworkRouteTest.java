@@ -438,8 +438,9 @@ public class RoadNetworkRouteTest {
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
 		File serialisedLoc = new File(TestDataDir + "road_link_roads_cache.serialised");
 		
-		String roadLinkID = "osgb4000000030343774";
 		
+		// Road link pedestrian roads cache requires OR link id
+		String roadLinkID = "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0";
 		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
@@ -459,9 +460,8 @@ public class RoadNetworkRouteTest {
 		File pedestrianRoadsFile = new File(TestDataDir + "topographicAreaPedestrian.shp");
 		File serialisedLoc = new File(TestDataDir + "road_link_roads_cache.serialised");
 		
-		String roadLinkID = "osgb4000000030343774";
-		
-		
+		// Road link pedestrian roads cache requires OR link id
+		String roadLinkID = "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0";
 		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
