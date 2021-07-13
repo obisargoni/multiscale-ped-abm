@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -104,6 +105,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<RoadLink> pavementLinkGeography;
 	public static Network<Junction> pavementNetwork;
 	
+	// Lookups between or and itn road links
+	public static HashMap<RoadLink, List<RoadLink>> orToITN;
+	public static HashMap<RoadLink, RoadLink> itnToOR;	
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
@@ -277,8 +281,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.readShapefile(Road.class, pedestrianRoadFile, roadGeography, roadContext);
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
 			
-			// Link road with itn and OR road links
-			// Also assigns the Road objects to the road links. This enables lookups between OR and ITN road links, through the road objects.
+			// Create lookups from OR road links to ITN links and visa versa
+			for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+				List<RoadLink> itnLinks = new ArrayList<RoadLink>();
+				
+				for(RoadLink itnLink: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+					if (itnLink.getPedRLID().contentEquals(orRL.getFID())) {
+						SpaceBuilder.itnToOR.put(itnLink, orRL);
+						itnLinks.add(itnLink);
+					}
+				}
+				SpaceBuilder.orToITN.put(orRL, itnLinks);
+				
+				// Also assign Road objects to OR road links, so pedestrians can identify pavement polygons nearby.
+				for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
+					if(r.getRoadLinkID().contentEquals(orRL.getFID())) {
+						orRL.getRoads().add(r);
+					}
+				}
+			}
+			
+			/*
+			// Also assign the Road objects to the ITN and OR links.
 			for (Road r: SpaceBuilder.roadGeography.getAllObjects()) {
 				List<RoadLink> roadLinks = new ArrayList<RoadLink>();
 				for(RoadLink rl: SpaceBuilder.roadLinkGeography.getAllObjects()) {
@@ -298,10 +322,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 						break;
 					}
 				}
-				
-				r.setRoadLinks(roadLinks);
-				r.setORRoadLink(orLink);
 			}
+			*/
 						
 			// 3. Load pedestrian obstruction boundaries
 			String pedObstructionFile = GISDataDir + IO.getProperty("PedestrianObstructionShapefile");
