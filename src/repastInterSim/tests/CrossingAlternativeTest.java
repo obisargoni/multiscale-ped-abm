@@ -261,7 +261,7 @@ class CrossingAlternativeTest {
 			e.printStackTrace();
 		}
 		
-		Coordinate pedLoc = new Coordinate(530675.6, 180764.7);
+		Coordinate pedLoc = new Coordinate(530669.1, 180776.85);
 		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
 		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, false, pedLoc, bearing);
 		
@@ -272,7 +272,7 @@ class CrossingAlternativeTest {
 		Coordinate c2 = caU.getC2();
 		
 		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
-		assert c2.equals2D(new Coordinate(530667.777913176, 180760.54451637474));
+		assert c2.equals2D(new Coordinate(530661.25, 180772.85));
 		
 	}
 	
