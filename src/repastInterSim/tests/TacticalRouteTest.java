@@ -146,6 +146,7 @@ class TacticalRouteTest {
 			EnvironmentSetup.setUpPedJunctions();
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
 			EnvironmentSetup.setUpPavementNetwork();
+			EnvironmentSetup.setUpPedObstructions();
 			
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.setUpPedODs();
