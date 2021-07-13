@@ -67,8 +67,9 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		
 		// Loop through vehicles on the road links this crossing covers, count the number that will pass crossing point in crossing time
 		int vehicleCount = 0;
-		for (int i=0; i<this.getRoad().getRoadLinks().size(); i++){
-			RoadLink rl = this.getRoad().getRoadLinks().get(i);
+		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
+		for (int i=0; i<itnLinks.size(); i++){
+			RoadLink rl = itnLinks.get(i);
 			for(int j = 0; j<rl.getQueue().count(); j++){
 				int vi = rl.getQueue().readPos() + j;
 				if (vi>=rl.getQueue().capacity()) {
@@ -105,6 +106,20 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
+	 * Get the OR Road Link this crossing is assocaiated with by selecting the current link in the pedestrian's
+	 * route
+	 */
+	public RoadLink currentORLink() {
+		return this.ped.getPathFinder().getStrategicPath().get(0);
+	}
+	
+	public List<RoadLink> getCurrentVehicleRoadLinks() {
+		RoadLink orLink = this.currentORLink();
+		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(orLink);
+		return itnLinks;
+	}
+	
+	/*
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
 	 * Used to identify the end point of unmarked crossing alternatives.
 	 * 
@@ -128,7 +143,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		
 		// Identify geometries that demark the edge of the road. First try pedestrian pavement polygons. Failing that try obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		List<Road> caPedRoads = this.currentORLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
 		if (caPedRoads.size()==0) {
 			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
 			roadEdgeGeoms = SpatialIndexManager.searchGeoms(poG, nearby);
@@ -251,7 +266,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		
 		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.getRoad().getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		List<Road> caPedRoads = this.currentORLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
 		for (Road rd: caPedRoads) {
 			roadEdgeGeoms.add(rd.getGeom());
 		}
