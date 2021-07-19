@@ -393,15 +393,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	}
 	
 	/**
-	 * Stop adding mobile agents to the context after a certain number of ticks
-	 * @param endTick
-	 * 		Number of ticks at which to stop adding mobile agents
+	 * Stop adding Ped agents to the simulation
 	 */
 	public void stopAddingPedAgents() {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 
 		// Remove add agents methods from the scedule
-		schedule.removeAction(addPedAction);
+		boolean success = schedule.removeAction(addPedAction);
+		
+		// if action not removed, reschedule this method for the following tick
+		if (success==false) {
+		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
+		}
 	}
 	
 	/**
