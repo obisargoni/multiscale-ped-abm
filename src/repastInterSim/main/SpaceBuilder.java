@@ -370,8 +370,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    addVehicleAction = schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
+	    int startPedsTick = 3*addVehicleTicks; // Add peds to model after three round of adding vehicles.
 		int  addPedTicks = params.getInteger("addPedTicks");
-	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(1,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(startPedsTick,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
 	    // Schedule method that removes agents
@@ -379,7 +380,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
 	    // Stop adding agents to the simulation at endTick ticks
-	    int endTick = 1000;
+	    int endTick = startPedsTick + 1000;
 	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
 	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
 	    
