@@ -409,14 +409,31 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	}
 	
 	/**
+	 * Stop adding Vehicle agents to the simulation
+	 */
+	public void stopAddingVehicleAgents() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+
+		// Remove add agents methods from the scedule
+		boolean success = schedule.removeAction(addVehicleAction);
+		
+		// if action not removed, reschedule this method for the following tick
+		if (success==false) {
+		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingVehicleAgents");
+		}
+	}
+	
+	
+	
+	/**
 	 * End the simulation if there are no mobile agents in the context.
 	 */
 	public void endSimulation() {
-		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		
 		// First stop adding vehicle agents if no more pedestrian agents
 		if (context.getObjects(Ped.class).size()==0) {
-			schedule.removeAction(addVehicleAction);
+			stopAddingVehicleAgents();
 		}
 		
 		// Then if all agents have completed trips end simulation
