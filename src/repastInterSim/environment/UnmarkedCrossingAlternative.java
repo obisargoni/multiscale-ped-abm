@@ -101,10 +101,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		return this.ped.getPathFinder().getStrategicPath().get(0).getFID();
 	}
 	
-	public Road getRoad() {
-		return this.ped.getCurrentRoad();
-	}
-	
 	/*
 	 * Get the OR Road Link this crossing is assocaiated with by selecting the current link in the pedestrian's
 	 * route
