@@ -1,7 +1,7 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
   <name>Vehicle Counts</name>
   <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.environment.Road</sourceType>
+  <sourceType>repastInterSim.environment.RoadLink</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>true</inclRandomSeed>
@@ -17,19 +17,19 @@
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
     <entry>
-      <string>RoadLinkID</string>
+      <string>FID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>RoadLinkID</id>
-        <className>repastInterSim.environment.Road</className>
-        <methodName>getRoadLinkID</methodName>
+        <id>FID</id>
+        <className>repastInterSim.environment.RoadLink</className>
+        <methodName>getFID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>RoadLinksVehicleCount</string>
+      <string>VehicleCount</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>RoadLinksVehicleCount</id>
-        <className>repastInterSim.environment.Road</className>
-        <methodName>getRoadLinksVehicleCount</methodName>
+        <id>VehicleCount</id>
+        <className>repastInterSim.environment.RoadLink</className>
+        <methodName>getVehicleCount</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

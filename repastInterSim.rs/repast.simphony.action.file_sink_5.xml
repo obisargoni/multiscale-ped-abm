@@ -7,8 +7,8 @@
     <string>run</string>
     <string>tick</string>
     <string>random_seed</string>
-    <string>RoadLinkID</string>
-    <string>RoadLinksVehicleCount</string>
+    <string>FID</string>
+    <string>VehicleCount</string>
   </sourceIds>
   <fileName>.\batch\model_run_data\vehicle_counts.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
