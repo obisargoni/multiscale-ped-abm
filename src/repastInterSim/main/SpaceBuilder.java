@@ -108,6 +108,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	// Lookups between or and itn road links
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
 	public static HashMap<RoadLink, RoadLink> itnToOR = new HashMap<RoadLink, RoadLink>();
+	public static HashMap<Junction, List<Junction>> orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 	
 	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
 	
@@ -263,6 +264,18 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			pavementBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			pavementNetwork = pavementBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
+			
+			// Create lookup from OR road junctions to pavement junctions
+			for (Junction orJ : SpaceBuilder.orJunctionGeography.getAllObjects()) {
+				if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
+					SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
+				}
+				for (Junction paveJ : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+					if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
+						SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
+					}
+				}
+			}
 			
 			
 			// Build the fixed environment

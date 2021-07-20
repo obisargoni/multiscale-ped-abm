@@ -302,6 +302,18 @@ public class EnvironmentSetup {
 				}
 			}
 		}
+		
+		// Create lookup from OR road junctions to pavement junctions
+		for (Junction orJ : SpaceBuilder.orJunctionGeography.getAllObjects()) {
+			if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
+				SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
+			}
+			for (Junction paveJ : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+				if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
+					SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
+				}
+			}
+		}
 	}
 	
 	static Vehicle createVehicle(OD o, OD d) {
