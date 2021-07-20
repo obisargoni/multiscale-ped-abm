@@ -768,16 +768,9 @@ public class RoadNetworkRoute implements Cacheable {
 	}
 	
 	/*
-	 * Method to calculate the route parity. The parity relates to the topology of the road network route in
-	 * relation to the start and end points. Considering the road network route as a path that divides the space,
-	 * even parity means the origin and destination are in the same region, odd parity means they are in different regions.
-	 * 
-	 * This is calculated by counting the number of times a straight line from the origin to the destination intersects the road
-	 * network path.
+	 * Method to calculate the number of times a line between two coordinates intersects road links.
 	 */
-	public static int calculateRouteParity(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {
-		int p;
-		
+	public static int calculateNRouteIntersections(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {		
 		// Create linestring connecting origin to destination
 		Coordinate[] odCoords = {o, d};
 		LineString ODLine = GISFunctions.lineStringGeometryFromCoordinates(odCoords);
@@ -793,6 +786,23 @@ public class RoadNetworkRoute implements Cacheable {
 				
 		// Count number of intersections
 		int nIntersections = GISFunctions.calculateNIntersectionCoords(ODLineGeom, rlGeoms);
+
+		return nIntersections;
+	}
+	
+	/*
+	 * Method to calculate the route parity. The parity relates to the topology of the road network route in
+	 * relation to the start and end points. Considering the road network route as a path that divides the space,
+	 * even parity means the origin and destination are in the same region, odd parity means they are in different regions.
+	 * 
+	 * This is calculated by counting the number of times a straight line from the origin to the destination intersects the road
+	 * network path.
+	 */
+	public static int calculateRouteParity(Coordinate o, Coordinate d, List<RoadLink> roadLinkRoute) {
+		int p;
+		
+		// Count number of intersections
+		int nIntersections = calculateNRouteIntersections(o, d, roadLinkRoute);
 
 		p = nIntersections % 2;
 		return p;
