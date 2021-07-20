@@ -339,8 +339,35 @@ public class RoadNetworkRoute implements Cacheable {
 		setRoadLinkRoute(currentORJ, destORJ);
 		
 		// If no roads in path this means start and end pavement junction are on the same link. Add current road to route manually
+		Junction startORJ = null;
+		Junction endORJ = null;
+		
 		if(this.roadsX.size()==0) {
 			this.addToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "current road manually added");
+		}
+		
+		if (currentRoad.getFID().contentEquals(destRoad.getFID())) {			
+			// Identify the road junctions that bookend the route by checking distance to start coord
+			double dSource = currentCoord.distance(currentRoad.getEdge().getSource().getGeom().getCoordinate());
+			double dTarget = currentCoord.distance(currentRoad.getEdge().getTarget().getGeom().getCoordinate());
+			
+			if (dSource < dTarget) {
+				startORJ = currentRoad.getEdge().getSource();
+				endORJ = currentRoad.getEdge().getTarget();
+			}
+			else {
+				startORJ = currentRoad.getEdge().getTarget();
+				endORJ = currentRoad.getEdge().getSource();
+			}			
+		}
+		else {
+			// In this case identify junctions the bookend route by finding which junction is not in the route end points
+
+			// Find the OR junctions the pedestrian agent walks away from to start its route, and the junction that it walks to at the end of the route (the other junction connected to its current road link)
+			startORJ = currentORJ.stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[0].getFID())).collect(Collectors.toList()).get(0);
+			
+			// Repeat with the end OR junction to find the end pavement junction
+			endORJ = destORJ.stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[1].getFID())).collect(Collectors.toList()).get(0);
 		}
 		
 		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
