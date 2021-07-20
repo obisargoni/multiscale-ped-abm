@@ -325,38 +325,64 @@ public class RoadNetworkRoute implements Cacheable {
 			
 		setRoadLinkRoute(currentORJ, destORJ);
 		
-		// If no roads in path this means start and end pavement junction are on the same link. Add current road to route manually
+		if(this.roadsX.size()==0) {
+			this.addToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "current road manually added");
+		}
+		
+		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
+		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
+			
+			// Check whether the road the Origin belongs to, curentRoad, connects with the start of the road link route
+			// If is does prefix the route with the currentRoad. This check is required to esure the links in the road link route form a path.
+			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(currentORJ.get(0))) {
+				if (re.equals(currentRoad.getEdge())) {
+					this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
+				}
+			}
+		}
+		
+		// Do the same for the end of the route
+		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
+			
+			// Again, add the destination road to the route if it connects to end junction
+			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(destORJ.get(0))) {
+				if (re.equals(destRoad.getEdge())) {
+					this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
+				}
+			}
+		}
+		
+		// Now that road link route is set, identify start and end pavement junctions
 		Junction startPaveJ = null;
 		Junction endPaveJ = null;
 		Junction startORJ = null;
 		Junction endORJ = null;
 		
-		if(this.roadsX.size()==0) {
-			this.addToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "current road manually added");
-		}
+		RoadLink startRoad = this.roadsX.get(0);
+		RoadLink endRoad = this.roadsX.get(this.roadsX.size()-1);
 		
-		if (currentRoad.getFID().contentEquals(destRoad.getFID())) {			
+		if (startRoad.getFID().contentEquals(endRoad.getFID())) {			
 			// Identify the road junctions that bookend the route by checking distance to start coord
-			double dSource = currentCoord.distance(currentRoad.getEdge().getSource().getGeom().getCoordinate());
-			double dTarget = currentCoord.distance(currentRoad.getEdge().getTarget().getGeom().getCoordinate());
+			double dSource = currentCoord.distance(startRoad.getEdge().getSource().getGeom().getCoordinate());
+			double dTarget = currentCoord.distance(startRoad.getEdge().getTarget().getGeom().getCoordinate());
 			
 			if (dSource < dTarget) {
-				startORJ = currentRoad.getEdge().getSource();
-				endORJ = currentRoad.getEdge().getTarget();
+				startORJ = startRoad.getEdge().getSource();
+				endORJ = startRoad.getEdge().getTarget();
 			}
 			else {
-				startORJ = currentRoad.getEdge().getTarget();
-				endORJ = currentRoad.getEdge().getSource();
+				startORJ = startRoad.getEdge().getTarget();
+				endORJ = startRoad.getEdge().getSource();
 			}			
 		}
 		else {
 			// In this case identify junctions the bookend route by finding which junction is not in the route end points
 
 			// Find the OR junctions the pedestrian agent walks away from to start its route, and the junction that it walks to at the end of the route (the other junction connected to its current road link)
-			startORJ = currentORJ.stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[0].getFID())).collect(Collectors.toList()).get(0);
+			startORJ = startRoad.getJunctions().stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[0].getFID())).collect(Collectors.toList()).get(0);
 			
 			// Repeat with the end OR junction to find the end pavement junction
-			endORJ = destORJ.stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[1].getFID())).collect(Collectors.toList()).get(0);
+			endORJ = endRoad.getJunctions().stream().filter(j -> !j.getFID().contentEquals(this.routeEndpoints[1].getFID())).collect(Collectors.toList()).get(0);
 		}
 		
 		// Use these bookend junctions to find the starting pavement junction - the pavement junction the agent is walking away from
@@ -380,29 +406,6 @@ public class RoadNetworkRoute implements Cacheable {
 				if (nIntersections==0) {
 					// Junction is on the same side of the road as the agent, set as start junction
 					endPaveJ = j;
-				}
-			}
-		}
-		
-		// Now check whether the links the origin and destination lie on are included in the route and if not add them in
-		if (!this.roadsX.get(0).getFID().contentEquals(currentRoad.getFID())) {
-			
-			// Check whether the road the Origin belongs to, curentRoad, connects with the start of the road link route
-			// If is does prefix the route with the currentRoad. This check is required to esure the links in the road link route form a path.
-			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(currentORJ.get(0))) {
-				if (re.equals(currentRoad.getEdge())) {
-					this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
-				}
-			}
-		}
-		
-		// Do the same for the end of the route
-		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
-			
-			// Again, add the destination road to the route if it connects to end junction
-			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(destORJ.get(0))) {
-				if (re.equals(destRoad.getEdge())) {
-					this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
 				}
 			}
 		}
