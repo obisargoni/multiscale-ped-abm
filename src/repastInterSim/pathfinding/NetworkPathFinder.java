@@ -20,6 +20,7 @@ import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.jgrapht.graph.builder.GraphTypeBuilder;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
+import edu.uci.ics.jung.algorithms.filters.EdgePredicateFilter;
 import edu.uci.ics.jung.algorithms.filters.FilterUtils;
 import edu.uci.ics.jung.algorithms.filters.VertexPredicateFilter;
 import edu.uci.ics.jung.graph.Graph;
@@ -529,6 +530,13 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 		public void filterGraph(Predicate<T> verticesFilter) {
 			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
 			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
+			this.graph = filter.transform(g);
+			calc = true;
+		}
+		
+		public void filterGraphByEdges(Predicate<RepastEdge<T>> edgesFilter) {
+			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+			EdgePredicateFilter<T,RepastEdge<T>> filter = new EdgePredicateFilter<T,RepastEdge<T>>(edgesFilter);
 			this.graph = filter.transform(g);
 			calc = true;
 		}
