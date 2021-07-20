@@ -154,9 +154,9 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			return stackPaths;
 		}
 		
-		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, Collection<T> targetNodes, Predicate<T> nodeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
+		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, Collection<T> targetNodes, Predicate<RepastEdge<T>> edgeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
 			// Filter graph and convert to JgraphT graph
-			this.filterGraph(nodeFilter);
+			this.filterGraphByEdges(edgeFilter);
 			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
 			
 			// convert to weighted graph with the weights given by the transformer

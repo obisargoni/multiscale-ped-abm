@@ -181,18 +181,41 @@ public class PedPathFinder {
 		
 		// Get filter to use for selecting pavement network nodes that lie in the planning horizon only
 		List<Junction> horizonStrategicNodes = new ArrayList<Junction>();
+		List<RepastEdge<Junction>> horizonTacticalEdges = new ArrayList<RepastEdge<Junction>>();
 		for( int i=0; i<nTL; i++ ) {
 			sP.get(i).getJunctions().stream().forEach(horizonStrategicNodes::add);
+			
+			List<Junction> orLinkJunctions = sP.get(i).getJunctions();
+			
+			List<Junction> roadLinkPaveJuncs = new ArrayList<Junction>();
+			SpaceBuilder.orJuncToPaveJunc.get(orLinkJunctions.get(0)).stream().forEach(roadLinkPaveJuncs::add);
+			SpaceBuilder.orJuncToPaveJunc.get(orLinkJunctions.get(1)).stream().forEach(roadLinkPaveJuncs::add);
+			
+			for (Junction paveJA: roadLinkPaveJuncs) {
+				for (Junction paveJB: roadLinkPaveJuncs) {
+					RepastEdge<Junction> paveEdge = pavementNetwork.getEdge(paveJA, paveJB);
+					if (paveEdge != null) {
+						horizonTacticalEdges.add(paveEdge);
+					}
+				}
+			}
 		}
 		
 		Predicate<Junction> tacticalFilter = j -> horizonStrategicNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		Predicate<RepastEdge<Junction>> tacticalEdgeFilter = e -> horizonTacticalEdges.stream().anyMatch( n -> n.equals(e));
 						
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalFilter, currentJ, endJunctions, heuristic1, heuristic2);
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalEdgeFilter, currentJ, endJunctions, heuristic1, heuristic2);
 		
-		// Create tactical alternative from this path		
-		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-		tr.updateTargetCoordiante();
+		// Create tactical alternative from this path
+		TacticalRoute tr = null;
+		try {
+			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+			tr.updateTargetCoordiante();
+		} catch (Exception e) {
+			e.printStackTrace();
+			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+		}
 
 		return tr;
 	}
@@ -217,7 +240,7 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<Junction> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<RepastEdge<Junction>> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, filter, heuristic1);
 		
