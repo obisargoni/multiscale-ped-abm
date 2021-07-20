@@ -320,25 +320,14 @@ public class RoadNetworkRoute implements Cacheable {
 		}
 		
 		
-		List<Junction> currentORJ = new ArrayList<Junction>();
-		List<Junction> destORJ = new ArrayList<Junction>();
-		
-		// Loop through road junction geography to select start and end road nodes
-		for (Junction rJ: SpaceBuilder.orJunctionGeography.getAllObjects()) {
-			if(rJ.getFID().contentEquals(currentPaveJ.getjuncNodeID())) {
-				currentORJ.add(rJ);
-			}
-			if(rJ.getFID().contentEquals(destPaveJ.getjuncNodeID())) {
-				destORJ.add(rJ);
-			}
-		}
-		
-		assert currentORJ.size() == 1;
-		assert destORJ.size() == 1;
+		List<Junction> currentORJ = currentRoad.getJunctions();
+		List<Junction> destORJ = destRoad.getJunctions();
 			
 		setRoadLinkRoute(currentORJ, destORJ);
 		
 		// If no roads in path this means start and end pavement junction are on the same link. Add current road to route manually
+		Junction startPaveJ = null;
+		Junction endPaveJ = null;
 		Junction startORJ = null;
 		Junction endORJ = null;
 		
