@@ -72,3 +72,4 @@ hs_err_pid*
 /scripts/gis_data_processing/config.json
 /scripts/gis_data_processing/cache/*
 /scripts/__pycache__/*
+/scripts/config.json
