@@ -918,6 +918,14 @@ public class Ped extends MobileAgent {
     	return this.currentPavementLinkID;
     }
     
+    public String getStartPavementJunctionID() {
+    	return this.pathFinder.getStartPavementJunction().getFID();
+    }
+    
+    public String getDestPavementJunctionID() {
+    	return this.pathFinder.getDestPavementJunction().getFID();
+    }
+    
     public String getCrossingCoordsString() {
     	String ccString = "";
     	for (Coordinate c: this.pathFinder.getTacticalPath().getAccumulatorRoute().getCrossingCoordinates()) {
