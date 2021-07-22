@@ -56,6 +56,22 @@
         <methodName>getCurrentPavementLinkID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
+    <entry>
+      <string>StartPavementJunctionID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>StartPavementJunctionID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getStartPavementJunctionID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>DestPavementJunctionID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>DestPavementJunctionID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getDestPavementJunctionID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
   </methodDataSources>
   <countSources class="linked-hash-map"/>
   <customNADataSources class="linked-hash-map"/>
