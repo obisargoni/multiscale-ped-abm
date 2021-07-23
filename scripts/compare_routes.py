@@ -63,11 +63,11 @@ gdfORLinks = gpd.read_file(or_links_file)
 gdfORNodes = gpd.read_file(or_nodes_file)
 
 # Get networkx graph and node positions
-G = nx.Graph()
+pavement_graph = nx.Graph()
 gdfPaveLinks['length'] = gdfPaveLinks['geometry'].length
-edges = gdfPaveLinks.loc[:, ['MNodeFID', 'PNodeFID', 'length']].values
-fids = gdfPaveLinks['fid'].values
-G.add_weighted_edges_from(edges, weight = 'length', fid=fids)
+gdfPaveLinks['edge_data'] = gdfPaveLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
+edges = gdfPaveLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
+pavement_graph.add_edges_from(edges)
 
 # Using the geographical coordinates of the nodes when plotting them
 points_pos = gdfPaveNodes.set_index('fid')
@@ -102,9 +102,6 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
             if e[-1]['fid'] == e_id:
                 edge_path.append(e[:2])
 
-    g_sub = nx.edge_subgraph(pavement_graph, edge_path)
-    dfDegree = pd.DataFrame(nx.degree(g_sub))
-
     # Work way backwards through edges to reconstruct path
     node_path = [end_node]
     prev = end_node
@@ -127,7 +124,49 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
         if prev == start_node:
             break
 
+    # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
+    # In this case return null
+    if len(node_path)==1:
+        return None
+
     return node_path[::-1]
+
+def get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes):
+    filter_pavement_edges = []
+    for or_link in strategic_path:
+        or_nodes = gdfORLinks.loc[ gdfORLinks['fid'] == or_link, ['MNodeFID', 'PNodeFID']].values[0]
+
+        pavement_nodes = gdfPaveNodes.loc[ gdfPaveNodes['juncNodeID'].isin(or_nodes), 'fid'].values
+
+        # Now get edges
+        for u, v in itertools.product(pavement_nodes, pavement_nodes):
+            try:
+                e_id = pavement_graph[u][v]['fid']
+                filter_pavement_edges.append((u,v))
+            except KeyError:
+                pass
+    return filter_pavement_edges
+
+def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = 'length'):
+
+    filter_pavement_edges = get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes)
+
+    sub_pavement_graph = nx.edge_subgraph(pavement_graph, filter_pavement_edges)
+
+    try:
+        dijkstra_path = nx.dijkstra_path(sub_pavement_graph, start_node, end_node, weight = weight)
+    except nx.exception.NodeNotFound as e:
+        print(start_node, end_node, strategic_path)
+        return None
+
+    return dijkstra_path
+
+def compare_node_paths(npa, npb, dict_node_pos, distance_function = sim.frechet_dist):
+    pos_a = [dict_node_pos[i] for i in npa]
+    pos_b = [dict_node_pos[i] for i in npb]
+
+    d = distance_function(pos_a, pos_b)
+    return d
 
 
 ######################################
@@ -140,12 +179,20 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
 
 # Function to get edge route from data
 dfPedRoutes = dfPedCrossings.groupby(['run', 'ID'])['CurrentPavementLinkID'].apply(lambda s: list(s.unique())).reset_index()
-dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
-
-dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on = ['run', 'ID'])
 dfPedRoutes.rename(columns = {'CurrentPavementLinkID':'edge_path'}, inplace=True)
 
+# Get strategic path link list. First check that there is a single strategic path per run-ped
+assert (dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().shape[0]).value_counts().index == 1).all()
+dfPedStratPaths = dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().values[0].split(':')[1:]).reset_index()
+dfPedRoutes = pd.merge(dfPedRoutes, dfPedStratPaths, on = ['run', 'ID'])
+
+dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
+dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on = ['run', 'ID'])
+
+
 dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
+
+dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 
 ######################################
 #
@@ -156,6 +203,9 @@ dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_pat
 ######################################
 dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['StartPavementJunctionID'], row['DestPavementJunctionID'], weight = 'length'), axis=1)
 
+# Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
+# For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
+dfPedRoutes['dist_sp_filter'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['StartPavementJunctionID'], row['DestPavementJunctionID'], weight = 'length'), axis=1)
 
 ######################################
 #
@@ -164,3 +214,13 @@ dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement
 #
 #
 ######################################
+dfPedRoutes['frechet_distance'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['dist_sp_filter'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
+
+dfFrechet = dfPedRoutes.groupby('run')['frechet_distance'].describe()
+dfFrechet = pd.merge(dfFrechet, dfRun, left_index = True, right_on = 'run')
+dfFrechet.loc[:, ['tacticalPlanHorizon', 'mean','50%','max']].sort_values(by = 'tacticalPlanHorizon')
+
+
+# In some cases the first pavement edge does not get included in the data. I think due to the ped origin being v close to pavement junction
+# In this case need to alter what the start node is
+# So if node path doesn't include start node, calculate alternative path using first node in path.
