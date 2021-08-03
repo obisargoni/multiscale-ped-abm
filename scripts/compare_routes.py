@@ -209,7 +209,6 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on =
 
 
 dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
-
 dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 
 ######################################
@@ -219,7 +218,19 @@ dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 #
 #
 ######################################
-dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['StartPavementJunctionID'], row['DestPavementJunctionID'], weight = 'length'), axis=1)
+
+# In some cases the first pavement edge does not get included in the data. I think due to the ped origin being v close to pavement junction
+# In this case need to alter what the start node is
+# So if node path doesn't include start node, calculate alternative path using first node in path.
+
+# Check this by identifying ped where start node not in node path and seeing if these have high frechet distance
+# - only 7 cases where start node not in node path. In all other cases first node in node path is the start node
+# - can therefore switch to using the first node in the node path and last node as the start and ends of shortest path.
+dfPedRoutes['missing_start_node'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
+dfPedRoutes['sn_at_start'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
+
+
+dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
 
 # Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
 # For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
