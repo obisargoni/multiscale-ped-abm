@@ -201,21 +201,14 @@ public class PedPathFinder {
 			}
 		}
 		
-		Predicate<Junction> tacticalFilter = j -> horizonStrategicNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		Predicate<RepastEdge<Junction>> tacticalEdgeFilter = e -> horizonTacticalEdges.stream().anyMatch( n -> n.equals(e));
 						
 		// Choose path to end of tactical horizon
 		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalEdgeFilter, currentJ, endJunctions, heuristic1, heuristic2);
 		
 		// Create tactical alternative from this path
-		TacticalRoute tr = null;
-		try {
-			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-			tr.updateTargetCoordiante();
-		} catch (Exception e) {
-			e.printStackTrace();
-			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-		}
+		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+		tr.updateTargetCoordiante();
 
 		return tr;
 	}
