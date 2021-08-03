@@ -207,14 +207,8 @@ public class PedPathFinder {
 		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalEdgeFilter, currentJ, endJunctions, heuristic1, heuristic2);
 		
 		// Create tactical alternative from this path
-		TacticalRoute tr = null;
-		try {
-			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-			tr.updateTargetCoordiante();
-		} catch (Exception e) {
-			e.printStackTrace();
-			tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-		}
+		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
+		tr.updateTargetCoordiante();
 
 		return tr;
 	}
