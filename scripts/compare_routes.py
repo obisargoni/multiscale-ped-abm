@@ -111,10 +111,25 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
     for i, e in enumerate(edge_path_reverse):
         candidate = adjacent_edge_node(prev, e)
 
+        # The candidate node wll be none in cases where the edge path did not get to the destination node due to the ped being removed from the simulation.
+        if candidate is None:
+            break
+
         # Decide whether this node was part of the path by looking at next edge
-        if i >= len(edge_path_reverse)-1:
-            # In this case can't check ahead for what the next candidate will be so just set to the current candidate
-            next_candidate = candidate 
+        if i == len(edge_path_reverse)-1:
+            # If at the end of the edge path need different rule
+
+            if candidate == start_node:
+                # In this case the first pavement link is included in the edge path and so the path ends at the start node
+                # Set next_candidate to be the candidate node so that the candidate node is added to the node path
+                next_candidate = candidate
+            else:
+                # Check if the candidate is adjacent to the start node. if not then this edge is a default edge not traversed. Don't include in route.
+                if start_node in pavement_graph.neighbors(candidate):
+                    next_candidate = candidate
+                else:
+                    next_candidate = None
+
         else:
             # Now check that candidate connects to next edge
             next_candidate = adjacent_edge_node(candidate, edge_path_reverse[i+1])
@@ -125,6 +140,7 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
 
         if prev == start_node:
             break
+        
 
     # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
     # In this case return null
