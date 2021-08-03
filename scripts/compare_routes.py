@@ -65,7 +65,7 @@ gdfORNodes = gpd.read_file(or_nodes_file)
 
 # Get networkx graph and node positions
 pavement_graph = nx.Graph()
-gdfPaveLinks['length'] = gdfPaveLinks['geometry'].length
+gdfPaveLinks['length'] = gdfPaveLinks['geometry'].length.map(lambda x: int(x))
 gdfPaveLinks['edge_data'] = gdfPaveLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
 edges = gdfPaveLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
 pavement_graph.add_edges_from(edges)
