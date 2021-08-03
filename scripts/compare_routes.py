@@ -102,6 +102,7 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
         for e in pavement_graph.edges(data=True):
             if e[-1]['fid'] == e_id:
                 edge_path.append(e[:2])
+                break
 
     # Work way backwards through edges to reconstruct path
     node_path = [end_node]
