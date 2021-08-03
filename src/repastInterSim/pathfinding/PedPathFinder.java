@@ -201,7 +201,6 @@ public class PedPathFinder {
 			}
 		}
 		
-		Predicate<Junction> tacticalFilter = j -> horizonStrategicNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		Predicate<RepastEdge<Junction>> tacticalEdgeFilter = e -> horizonTacticalEdges.stream().anyMatch( n -> n.equals(e));
 						
 		// Choose path to end of tactical horizon
