@@ -234,7 +234,7 @@ dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement
 
 # Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
 # For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
-dfPedRoutes['dist_sp_filter'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['StartPavementJunctionID'], row['DestPavementJunctionID'], weight = 'length'), axis=1)
+dfPedRoutes['dist_sp_filter'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
 
 ######################################
 #
@@ -248,8 +248,3 @@ dfPedRoutes['frechet_distance'] = dfPedRoutes.apply(lambda row: compare_node_pat
 dfFrechet = dfPedRoutes.groupby('run')['frechet_distance'].describe()
 dfFrechet = pd.merge(dfFrechet, dfRun, left_index = True, right_on = 'run')
 dfFrechet.loc[:, ['tacticalPlanHorizon', 'mean','50%','max']].sort_values(by = 'tacticalPlanHorizon')
-
-
-# In some cases the first pavement edge does not get included in the data. I think due to the ped origin being v close to pavement junction
-# In this case need to alter what the start node is
-# So if node path doesn't include start node, calculate alternative path using first node in path.
