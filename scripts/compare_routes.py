@@ -233,9 +233,17 @@ dfVehCounts = pd.read_csv(vehicle_counts_file)
 gdfITNLinks = gdfITNLinks.reindex(columns = ['fid', 'pedRLID', 'length']).rename(columns = {'fid':'FID'})
 dfVehCounts = pd.merge( dfVehCounts, gdfITNLinks, on = 'FID', how = 'inner')
 
+
+
 # Calculate the density of vehicles at each tick per OR link, then find average density
-ORVehDensity = dfVehCounts.groupby(['run', 'pedRLID', 'tick']).apply(lambda df: df['VehicleCount'].sum() / df['length'].sum() ).reset_index()
-ORVehDensityAv = ORVehDensity.groupby(['run', 'pedRLID'])[0].mean().reset_index()
+# - get average vehicle count and divide by total length of component ITN links
+ORAvVehCounts = dfVehCounts.groupby(['run', 'pedRLID']).apply(lambda df: df['VehicleCount'].sum() / (df['tick'].max() - df['tick'].min() +1)).reset_index().rename(columns = {0:'AvVehCount'})
+ORITNLength = gdfITNLinks.groupby('pedRLID')['length'].sum().reset_index().rename(columns = {'length':'ORITNlength'})
+ORAvVehCounts = pd.merge(ORAvVehCounts, ORITNLength, on = 'pedRLID')
+ORAvVehCounts['AvVehDen'] = ORAvVehCounts['AvVehCount'] / ORAvVehCounts['ORITNlength']
+
+# Average over all runs
+ORAvVehCounts = ORAvVehCounts.groupby('pedRLID')['AvVehDen'].mean().reset_index()
 
 # Merge into pavement edges data
 gdfPaveLinks = pd.merge(gdfPaveLinks, ORVehAv, left_on = , right_on = 'pedRLID', how = 'left')
