@@ -33,6 +33,8 @@ pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
 or_links_file = os.path.join(gis_data_dir, config['openroads_link_processed_file'])
 or_nodes_file = os.path.join(gis_data_dir, config['openroads_node_processed_file'])
+itn_links_file = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
+itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_file'])
 
 
 # Model output data
@@ -40,6 +42,9 @@ file_datetime_string = "2021.Jul.22.17_31_50"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
+
+file_re = bd_utils.get_file_regex("vehicle_counts", file_datetime = file_datetime)
+vehicle_counts_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime, suffix = 'batch_param_map')
 batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
@@ -62,6 +67,7 @@ gdfPaveLinks = gpd.read_file(pavement_links_file)
 gdfPaveNodes = gpd.read_file(pavement_nodes_file)
 gdfORLinks = gpd.read_file(or_links_file)
 gdfORNodes = gpd.read_file(or_nodes_file)
+gdfITNLinks = gpd.read_file(itn_links_file)
 
 # Get networkx graph and node positions
 pavement_graph = nx.Graph()
@@ -210,6 +216,37 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on =
 
 dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
 dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
+
+######################################
+#
+#
+# Get average vehicle counts per roads link and use to weight pavement network
+#
+#
+######################################
+
+# Load vehicle counts data
+dfVehCounts = pd.read_csv(vehicle_counts_file)
+
+# Merge with itn links to select just the links that have vehicles travelling on them
+gdfITNLinks = gdfITNLinks.reindex(columns = ['fid', 'pedRLID', 'length']).rename(columns = {'fid':'FID'})
+dfVehCounts = pd.merge( dfVehCounts, gdfITNLinks, on = 'FID', how = 'inner')
+
+# Calculate the density of vehicles at each tick per OR link, then find average density
+ORVehDensity = dfVehCounts.groupby(['run', 'pedRLID', 'tick']).apply(lambda df: df['VehicleCount'].sum() / df['length'].sum() ).reset_index()
+ORVehDensityAv = ORVehDensity.groupby(['run', 'pedRLID'])[0].mean().reset_index()
+
+# Merge into pavement edges data
+gdfPaveLinks = pd.merge(gdfPaveLinks, ORVehAv, left_on = , right_on = 'pedRLID', how = 'left')
+
+# Set new edge weight based on VehicleCount
+k = 100
+gdfPaveLinks['cross_cost'] = gdfPaveLinks[1] * k
+gdfPaveLinks['weight01'] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+
+# Weight pavement network crossing links by average vehicle flow
+weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: tuple(row['MNodeFID'], row['PNodeFID'])))['weight01'].to_dict()
+nx.set_edge_attributes(pavement_graph, weight01_attributes, name = 'weight01')
 
 ######################################
 #
