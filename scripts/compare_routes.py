@@ -215,6 +215,7 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on =
 
 
 dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
+dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].isnull()]
 dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 
 ######################################
