@@ -267,11 +267,12 @@ dfPedRoutes['missing_start_node'] = dfPedRoutes.apply(lambda row: row['StartPave
 dfPedRoutes['sn_at_start'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
 
 
-dfPedRoutes['dist_sp'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
+dfPedRoutes['sp_dist_unfiltered'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
 
 # Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
 # For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
-dfPedRoutes['dist_sp_filter'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
+dfPedRoutes['sp_dist'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
+
 
 ######################################
 #
