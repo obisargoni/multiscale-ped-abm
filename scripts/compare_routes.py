@@ -246,15 +246,15 @@ ORAvVehCounts['AvVehDen'] = ORAvVehCounts['AvVehCount'] / ORAvVehCounts['ORITNle
 ORAvVehCounts = ORAvVehCounts.groupby('pedRLID')['AvVehDen'].mean().reset_index()
 
 # Merge into pavement edges data
-gdfPaveLinks = pd.merge(gdfPaveLinks, ORVehAv, left_on = , right_on = 'pedRLID', how = 'left')
+gdfPaveLinks = pd.merge(gdfPaveLinks, ORAvVehCounts, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
 
 # Set new edge weight based on VehicleCount
-k = 100
-gdfPaveLinks['cross_cost'] = gdfPaveLinks[1] * k
+k = 1000
+gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
 gdfPaveLinks['weight01'] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
 
 # Weight pavement network crossing links by average vehicle flow
-weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: tuple(row['MNodeFID'], row['PNodeFID'])))['weight01'].to_dict()
+weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))['weight01'].to_dict()
 nx.set_edge_attributes(pavement_graph, weight01_attributes, name = 'weight01')
 
 ######################################
