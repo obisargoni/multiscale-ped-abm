@@ -43,6 +43,9 @@ file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
+file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
+ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
+
 file_re = bd_utils.get_file_regex("vehicle_counts", file_datetime = file_datetime)
 vehicle_counts_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
