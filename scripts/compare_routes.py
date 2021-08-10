@@ -263,15 +263,6 @@ ORAvVehCounts = ORAvVehCounts.groupby('pedRLID')['AvVehDen'].mean().reset_index(
 # Merge into pavement edges data
 gdfPaveLinks = pd.merge(gdfPaveLinks, ORAvVehCounts, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
 
-# Set new edge weight based on VehicleCount
-k = 1000
-gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
-gdfPaveLinks['weight01'] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
-
-# Weight pavement network crossing links by average vehicle flow
-weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))['weight01'].to_dict()
-nx.set_edge_attributes(pavement_graph, weight01_attributes, name = 'weight01')
-
 ######################################
 #
 #
@@ -296,17 +287,43 @@ dfPedRoutes['sp_dist_unfiltered'] = dfPedRoutes.apply(lambda row: nx.dijkstra_pa
 # Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
 # For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
 dfPedRoutes['sp_dist'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
+dfPedRoutes['frechetD_dist'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_dist'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
+
+dfFrechetDist = dfPedRoutes.groupby('run')['frechetD_dist'].describe().reset_index()
+dfFrechetDist.columns = ['run'] + [i+'_dist' for i in dfFrechetDist.columns if i != 'run']
 
 
 ######################################
 #
 #
-# Compare paths using a similarity metric
+# Calculate shortest paths using weight accounting for vehicle density.
 #
+# Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
 #
 ######################################
-dfPedRoutes['frechet_distance'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['dist_sp_filter'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
 
-dfFrechet = dfPedRoutes.groupby('run')['frechet_distance'].describe()
-dfFrechet = pd.merge(dfFrechet, dfRun, left_index = True, right_on = 'run')
-dfFrechet.loc[:, ['tacticalPlanHorizon', 'mean','50%','max']].sort_values(by = 'tacticalPlanHorizon')
+dfFrechet = pd.merge(dfRun, dfFrechetDist , on ='run')
+
+# Set new edge weight based on VehicleCount
+weight_params = range(200, 4200, 400)
+
+for k in weight_params:
+    weight_name = "weight{}".format(k)
+    gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
+    gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+
+    # Weight pavement network crossing links by average vehicle flow
+    weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+    nx.set_edge_attributes(pavement_graph, weight01_attributes, name = weight_name)
+
+    dfPedRoutes['sp_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = weight_name), axis=1)
+    dfPedRoutes['frechetD_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(weight_name)], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
+
+    dfFrechetWeight = dfPedRoutes.groupby('run')['frechetD_{}'.format(weight_name)].describe().reset_index()
+    dfFrechetWeight.columns = ['run'] + [i+'_{}'.format(weight_name) for i in dfFrechetWeight.columns if i != 'run']
+    dfFrechet = pd.merge(dfFrechet, dfFrechetWeight , on = 'run')
+
+    # T test to compare means
+    # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
+    dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['frechetD_dist'], df['frechetD_{}'.format(weight_name)])[1]).reset_index().rename(columns = {0:'ttp_{}'.format(weight_name)})
+    dfFrechet = pd.merge(dfFrechet, dfTTests, on='run')
