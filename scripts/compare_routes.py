@@ -327,3 +327,35 @@ for k in weight_params:
     # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
     dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['frechetD_dist'], df['frechetD_{}'.format(weight_name)])[1]).reset_index().rename(columns = {0:'ttp_{}'.format(weight_name)})
     dfFrechet = pd.merge(dfFrechet, dfTTests, on='run')
+
+
+
+######################################
+#
+#
+# Use means and test scores to identify parameter values that best match pedestrians routes
+#
+#
+######################################
+count_sig_results = {'k':[], 'count':[], 'minDistCount':[]}
+# how to check the data
+# - count number of <0.05 p values
+
+for k in weight_params:
+    weight_name = "weight{}".format(k)
+
+    count = dfFrechet.loc[ (dfFrechet['mean_weight{}'.format(k)]<dfFrechet['mean_dist']) & (dfFrechet['ttp_weight{}'.format(k)]<0.05) & (dfFrechet['minCrossingProp']==1.0)].shape[0]
+    minDistCount = dfFrechet.loc[ (dfFrechet['mean_weight{}'.format(k)]<dfFrechet['mean_dist']) & (dfFrechet['ttp_weight{}'.format(k)]<0.05) & (dfFrechet['minCrossingProp']==0)].shape[0]
+    count_sig_results['k'].append(k)
+    count_sig_results['count'].append(count)
+    count_sig_results['minDistCount'].append(minDistCount)
+
+# Finding 5 sig results for k >= 1200. weight_params = range(200, 2200, 200)
+# Significantly lower frechet distance for crossing weighted paths observed for higher tactical planning horizons
+# Frechet distances still much higher for min crossing prop = 1 than for min crossing prop = 0. Suggest shortest path less able to approximate path taken
+# Unsure what is determining the difference between the tactical paths and the shortest path when peds are minimising the crossings they take
+# - perhaps hueristic is producing stronger aversion for crossing than weights.
+# - needs to try higher weight params
+
+mean_cols = [c for c in dfFrechet if 'mean_' in c]
+dfFrechet.loc[:, ['tacticalPlanHorizon','minCrossingProp']+mean_cols]
