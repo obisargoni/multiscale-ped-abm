@@ -63,7 +63,7 @@ batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # Data from model run
 dfPedCrossings = pd.read_csv(ped_crossings_file)
-dfRun = pd.read_csv(os.path.join(data_dir, batch_file))
+dfRun = pd.read_csv(os.path.join(data_dir, batch_file)).sort_values(by = 'run')
 
 # GIS Data
 gdfPaveLinks = gpd.read_file(pavement_links_file)
