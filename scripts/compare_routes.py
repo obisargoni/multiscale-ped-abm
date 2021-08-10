@@ -232,15 +232,27 @@ dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 # Load vehicle counts data
 dfVehCounts = pd.read_csv(vehicle_counts_file)
 
+# Get duration for each run - defined as total time pedestrians are in the simulation.
+dfPedStart = dfPedCrossings.groupby('run')['tick'].min().reset_index()
+dfPedEnd = dfPedCrossings.groupby('run')['tick'].max().reset_index()
+dfPedStartEnd = pd.merge(dfPedStart, dfPedEnd, on = 'run', suffixes = ('_start', '_end'))
+dfPedStartEnd['duration'] = dfPedStartEnd['tick_end'] - dfPedStartEnd['tick_start']
+
+# Drop entries with 0 counts as these don't add to total vehicle count
+dfVehCounts['countna'] = dfVehCounts['VehicleCount'].replace({0:np.nan})
+dfVehCounts = dfVehCounts.dropna(subset = ['countna']).drop('countna', axis=1)
+
 # Merge with itn links to select just the links that have vehicles travelling on them
 gdfITNLinks = gdfITNLinks.reindex(columns = ['fid', 'pedRLID', 'length']).rename(columns = {'fid':'FID'})
 dfVehCounts = pd.merge( dfVehCounts, gdfITNLinks, on = 'FID', how = 'inner')
 
-
+# Merge with start and end pedestrian times to and remove rows that lie outside these times
+dfVehCounts = pd.merge(dfVehCounts, dfPedStartEnd, on = 'run')
+dfVehCounts = dfVehCounts.loc[ (dfVehCounts['tick']>=dfVehCounts['tick_start']) & (dfVehCounts['tick']<=dfVehCounts['tick_end'])]
 
 # Calculate the density of vehicles at each tick per OR link, then find average density
 # - get average vehicle count and divide by total length of component ITN links
-ORAvVehCounts = dfVehCounts.groupby(['run', 'pedRLID']).apply(lambda df: df['VehicleCount'].sum() / (df['tick'].max() - df['tick'].min() +1)).reset_index().rename(columns = {0:'AvVehCount'})
+ORAvVehCounts = dfVehCounts.groupby(['run', 'pedRLID']).apply( lambda df: df['VehicleCount'].sum() / df['duration'].values[0]).reset_index().rename(columns = {0:'AvVehCount'})
 ORITNLength = gdfITNLinks.groupby('pedRLID')['length'].sum().reset_index().rename(columns = {'length':'ORITNlength'})
 ORAvVehCounts = pd.merge(ORAvVehCounts, ORITNLength, on = 'pedRLID')
 ORAvVehCounts['AvVehDen'] = ORAvVehCounts['AvVehCount'] / ORAvVehCounts['ORITNlength']
