@@ -11,6 +11,7 @@ import networkx as nx
 from datetime import datetime as dt
 from shapely.geometry import Point
 import similaritymeasures as sim
+from scipy import stats
 
 import batch_data_utils as bd_utils
 
