@@ -186,7 +186,7 @@ def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes
         print(start_node, end_node, strategic_path)
         return None
 
-    return dijkstra_path
+    return tuple(dijkstra_path)
 
 def compare_node_paths(npa, npb, dict_node_pos, distance_function = sim.frechet_dist):
     pos_a = [dict_node_pos[i] for i in npa]
@@ -210,7 +210,7 @@ dfPedRoutes.rename(columns = {'CurrentPavementLinkID':'edge_path'}, inplace=True
 
 # Get strategic path link list. First check that there is a single strategic path per run-ped
 assert (dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().shape[0]).value_counts().index == 1).all()
-dfPedStratPaths = dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().values[0].split(':')[1:]).reset_index()
+dfPedStratPaths = dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: tuple(s.drop_duplicates().values[0].split(':')[1:])).reset_index()
 dfPedRoutes = pd.merge(dfPedRoutes, dfPedStratPaths, on = ['run', 'ID'])
 
 dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
