@@ -383,5 +383,10 @@ for k in weight_params:
 # - perhaps hueristic is producing stronger aversion for crossing than weights.
 # - needs to try higher weight params
 
+pval_cols = [c for c in dfFrechet if 'ttp_' in c]
 mean_cols = [c for c in dfFrechet if 'mean_' in c]
 dfFrechet.loc[:, ['tacticalPlanHorizon','minCrossingProp']+mean_cols]
+dfFrechet.loc[:, ['tacticalPlanHorizon','minCrossingProp']+pval_cols]
+
+# Checking the magnitude of frechet distances
+(dfFrechet.loc[:, mean_cols]<14).any()
