@@ -192,11 +192,26 @@ def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes
 
     return tuple(dijkstra_path)
 
-def compare_node_paths(npa, npb, dict_node_pos, distance_function = sim.frechet_dist):
-    pos_a = [dict_node_pos[i] for i in npa]
-    pos_b = [dict_node_pos[i] for i in npb]
+def node_paths_overlap(npa, npb, normalised=True):
+    '''An alternative methods for comparing paths expressed as sequences of nodes. 
+    Simply count number of nodes that are not in both paths and optionally normalise by
+    total number of nodes in both paths. A simpler method that is not influecenced by node position.
+    '''
 
-    d = distance_function(pos_a, pos_b)
+    n_diff = len(set(npa).symmetric_difference(set(npb)))
+    if normalised==False:
+        return n_diff
+    else:
+        n_tot = len(npa) + len(npb)
+        return float(n_diff) / n_tot
+
+def compare_node_paths(npa, npb, dict_node_pos, distance_function = sim.frechet_dist):
+    if distance_function is None:
+        d = node_paths_overlap(npa, npb)
+    else:
+        pos_a = [dict_node_pos[i] for i in npa]
+        pos_b = [dict_node_pos[i] for i in npb]
+        d = distance_function(pos_a, pos_b)
     return d
 
 
@@ -328,7 +343,7 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_n
 ######################################
 #
 #
-# Compare these various shortest path routes to the ABM routes by calcualting Frechet Distance between the two
+# Compare these various shortest path routes to the ABM routes by calculating a metric of difference between their node paths
 #
 #
 ######################################
