@@ -311,10 +311,6 @@ dfPedRoutes['end_node'] = dfPedRoutes['node_path'].map(lambda x: x[-1])
 
 # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
 dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
-dfUniqueStartEnd['sp_dist_unfiltered'] = dfUniqueStartEnd.apply(lambda row: tuple(nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight = 'length')), axis=1)
-dfUniqueStartEnd['sp_dist'] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = 'length'), axis=1)
-
-
 
 ######################################
 #
@@ -324,7 +320,7 @@ dfUniqueStartEnd['sp_dist'] = dfUniqueStartEnd.apply(lambda row: shortest_path_w
 # Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
 #
 ######################################
-weight_params = range(200, 4200, 400)
+weight_params = range(0, 4200, 400)
 
 for k in weight_params:
     weight_name = "weight{}".format(k)
@@ -335,7 +331,7 @@ for k in weight_params:
     weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
     nx.set_edge_attributes(pavement_graph, weight01_attributes, name = weight_name)
 
-    dfUniqueStartEnd['sp_{}'.format(weight_name)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+    dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
 
 
 dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
@@ -348,28 +344,32 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_n
 #
 ######################################
 
-dfPedRoutes['frechetD_dist'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_dist'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
-
-dfFrechetDist = dfPedRoutes.groupby('run')['frechetD_dist'].describe().reset_index()
-dfFrechetDist.columns = ['run'] + [i+'_dist' for i in dfFrechetDist.columns if i != 'run']
-
-dfFrechet = pd.merge(dfRun, dfFrechetDist , on ='run')
+dfRouteComp = pd.DataFrame()
 
 for k in weight_params:
-    weight_name = "weight{}".format(k)
+    dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = None), axis=1)
 
-    dfPedRoutes['frechetD_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(weight_name)], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
-
-    dfFrechetWeight = dfPedRoutes.groupby('run')['frechetD_{}'.format(weight_name)].describe().reset_index()
-    dfFrechetWeight.columns = ['run'] + [i+'_{}'.format(weight_name) for i in dfFrechetWeight.columns if i != 'run']
-    dfFrechet = pd.merge(dfFrechet, dfFrechetWeight , on = 'run')
+    df = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].describe().reset_index()
+    df['k'] = k
 
     # T test to compare means
     # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
-    dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['frechetD_dist'], df['frechetD_{}'.format(weight_name)])[1]).reset_index().rename(columns = {0:'ttp_{}'.format(weight_name)})
-    dfFrechet = pd.merge(dfFrechet, dfTTests, on='run')
+    dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['comp_value_0'], df['comp_value_{}'.format(k)])[1]).reset_index().rename(columns = {0:'ttp'})
+    df = pd.merge(df, dfTTests, on='run')
 
+    dfRouteComp = pd.concat([dfRouteComp, df])
 
+# rebuild index
+dfRouteComp.index = np.arange(dfRouteComp.shape[0])
+
+# To make comparisons between the k=0 route comp mean and k>0 route comp means, merge the k=0 value in
+dfRouteComp = pd.merge(dfRouteComp, dfRouteComp.loc[ dfRouteComp['k']==0, ['run', 'mean']], on = 'run', suffixes = ('', '0'))
+
+# Identify cases where the weighted crossing link shortest path better matches the ABM path
+dfRouteComp['is_sig_lower'] = (dfRouteComp['mean0'] > dfRouteComp['mean']) & (dfRouteComp['ttp']<0.05)
+
+# Merge in parameter values
+dfRouteComp = pd.merge(dfRun, dfRouteComp, on = 'run')
 
 ######################################
 #
@@ -378,30 +378,7 @@ for k in weight_params:
 #
 #
 ######################################
-count_sig_results = {'k':[], 'count':[], 'minDistCount':[]}
-# how to check the data
-# - count number of <0.05 p values
 
-for k in weight_params:
-    weight_name = "weight{}".format(k)
-
-    count = dfFrechet.loc[ (dfFrechet['mean_weight{}'.format(k)]<dfFrechet['mean_dist']) & (dfFrechet['ttp_weight{}'.format(k)]<0.05) & (dfFrechet['minCrossingProp']==1.0)].shape[0]
-    minDistCount = dfFrechet.loc[ (dfFrechet['mean_weight{}'.format(k)]<dfFrechet['mean_dist']) & (dfFrechet['ttp_weight{}'.format(k)]<0.05) & (dfFrechet['minCrossingProp']==0)].shape[0]
-    count_sig_results['k'].append(k)
-    count_sig_results['count'].append(count)
-    count_sig_results['minDistCount'].append(minDistCount)
-
-# Finding 5 sig results for k >= 1200. weight_params = range(200, 2200, 200)
-# Significantly lower frechet distance for crossing weighted paths observed for higher tactical planning horizons
-# Frechet distances still much higher for min crossing prop = 1 than for min crossing prop = 0. Suggest shortest path less able to approximate path taken
-# Unsure what is determining the difference between the tactical paths and the shortest path when peds are minimising the crossings they take
-# - perhaps hueristic is producing stronger aversion for crossing than weights.
-# - needs to try higher weight params
-
-pval_cols = [c for c in dfFrechet if 'ttp_' in c]
-mean_cols = [c for c in dfFrechet if 'mean_' in c]
-dfFrechet.loc[:, ['tacticalPlanHorizon','minCrossingProp']+mean_cols]
-dfFrechet.loc[:, ['tacticalPlanHorizon','minCrossingProp']+pval_cols]
-
-# Checking the magnitude of frechet distances
-(dfFrechet.loc[:, mean_cols]<14).any()
+# Form pivot tables from results to see if there is any pattern
+dfe1 = dfRouteComp.loc[ dfRouteComp['epsilon']==1].groupby(['alpha','tacticalPlanHorizon','k'])['mean'].mean().unstack()
+dfe3 = dfRouteComp.loc[ dfRouteComp['epsilon']==3].groupby(['alpha','tacticalPlanHorizon','k'])['mean'].mean().unstack()
