@@ -228,7 +228,7 @@ dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
 #
 #
 ######################################
-
+'''
 # Load vehicle counts data
 dfVehCounts = pd.read_csv(vehicle_counts_file)
 
@@ -259,6 +259,12 @@ ORAvVehCounts['AvVehDen'] = ORAvVehCounts['AvVehCount'] / ORAvVehCounts['ORITNle
 
 # Average over all runs
 ORAvVehCounts = ORAvVehCounts.groupby('pedRLID')['AvVehDen'].mean().reset_index()
+
+# Save for future access
+ORAvVehCounts.to_csv(output_vehicle_density_file,index=False)
+'''
+# Load average vehicle density data from file
+ORAvVehCounts = pd.read_csv(output_vehicle_density_file)
 
 # Merge into pavement edges data
 gdfPaveLinks = pd.merge(gdfPaveLinks, ORAvVehCounts, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
