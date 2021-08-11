@@ -309,10 +309,6 @@ dfUniqueStartEnd['sp_dist'] = dfUniqueStartEnd.apply(lambda row: shortest_path_w
 # Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
 #
 ######################################
-
-dfFrechet = pd.merge(dfRun, dfFrechetDist , on ='run')
-
-# Set new edge weight based on VehicleCount
 weight_params = range(200, 4200, 400)
 
 for k in weight_params:
@@ -328,6 +324,25 @@ for k in weight_params:
 
 
 dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
+
+######################################
+#
+#
+# Compare these various shortest path routes to the ABM routes by calcualting Frechet Distance between the two
+#
+#
+######################################
+
+dfPedRoutes['frechetD_dist'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_dist'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
+
+dfFrechetDist = dfPedRoutes.groupby('run')['frechetD_dist'].describe().reset_index()
+dfFrechetDist.columns = ['run'] + [i+'_dist' for i in dfFrechetDist.columns if i != 'run']
+
+dfFrechet = pd.merge(dfRun, dfFrechetDist , on ='run')
+
+for k in weight_params:
+    weight_name = "weight{}".format(k)
+
     dfPedRoutes['frechetD_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(weight_name)], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
 
     dfFrechetWeight = dfPedRoutes.groupby('run')['frechetD_{}'.format(weight_name)].describe().reset_index()
