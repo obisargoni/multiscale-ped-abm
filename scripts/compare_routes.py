@@ -291,16 +291,14 @@ gdfPaveLinks = pd.merge(gdfPaveLinks, ORAvVehCounts, left_on = 'pedRLID', right_
 dfPedRoutes['missing_start_node'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
 dfPedRoutes['sn_at_start'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
 
+dfPedRoutes['start_node'] = dfPedRoutes['node_path'].map(lambda x: x[0])
+dfPedRoutes['end_node'] = dfPedRoutes['node_path'].map(lambda x: x[-1])
 
-dfPedRoutes['sp_dist_unfiltered'] = dfPedRoutes.apply(lambda row: nx.dijkstra_path(pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
+# Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
+dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
+dfUniqueStartEnd['sp_dist_unfiltered'] = dfUniqueStartEnd.apply(lambda row: tuple(nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight = 'length')), axis=1)
+dfUniqueStartEnd['sp_dist'] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = 'length'), axis=1)
 
-# Calculating shortest path from start ot end node can produce a path that travels along a different set of OR road links
-# For a more constrained comparison need to limit the pavement network to just the edges along the startegic path
-dfPedRoutes['sp_dist'] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = 'length'), axis=1)
-dfPedRoutes['frechetD_dist'] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_dist'], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
-
-dfFrechetDist = dfPedRoutes.groupby('run')['frechetD_dist'].describe().reset_index()
-dfFrechetDist.columns = ['run'] + [i+'_dist' for i in dfFrechetDist.columns if i != 'run']
 
 
 ######################################
@@ -326,7 +324,10 @@ for k in weight_params:
     weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
     nx.set_edge_attributes(pavement_graph, weight01_attributes, name = weight_name)
 
-    dfPedRoutes['sp_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['node_path'][0], row['node_path'][-1], weight = weight_name), axis=1)
+    dfUniqueStartEnd['sp_{}'.format(weight_name)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+
+
+dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
     dfPedRoutes['frechetD_{}'.format(weight_name)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(weight_name)], dict_node_pos, distance_function = sim.frechet_dist), axis=1)
 
     dfFrechetWeight = dfPedRoutes.groupby('run')['frechetD_{}'.format(weight_name)].describe().reset_index()
