@@ -36,6 +36,7 @@ or_links_file = os.path.join(gis_data_dir, config['openroads_link_processed_file
 or_nodes_file = os.path.join(gis_data_dir, config['openroads_node_processed_file'])
 itn_links_file = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
 itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_file'])
+crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
 
 
 # Model output data
@@ -76,6 +77,7 @@ gdfPaveNodes = gpd.read_file(pavement_nodes_file)
 gdfORLinks = gpd.read_file(or_links_file)
 gdfORNodes = gpd.read_file(or_nodes_file)
 gdfITNLinks = gpd.read_file(itn_links_file)
+gdfCAs = gpd.read_file(crossing_alternatives_file)
 
 # Get networkx graph and node positions
 pavement_graph = nx.Graph()
@@ -288,6 +290,9 @@ ORAvVehCounts = pd.read_csv(output_vehicle_density_file)
 
 # Merge into pavement edges data
 gdfPaveLinks = pd.merge(gdfPaveLinks, ORAvVehCounts, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
+
+# For road links that have a crossing on, set vehicle density to zero. This mimic the ABM representation of zero vehicle flow when crossing at established infrastructure.
+gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
 ######################################
 #
