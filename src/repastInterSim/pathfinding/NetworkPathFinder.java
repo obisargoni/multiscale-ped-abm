@@ -248,6 +248,7 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 				if( Double.compare(shortestPathLength, pathLength)>=0 ) {
 					stackPath = new Stack<RepastEdge<T>>();
 					stackPath.addAll(path.getEdgeList());
+					output.add(stackPath);
 					notFinished = iterator.hasNext();
 				}
 				else {
