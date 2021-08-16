@@ -321,7 +321,13 @@ dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicP
 # Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
 #
 ######################################
-weight_params = range(0, 4200, 400)
+
+# Set dfPedRoutes to just have columns we are interested in
+dfPedRoutes = dfPedRoutes.reindex(columns = [   'run', 'ID', 'edge_path', 'FullStrategicPathString',
+                                                'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
+                                                'start_node', 'end_node'])
+
+weight_params = range(0, 1000, 100)
 
 for k in weight_params:
     weight_name = "weight{}".format(k)
