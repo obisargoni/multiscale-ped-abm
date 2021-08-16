@@ -767,4 +767,83 @@ class NetworkPathFinderTest {
 	}
 	
 	
+	/*
+	 * Test getting shortest paths using the Yens K shortest method. Tests that multple shortest paths initially returned when there are two
+	 * paths of equal length.
+	 */
+	@Test
+	public void testShortestPathsYens3() {
+		// setup road network and pavement network
+		try {
+			// Use live data for clapham common in test
+			this.testGISDir = this.testGISDir + "/clapham_common/";
+			
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_148";
+		String targetID = "pave_node_348";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		List<RoadLink> sP = planStrategicPath(o, d, startJunctionID, endJunctionID);
+		
+		List<Junction> sPNodes = new ArrayList<Junction>();
+		for (RoadLink rl: sP) {
+			rl.getJunctions().stream().forEach(sPNodes::add);
+		}
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(SpaceBuilder.pavementNetwork);
+		
+		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
+		
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		
+		// First get the two shortest paths and compare their lengths
+		int k = 2;
+		List<Stack<RepastEdge<Junction>>> kShortest = np.getKShortestPaths(source, target, k, filter, distanceTransformer);
+		double[] pathLengths = new double[kShortest.size()];
+		for(int i =0; i<kShortest.size(); i++) {
+			Stack<RepastEdge<Junction>> path = kShortest.get(i);
+			Double pathLength = 0.0;
+			for(int j=0; j<path.size(); j++) {
+				pathLength += distanceTransformer.transform(path.get(j));
+			}
+			pathLengths[i] = pathLength;
+		}
+		
+		// Expect these two shortest paths to have the same length
+		assert pathLengths[0] == pathLengths[1];
+		
+		// Now check that requesting the shortest paths also returns these two paths
+		double start = System.currentTimeMillis();
+		List<Stack<RepastEdge<Junction>>> shortestDistancePaths = np.getAllShortestPaths(source, target, filter, distanceTransformer);
+		double duration = System.currentTimeMillis() - start;
+		System.out.print(duration);
+		
+		assert shortestDistancePaths.size() == k;
+		
+	}
+	
+	
 }
