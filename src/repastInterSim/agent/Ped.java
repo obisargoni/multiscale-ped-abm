@@ -938,4 +938,12 @@ public class Ped extends MobileAgent {
     public String getFullStrategicPathString() {
     	return this.pathFinder.getFullStrategicPathString();
     }
+    
+    public String getOriginID() {
+    	return this.origin.getFID();
+    }
+    
+    public String getDestinationID() {
+    	return this.destination.getFID();
+    }
 }
