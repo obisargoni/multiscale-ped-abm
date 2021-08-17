@@ -18,6 +18,8 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
 import cern.jet.random.Normal;
+import cern.jet.random.Uniform;
+import cern.jet.random.engine.RandomEngine;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
@@ -118,9 +120,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static ISchedulableAction addPedAction;
 	private static ISchedulableAction removeMAgentAction;
 	
-	private Normal pedSpeeds;
-	private Normal pedMasses;
-	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
 	 * (at the bottom of this file).
@@ -141,11 +140,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		SpatialIndexManager.clearCaches();
 	    
 		context = c;
-		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);
+		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		
-		// Setup random number distributions
-		pedSpeeds = RandomHelper.createNormal(GlobalVars.pedVavg, GlobalVars.pedVsd);
-		pedMasses = RandomHelper.createNormal(GlobalVars.pedMassAv, GlobalVars.pedMasssd);
+		// Correct way to register multiple random number streams
+		RandomEngine eng = RandomHelper.registerGenerator("maODThresholds", RandomHelper.getSeed()+1);
+		Uniform maODUniform = new Uniform(0, 1, eng);
+		RandomHelper.registerDistribution("maODThresholds", maODUniform);
+		
+		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", RandomHelper.getSeed()+2);
+		Uniform pedMinCrossUniform = new Uniform(0, 1, engPedMinCross);
+		RandomHelper.registerDistribution("pedMinCrossThresholds", pedMinCrossUniform);
+   
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", RandomHelper.getSeed()+3);
+		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
+		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
+		
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", RandomHelper.getSeed()+4);
+		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
+		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
+		
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", RandomHelper.getSeed()+5);
+		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
+		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		
 		fac = new GeometryFactory();
 		
@@ -491,7 +507,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				
 				// Get the OD matrix entry
 				Float flow = Float.parseFloat(odFlows.get(iO+1)[iD]);
-				double threshold = RandomHelper.nextDouble();
+				double threshold = RandomHelper.getDistribution("maODThresholds").nextDouble();
 				
 				// According to flow rate, record this od pair as a pair to create mobile agent moving between.
 				if (flow > threshold) {
@@ -601,20 +617,20 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         // Instantiate a new pedestrian agent and add the agent to the context
 		Parameters  params = RunEnvironment.getInstance().getParameters();
 		boolean minimiseCrossing = false;
-		if (params.getDouble("minCrossingProp") > RandomHelper.nextDouble()) {
+		if (params.getDouble("minCrossingProp") > RandomHelper.getDistribution("pedMinCrossThresholds").nextDouble()) {
 			minimiseCrossing = true;
 		}
 		
 		// Draw velocity and mass from random distribution
 		Double v = GlobalVars.pedVavg + 3*GlobalVars.pedVsd; // Initialises as a value far from mean
 		while ( (v < GlobalVars.pedVavg - 2*GlobalVars.pedVsd) | (v > GlobalVars.pedVavg + 2*GlobalVars.pedVsd) ){ // Exclude extreme values
-			v = this.pedSpeeds.nextDouble();
+			v = RandomHelper.getDistribution("pedSpeeds").nextDouble();
 		}
 		
 		
 		Double m = GlobalVars.pedMassAv + 3*GlobalVars.pedMasssd; // Initialises as a value far from mean
 		while ( (m < GlobalVars.pedMassAv - 2*GlobalVars.pedMasssd) | (m > GlobalVars.pedMassAv + 2*GlobalVars.pedMasssd) ){ // Exclude extreme values
-			m = this.pedMasses.nextDouble();
+			m = RandomHelper.getDistribution("pedMasses").nextDouble();
 		}
 		
     	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);

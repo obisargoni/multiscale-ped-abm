@@ -107,7 +107,7 @@ public class AccumulatorRoute {
 		List<Double> probs = caSamplingProbabilities();
 		
 		// sample random number between 0 and 1 and use to sample a CA
-		Double r = RandomHelper.nextDouble();
+		Double r = RandomHelper.getDistribution("caSampleDistribution").nextDouble();
 		
 		Integer sampledi = null;
 		double sum_prob = 0;
