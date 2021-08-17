@@ -4,7 +4,7 @@
   <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
-  <inclRandomSeed>false</inclRandomSeed>
+  <inclRandomSeed>true</inclRandomSeed>
   <scheduleParams>
     <start>1.0</start>
     <interval>1.0</interval>
@@ -46,6 +46,22 @@
         <id>CrossingChoice</id>
         <className>repastInterSim.agent.Ped</className>
         <methodName>getChosenCrossingTypeString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>OriginID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>OriginID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getOriginID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>DestinationID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>DestinationID</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getDestinationID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

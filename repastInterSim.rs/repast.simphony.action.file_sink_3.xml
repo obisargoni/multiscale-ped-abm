@@ -10,6 +10,9 @@
     <string>CrossingChoice</string>
     <string>tick</string>
     <string>run</string>
+    <string>OriginID</string>
+    <string>DestinationID</string>
+    <string>random_seed</string>
   </sourceIds>
   <fileName>.\batch\model_run_data\pedestrian_locations.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
