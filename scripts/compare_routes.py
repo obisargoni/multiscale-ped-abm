@@ -208,13 +208,27 @@ def node_paths_overlap(npa, npb, normalised=True):
         n_tot = len(npa) + len(npb)
         return float(n_diff) / n_tot
 
-def compare_node_paths(npa, npb, dict_node_pos, distance_function = sim.frechet_dist):
+def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = sim.frechet_dist, account_for_path_length = False, weight = None):
+    '''
+
+    accound_for_path_length: It's possible that the two paths have the same path length but different nodes. This occurs when there are multiple shortest paths.
+                            By checking the path length identify this and set distance between paths to 0 if path lengths are equal.
+
+    weight: If account_for_path_length is True this gives the weight attribute to use to calculate path weight.
+    '''
+
     if distance_function is None:
         d = node_paths_overlap(npa, npb)
     else:
         pos_a = [dict_node_pos[i] for i in npa]
         pos_b = [dict_node_pos[i] for i in npb]
         d = distance_function(pos_a, pos_b)
+
+    if account_for_path_length:
+        lengtha = nx.path_weight(graph, npa, weight=weight)
+        lengthb = nx.path_weight(graph, npb, weight=weight)
+        if abs(lengtha-lengthb)<0.00000001:
+            d = 0.0
     return d
 
 
@@ -359,7 +373,10 @@ dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_n
 dfRouteComp = pd.DataFrame()
 
 for k in weight_params:
-    dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = None), axis=1)
+    dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = None), axis=1)
+    
+    # This is only meaning full for the shortest path unweighted by vehicle traffic, where we can expect the path to match the ABM tactical path, and therefore compare path lengths to check for equivalence.
+    dfPedRoutes['comp_path_weight_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = None, account_for_path_length=True, weight='length'), axis=1)
 
     df = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].describe().reset_index()
     df['k'] = k
