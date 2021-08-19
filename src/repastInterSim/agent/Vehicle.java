@@ -530,6 +530,10 @@ public class Vehicle extends MobileAgent {
     	return this.acc;
     }
     
+    public String getCurrentRoadLinkID() {
+    	return this.currentRoadLink.getFID();
+    }
+    
     private Polygon vehicleRectangePolygon(Coordinate loc, double bearing) {
     	
     	// Bearing is clockwise angle from north so use -ve bearing since rotation matrix is for counter clockwise turn
