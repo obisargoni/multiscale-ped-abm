@@ -111,8 +111,12 @@ public class TacticalRoute {
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
 	public void updateCurrentJunction() {
-		if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & (this.strategicPath.size()==1)) {
-			// do not update the current junction if crossing is required but crossing location is not chosen and ped is at the end of their route			
+		if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ) ) {
+			// do not update the current junction if crossing is required but crossing location is not chosen and:
+			// - ped is at the end of their route OR
+			// - ped is at a direct crossing
+			// In these cases ped must continue to accumulate activation despite reaching their current junction
+			
 		}
 		
 		else {			
