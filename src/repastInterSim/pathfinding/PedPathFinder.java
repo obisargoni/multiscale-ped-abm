@@ -74,12 +74,7 @@ public class PedPathFinder {
 	}
 	
 	public void step() {
-		
-		// Only update the accumulator path if the ped agent is walking along a road linked to the strategic path,
-		// ie not crossing over another road
-		if (pedOnStrategicPathRoadLink()) {
-			this.tacticalPath.step();
-		}
+		this.tacticalPath.step();
 	}
 	
 	/**
@@ -462,29 +457,6 @@ public class PedPathFinder {
 		
 		// use this to get get planning horizon as list of links
 		return sP.subList(0, nLinks);
-	}
-	
-	/*
-	 * Used to check whether the pedestrian agents is currently walking on a road
-	 * polygon alongside a link in the strategic path or not.
-	 * 
-	 * When a pedestrian agent is making a secondary crossing it is not on a road beside
-	 * a strategic path link.
-	 */
-	public Boolean pedOnStrategicPathRoadLink() {
-		Boolean pedOnSLink = false;		
-
-		NetworkEdge<Junction> currentPavementEdge = (NetworkEdge<Junction>) this.tacticalPath.getCurrentEdge();
-		for (RoadLink rl: this.strategicPath) {
-			boolean notCrossing = currentPavementEdge.getRoadLink().getPedRLID().contentEquals("");
-			boolean crossingSPLink = rl.getFID().contentEquals(currentPavementEdge.getRoadLink().getPedRLID());
-			
-			if ( notCrossing | crossingSPLink) {
-				pedOnSLink = true;
-			}
-		}
-				
-		return pedOnSLink;
 	}
 	
 	/*
