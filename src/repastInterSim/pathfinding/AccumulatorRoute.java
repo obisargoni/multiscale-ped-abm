@@ -29,7 +29,8 @@ public class AccumulatorRoute {
 	private RepastEdge<Junction> targetRouteEdge = null;
 	private Junction targetJunction;
 	private Junction defaultJunction;
-		
+	
+	private boolean directCrossing;
 	private boolean caChosen;
 	private boolean crossingRequired;
 	private boolean isCrossing = false;
@@ -312,6 +313,10 @@ public class AccumulatorRoute {
 	
 	public boolean isCrossing() {
 		return this.isCrossing;
+	}
+	
+	public boolean isDirectCrossing() {
+		return this.directCrossing;
 	}
 
 }
