@@ -95,7 +95,13 @@ public class TacticalRoute {
 			this.getAccumulatorRoute().removeCrossingCoordinate();
 		}
 		else {
-			updateCurrentJunction();
+			if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ) ) {
+				// do not update the current junction if crossing is required but crossing location is not chosen and:
+				// - ped is at the end of their route OR
+				// - ped is at a direct crossing
+				// In these cases ped must continue to accumulate activation despite reaching their current junction
+				updateCurrentJunction();
+			}
 		}
 		
 		// Update ped attributes that are recorded for analysis
@@ -110,73 +116,63 @@ public class TacticalRoute {
 	/*
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
-	public void updateCurrentJunction() {
-		if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ) ) {
-			// do not update the current junction if crossing is required but crossing location is not chosen and:
-			// - ped is at the end of their route OR
-			// - ped is at a direct crossing
-			// In these cases ped must continue to accumulate activation despite reaching their current junction
+	public void updateCurrentJunction() {		
+		// Update the current edge			
+		this.currentEdge = this.routePath.poll();
+		
+		// initialise black accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
+		this.accumulator = new AccumulatorRoute();
+		
+		// Identify the next junction
+		Junction nextJunction = null;
+		if (this.currentEdge == null) {
+			this.finalJunction = this.currentJunction;
+			nextJunction = null;
+		}
+		else {
+			nextJunction = edgeAdjacentJunction(this.currentEdge, this.currentJunction);
 			
+			// Check if this edge requires crossing a road link. If it does, initialise an accumulator to choose crossing location				
+			List<RoadLink> crossingLinks = tacticalPathCrossingLinks(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
+			if (crossingLinks.size()>0) {
+				
+				// AccumulatorRoute requires a default edge and default junction the ped walks towards or stays at whilst choosing a crossing
+				
+				// For a diagonally crossing, the default jucntion is the junction on the same side of the road, at the otehr end of the road link
+				// For a direct crossing it is the pedestrians current junction
+				Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
+				
+				// The default edge is the edge that connects the current junction to the default junction.
+				// For direct crossing this will be null since current and default junctions are the same, in which case don't change current edge
+				RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, defaultJunction);
+				RepastEdge<Junction> targetRouteEdge = this.currentEdge;
+				boolean directCrossing; // Used to flag and AccumulatorRoute as choosing a crossing lcoation for a direct rather than diagonal crossing tactical link 
+				if (defaultEdge!=null) {
+					this.currentEdge = defaultEdge;
+					directCrossing=false;						
+				}
+				else {
+					directCrossing=true;
+				}
+				
+				// Get road length - the length of the road that crossing alternatives are being considered for
+				double roadLength = 0;
+				for (RoadLink rl: crossingLinks) {
+					roadLength += rl.getGeom().getLength();
+				}
+				
+				// Identify crossing alternatives
+				List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, SpaceBuilder.roadGeography);
+				
+				// Initialise accumulator crossing choice model
+				this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge, directCrossing);
+				
+				// Set target junction to be the default, no crossing, junction while agent chooses crossing location
+				nextJunction = this.accumulator.getDefaultJunction();			
+			}
 		}
 		
-		else {			
-			// Update the current edge			
-			this.currentEdge = this.routePath.poll();
-			
-			// initialise black accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
-			this.accumulator = new AccumulatorRoute();
-			
-			// Identify the next junction
-			Junction nextJunction = null;
-			if (this.currentEdge == null) {
-				this.finalJunction = this.currentJunction;
-				nextJunction = null;
-			}
-			else {
-				nextJunction = edgeAdjacentJunction(this.currentEdge, this.currentJunction);
-				
-				// Check if this edge requires crossing a road link. If it does, initialise an accumulator to choose crossing location				
-				List<RoadLink> crossingLinks = tacticalPathCrossingLinks(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
-				if (crossingLinks.size()>0) {
-					
-					// AccumulatorRoute requires a default edge and default junction the ped walks towards or stays at whilst choosing a crossing
-					
-					// For a diagonally crossing, the default jucntion is the junction on the same side of the road, at the otehr end of the road link
-					// For a direct crossing it is the pedestrians current junction
-					Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
-					
-					// The default edge is the edge that connects the current junction to the default junction.
-					// For direct crossing this will be null since current and default junctions are the same, in which case don't change current edge
-					RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, defaultJunction);
-					RepastEdge<Junction> targetRouteEdge = this.currentEdge;
-					boolean directCrossing; // Used to flag and AccumulatorRoute as choosing a crossing lcoation for a direct rather than diagonal crossing tactical link 
-					if (defaultEdge!=null) {
-						this.currentEdge = defaultEdge;
-						directCrossing=false;						
-					}
-					else {
-						directCrossing=true;
-					}
-					
-					// Get road length - the length of the road that crossing alternatives are being considered for
-					double roadLength = 0;
-					for (RoadLink rl: crossingLinks) {
-						roadLength += rl.getGeom().getLength();
-					}
-					
-					// Identify crossing alternatives
-					List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, SpaceBuilder.roadGeography);
-					
-					// Initialise accumulator crossing choice model
-					this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge, directCrossing);
-					
-					// Set target junction to be the default, no crossing, junction while agent chooses crossing location
-					nextJunction = this.accumulator.getDefaultJunction();			
-				}
-			}
-			
-			this.currentJunction = nextJunction;
-		}
+		this.currentJunction = nextJunction;
 	}
 	
 	public void caChosenUpdateCurrentJunction() {
