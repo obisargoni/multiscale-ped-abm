@@ -123,6 +123,9 @@ public class TacticalRoute {
 			// Update the current edge			
 			this.currentEdge = this.routePath.poll();
 			
+			// initialise black accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
+			this.accumulator = new AccumulatorRoute();
+			
 			// Identify the next junction
 			Junction nextJunction = null;
 			if (this.currentEdge == null) {
