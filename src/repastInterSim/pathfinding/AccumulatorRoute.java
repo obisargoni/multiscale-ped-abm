@@ -46,7 +46,7 @@ public class AccumulatorRoute {
 		this.crossingRequired = false;
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, RepastEdge<Junction> tRE) {
+	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, RepastEdge<Junction> tRE, boolean dC) {
 		this.ped = p;
 		this.roadLength = rL;
 		
@@ -69,6 +69,7 @@ public class AccumulatorRoute {
 			this.crossingRequired = false;
 		}
 		
+		this.directCrossing = dC;
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
