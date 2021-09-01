@@ -1102,6 +1102,12 @@ class PedPathFinderTest {
 		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
 		pedMinDist.getPathFinder().updateTacticalPath();
 		
+		// After this update, expect ped's current pavement link to be a direct crossing link. 
+		// Check for this and manually call function to represent choice of crossing alternative being made.
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isDirectCrossing();
+		pedMinDist.getPathFinder().getTacticalPath().caChosenUpdateCurrentJunction();
+		
+		
 		// This time no remainder path but two junctions in route path
 		assert pedMinDist.getPathFinder().getTacticalPath().getRemainderPath().size() == 0;		
 		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_112");
@@ -1112,6 +1118,12 @@ class PedPathFinderTest {
 		pedMinDist.getPathFinder().getTacticalPath().updateCurrentJunction();
 		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction() == null;
 		pedMinDist.getPathFinder().updateTacticalPath();
+		
+		// Again, direct crossing required, meaning that the current junction is unchanged while the ped chooses a crossing location
+		assert pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_91");
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isDirectCrossing();
+		pedMinDist.getPathFinder().getTacticalPath().caChosenUpdateCurrentJunction();
+		
 
 		// Again expect zero remainder path but multiple nodes in route path
 		// In this case there are two equal distance candidate paths and so the chosen path is random.
@@ -1310,6 +1322,16 @@ class PedPathFinderTest {
 		assert p.getPathFinder().getTacticalPath().getCurrentJunction() == null;
 
 		p.getPathFinder().updateTacticalPath();
+		
+		// Direct crossing required to get from pave_node_112 to pave_node_114. So check for this and that the junction is not updated until the crossing is chosen
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_112");
+		assert p.getPathFinder().getTacticalPath().getAccumulatorRoute().isDirectCrossing();
+		p.getPathFinder().getTacticalPath().updateTargetCoordiante(); // Updating the target coordinate should not update the junction when the crossing hasn't been chosen.
+		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_112");
+		
+		// Now manually update the junction as if a crossing had been chosen
+		p.getPathFinder().getTacticalPath().caChosenUpdateCurrentJunction();
+		
 		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals("pave_node_114");
 		p.getPathFinder().getTacticalPath().updateCurrentJunction();
 		assert p.getPathFinder().getTacticalPath().getCurrentJunction().getFID().contentEquals(destJ.getFID());
