@@ -95,7 +95,8 @@ public class TacticalRoute {
 			this.getAccumulatorRoute().removeCrossingCoordinate();
 		}
 		else {
-			if ( this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ) ) {
+			boolean dontUpdate = this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ); 
+			if ( dontUpdate==false ) {
 				// do not update the current junction if crossing is required but crossing location is not chosen and:
 				// - ped is at the end of their route OR
 				// - ped is at a direct crossing
