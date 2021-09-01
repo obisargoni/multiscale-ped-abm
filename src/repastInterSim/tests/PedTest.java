@@ -608,6 +608,8 @@ class PedTest {
 			assert pedMinDist.getPathFinder().getStrategicPath().get(i).getFID().contentEquals(expectedRoadIDs[i]);
 		}
 		
+		// Check crossing type.
+		assert pedMinDist.getChosenCrossingType().contentEquals("none");
 		
 		// Step the ped until a crossing is required
 		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isBlank()) {
@@ -638,12 +640,26 @@ class PedTest {
 				e.printStackTrace();
 			}
 		}
+		
+		// Check crossing type is now not none
+		assert pedMinDist.getChosenCrossingType().contentEquals("none")==false;
 				
 		// Now currentJunction should be the targetJunction 
 		assert targetJ.equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction());
 		
 		// the accumulator route should have coordinates to go to
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()>0;
+		
+		// Check that crossing type stays not none until crossing is over
+		while ( pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()>0 ) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			assert pedMinDist.getChosenCrossingType().contentEquals("none")==false;
+		}
 	}
 
 }
