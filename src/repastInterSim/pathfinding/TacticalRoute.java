@@ -102,15 +102,15 @@ public class TacticalRoute {
 				// - ped is at a direct crossing
 				// In these cases ped must continue to accumulate activation despite reaching their current junction
 				updateCurrentJunction();
+				
+				// Update ped attributes that are recorded for analysis
+				// If current edge is null, tactical path needs updating so do not update ped attributes yet.
+				if (this.currentEdge != null) {
+					this.ped.setChosenCrossingType("none"); // Looks like this happens at the wrong point. Crossing type set to None before crossing ends.
+					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
+					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
+				}
 			}
-		}
-		
-		// Update ped attributes that are recorded for analysis
-		// If currentEdge is null after update then the tactical route needs updateing. This method is called once tactical path is updated, to the next link will be recorded immediately
-		if (this.currentEdge != null) {
-			this.ped.setChosenCrossingType("none");
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
-			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 		}
 	}
 	
