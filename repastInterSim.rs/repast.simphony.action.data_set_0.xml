@@ -45,7 +45,7 @@
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>CrossingChoice</id>
         <className>repastInterSim.agent.Ped</className>
-        <methodName>getChosenCrossingTypeString</methodName>
+        <methodName>getChosenCrossingType</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>

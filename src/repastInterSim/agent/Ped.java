@@ -884,11 +884,6 @@ public class Ped extends MobileAgent {
 	public String getChosenCrossingType() {
 		return currentCrossingType;
 	}
-	
-	public String getChosenCrossingTypeString() {
-		return currentCrossingType.toString();
-	}
-
 
 	public void setChosenCrossingType(String chosenCrossingType) {
 		this.currentCrossingType = chosenCrossingType;
