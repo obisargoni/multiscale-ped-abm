@@ -11,10 +11,14 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import cern.jet.random.Normal;
+import cern.jet.random.Uniform;
+import cern.jet.random.engine.RandomEngine;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
@@ -58,6 +62,29 @@ public class EnvironmentSetup {
 		IO.readProperties();
 		EnvironmentSetup.clearCaches();
 		SpaceBuilder.fac = new GeometryFactory();
+	}
+	
+	static void setUpRandomDistributions() {
+		// Correct way to register multiple random number streams
+		RandomEngine eng = RandomHelper.registerGenerator("maODThresholds", RandomHelper.getSeed()+1);
+		Uniform maODUniform = new Uniform(0, 1, eng);
+		RandomHelper.registerDistribution("maODThresholds", maODUniform);
+		
+		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", RandomHelper.getSeed()+2);
+		Uniform pedMinCrossUniform = new Uniform(0, 1, engPedMinCross);
+		RandomHelper.registerDistribution("pedMinCrossThresholds", pedMinCrossUniform);
+   
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", RandomHelper.getSeed()+3);
+		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
+		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
+		
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", RandomHelper.getSeed()+4);
+		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
+		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
+		
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", RandomHelper.getSeed()+5);
+		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
+		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 	}
 	
 	static void setUpObjectGeography() {

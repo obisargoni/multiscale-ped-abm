@@ -1416,6 +1416,7 @@ class PedPathFinderTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
 			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpPedObstructions();

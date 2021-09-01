@@ -135,6 +135,7 @@ class TacticalRouteTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
