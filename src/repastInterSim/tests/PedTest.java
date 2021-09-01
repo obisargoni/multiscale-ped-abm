@@ -17,7 +17,11 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
+import repastInterSim.environment.OD;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
@@ -553,6 +557,93 @@ class PedTest {
 		System.out.print(count);
 		assert p33.getCurrentRoad()!=null;
 
+	}
+	
+	/*
+	 * Method to test that ped correctly updates it route when making a direct crossing.
+	 * 
+	 * Ped should be prevented from updating whilst choosing a crossing alternative, then should update once crossing alternative is chosen.
+	 */
+	@Test
+	void testPedestrianDirectCrossing1() {
+		
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Initialise a pedestrian, this internally initialises a ped path finder
+		boolean minimiseCrossings = true;
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(8,9,minimiseCrossings);
+						
+		// Check the strategic path is as expected
+		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};
+		for (int i=0;i<pedMinDist.getPathFinder().getStrategicPath().size(); i++) {
+			assert pedMinDist.getPathFinder().getStrategicPath().get(i).getFID().contentEquals(expectedRoadIDs[i]);
+		}
+		
+		
+		// Step the ped until a crossing is required
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isBlank()) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		// Expect a direct crossing, which means that the default accumulator junction is the same as the peds current junction
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isDirectCrossing();
+		
+		// Now check that ped doesn't pdate its current junction until a crossin alternative is chosen
+		Junction currentJ = pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction();
+		Junction targetJ = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getTargetJunction();
+		Junction defaultJ = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getDefaultJunction();
+		
+		assert defaultJ.equals(currentJ);
+		
+		// step ped until crossing chosen
+		while( (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen()==false) & (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired()) ) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+				
+		// Now currentJunction should be the targetJunction 
+		assert targetJ.equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction());
+		
+		// the accumulator route should have coordinates to go to
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()>0;
 	}
 
 }
