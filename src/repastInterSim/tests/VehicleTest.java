@@ -7,14 +7,68 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.GISFunctions;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
+import repastInterSim.main.SpaceBuilder;
 
 class VehicleTest {
+	
+	/*
+	 * Test method for calculating the corners of a rectangle representing the vehicle given the vehicle's centre and bearing
+	 */
+	@Test
+	void testVehicleRectangleCoordiantes() {
+		
+		// For simplicity set coordinate to be the origin
+		Coordinate vLoc = new Coordinate(0, 0);
+		double bearing = 0;
+		
+		Coordinate[] expectedCoords = {	new Coordinate(-GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2), 
+										new Coordinate(GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2), 
+										new Coordinate(GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2), 
+										new Coordinate(-GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2), 
+										new Coordinate(-GlobalVars.vehicleWidth/2, GlobalVars.vehicleLength/2)};
+		Coordinate[] rectCoords = Vehicle.vehicleRectangleCoordiantes(vLoc, bearing);
+		for (int i=0;i<rectCoords.length;i++) {
+			assert rectCoords[i].equals2D(expectedCoords[i]);
+		}
+		
+		// Repeat with a different bearing
+		bearing = Math.PI / 4;
+		Coordinate[] expectedCoords2 = {	new Coordinate(-(GlobalVars.vehicleWidth * Math.sqrt(2.0) / 4) + (GlobalVars.vehicleLength * Math.sqrt(2.0) / 4) , (GlobalVars.vehicleLength*Math.sqrt(2.0)/4) + (GlobalVars.vehicleWidth*Math.sqrt(2.0)/4) ), 
+											new Coordinate( (GlobalVars.vehicleWidth * Math.sqrt(2.0) / 4) + (GlobalVars.vehicleLength * Math.sqrt(2.0) / 4), (GlobalVars.vehicleLength*Math.sqrt(2.0)/4) - (GlobalVars.vehicleWidth*Math.sqrt(2.0)/4)), 
+											new Coordinate( (GlobalVars.vehicleWidth * Math.sqrt(2.0) / 4) - (GlobalVars.vehicleLength * Math.sqrt(2.0) / 4), -(GlobalVars.vehicleLength*Math.sqrt(2.0)/4) - (GlobalVars.vehicleWidth*Math.sqrt(2.0)/4) ), 
+											new Coordinate(-(GlobalVars.vehicleWidth * Math.sqrt(2.0) / 4) - (GlobalVars.vehicleLength * Math.sqrt(2.0) / 4), -(GlobalVars.vehicleLength*Math.sqrt(2.0)/4) + (GlobalVars.vehicleWidth*Math.sqrt(2.0)/4)), 
+											new Coordinate(-(GlobalVars.vehicleWidth * Math.sqrt(2.0) / 4) + (GlobalVars.vehicleLength * Math.sqrt(2.0) / 4) , (GlobalVars.vehicleLength*Math.sqrt(2.0)/4) + (GlobalVars.vehicleWidth*Math.sqrt(2.0)/4) )};
+		
+		rectCoords = Vehicle.vehicleRectangleCoordiantes(vLoc, bearing);
+		for (int i=0;i<rectCoords.length;i++) {
+			assert Math.abs(rectCoords[i].x - expectedCoords2[i].x)<0.0000001;
+			assert Math.abs(rectCoords[i].y - expectedCoords2[i].y)<0.0000001;
+		}
+		
+		bearing = Math.PI/2;
+		Coordinate[] expectedCoords3 = {	new Coordinate(GlobalVars.vehicleLength/2, GlobalVars.vehicleWidth/2), 
+											new Coordinate(GlobalVars.vehicleLength/2, -GlobalVars.vehicleWidth/2), 
+											new Coordinate(-GlobalVars.vehicleLength/2, -GlobalVars.vehicleWidth/2), 
+											new Coordinate(-GlobalVars.vehicleLength/2, GlobalVars.vehicleWidth/2), 
+											new Coordinate(GlobalVars.vehicleLength/2, GlobalVars.vehicleWidth/2)};
+		rectCoords = Vehicle.vehicleRectangleCoordiantes(vLoc, bearing);
+		for (int i=0;i<rectCoords.length;i++) {
+			assert Math.abs(rectCoords[i].x - expectedCoords3[i].x)<0.0000001;
+			assert Math.abs(rectCoords[i].y - expectedCoords3[i].y)<0.0000001;
+		}
+		
+		
+	}
 	
 	/*
 	 * Test that get crossing pedestrians returns an empty list when there are no pedestrians
