@@ -534,8 +534,7 @@ public class Vehicle extends MobileAgent {
     	return this.currentRoadLink.getFID();
     }
     
-    private Polygon vehicleRectangePolygon(Coordinate loc, double bearing) {
-    	
+    public static Coordinate[] vehicleRectangleCoordiantes(Coordinate loc, double bearing) {
     	// Bearing is clockwise angle from north so use -ve bearing since rotation matrix is for counter clockwise turn
     	double[][] rotationMatrix = {{Math.cos(-bearing), -Math.sin(-bearing)},{Math.sin(-bearing), Math.cos(-bearing)}};
     	
@@ -546,22 +545,34 @@ public class Vehicle extends MobileAgent {
     	double[] p4 = {-GlobalVars.vehicleWidth/2, -GlobalVars.vehicleLength/2};
     	
     	double[][] corners = {p1,p2,p3,p4};
+    	double[][] rotatedCorners = new double[4][2];
     	
     	// Rotate corners
     	for(int p=0; p<corners.length; p++) {
+    		rotatedCorners[p][0] = corners[p][0];
+    		rotatedCorners[p][1] = corners[p][1];
     		for (int i=0; i<rotationMatrix.length; i++) {
     			double[] mRow = rotationMatrix[i];
-    			corners[p][i] = corners[p][0]*mRow[0] + corners[p][1]*mRow[1];
+    			double newc = corners[p][0]*mRow[0] + corners[p][1]*mRow[1];
+    			rotatedCorners[p][i] = newc;
     		}
     	}
     	
     	// Get coordinates of corners of vehicle rectangle
-    	Coordinate[] recCoords = new Coordinate[corners.length+1];
+    	Coordinate[] recCoords = new Coordinate[rotatedCorners.length+1];
     	for (int i=0; i<corners.length; i++) {
-    		Coordinate c = new Coordinate(loc.x+corners[i][0], loc.y+corners[i][1]);
+    		Coordinate c = new Coordinate(loc.x+rotatedCorners[i][0], loc.y+rotatedCorners[i][1]);
     		recCoords[i] = c;
     	}
-    	recCoords[corners.length] = recCoords[0];
+    	recCoords[rotatedCorners.length] = recCoords[0];
+    	
+    	return recCoords;
+    }
+    
+    public static Polygon vehicleRectangePolygon(Coordinate loc, double bearing) {
+    	
+    	// Get coordinates of corners of vehicle rectangle
+    	Coordinate[] recCoords = vehicleRectangleCoordiantes(loc, bearing);
     	
     	Polygon vehicleRec = null;
     	try {
