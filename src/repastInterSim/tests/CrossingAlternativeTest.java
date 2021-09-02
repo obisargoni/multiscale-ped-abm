@@ -27,8 +27,13 @@ class CrossingAlternativeTest {
 	@Test
 	void testLoadCrossingAlternatives1() {
 		try {
+			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -75,8 +80,13 @@ class CrossingAlternativeTest {
 	@Test
 	void testSignalPhaseChange() {
 		try {
+			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -162,8 +172,13 @@ class CrossingAlternativeTest {
 	@Test
 	void testUnsignalisedCrossings() {
 		try {
+			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
