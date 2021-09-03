@@ -6,6 +6,8 @@ package repastInterSim.pathfinding;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +17,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 
@@ -245,7 +248,7 @@ public class AccumulatorRoute {
 	
 	
 	/*
-	 *  Update the crossing alternative activations and choose a crossing alternative
+	 *  Update the crossing alternative activations and choose a crossing alternative. Also update the ped's ttc with vehicles, only changes when ped is crossing..
 	 */
 	public void step() {
 		// Accumulate activation and chooses a crossing alternative if choice not made yet
@@ -253,6 +256,20 @@ public class AccumulatorRoute {
 			this.accumulateCAActivation();
 			this.chooseCA();
 		}
+		
+		// Update peds ttc to vehicles when ped is crossing. Once ped stops crossing TTC is set back to null
+		if (isCrossing) {
+			HashMap<Vehicle, Double> ttcs = this.chosenCA.vehicleTTCs(ped);
+			List<Double> values =  ttcs.values().stream().filter(x->x!=null).collect(Collectors.toList());
+			if (values.size()>0) {
+				double ttc = values.stream().min(Comparator.comparing(Double::valueOf)).get();
+				ped.setTTC(ttc);
+			}
+			else {
+				ped.setTTC(null);
+			}
+		}
+		
 	}
 	
 	public CrossingAlternative getChosenCA() {
@@ -309,6 +326,7 @@ public class AccumulatorRoute {
 			this.crossingRequired = false;
 			this.caChosen = false;
 			this.isCrossing = false;
+			this.ped.setTTC(null);
 		}
 	}
 	
