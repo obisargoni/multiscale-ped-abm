@@ -73,6 +73,7 @@ public class Ped extends MobileAgent {
     
     private String currentCrossingType = "none";
 	private String currentPavementLinkID = "";
+	private Double ttc = null;
 
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
@@ -940,5 +941,18 @@ public class Ped extends MobileAgent {
     
     public String getDestinationID() {
     	return this.destination.getFID();
+    }
+    
+    public String getTTCString() {
+    	if (this.ttc==null) {
+    		return "";
+    	}
+    	else {
+    		return this.ttc.toString();
+    	}
+    }
+    
+    public void setTTC(Double ttc) {
+    	this.ttc = ttc;
     }
 }
