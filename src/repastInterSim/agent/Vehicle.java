@@ -605,6 +605,10 @@ public class Vehicle extends MobileAgent {
     		if (ttc==null) {
     			continue;
     		}
+    		else if (ttc<0) {
+    			// Only care about conflicts that occur in the future
+    			continue;
+    		}
     		else if (minTTC==null) {
     			minTTC = ttc;
     		}
