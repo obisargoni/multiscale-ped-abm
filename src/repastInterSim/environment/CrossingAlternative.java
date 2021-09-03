@@ -2,9 +2,15 @@ package repastInterSim.environment;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+
+import repastInterSim.agent.Ped;
+import repastInterSim.agent.Vehicle;
+import repastInterSim.main.SpaceBuilder;
 
 public class CrossingAlternative extends Signal implements FixedGeography  {
 	
@@ -18,6 +24,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	
 	// id of the road link this crossing is located on
 	private String roadLinkID;
+	private RoadLink orRoadLink;
 
 	public CrossingAlternative(){
 		super();
@@ -59,8 +66,63 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		return 0;
 	}
 	
+	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
+		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
+		return vehicleTTCs(p, itnLinks);
+	}
+	
+	/*
+	 * Get the time to collision between the vehicles travelling on this road link and either an actual crossing pedestrian agent or a hypothetical 
+	 * pedestrian agent moving between crossing coordinates
+	 * 
+	 * @param Ped p
+	 * 		The pedestrian agent to calculate time-to-collision for
+	 * @param List<RoadLink> itnLinks
+	 * 		The ITN Road Links to look for vehicles on.
+	 */
+	public HashMap<Vehicle, Double> vehicleTTCs(Ped p, List<RoadLink> itnLinks) {
+		
+		HashMap<Vehicle, Double> vehicleTTCs = new HashMap<Vehicle, Double>();
+		
+		// Initialise the pedestrian position and velocity to use for the ttc calculation
+		double[] pLoc = new double[2];
+		double[] pV = new double[2];
+		pLoc[0] = p.getLoc().x;
+		pLoc[1] = p.getLoc().y;
+		pV = p.getV();
+		
+		// Loop through all vehicles on road links assocated with this crossing and calculate time to collision to pedestrian, either using peds current location and velocaity,
+		// or assuming ped walks from start to end coordinate on crossing.
+		for (int i=0; i<itnLinks.size(); i++){
+			RoadLink rl = itnLinks.get(i);
+			for(int j = 0; j<rl.getQueue().count(); j++){
+				int vi = rl.getQueue().readPos() + j;
+				if (vi>=rl.getQueue().capacity()) {
+					vi = vi-rl.getQueue().capacity();
+				}
+				Vehicle v = rl.getQueue().elements[vi];
+				
+				Double ttc = v.TTC(pLoc, pV);
+				vehicleTTCs.put(v, ttc);
+			}
+		}
+		
+		return vehicleTTCs;		
+	}
+	
+	public List<RoadLink> getCurrentVehicleRoadLinks() {
+		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(this.orRoadLink);
+		return itnLinks;
+	}
+	
 	public void setRoadLinkID(String rlID) {
 		this.roadLinkID = rlID;
+		
+		for(RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+			if (rl.getFID().contentEquals(rlID)) {
+				this.orRoadLink = rl;
+			}
+		}
 	}
 	
 	public String getRoadLinkID() {
