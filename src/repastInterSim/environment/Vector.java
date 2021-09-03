@@ -142,5 +142,39 @@ public class Vector {
 	    }
 	    return r;
 	}
+	
+	/*
+	 * Find time to collision of a point and and edge.
+	 */
+	public static Double edgeTTC(double[] p, double[] vP, double[] e1, double[] e2, double[] vE) {
+		
+		double ttc;
+		
+		double k_denom = 	e2[0] -	e1[0];
+		double k_num = 		e2[1] - e1[1];
+		
+		if (k_denom==0) {
+			ttc = (p[0] - e1[0]) / (vP[0] - vE[0]) ; 
+		}
+		else {
+			double k = k_num / k_denom;
+			ttc = -1*( (p[1] - e1[1]) - k*(p[0] - e1[0]) ) / ( (vP[1] - vE[1]) - k*(vP[0] - vE[0]) );
+		}
+		
+		// Now check if collision actually occurs by check if position of point at time ttc coincides with edge
+		double[] pTTC = {p[0] + vP[0]*ttc, p[1] + vP[1]*ttc};
+		double[] e1TTC = {e1[0] + vE[0]*ttc, e1[1] + vE[1]*ttc};
+		double[] e2TTC = {e2[0] + vE[0]*ttc, e2[1] + vE[1]*ttc};
+		
+		boolean xInRange = (Math.min(e1TTC[0], e2TTC[0]) <= pTTC[0]) & (pTTC[0] <= Math.max(e1TTC[0], e2TTC[0]));
+		boolean yInRange = (Math.min(e1TTC[1], e2TTC[1]) <= pTTC[1]) & (pTTC[1] <= Math.max(e1TTC[1], e2TTC[1]));
+		
+		if (xInRange & yInRange) {
+			return ttc;
+		}
+		else {
+			return null;
+		}
+	}
     
 }
