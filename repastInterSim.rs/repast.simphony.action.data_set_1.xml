@@ -7,12 +7,12 @@
   <inclRandomSeed>true</inclRandomSeed>
   <scheduleParams>
     <start>1.0</start>
-    <interval>2.0</interval>
+    <interval>1.0</interval>
     <priority>-Infinity</priority>
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-235215049</hashCode>
+    <hashCode>446093260</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -70,6 +70,14 @@
         <id>DestPavementJunctionID</id>
         <className>repastInterSim.agent.Ped</className>
         <methodName>getDestPavementJunctionID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>TTC</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>TTC</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>getTTCString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

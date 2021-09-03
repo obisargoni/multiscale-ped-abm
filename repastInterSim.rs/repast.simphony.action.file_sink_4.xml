@@ -1,19 +1,21 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian Locations</name>
-  <dataSet>Pedestrian Locations</dataSet>
+  <name>Pedestrian Pavement Route Crossings</name>
+  <dataSet>Pedestrian Pavement Route Crossings</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
-    <string>ID</string>
-    <string>LocXString</string>
-    <string>LocYString</string>
-    <string>CrossingChoice</string>
-    <string>tick</string>
     <string>run</string>
-    <string>OriginID</string>
-    <string>DestinationID</string>
     <string>random_seed</string>
+    <string>tick</string>
+    <string>CrossingCoordsString</string>
+    <string>ID</string>
+    <string>FullStrategicPathString</string>
+    <string>ChosenCrossingTypeString</string>
+    <string>CurrentPavementLinkID</string>
+    <string>StartPavementJunctionID</string>
+    <string>DestPavementJunctionID</string>
+    <string>TTC</string>
   </sourceIds>
-  <fileName>.\batch\model_run_data\pedestrian_locations.csv</fileName>
+  <fileName>.\batch\model_run_data\pedestrian_pave_link_crossings.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
