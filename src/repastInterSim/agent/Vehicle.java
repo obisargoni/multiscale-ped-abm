@@ -16,6 +16,7 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
+import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
@@ -582,6 +583,37 @@ public class Vehicle extends MobileAgent {
     	}
     	
     	return vehicleRec;
+    }
+    
+    /*
+     * Calculate the time to collision to an object at location pLoc travelling at velocity pV.
+     */
+    public Double TTC(double[] pLoc, double[] pV) {
+    	
+    	// Get coordinates of the edges of the vehicle geometry
+    	Coordinate[] recCorners = vehicleRectangleCoordiantes(this.maLoc, this.bearing);
+    	double[] v = {this.speed*Math.sin(this.bearing), this.speed*Math.cos(this.bearing)}; 
+    	
+    	// Get TTC value for ped and each edge of vehicle, find lowest TTC
+    	Double minTTC = null;
+    	for (int i=0; i<recCorners.length-1;i++) {
+    		double[] e1 = {recCorners[i].x, recCorners[i].y};
+    		double[] e2 = {recCorners[i+1].x, recCorners[i+1].y};
+    		
+    		Double ttc = Vector.edgeTTC(pLoc, pV, e1, e2, v);
+    		
+    		if (ttc==null) {
+    			continue;
+    		}
+    		else if (minTTC==null) {
+    			minTTC = ttc;
+    		}
+    		else if (minTTC>ttc) {
+    			minTTC = ttc;
+    		}
+    	}
+    	
+    	return minTTC;
     }
 
 }
