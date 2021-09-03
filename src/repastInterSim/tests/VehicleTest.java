@@ -7,17 +7,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
-import repastInterSim.environment.GISFunctions;
 import repastInterSim.main.GlobalVars;
-import repastInterSim.main.IO;
-import repastInterSim.main.SpaceBuilder;
+
 
 class VehicleTest {
 	
