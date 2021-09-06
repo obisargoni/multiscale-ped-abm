@@ -138,9 +138,6 @@ public class AccumulatorRoute {
 	 */
 	public double caVehicleExposureIndicator(CrossingAlternative ca) {
 		
-		// Time required for ped to cross the road
-		double t_cross = ca.getC1().distance(ca.getC2()) / this.ped.getSpeed();
-		
 		double vNormalisedFlow = ca.getvFlow();  
 		return 1 - vNormalisedFlow;
 	}
