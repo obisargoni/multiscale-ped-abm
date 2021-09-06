@@ -141,9 +141,8 @@ public class AccumulatorRoute {
 		// Time required for ped to cross the road
 		double t_cross = ca.getC1().distance(ca.getC2()) / this.ped.getSpeed();
 		
-		double vFlow = ca.getvFlow();
-		double avVFlow = 1;
-		return 1 - (vFlow/avVFlow);
+		double vNormalisedFlow = ca.getvFlow();  
+		return 1 - vNormalisedFlow;
 	}
 	
 	/*
