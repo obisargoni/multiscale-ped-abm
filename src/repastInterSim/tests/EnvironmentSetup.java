@@ -50,8 +50,6 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 public class EnvironmentSetup {
 	
 	static String testGISDir = ".//data//test_gis_data//";
-	static String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
-	static String vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 	static String serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 	
 	public EnvironmentSetup() {
@@ -101,6 +99,9 @@ public class EnvironmentSetup {
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
 		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
 		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
+		String vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 		
 		// Load vehicle origins and destinations
 		try {
