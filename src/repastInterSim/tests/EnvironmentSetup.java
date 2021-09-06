@@ -156,8 +156,12 @@ public class EnvironmentSetup {
 		return odG;		
 	}
 	
+	static void setUpPedODs(String odFileName) throws MalformedURLException, FileNotFoundException {
+		SpaceBuilder.pedestrianDestinationGeography = setUpODs(odFileName, "pedODGeography");
+	}
+	
 	static void setUpPedODs() throws MalformedURLException, FileNotFoundException {
-		SpaceBuilder.pedestrianDestinationGeography = setUpODs("OD_pedestrian_nodes_test.shp", "pedODGeography");
+		setUpPedODs("OD_pedestrian_nodes_test.shp");
 	}
 	
 	static void setUpVehicleODs() throws MalformedURLException, FileNotFoundException {
