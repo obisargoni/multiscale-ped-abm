@@ -66,6 +66,19 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		return 0.0;
 	}
 	
+	/*
+	 * Return the number of vehicles passing through the crossing alternative divided by the total vehicle capacity of the road links that pass through the crossing alternative.
+	 */
+	public double getNormalisedVFlow() {
+		double vFlow = this.getvFlow();
+		double totalCapacity = 0;
+		for (RoadLink rl: this.getCurrentVehicleRoadLinks()) {
+			totalCapacity += rl.getQueue().capacity();
+		}
+		double normVFlow = vFlow / totalCapacity;
+		return normVFlow;
+	}
+	
 	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
 		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
 		return vehicleTTCs(p, itnLinks);
