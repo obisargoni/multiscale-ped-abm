@@ -242,7 +242,7 @@ class CrossingAlternativeTest {
 		
 		Coordinate pedLoc = new Coordinate(530420.5, 180821.69);
 		double bearing = 2*Math.PI * (55.0/360); // 55 degrees
-		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, false, pedLoc, bearing);
+		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);
@@ -288,7 +288,7 @@ class CrossingAlternativeTest {
 		
 		Coordinate pedLoc = new Coordinate(530669.1, 180776.85);
 		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
-		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, false, pedLoc, bearing);
+		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);

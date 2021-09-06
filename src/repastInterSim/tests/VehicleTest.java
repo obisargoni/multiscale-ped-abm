@@ -387,6 +387,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -416,7 +417,7 @@ class VehicleTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
@@ -510,6 +511,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -539,7 +541,7 @@ class VehicleTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
