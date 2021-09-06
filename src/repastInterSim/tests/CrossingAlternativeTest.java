@@ -302,6 +302,61 @@ class CrossingAlternativeTest {
 	}
 	
 	@Test
+	void testUnmarkedCrossingAlternativeCoordinates3() {
+		// Setup environment
+		try {
+			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\clapham_common\\";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(529473.3879596329, 175332.48614396667);
+		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(null, null, "od_263", "od_0", false, pedLoc, bearing);
+		
+		// Update current road link
+		String rlID = "or_link_192";
+		
+		while (!p.getPathFinder().getStrategicPath().get(0).getFID().contentEquals(rlID)) {
+			p.getPathFinder().getStrategicPath().remove(0);
+		}
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setPed(p);
+		
+		Coordinate c2 = caU.getC2();
+		
+		assert c2 != null;
+		
+		// Set gis dir back to what it was
+		EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\";
+	}
+	
+	@Test
 	void testUnmarkedCrossingVehicleFlow() {
 		// Setup the environment
 		try {
