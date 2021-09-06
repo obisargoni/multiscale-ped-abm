@@ -138,7 +138,7 @@ public class AccumulatorRoute {
 	 */
 	public double caVehicleExposureIndicator(CrossingAlternative ca) {
 		
-		double vNormalisedFlow = ca.getvFlow();  
+		double vNormalisedFlow = ca.getNormalisedVFlow();  
 		return 1 - vNormalisedFlow;
 	}
 	
