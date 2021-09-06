@@ -370,6 +370,7 @@ class CrossingAlternativeTest {
 		
 		// Now after last step vehicle is within reach of the crossing
 		assert uc.getvFlow() == 1;
+		assert uc.getNormalisedVFlow() == 1.0 / 26.0;
 		
 		// Vehicle flow remains 1 until vehicle passes crossing
 		// Test this by moving vehicle along to the end of its route
