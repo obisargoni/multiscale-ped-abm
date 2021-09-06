@@ -62,8 +62,8 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	/*
 	 * Vehicles are assumed to yield at dedicated crossings resulting in zero vehicle flow
 	 */
-	public Integer getvFlow() {
-		return 0;
+	public double getvFlow() {
+		return 0.0;
 	}
 	
 	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
