@@ -335,7 +335,7 @@ class CrossingAlternativeTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped ped = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
@@ -432,7 +432,7 @@ class CrossingAlternativeTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped ped = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
