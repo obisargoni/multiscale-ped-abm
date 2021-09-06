@@ -63,14 +63,16 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * Ideally will calculate exactly the number of cars that would pass through the crossing in a given time period
 	 */
 	@Override
-	public Integer getvFlow() {
+	public double getvFlow() {
 		double crossingTime = this.getC1().distance(this.getC2()) / this.ped.getSpeed();
 		
 		// Loop through vehicles on the road links this crossing covers, count the number that will pass crossing point in crossing time
-		int vehicleCount = 0;
+		double vehicleCount = 0;
+		double totalCapacity = 0;
 		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
 		for (int i=0; i<itnLinks.size(); i++){
 			RoadLink rl = itnLinks.get(i);
+			totalCapacity += rl.getQueue().capacity();
 			for(int j = 0; j<rl.getQueue().count(); j++){
 				int vi = rl.getQueue().readPos() + j;
 				if (vi>=rl.getQueue().capacity()) {
@@ -95,7 +97,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 				}
 			}
 		}
-		return vehicleCount;
+		double normalisedVFlow = vehicleCount / totalCapacity; 
+		return normalisedVFlow;
 	}
 	
 	@Override
