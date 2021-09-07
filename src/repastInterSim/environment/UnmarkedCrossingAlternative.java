@@ -146,7 +146,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		
 		// Identify geometries that demark the edge of the road. First try pedestrian pavement polygons. Failing that try obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.currentORLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		List<Road> caPedRoads = this.orRoadLink.getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
 		if (caPedRoads.size()==0) {
 			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
 			roadEdgeGeoms = SpatialIndexManager.searchGeoms(poG, nearby);
@@ -244,13 +244,13 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	public Coordinate oppositeSideOfRoadCoord(Coordinate c, RoadLink roadLink, Geography<Road> rG, Geography<PedObstruction> poG) {
 		
 		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
-		Coordinate[] rlCoords = roadLink.getGeom().getCoordinates(); 
+		Coordinate[] rlCoords = this.orRoadLink.getGeom().getCoordinates(); 
 		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
 		double perp1 = rlBearing - Math.PI / 2;
 		double perp2 = rlBearing + Math.PI / 2;
 		
 		// Find which of these bearings points to opp side of road to ped
-		Coordinate rlCent = roadLink.getGeom().getCentroid().getCoordinate();
+		Coordinate rlCent = this.orRoadLink.getGeom().getCentroid().getCoordinate();
 		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
 		
 		double range1 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp1);
@@ -269,7 +269,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		
 		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.currentORLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+		List<Road> caPedRoads = this.orRoadLink.getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
 		for (Road rd: caPedRoads) {
 			roadEdgeGeoms.add(rd.getGeom());
 		}
