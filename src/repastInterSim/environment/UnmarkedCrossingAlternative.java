@@ -98,12 +98,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		return vehicleCount;
 	}
 	
-	@Override
-	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
-		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks();
-		return this.vehicleTTCs(p, itnLinks);
-	}	
-	
 	/*
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
 	 * Used to identify the end point of unmarked crossing alternatives.
