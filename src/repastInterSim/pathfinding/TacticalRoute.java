@@ -327,24 +327,16 @@ public class TacticalRoute {
 	}
 	
 	static private List<RoadLink> tacticalPathCrossingLinks(RepastEdge<Junction> edge, Geography<RoadLink> orRLG) {
-		List<RepastEdge<Junction>> path = new ArrayList<RepastEdge<Junction>>();
-		path.add(edge);
-		return tacticalPathCrossingLinks(path, orRLG);
-	}
-	
-	/*
-	 * Return a list of the RoadLink objects the links in the input tactial path cross.
-	 */
-	static private List<RoadLink> tacticalPathCrossingLinks(List<RepastEdge<Junction>> path, Geography<RoadLink> orRLG){
 		List<RoadLink> crossedLinks = new ArrayList<RoadLink>();
-		for (RepastEdge<Junction> e: path) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
-			for (RoadLink rl : orRLG.getAllObjects()) {
-				if (rl.getPedRLID().contentEquals(ne.getRoadLink().getPedRLID())) {
-					crossedLinks.add(rl);
-				}
+		RoadLink crossedLink = null;
+		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edge;
+		for (RoadLink rl : orRLG.getAllObjects()) {
+			if (rl.getPedRLID().contentEquals(ne.getRoadLink().getPedRLID())) {
+				crossedLink = rl;
+				break;
 			}
-		}		
+		}
+		crossedLinks.add(crossedLink);
 		return crossedLinks;
 	}
 
