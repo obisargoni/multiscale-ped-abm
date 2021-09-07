@@ -102,25 +102,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
 		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks();
 		return this.vehicleTTCs(p, itnLinks);
-	}
-	
-	public String getRoadLinkID() {
-		return this.ped.getPathFinder().getStrategicPath().get(0).getFID();
-	}
-	
-	/*
-	 * Get the OR Road Link this crossing is assocaiated with by selecting the current link in the pedestrian's
-	 * route
-	 */
-	public RoadLink currentORLink() {
-		return this.ped.getPathFinder().getStrategicPath().get(0);
-	}
-	
-	public List<RoadLink> getCurrentVehicleRoadLinks() {
-		RoadLink orLink = this.currentORLink();
-		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(orLink);
-		return itnLinks;
-	}
+	}	
 	
 	/*
 	 * Get the nearest coordinate on the pavement on the opposite side of the road to the input coordinate.
