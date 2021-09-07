@@ -275,7 +275,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		}
 		
 		// Add in ped obstruction geoms
-		Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(35);
+		Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(40);
 		for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
 			roadEdgeGeoms.add(g);
 		}
