@@ -135,7 +135,7 @@ public class TacticalRoute {
 			
 			// Check if this edge requires crossing a road link. If it does, initialise an accumulator to choose crossing location
 			// Crossing links only ever contains 
-			RoadLink crossingLink = tacticalPathCrossingLink(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
+			RoadLink crossingLink = tacticalEdgeCrossingLink(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
 			if (crossingLink != null) {
 				
 				// AccumulatorRoute requires a default edge and default junction the ped walks towards or stays at whilst choosing a crossing
@@ -326,7 +326,7 @@ public class TacticalRoute {
 		return crossedLinks;
 	}
 	
-	static private RoadLink tacticalPathCrossingLink(RepastEdge<Junction> edge, Geography<RoadLink> orRLG) {
+	static private RoadLink tacticalEdgeCrossingLink(RepastEdge<Junction> edge, Geography<RoadLink> orRLG) {
 		RoadLink crossedLink = null;
 		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edge;
 		for (RoadLink rl : orRLG.getAllObjects()) {
