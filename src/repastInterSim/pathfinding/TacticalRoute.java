@@ -240,6 +240,7 @@ public class TacticalRoute {
 		// Add unmarked crossing alternative to list
 		// Don't set road for unmarked crossings
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(rls.get(0).getFID());
 		caU.setPed(p);
 		cas.add(caU);
 		
