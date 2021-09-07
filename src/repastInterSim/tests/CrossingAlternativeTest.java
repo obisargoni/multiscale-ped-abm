@@ -17,6 +17,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.environment.Vector;
@@ -344,19 +345,15 @@ class CrossingAlternativeTest {
 		Ped p = EnvironmentSetup.createPedAtLocation(null, null, "od_263", "od_0", false, pedLoc, bearing);
 		
 		// Update current road link
-		String rlID = "or_link_192";
-		
-		while (!p.getPathFinder().getStrategicPath().get(0).getFID().contentEquals(rlID)) {
-			p.getPathFinder().getStrategicPath().remove(0);
-		}
-		
+		String rlID = "or_link_194";		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
-		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
+		caU.setRoadLinkID(rlID);
 		caU.setPed(p);
 		
 		Coordinate c2 = caU.getC2();
 		
 		assert c2 != null;
+		assert ( Math.abs(c2.x - 529466.19)<0.00001) & ( Math.abs(c2.y - 175329.47)<0.00001); 
 	}
 	
 	@Test
