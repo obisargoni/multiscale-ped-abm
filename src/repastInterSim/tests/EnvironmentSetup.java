@@ -50,8 +50,6 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 public class EnvironmentSetup {
 	
 	static String testGISDir = ".//data//test_gis_data//";
-	static String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
-	static String vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 	static String serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 	
 	public EnvironmentSetup() {
@@ -101,6 +99,9 @@ public class EnvironmentSetup {
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
 		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
 		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
+		
+		String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
+		String vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 		
 		// Load vehicle origins and destinations
 		try {
@@ -155,8 +156,12 @@ public class EnvironmentSetup {
 		return odG;		
 	}
 	
+	static void setUpPedODs(String odFileName) throws MalformedURLException, FileNotFoundException {
+		SpaceBuilder.pedestrianDestinationGeography = setUpODs(odFileName, "pedODGeography");
+	}
+	
 	static void setUpPedODs() throws MalformedURLException, FileNotFoundException {
-		SpaceBuilder.pedestrianDestinationGeography = setUpODs("OD_pedestrian_nodes_test.shp", "pedODGeography");
+		setUpPedODs("OD_pedestrian_nodes_test.shp");
 	}
 	
 	static void setUpVehicleODs() throws MalformedURLException, FileNotFoundException {
@@ -369,7 +374,7 @@ public class EnvironmentSetup {
 		return createVehicle(o,d);
 	}
 	
-	static Ped createPedestrian(int oID, int dID, boolean minimisesCrossing) {
+	static Ped createPedestrian(Integer oID, Integer dID, String oFID, String dFID, boolean minimisesCrossing) {
 		double s = GlobalVars.pedVavg;
 		double m = GlobalVars.pedMassAv;
 		double alpha = 0.5;
@@ -378,7 +383,13 @@ public class EnvironmentSetup {
 		double epsilon = 3.0;
 		double pH = 20.0;
 		
-		return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+		if ( (oFID==null) | (dFID==null) ) {
+			return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+		}
+		else {
+			return createPedestrian(oFID, dFID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+		}
+		
 	}
 	
 	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
@@ -395,6 +406,30 @@ public class EnvironmentSetup {
 			}
 		}
 		
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH);
+		return p;
+	}
+	
+	static Ped createPedestrian(String oFID, String dFID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
+		
+		OD o = null;
+		OD d = null;
+		
+		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+			if (i.getFID().contentEquals(oFID)) {
+				o = i;
+			}
+			else if (i.getFID().contentEquals(dFID)) {
+				d = i;
+			}
+		}
+		
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH);
+		return p;
+	}
+	
+	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
+
 		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
 
         SpaceBuilder.context.add(p);        
@@ -411,9 +446,9 @@ public class EnvironmentSetup {
 		SpatialIndexManager.clearCaches();
 	}
 	
-	public static Ped createPedAtLocation(int oID, int dID, boolean minimisesDistance, Coordinate c, double b) {
+	public static Ped createPedAtLocation(Integer oID, Integer dID, String oFID, String dFID, boolean minimisesDistance, Coordinate c, double b) {
 		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
-		Ped ped = EnvironmentSetup.createPedestrian(oID, dID, minimisesDistance);
+		Ped ped = EnvironmentSetup.createPedestrian(oID, dID, oFID, dFID, minimisesDistance);
 		
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);

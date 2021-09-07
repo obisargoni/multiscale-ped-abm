@@ -39,7 +39,7 @@ class PedTest {
 	
 	Ped createPedAtLocation(boolean minimisesDistance, Coordinate c, double b) {
 		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
-		Ped ped = EnvironmentSetup.createPedestrian(3,4,minimisesDistance);
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, minimisesDistance);
 		
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
@@ -86,7 +86,7 @@ class PedTest {
 		}
 		
 		// Create pedestrian and point it towards it's destination (which in this case is just across the road)
-		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
@@ -470,6 +470,7 @@ class PedTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions();
 			
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
@@ -600,7 +601,7 @@ class PedTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = true;
-		Ped pedMinDist = EnvironmentSetup.createPedestrian(8,9,minimiseCrossings);
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(8,9, null, null, minimiseCrossings);
 						
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};

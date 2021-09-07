@@ -242,7 +242,7 @@ class CrossingAlternativeTest {
 		
 		Coordinate pedLoc = new Coordinate(530420.5, 180821.69);
 		double bearing = 2*Math.PI * (55.0/360); // 55 degrees
-		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, false, pedLoc, bearing);
+		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);
@@ -288,7 +288,7 @@ class CrossingAlternativeTest {
 		
 		Coordinate pedLoc = new Coordinate(530669.1, 180776.85);
 		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
-		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, false, pedLoc, bearing);
+		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setPed(p);
@@ -299,6 +299,61 @@ class CrossingAlternativeTest {
 		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
 		assert c2.equals2D(new Coordinate(530661.25, 180772.85));
 		
+	}
+	
+	@Test
+	void testUnmarkedCrossingAlternativeCoordinates3() {
+		// Setup environment
+		try {
+			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\clapham_common\\";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(529473.3879596329, 175332.48614396667);
+		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(null, null, "od_263", "od_0", false, pedLoc, bearing);
+		
+		// Update current road link
+		String rlID = "or_link_192";
+		
+		while (!p.getPathFinder().getStrategicPath().get(0).getFID().contentEquals(rlID)) {
+			p.getPathFinder().getStrategicPath().remove(0);
+		}
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setPed(p);
+		
+		Coordinate c2 = caU.getC2();
+		
+		assert c2 != null;
+		
+		// Set gis dir back to what it was
+		EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\";
 	}
 	
 	@Test
@@ -335,7 +390,7 @@ class CrossingAlternativeTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped ped = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
@@ -432,7 +487,7 @@ class CrossingAlternativeTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped ped = EnvironmentSetup.createPedestrian(3,4,false);
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
