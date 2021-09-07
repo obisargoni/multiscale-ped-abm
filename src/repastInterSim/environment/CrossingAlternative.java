@@ -23,8 +23,8 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	private String type;
 	
 	// id of the road link this crossing is located on
-	private String roadLinkID;
-	private RoadLink orRoadLink;
+	protected String roadLinkID;
+	protected RoadLink orRoadLink;
 
 	public CrossingAlternative(){
 		super();
