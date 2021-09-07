@@ -245,6 +245,7 @@ class CrossingAlternativeTest {
 		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
 		caU.setPed(p);
 		
 		Coordinate c1 = caU.getC1();
@@ -291,6 +292,7 @@ class CrossingAlternativeTest {
 		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, null, null, false, pedLoc, bearing);
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
 		caU.setPed(p);
 		
 		Coordinate c1 = caU.getC1();
@@ -346,6 +348,7 @@ class CrossingAlternativeTest {
 		}
 		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
 		caU.setPed(p);
 		
 		Coordinate c2 = caU.getC2();
