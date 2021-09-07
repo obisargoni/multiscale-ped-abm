@@ -133,9 +133,10 @@ public class TacticalRoute {
 		else {
 			nextJunction = edgeAdjacentJunction(this.currentEdge, this.currentJunction);
 			
-			// Check if this edge requires crossing a road link. If it does, initialise an accumulator to choose crossing location				
-			List<RoadLink> crossingLinks = tacticalPathCrossingLinks(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
-			if (crossingLinks.size()>0) {
+			// Check if this edge requires crossing a road link. If it does, initialise an accumulator to choose crossing location
+			// Crossing links only ever contains 
+			RoadLink crossingLink = tacticalPathCrossingLink(this.currentEdge, SpaceBuilder.orRoadLinkGeography); 
+			if (crossingLink != null) {
 				
 				// AccumulatorRoute requires a default edge and default junction the ped walks towards or stays at whilst choosing a crossing
 				
@@ -157,12 +158,11 @@ public class TacticalRoute {
 				}
 				
 				// Get road length - the length of the road that crossing alternatives are being considered for
-				double roadLength = 0;
-				for (RoadLink rl: crossingLinks) {
-					roadLength += rl.getGeom().getLength();
-				}
+				double roadLength = crossingLink.getGeom().getLength();
 				
 				// Identify crossing alternatives
+				List<RoadLink> crossingLinks = new ArrayList<RoadLink>();
+				crossingLinks.add(crossingLink);
 				List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, SpaceBuilder.roadGeography);
 				
 				// Initialise accumulator crossing choice model
@@ -326,8 +326,7 @@ public class TacticalRoute {
 		return crossedLinks;
 	}
 	
-	static private List<RoadLink> tacticalPathCrossingLinks(RepastEdge<Junction> edge, Geography<RoadLink> orRLG) {
-		List<RoadLink> crossedLinks = new ArrayList<RoadLink>();
+	static private RoadLink tacticalPathCrossingLink(RepastEdge<Junction> edge, Geography<RoadLink> orRLG) {
 		RoadLink crossedLink = null;
 		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) edge;
 		for (RoadLink rl : orRLG.getAllObjects()) {
@@ -336,8 +335,7 @@ public class TacticalRoute {
 				break;
 			}
 		}
-		crossedLinks.add(crossedLink);
-		return crossedLinks;
+		return crossedLink;
 	}
 
 	public RepastEdge<Junction> getCurrentEdge() {
