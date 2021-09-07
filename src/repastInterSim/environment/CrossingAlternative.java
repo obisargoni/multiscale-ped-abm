@@ -75,8 +75,13 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		for (RoadLink rl: this.getCurrentVehicleRoadLinks()) {
 			totalCapacity += rl.getQueue().capacity();
 		}
-		double normVFlow = vFlow / totalCapacity;
-		return normVFlow;
+		if (vFlow==0) {
+			return 0;
+		}
+		else {
+			double normVFlow = vFlow / totalCapacity;
+			return normVFlow;	
+		}
 	}
 	
 	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
