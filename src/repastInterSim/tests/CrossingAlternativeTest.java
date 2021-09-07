@@ -331,6 +331,9 @@ class CrossingAlternativeTest {
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 			
+			// Set gis dir back to what it was once data loaded
+			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\";
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -354,9 +357,6 @@ class CrossingAlternativeTest {
 		Coordinate c2 = caU.getC2();
 		
 		assert c2 != null;
-		
-		// Set gis dir back to what it was
-		EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\";
 	}
 	
 	@Test
