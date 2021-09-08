@@ -326,7 +326,7 @@ def batch_runs_crossing_points_figure(G, dict_node_pos, dfBatch, groupby_columns
     f.suptitle(fig_title, fontdict = title_font)
     return f
 
-def batch_runs_conflicts_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, geometry_col = 'geometry', size_col = 'size', colour_col = 'colour', cmap = 'viridis', norm = None, point_alpha = 0.5, edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16}):
+def batch_runs_conflicts_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_title, geometry_col = 'geometry', size_col = 'size', size_param = 5, colour_col = 'colour', cmap = 'viridis', norm = None, point_alpha = 0.5, edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 16}):
     '''Loop through batch run groups and get edge pallet data for each group. Use this to make road crossings
     figure for each group.
     '''
@@ -368,9 +368,38 @@ def batch_runs_conflicts_figure(G, dict_node_pos, dfBatch, groupby_columns, fig_
             # Draw the crossing points
             x = dfRun[geometry_col].map(lambda p:p.x)
             y = dfRun[geometry_col].map(lambda p:p.y)
-            sizes = dfRun[size_col]
+            sizes = dfRun[size_col]*size_param
             colours = dfRun[size_col]
-            ax.scatter(x, y, s = sizes, cmap = cmap, norm = norm, marker = 'o', alpha = point_alpha, c = colours)
+            ax.scatter(x, y, s = sizes, cmap = cmap, norm = norm, marker = 'o', alpha = point_alpha, c = colours, edgecolors='none')
+
+    # Add colourbar
+    cbar_fontdict = {"size":14}
+    smap = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
+    cbar.ax.set_ylabel('Mean TTC', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+
+    # Select some example point to create size legend from later
+    size_data = dfBatch[size_col].values
+    example_values = np.sort(size_data)[::len(size_data)//10][-3:]
+    indices = [np.where(size_data==v)[0][0] for v in example_values]
+
+    # Then create legend using an inset axis
+    xmin, ymin, dx, dy = cbar.ax.get_position().bounds
+    cax = f.add_axes([xmin+0.05, ymin+dy-dy/5, dx, dy/5])
+    x = [0]*len(example_values)
+    y = range(len(example_values))
+    cax.scatter(x, y, s = example_values*size_param, c = 'white', edgecolors = 'none', marker = 'o')
+    cax.yaxis.set_label_position("right")
+    cax.yaxis.tick_right()
+    cax.set_yticks(y)
+    cax.set_yticklabels(np.round_(example_values, decimals=1), fontdict = {'size':cbar_fontdict['size']-3})
+    cax.set_ylabel('Mean Conflict Count', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+    cax.set_xticks([])
+
+    for pos in ['right', 'top', 'bottom', 'left']:
+        cax.spines[pos].set_visible(False)
+
 
     f.suptitle(fig_title, fontsize = title_font['size'])
     return f
@@ -396,9 +425,8 @@ points_batch_fig.show()
 
 
 gdfConflicts = gdfAvConflictCounts.loc[ gdfAvConflictCounts['alpha'] == 0.8]
-gdfConflicts['point_size'] = gdfConflicts['mean_conflict_count']*5
 
 conflicts_batch_fig_path = os.path.join(img_dir, "conflicts_figure"+ os.path.split(ped_crossings_file)[1].replace(".csv", ".png"))
-conflicts_batch_fig = batch_runs_conflicts_figure(G, dict_node_pos, gdfConflicts, groupby_columns, "Conflict Locations", geometry_col = 'linkMidPoint', size_col = 'point_size', colour_col = 'totMeanTTC', cmap = 'OrRd', norm = None, point_alpha = 0.5, edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 20})
+conflicts_batch_fig = batch_runs_conflicts_figure(G, dict_node_pos, gdfConflicts, groupby_columns, "Conflict Locations", geometry_col = 'linkMidPoint', size_col = 'mean_conflict_count', colour_col = 'totMeanTTC', cmap = 'OrRd', norm = None, point_alpha = 0.7, edge_width = 3, edge_alpha = 1, sub_title_font = {'size': 12}, title_font = {'size': 20})
 conflicts_batch_fig.savefig(conflicts_batch_fig_path)
 conflicts_batch_fig.show()
