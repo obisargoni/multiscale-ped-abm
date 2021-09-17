@@ -62,4 +62,9 @@ for name, details in params.items():
 
 	param = et.SubElement(sweep, 'parameter', attrib = details)
 
-print(et.tostring(sweep))
+tree = et.ElementTree(sweep)
+
+with open('batch_params.xml', 'wb') as f:
+	head = "<?xml version=\"1.0\" ?>"
+	f.write(head.encode('utf-8'))
+	tree.write(f, encoding='utf-8')
