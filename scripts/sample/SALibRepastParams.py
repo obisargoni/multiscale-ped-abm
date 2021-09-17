@@ -4,7 +4,7 @@ from SALib.sample import saltelli
 from xml.etree import ElementTree as et
 
 
-
+# Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
 params = {
 			"epsilon":{				"type":"constant", "data_type":"double", 	"value":"2.5", "bounds":[0,4], "dist":"unif"},
 			"lambda":{				"type":"constant", "data_type":"double", 	"value":"0.8", "bounds":[0,1], "dist":"unif"},
@@ -17,8 +17,8 @@ params = {
 			"minCrossingProp":{		"type":"list", 		"data_type":"double", 	"value":"1.0", "bounds":[0,1], 	"dist":"unif"}
 		}
 
-# See this blog post for explanation of 'dists' promblem keyword
 # Create problem dict from params dict
+# Problem dict is used by SALib to produce parameter sample
 problem = {
     'num_vars': 0,
     'names': [],
@@ -33,10 +33,11 @@ for name, details in params.items():
 		problem['bounds'].append(details['bounds'])
 		problem['dists'].append(details['dist'])
 
-# Sample values for non-constant parameters and add these to the param_values array
-sampled_values = saltelli.sample(problem, 10)
+# Sample values for non-constant parameters
+N_samples = 10
+sampled_values = saltelli.sample(problem, N_samples)
 
-# Add sampled values into the params dictionary
+# Add sampled values into the params dictionary as the values these parameters should take
 for i, name in enumerate(problem['names']):
 	param_values = sampled_values[:, i]
 	del params[name]['value']
@@ -47,13 +48,14 @@ for i, name in enumerate(problem['names']):
 
 	params[name]['values'] = " ".join(str(v) for v in param_values)
 
-# Now export param values to batch params file
+# Export param values to batch params file
 sweep = et.Element('sweep')
 sweep.set("runs", "1")
 for name, details in params.items():
 	del details["bounds"]
 	del details["dist"]
 
+	# Adjust metadata to match format expected by repast
 	data_type = details['data_type']
 	del details["data_type"]
 	if details['type'] == 'constant':
