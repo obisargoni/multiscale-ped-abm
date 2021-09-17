@@ -13,7 +13,7 @@ params = {
 			"gamma":{				"type":"constant", "data_type":"double", 	"value":"0.9", "bounds":[0,1], "dist":"unif"},
 			"randomSeed":{			"type":"constant", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
 			"alpha":{				"type":"constant", "data_type":"double", 	"value":"0.5", "bounds":[0,1], "dist":"unif"},
-			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", "bounds":[20,360], "dist":"unif"},
+			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 		"value":"20", "bounds":[20,360], "dist":"unif"},
 			"minCrossingProp":{		"type":"list", 		"data_type":"double", 	"value":"1.0", "bounds":[0,1], 	"dist":"unif"}
 		}
 
