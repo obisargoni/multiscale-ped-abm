@@ -40,6 +40,11 @@ sampled_values = saltelli.sample(problem, 10)
 for i, name in enumerate(problem['names']):
 	param_values = sampled_values[:, i]
 	del params[name]['value']
+
+	# convert to int if param data type is int
+	if params[name]['data_type']=='int':
+		param_values = param_values.astype(int)
+
 	params[name]['values'] = " ".join(str(v) for v in param_values)
 
 # Now export param values to batch params file
