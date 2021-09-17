@@ -1,20 +1,21 @@
 # Function to create repast simphony batch param xml file
 
 from SALib.sample import saltelli
+from SALib.sample import morris
 from xml.etree import ElementTree as et
 
 
 # Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
 params = {
-			"epsilon":{				"type":"constant", "data_type":"double", 	"value":"2.5", "bounds":[0,4], "dist":"unif"},
-			"lambda":{				"type":"constant", "data_type":"double", 	"value":"0.8", "bounds":[0,1], "dist":"unif"},
-			"addPedTicks":{			"type":"constant", "data_type":"int", 		"value":"50", "bounds":[10,100], "dist":"unif"},
-			"addVehicleTicks":{		"type":"constant", "data_type":"int", 		"value":"400", "bounds":[200,600], "dist":"unif"},
-			"gamma":{				"type":"constant", "data_type":"double", 	"value":"0.9", "bounds":[0,1], "dist":"unif"},
-			"randomSeed":{			"type":"constant", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
-			"alpha":{				"type":"constant", "data_type":"double", 	"value":"0.5", "bounds":[0,1], "dist":"unif"},
-			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 		"value":"20", "bounds":[20,360], "dist":"unif"},
-			"minCrossingProp":{		"type":"list", 		"data_type":"double", 	"value":"1.0", "bounds":[0,1], 	"dist":"unif"}
+			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", "bounds":[0.1,4], "dist":"unif"},
+			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", "bounds":[0,1], "dist":"unif"},
+			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", "bounds":[10,100], "dist":"unif"},
+			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"400", "bounds":[200,600], "dist":"unif"},
+			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", "bounds":[0,1], "dist":"unif"},
+			"randomSeed":{			"type":"list", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
+			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", "bounds":[0,1], "dist":"unif"},
+			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", "bounds":[20,360], "dist":"unif"},
+			"minCrossingProp":{		"type":"list", "data_type":"double", 	"value":"1.0", "bounds":[0,1], 	"dist":"unif"}
 		}
 
 # Create problem dict from params dict
@@ -34,8 +35,8 @@ for name, details in params.items():
 		problem['dists'].append(details['dist'])
 
 # Sample values for non-constant parameters
-N_samples = 10
-sampled_values = saltelli.sample(problem, N_samples)
+N_samples = 100
+sampled_values = morris.sample(problem, N_samples)
 
 # Add sampled values into the params dictionary as the values these parameters should take
 for i, name in enumerate(problem['names']):
