@@ -152,50 +152,41 @@ def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = sim.f
             d = 0.0
     return d
 
-def get_vehicle_counts(gdfPaveLinks, vehicle_rls_file, output_vehicle_density_file, recalculate = True):
-    
-    ######################################
-    #
-    #
-    # Get average vehicle counts per roads link and use to weight pavement network
-    #
-    #
-    ######################################
-    
-    if recalculate:
-        # Alternatative method for getting average vehicle counts
-        dfVehRls = pd.read_csv(vehicle_rls_file)
+def get_pedestrian_run_durations(dfPedCrossings):
+    # Get duration for each run - defined as total time pedestrians are in the simulation.
+    dfPedStart = dfPedCrossings.groupby('run')['tick'].min().reset_index()
+    dfPedEnd = dfPedCrossings.groupby('run')['tick'].max().reset_index()
+    dfDurs = pd.merge(dfPedStart, dfPedEnd, on = 'run', suffixes = ('_start', '_end'))
+    dfDurs['duration'] = dfDurs['tick_end'] - dfDurs['tick_start']
+    return dfDurs
 
-        # Get duration for each run - defined as total time pedestrians are in the simulation.
-        dfPedStart = dfPedCrossings.groupby('run')['tick'].min().reset_index()
-        dfPedEnd = dfPedCrossings.groupby('run')['tick'].max().reset_index()
-        dfPedStartEnd = pd.merge(dfPedStart, dfPedEnd, on = 'run', suffixes = ('_start', '_end'))
-        dfPedStartEnd['duration'] = dfPedStartEnd['tick_end'] - dfPedStartEnd['tick_start']
+def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output_path):
+
+    if os.path.exists(output_path) == False:
+        # Alternatative method for getting average vehicle counts
+        dfVehRls = pd.read_csv(data_file)
 
         # Merge with start and end pedestrian times to and remove rows that lie outside these times
-        dfVehRls = pd.merge(dfVehRls, dfPedStartEnd, on = 'run')
+        dfVehRls = pd.merge(dfVehRls, dfRunDurations, on = 'run')
         dfVehRls = dfVehRls.loc[ (dfVehRls['tick']>=dfVehRls['tick_start']) & (dfVehRls['tick']<=dfVehRls['tick_end'])]
 
         # Merge with ITN links to get lookup to ped rl ID
-        dfVehRls = pd.merge( dfVehRls, gdfITNLinks, left_on = 'CurrentRoadLinkID', right_on = 'FID')
+        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','pedRLID'])
+        dfVehRls = dfVehRls.reindex(columns = ['tick','run','ID','duration','CurrentRoadLinkID'])
+        dfVehRls = pd.merge( dfVehRls, gdfITNLinks, left_on = 'CurrentRoadLinkID', right_on = 'fid', how = 'left')
 
         # get average count of vehicles on each ped road link, by first getting count per tick then summing and averaging this.
         VehCountTick = dfVehRls.groupby(['run', 'duration', 'pedRLID','tick'])['ID'].apply(lambda ids: ids.unique().shape[0]).reset_index().rename(columns = {'ID':'VehCount'})
+        dfVehRls = None
+        gdfITNLinks = None
+
         VehCountAv = VehCountTick.groupby(['run', 'pedRLID']).apply( lambda df: df['VehCount'].sum() / df['duration'].values[0]).reset_index().rename(columns = {0:'AvVehCount'})
 
-        VehCountAv.to_csv(output_vehicle_density_file)
-
+        VehCountAv.to_csv(output_path)
     else:
-        # Load average vehicle density data from file
-        ORAvVehCounts = pd.read_csv(output_vehicle_density_file)
-
-    # Merge into pavement edges data
-    gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
-
-    # For road links that have a crossing on, set vehicle density to zero. This mimic the ABM representation of zero vehicle flow when crossing at established infrastructure.
-    gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
-
-    return gdfPaveLinks
+        VehCountAv = pd.read_csv(output_path)
+    
+    return VehCountAv
 
 def get_ped_routes(dfPedCrossings, gdfPaveLinks):
 
