@@ -421,7 +421,17 @@ dfRouteComp = get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_
 #
 ######################################
 
-from SALib.analyse import morris
+from SALib.analyze import morris
+import sys
+sys.path.append(".\\sample")
+from SALibRepastParams import num_levels, problem, random_seed
+
+# Get array of parameter values and output values
+k = 0
+X = dfRouteComp.loc[ dfRouteComp['k']==k, problem['names']].values
+Y = dfRouteComp.loc[ dfRouteComp['k']==k, 'mean'].values
+
+Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
 ######################################
 #
