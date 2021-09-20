@@ -9,7 +9,7 @@ from xml.etree import ElementTree as et
 params = {
 			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", "bounds":[0.1,4], "dist":"unif"},
 			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", "bounds":[0,1], "dist":"unif"},
-			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", "bounds":[10,100], "dist":"unif"},
+			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", "bounds":[50,200], "dist":"unif"},
 			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"400", "bounds":[200,600], "dist":"unif"},
 			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", "bounds":[0,1], "dist":"unif"},
 			"randomSeed":{			"type":"list", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
