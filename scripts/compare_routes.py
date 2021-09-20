@@ -405,12 +405,14 @@ dict_node_pos = dict(zip(points_pos.index, node_posistions))
 #
 #
 ######################################
+# First process vehicle road link data, since this is largest file
+dfRunDurations =  get_pedestrian_run_durations(dfPedCrossings)
+VehCountAv = get_road_link_vehicle_density(dfRunDurations, vehicle_rls_file, output_vehicle_density_file)
+gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
+gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
-
-gdfPaveLinks = get_vehicle_counts(gdfPaveLinks, vehicle_rls_file, output_vehicle_density_file, recalculate = True)
 dfPedRoutes = get_ped_routes(dfPedCrossings, gdfPaveLinks)
 dfRouteComp = get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, distance_function = None)
-
 
 ######################################
 #
