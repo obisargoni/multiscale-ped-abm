@@ -360,8 +360,7 @@ file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetim
 batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # output paths for processed data
-output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.2021.Aug.05.13_43_39.csv")
-
+output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}".format(file_datetime_string))
 
 
 #####################################
