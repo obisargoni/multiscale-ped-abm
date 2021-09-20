@@ -188,7 +188,7 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
     
     return VehCountAv
 
-def get_ped_routes(dfPedCrossings, gdfPaveLinks):
+def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     print("\nExtracting Pedestrian Agent Routes")
     
@@ -257,8 +257,6 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks):
                                                     'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
                                                     'start_node', 'end_node'])
 
-    weight_params = range(0, 1000, 100)
-
     for k in weight_params:
         weight_name = "weight{}".format(k)
         gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
@@ -276,7 +274,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks):
     return dfPedRoutes
 
 
-def get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, distance_function = None):
+def get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_params, distance_function = None):
 
     ######################################
     #
@@ -397,6 +395,7 @@ points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
 node_posistions = list(zip(points_pos['x'], points_pos['y']))
 dict_node_pos = dict(zip(points_pos.index, node_posistions))
 
+weight_params = range(0, 1000, 100)
 
 ######################################
 #
@@ -411,8 +410,8 @@ VehCountAv = get_road_link_vehicle_density(dfRunDurations, vehicle_rls_file, out
 gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
-dfPedRoutes = get_ped_routes(dfPedCrossings, gdfPaveLinks)
-dfRouteComp = get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, distance_function = None)
+dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
+dfRouteComp = get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_params, distance_function = None)
 
 ######################################
 #
