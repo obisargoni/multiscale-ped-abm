@@ -345,7 +345,7 @@ crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alterna
 
 
 # Model output data
-file_datetime_string = "2021.Aug.18.16_16_33"
+file_datetime_string = "2021.Sep.20.15_18_00"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
