@@ -35,8 +35,10 @@ for name, details in params.items():
 		problem['dists'].append(details['dist'])
 
 # Sample values for non-constant parameters
-N_samples = 100
-sampled_values = morris.sample(problem, N_samples)
+# From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
+N_samples = 30
+random_seed = 1
+num_levels = 4
 
 # Add sampled values into the params dictionary as the values these parameters should take
 for i, name in enumerate(problem['names']):
