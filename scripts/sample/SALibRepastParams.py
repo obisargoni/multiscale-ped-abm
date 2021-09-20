@@ -40,41 +40,44 @@ N_samples = 30
 random_seed = 1
 num_levels = 4
 
-# Add sampled values into the params dictionary as the values these parameters should take
-for i, name in enumerate(problem['names']):
-	param_values = sampled_values[:, i]
-	del params[name]['value']
+def run(N_samples = N_samples, random_seed = random_seed, num_levels = num_levels):
+	sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
 
-	# convert to int if param data type is int
-	if params[name]['data_type']=='int':
-		param_values = param_values.astype(int)
+	# Add sampled values into the params dictionary as the values these parameters should take
+	for i, name in enumerate(problem['names']):
+		param_values = sampled_values[:, i]
+		del params[name]['value']
 
-	params[name]['values'] = " ".join(str(v) for v in param_values)
+		# convert to int if param data type is int
+		if params[name]['data_type']=='int':
+			param_values = param_values.astype(int)
 
-# Export param values to batch params file
-sweep = et.Element('sweep')
-sweep.set("runs", "1")
-for name, details in params.items():
-	del details["bounds"]
-	del details["dist"]
+		params[name]['values'] = " ".join(str(v) for v in param_values)
 
-	# Adjust metadata to match format expected by repast
-	data_type = details['data_type']
-	del details["data_type"]
-	if details['type'] == 'constant':
-		details['constant_type'] = data_type
-	elif details['type'] == 'list':
-		details['value_type'] = data_type
-	else:
-		details['constant_type'] = data_type
+	# Export param values to batch params file
+	sweep = et.Element('sweep')
+	sweep.set("runs", "1")
+	for name, details in params.items():
+		del details["bounds"]
+		del details["dist"]
 
-	details['name'] = name
+		# Adjust metadata to match format expected by repast
+		data_type = details['data_type']
+		del details["data_type"]
+		if details['type'] == 'constant':
+			details['constant_type'] = data_type
+		elif details['type'] == 'list':
+			details['value_type'] = data_type
+		else:
+			details['constant_type'] = data_type
 
-	param = et.SubElement(sweep, 'parameter', attrib = details)
+		details['name'] = name
 
-tree = et.ElementTree(sweep)
+		param = et.SubElement(sweep, 'parameter', attrib = details)
 
-with open('batch_params.xml', 'wb') as f:
-	head = "<?xml version=\"1.0\" ?>"
-	f.write(head.encode('utf-8'))
-	tree.write(f, encoding='utf-8')
+	tree = et.ElementTree(sweep)
+
+	with open('batch_params.xml', 'wb') as f:
+		head = "<?xml version=\"1.0\" ?>"
+		f.write(head.encode('utf-8'))
+		tree.write(f, encoding='utf-8')
