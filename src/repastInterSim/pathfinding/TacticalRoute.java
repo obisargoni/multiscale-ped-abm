@@ -90,9 +90,11 @@ public class TacticalRoute {
 	/*
 	 * First tries to remove the top coordiante from the coordinates stack. If the coordinates stack is empty then the top junction is removed from the junction stack.
 	 */
-	public void updateTargetCoordiante() {		
+	public boolean updateTargetCoordiante() {
+		boolean updated = false;
 		if (this.getAccumulatorRoute().getCrossingCoordinates().size()>0) {
 			this.getAccumulatorRoute().removeCrossingCoordinate();
+			updated=true;
 		}
 		else {
 			boolean dontUpdate = this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ); 
@@ -110,8 +112,10 @@ public class TacticalRoute {
 					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 				}
+				updated=true;
 			}
 		}
+		return updated;
 	}
 	
 	/*

@@ -175,8 +175,10 @@ public class Ped extends MobileAgent {
    		
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
-    		this.stepsSinceReachedTarget=0;
-    		this.pathFinder.getTacticalPath().updateTargetCoordiante();
+    		boolean updated = this.pathFinder.getTacticalPath().updateTargetCoordiante();
+    		if (updated) {
+    			this.stepsSinceReachedTarget=0;
+    		}
     	}
     	
     	// Remove stuck agents from the simulation
