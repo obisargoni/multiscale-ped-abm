@@ -509,6 +509,33 @@ Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print
 # Gather into a dataframe
 dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
 
+
+######################################
+#
+#
+# Visualise Sensitivity Indices
+#
+#
+######################################
+import matplotlib.pyplot as plt
+
+# Scatter plots of pairs of variables identified as significant by factor mapping
+
+# Bar chart of sensitivity indices (u*) with error bars. Bar chart showing sigma values
+f, axs = plt.subplots(1,2, figsize = (20,10))
+axs[0].bar(range(dfcompsi.shape[0]), dfcompsi['mu_star'], width=0.8, yerr = dfcompsi['mu_star_conf'], align='center')
+axs[1].bar(range(dfcompsi.shape[0]), dfcompsi['sigma'], width=0.8, align='center')
+axs[0].set_xticks(range(dfcompsi.shape[0]))
+axs[1].set_xticks(range(dfcompsi.shape[0]))
+axs[0].set_xticklabels(dfcompsi['names'], rotation = 45)
+axs[1].set_xticklabels(dfcompsi['names'], rotation = 45)
+axs[0].set_title("mu star")
+axs[1].set_title("sigma")
+f.suptitle("Jouney Completion SIs")
+f.show()
+
+
+
 ######################################
 #
 #
