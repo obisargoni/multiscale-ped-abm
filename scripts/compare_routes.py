@@ -452,6 +452,19 @@ dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLin
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun)
 dfRouteComp = get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None)
 
+
+######################################
+#
+#
+# Import problem definition used for sampling
+#
+#
+######################################
+from SALib.analyze import morris
+import sys
+sys.path.append(".\\sample")
+from SALibRepastParams import num_levels, problem, random_seed
+
 ######################################
 #
 #
@@ -462,9 +475,12 @@ dfRouteComp = get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, 
 
 print("\nFactor Mapping")
 
-# Use Morris samples to identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
-threshold = 0.000001
-dfFM = factor_map(problem, X, Y, threshold)
+X_rc = dfRouteCompletion.loc[:, problem['names']].values
+Y_rc = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
+
+# Identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
+threshold = 0.0
+dfFM = factor_map(problem, X_rc, Y_rc, threshold)
 
 ######################################
 #
@@ -474,16 +490,9 @@ dfFM = factor_map(problem, X, Y, threshold)
 #
 ######################################
 
-from SALib.analyze import morris
-import sys
-sys.path.append(".\\sample")
-from SALibRepastParams import num_levels, problem, random_seed
-
 print("\nCalculating sensitivity indices - Route completions")
-X = dfRouteCompletion.loc[:, problem['names']].values
-Y = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
 
-Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+Sis = morris.analyze(problem, X_rc, Y_rc, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
 # Gather into a dataframe
 dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
