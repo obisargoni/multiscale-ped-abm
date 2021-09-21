@@ -1,5 +1,5 @@
 # Function to create repast simphony batch param xml file
-
+import numpy as np
 from SALib.sample import saltelli
 from SALib.sample import morris
 from xml.etree import ElementTree as et
@@ -36,12 +36,13 @@ for name, details in params.items():
 
 # Sample values for non-constant parameters
 # From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
-N_samples = 30
-random_seed = 1
-num_levels = 4
+N_samples = 500
+random_seed = 10
+num_levels = 6
+method = 'mc'
 
-def run(N_samples = N_samples, random_seed = random_seed, num_levels = num_levels):
-	sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
+def run(method=method, problem=problem, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels):
+	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels)
 
 	# Add sampled values into the params dictionary as the values these parameters should take
 	for i, name in enumerate(problem['names']):
@@ -54,6 +55,39 @@ def run(N_samples = N_samples, random_seed = random_seed, num_levels = num_level
 
 		params[name]['values'] = " ".join(str(v) for v in param_values)
 
+	export_params(params)
+
+def sample_params(method, problem, N_samples, random_seed, num_levels):
+	sampled_values = None
+	if method == 'morris':
+		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
+	else:
+		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
+	return sampled_values
+
+def mc_sample(problem, N_samples, seed = random_seed):
+	rng = np.random.default_rng(seed)
+
+	samples = np.zeros((N_samples, problem['num_vars']))
+
+	for i, name in enumerate(problem['names']):
+		if problem['dists'][i] == 'unif':
+			# Sample from uniform distribution
+			low, high = problem['bounds'][i]
+			sample = rng.uniform(low=low, high=high, size=N_samples)
+		elif problem['dists'][i] == 'norm':
+			# Sample from normal distribution
+			u, s = problem['bounds'][i]
+			sample = rng.normal(loc=u, scale=s, size=N_samples)
+		else:
+			print("Distribution for parameter '{}' not recognised".format(name))
+			raise Exception
+		
+		samples[:,i]=sample
+	
+	return samples
+
+def export_params(params, path = "batch_params.xml"):
 	# Export param values to batch params file
 	sweep = et.Element('sweep')
 	sweep.set("runs", "1")
