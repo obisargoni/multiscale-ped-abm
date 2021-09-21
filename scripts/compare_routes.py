@@ -438,6 +438,17 @@ import sys
 sys.path.append(".\\sample")
 from SALibRepastParams import num_levels, problem, random_seed
 
+print("\nCalculating sensitivity indices - Route completions")
+X = dfRouteCompletion.loc[:, problem['names']].values
+Y = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
+
+Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+
+# Gather into a dataframe
+dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+
+print("\nCalculating sensitivity indices - Comparison to shortest path")
+
 # Get array of parameter values and output values
 k = 0
 X = dfRouteComp.loc[ dfRouteComp['k']==k, problem['names']].values
