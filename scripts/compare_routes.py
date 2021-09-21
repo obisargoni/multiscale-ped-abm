@@ -80,9 +80,9 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
         
 
     # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
-    # In this case return null
+    # In this case return empty list
     if len(node_path)==1:
-        return None
+        return []
 
     return node_path[::-1]
 
@@ -212,10 +212,11 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
     dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
     dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on = ['run', 'ID'])
 
-
+    ## Need to keep these in or keep a record of what rows got dropped in order to calculate SIs later
+    # Or avoid dropping.
     dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
-    dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].isnull()]
-    dfPedRoutes = dfPedRoutes.loc[ ~dfPedRoutes['node_path'].isnull()]
+    dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)]
+    removed_peds_index = dfPedRoutes_removedpeds.index
 
     ######################################
     #
@@ -229,16 +230,19 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
     # In this case need to alter what the start node is
     # So if node path doesn't include start node, calculate alternative path using first node in path.
 
-    print("Checking for node_path missing the start pavement node")
-    dfPedRoutes['missing_start_node'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
-    print(dfPedRoutes['missing_start_node'].value_counts())
-    dfPedRoutes['sn_at_start'] = dfPedRoutes.apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
-    print("Checking instances where the first node in node_path matches the start pavement node")
-    print(dfPedRoutes['sn_at_start'].value_counts())
+    print("Checking for node_path missing the start pavement node (excluding peds removed from simulation)")
+    dfPedRoutes['missing_start_node'] = np.nan
+    dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'missing_start_node'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
+    print(dfPedRoutes['missing_start_node'].value_counts(dropna=True))
+
+    print("Checking instances where the first node in node_path matches the start pavement node (excluding peds removed from simulation)")
+    dfPedRoutes['sn_at_start'] = np.nan
+    dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'sn_at_start'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
+    print(dfPedRoutes['sn_at_start'].value_counts(dropna=True))
 
     # Use first not in path as start node, as opposed to the node the ped actually starts their journey from since these only differ in a handful of cases.
-    dfPedRoutes['start_node'] = dfPedRoutes['node_path'].map(lambda x: x[0])
-    dfPedRoutes['end_node'] = dfPedRoutes['node_path'].map(lambda x: x[-1])
+    dfPedRoutes['start_node'] = dfPedRoutes.apply(lambda row: row['node_path'][0] if len(row['node_path'])>0 else row['StartPavementJunctionID'], axis=1)
+    dfPedRoutes['end_node'] = dfPedRoutes.apply(lambda row: row['node_path'][-1] if len(row['node_path'])>0 else row['DestPavementJunctionID'], axis=1)
 
     # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
     dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
@@ -271,7 +275,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
 
-    return dfPedRoutes
+    return dfPedRoutes, dfPedRoutes_removedpeds
 
 
 def get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_params, distance_function = None):
