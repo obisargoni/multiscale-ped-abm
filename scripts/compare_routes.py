@@ -354,7 +354,7 @@ def factor_map(problem, X, Y, threshold):
         # Gather results into a dictionary
         fmi = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
         fm.append(fmi)
-    return pd.DataFrame(fm)
+    return pd.DataFrame(fm).sort_values(by = 'p_ks')
 
 #####################################
 #
