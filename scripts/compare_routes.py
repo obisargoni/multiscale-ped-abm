@@ -320,7 +320,14 @@ def get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_params, di
 
     return dfRouteComp
 
+def agg_route_completions(dfPedRoutes, dfRun):
+    dfPedRoutes['completed_journey'] = dfPedRoutes['node_path'].map(lambda x: int(len(x)>0))
 
+    dfCompletions = dfPedRoutes.groupby('run').apply( lambda df: df['completed_journey'].sum() / float(df.shape[0])).reset_index().rename(columns = {0:'frac_completed_journeys'})
+
+    dfCompletions = pd.merge(dfRun, dfCompletions, on = 'run')
+
+    return dfCompletions
 
 #####################################
 #
