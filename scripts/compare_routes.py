@@ -278,7 +278,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
     return dfPedRoutes, dfPedRoutes_removedpeds
 
 
-def get_route_comp(dfPedRoutes, pavement_graph, dict_node_pos, weight_params, distance_function = None):
+def get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None):
 
     ######################################
     #
