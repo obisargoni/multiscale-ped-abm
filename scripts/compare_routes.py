@@ -329,6 +329,33 @@ def agg_route_completions(dfPedRoutes, dfRun):
 
     return dfCompletions
 
+def factor_map(problem, X, Y, threshold):
+    # Identify outputs that are above and below threshold
+    b = np.where(Y > threshold)[0]
+    b_ = np.where(~(Y>threshold))[0]
+
+    # Compare parameter values between these two groups of scenarios
+    fm = []
+    for i, f in enumerate(problem['names']):
+        Xi = X[b, i]
+        Xi_ = X[b_, i]
+
+        m = np.mean(Xi)
+        s = np.std(Xi)
+        m_ = np.mean(Xi_)
+        s_ = np.std(Xi_)
+
+        # KS test of similarity of distributions
+        D, p_ks = stats.kstest(Xi, Xi_, alternative  = 'two_sided')
+
+        # T test
+        T, p_t = stats.ttest_ind(Xi, Xi_, alternative = 'two-sided')
+
+        # Gather results into a dictionary
+        fmi = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
+        fm.append(fmi)
+    return pd.DataFrame(fm)
+
 #####################################
 #
 # Globals
@@ -424,6 +451,20 @@ gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), '
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun)
 dfRouteComp = get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None)
+
+######################################
+#
+#
+# Factor mapping
+#
+#
+######################################
+
+print("\nFactor Mapping")
+
+# Use Morris samples to identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
+threshold = 0.000001
+dfFM = factor_map(problem, X, Y, threshold)
 
 ######################################
 #
