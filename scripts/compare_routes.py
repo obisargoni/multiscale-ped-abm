@@ -456,6 +456,9 @@ Y = dfRouteComp.loc[ dfRouteComp['k']==k, 'mean'].values
 
 Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
+# Gather into a dataframe
+dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+
 ######################################
 #
 #
