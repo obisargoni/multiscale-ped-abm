@@ -342,7 +342,7 @@ def factor_map(problem, X, Y, threshold):
     b_ = np.where(~(Y>threshold))[0]
 
     # Compare parameter values between these two groups of scenarios using ks test
-    fm = []
+    ks_results = []
     for i, f in enumerate(problem['names']):
         Xi = X[b, i]
         Xi_ = X[b_, i]
@@ -359,9 +359,10 @@ def factor_map(problem, X, Y, threshold):
         T, p_t = stats.ttest_ind(Xi, Xi_, alternative = 'two-sided')
 
         # Gather results into a dictionary
-        fmi = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
-        fm.append(fmi)
-        dfFM = pd.DataFrame(fm).sort_values(by = 'p_ks')
+        ks_result = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
+        ks_results.append(ks_result)
+    
+    dfks = pd.DataFrame(ks_results).sort_values(by = 'p_ks')
 
     # Calculate correlations between parameters in behavioural group
     Xb = X[b,:]
@@ -379,7 +380,7 @@ def factor_map(problem, X, Y, threshold):
 
     dfcorrs = pd.DataFrame(corrs)
 
-    return dfFM, dfcorrs
+    return dfks, dfcorrs
 
 def morris_si_bar_figure(dfsi, fig_title):
     f, axs = plt.subplots(1,2, figsize = (20,10))
@@ -529,7 +530,7 @@ if setting == 'monte_carlo_filtering':
 
     # Identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
     threshold = 0.0
-    dfFM, dfcorrs = factor_map(problem, X_rc, Y_rc, threshold)
+    dfks, dfcorrs = factor_map(problem, X_rc, Y_rc, threshold)
 
 ######################################
 #
