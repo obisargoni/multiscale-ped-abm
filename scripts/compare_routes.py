@@ -340,7 +340,7 @@ def factor_map(problem, X, Y, threshold):
     b = np.where(Y > threshold)[0]
     b_ = np.where(~(Y>threshold))[0]
 
-    # Compare parameter values between these two groups of scenarios
+    # Compare parameter values between these two groups of scenarios using ks test
     fm = []
     for i, f in enumerate(problem['names']):
         Xi = X[b, i]
@@ -360,7 +360,39 @@ def factor_map(problem, X, Y, threshold):
         # Gather results into a dictionary
         fmi = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
         fm.append(fmi)
-    return pd.DataFrame(fm).sort_values(by = 'p_ks')
+        dfFM = pd.DataFrame(fm).sort_values(by = 'p_ks')
+
+    # Calculate correlations between parameters in behavioural group
+    Xb = X[b,:]
+    corrs = []
+    for i, j in itertools.combinations(range(problem['num_vars']), 2):
+        if i==j:
+            continue
+
+        Xbi = Xb[:,i]
+        Xbj = Xb[:,j]
+        lr = stats.linregress(Xbi, Xbj)
+
+        corr = {'fi':problem['names'][i], 'fj':problem['names'][j], 'r':lr.rvalue, 'p':lr.pvalue, 'data':np.array([Xbi, Xbj])}
+        corrs.append(corr)
+
+    dfcorrs = pd.DataFrame(corrs)
+
+    return dfFM, dfcorrs
+
+def morris_si_bar_figure(dfsi, fig_title):
+    f, axs = plt.subplots(1,2, figsize = (20,10))
+    axs[0].bar(range(dfsi.shape[0]), dfsi['mu_star'], width=0.8, yerr = dfsi['mu_star_conf'], align='center')
+    axs[1].bar(range(dfsi.shape[0]), dfsi['sigma'], width=0.8, align='center')
+    axs[0].set_xticks(range(dfsi.shape[0]))
+    axs[1].set_xticks(range(dfsi.shape[0]))
+    axs[0].set_xticklabels(dfsi['names'], rotation = 45)
+    axs[1].set_xticklabels(dfsi['names'], rotation = 45)
+    axs[0].set_title("mu star")
+    axs[1].set_title("sigma")
+    f.suptitle(fig_title)
+    return f
+
 
 #####################################
 #
