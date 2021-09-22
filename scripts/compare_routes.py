@@ -497,8 +497,8 @@ gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on 
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
-dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun)
-dfRouteComp = get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None)
+dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
+dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, output_path = output_sp_similarity_path)
 
 
 ######################################
