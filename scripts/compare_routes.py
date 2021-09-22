@@ -552,6 +552,7 @@ if setting == "morris_factor_fixing":
     dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_compsi = morris_si_bar_figure(dfcompsi, "Jouney Completion SIs")
     f_compsi.show()
+    f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
 
 
     print("\nCalculating sensitivity indices - Comparison to shortest path")
@@ -567,3 +568,4 @@ if setting == "morris_factor_fixing":
     dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs")
     f_spsi.show()
+    f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis.{}.png".format(file_datetime_string)))
