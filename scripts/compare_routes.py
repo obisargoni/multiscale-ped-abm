@@ -396,7 +396,7 @@ def morris_si_bar_figure(dfsi, fig_title):
 
 #####################################
 #
-# Globals
+# File locations
 #
 #####################################
 project_crs = {'init': 'epsg:27700'}
@@ -419,7 +419,6 @@ crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alterna
 
 
 # Model output data
-file_datetime_string = "2021.Sep.20.15_18_00"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
@@ -434,8 +433,9 @@ file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetim
 batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # output paths for processed data
-output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}".format(file_datetime_string))
-
+output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
+output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
+output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
 
 #####################################
 #
