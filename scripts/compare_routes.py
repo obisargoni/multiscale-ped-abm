@@ -544,6 +544,8 @@ if setting == "morris_factor_fixing":
 
     print("\nCalculating sensitivity indices - Route completions")
 
+    X_rc = dfRouteCompletion.loc[:, problem['names']].values
+    Y_rc = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
     Sis = morris.analyze(problem, X_rc, Y_rc, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
     # Gather into a dataframe
