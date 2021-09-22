@@ -277,8 +277,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
-
-def get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None):
+def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, output_path = "sp_similarity.csv"):
 
     ######################################
     #
@@ -288,44 +287,51 @@ def get_route_comp(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_par
     #
     ######################################
 
-    dfRouteComp = pd.DataFrame()
+    if os.path.exists(output_path)==False:
+        dfSPSim = pd.DataFrame()
+        for k in weight_params:
+            dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function), axis=1)
+            
+            # This is only meaning full for the shortest path unweighted by vehicle traffic, where we can expect the path to match the ABM tactical path, and therefore compare path lengths to check for equivalence.
+            dfPedRoutes['comp_path_weight_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, account_for_path_length=True, weight='length'), axis=1)
 
-    for k in weight_params:
-        dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function), axis=1)
-        
-        # This is only meaning full for the shortest path unweighted by vehicle traffic, where we can expect the path to match the ABM tactical path, and therefore compare path lengths to check for equivalence.
-        dfPedRoutes['comp_path_weight_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, account_for_path_length=True, weight='length'), axis=1)
+            df = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].describe().reset_index()
+            df['k'] = k
 
-        df = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].describe().reset_index()
-        df['k'] = k
+            # T test to compare means
+            # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
+            dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['comp_value_0'], df['comp_value_{}'.format(k)])[1]).reset_index().rename(columns = {0:'ttp'})
+            df = pd.merge(df, dfTTests, on='run')
 
-        # T test to compare means
-        # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
-        dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['comp_value_0'], df['comp_value_{}'.format(k)])[1]).reset_index().rename(columns = {0:'ttp'})
-        df = pd.merge(df, dfTTests, on='run')
+            dfSPSim = pd.concat([dfSPSim, df])
 
-        dfRouteComp = pd.concat([dfRouteComp, df])
+        # rebuild index
+        dfSPSim.index = np.arange(dfSPSim.shape[0])
 
-    # rebuild index
-    dfRouteComp.index = np.arange(dfRouteComp.shape[0])
+        # To make comparisons between the k=0 route comp mean and k>0 route comp means, merge the k=0 value in
+        dfSPSim = pd.merge(dfSPSim, dfSPSim.loc[ dfSPSim['k']==0, ['run', 'mean']], on = 'run', suffixes = ('', '0'))
 
-    # To make comparisons between the k=0 route comp mean and k>0 route comp means, merge the k=0 value in
-    dfRouteComp = pd.merge(dfRouteComp, dfRouteComp.loc[ dfRouteComp['k']==0, ['run', 'mean']], on = 'run', suffixes = ('', '0'))
+        # Identify cases where the weighted crossing link shortest path better matches the ABM path
+        dfSPSim['is_sig_lower'] = (dfSPSim['mean0'] > dfSPSim['mean']) & (dfSPSim['ttp']<0.05)
 
-    # Identify cases where the weighted crossing link shortest path better matches the ABM path
-    dfRouteComp['is_sig_lower'] = (dfRouteComp['mean0'] > dfRouteComp['mean']) & (dfRouteComp['ttp']<0.05)
+        # Merge in parameter values
+        dfSPSim = pd.merge(dfRun, dfSPSim, on = 'run')
 
-    # Merge in parameter values
-    dfRouteComp = pd.merge(dfRun, dfRouteComp, on = 'run')
+        # Save date for future use
+        dfSPSim.to_csv(output_path, index=False)
+    else:
+        dfSPSim = pd.read_csv(output_path)
 
-    return dfRouteComp
+    return dfSPSim
 
-def agg_route_completions(dfPedRoutes, dfRun):
-    dfPedRoutes['completed_journey'] = dfPedRoutes['node_path'].map(lambda x: int(len(x)>0))
-
-    dfCompletions = dfPedRoutes.groupby('run').apply( lambda df: df['completed_journey'].sum() / float(df.shape[0])).reset_index().rename(columns = {0:'frac_completed_journeys'})
-
-    dfCompletions = pd.merge(dfRun, dfCompletions, on = 'run')
+def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.csv'):
+    if os.path.exists(output_path)==False:
+        dfPedRoutes['completed_journey'] = dfPedRoutes['node_path'].map(lambda x: int(len(x)>0))
+        dfCompletions = dfPedRoutes.groupby('run').apply( lambda df: df['completed_journey'].sum() / float(df.shape[0])).reset_index().rename(columns = {0:'frac_completed_journeys'})
+        dfCompletions = pd.merge(dfRun, dfCompletions, on = 'run')
+        dfCompletions.to_csv(output_path, )
+    else:
+        dfCompletions = pd.read_csv(output_path)
 
     return dfCompletions
 
