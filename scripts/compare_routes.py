@@ -12,6 +12,7 @@ from datetime import datetime as dt
 from shapely.geometry import Point
 import similaritymeasures as sim
 from scipy import stats
+import matplotlib.pyplot as plt
 
 import batch_data_utils as bd_utils
 
@@ -521,14 +522,14 @@ from SALibRepastParams import num_levels, problem, random_seed
 #
 ######################################
 
-print("\nFactor Mapping")
+if setting == 'monte_carlo_filtering':
+    print("\nPerforming Factor Mapping")
+    X_rc = dfRouteCompletion.loc[:, problem['names']].values
+    Y_rc = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
 
-X_rc = dfRouteCompletion.loc[:, problem['names']].values
-Y_rc = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
-
-# Identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
-threshold = 0.0
-dfFM = factor_map(problem, X_rc, Y_rc, threshold)
+    # Identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
+    threshold = 0.0
+    dfFM, dfcorrs = factor_map(problem, X_rc, Y_rc, threshold)
 
 ######################################
 #
@@ -538,50 +539,31 @@ dfFM = factor_map(problem, X_rc, Y_rc, threshold)
 #
 ######################################
 
-print("\nCalculating sensitivity indices - Route completions")
+if setting == "morris_factor_fixing":
 
-Sis = morris.analyze(problem, X_rc, Y_rc, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+    print("\nCalculating sensitivity indices - Route completions")
 
-# Gather into a dataframe
-dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    Sis = morris.analyze(problem, X_rc, Y_rc, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
-print("\nCalculating sensitivity indices - Comparison to shortest path")
-
-# Get array of parameter values and output values
-k = 0
-X = dfRouteComp.loc[ dfRouteComp['k']==k, problem['names']].values
-Y = dfRouteComp.loc[ dfRouteComp['k']==k, 'mean'].values
-
-Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
-
-# Gather into a dataframe
-dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    # Gather into a dataframe
+    dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    f_compsi = morris_si_bar_figure(dfcompsi, "Jouney Completion SIs")
+    f_compsi.show()
 
 
-######################################
-#
-#
-# Visualise Sensitivity Indices
-#
-#
-######################################
-import matplotlib.pyplot as plt
+    print("\nCalculating sensitivity indices - Comparison to shortest path")
 
-# Scatter plots of pairs of variables identified as significant by factor mapping
+    # Get array of parameter values and output values
+    k = 0
+    X = dfSPSim.loc[ dfSPSim['k']==k, problem['names']].values
+    Y = dfSPSim.loc[ dfSPSim['k']==k, 'mean'].values
 
-# Bar chart of sensitivity indices (u*) with error bars. Bar chart showing sigma values
-f, axs = plt.subplots(1,2, figsize = (20,10))
-axs[0].bar(range(dfcompsi.shape[0]), dfcompsi['mu_star'], width=0.8, yerr = dfcompsi['mu_star_conf'], align='center')
-axs[1].bar(range(dfcompsi.shape[0]), dfcompsi['sigma'], width=0.8, align='center')
-axs[0].set_xticks(range(dfcompsi.shape[0]))
-axs[1].set_xticks(range(dfcompsi.shape[0]))
-axs[0].set_xticklabels(dfcompsi['names'], rotation = 45)
-axs[1].set_xticklabels(dfcompsi['names'], rotation = 45)
-axs[0].set_title("mu star")
-axs[1].set_title("sigma")
-f.suptitle("Jouney Completion SIs")
-f.show()
+    Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
+    # Gather into a dataframe
+    dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs")
+    f_spsi.show()
 
 
 ######################################
