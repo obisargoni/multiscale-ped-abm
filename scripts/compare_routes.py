@@ -564,22 +564,3 @@ if setting == "morris_factor_fixing":
     dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs")
     f_spsi.show()
-
-
-######################################
-#
-#
-# Use means and test scores to identify parameter values that best match pedestrians routes
-#
-#
-######################################
-
-# Form pivot tables from results to see if there is any pattern
-dfe1 = dfRouteComp.loc[ dfRouteComp['epsilon']==1].groupby(['alpha','tacticalPlanHorizon','k'])['mean'].mean().unstack()
-dfe3 = dfRouteComp.loc[ dfRouteComp['epsilon']==3].groupby(['alpha','tacticalPlanHorizon','k'])['mean'].mean().unstack()
-
-dfe1p = dfRouteComp.loc[ dfRouteComp['epsilon']==1].groupby(['alpha','tacticalPlanHorizon','k'])['is_sig_lower'].sum().unstack()
-dfe3p = dfRouteComp.loc[ dfRouteComp['epsilon']==3].groupby(['alpha','tacticalPlanHorizon','k'])['is_sig_lower'].sum().unstack()
-
-dfe1g1 = dfRouteComp.loc[ (dfRouteComp['epsilon']==1) & (dfRouteComp['gamma']==0.1)].groupby(['alpha','tacticalPlanHorizon','k'])['mean'].mean().unstack()
-dfe1g1p = dfRouteComp.loc[ (dfRouteComp['epsilon']==1) & (dfRouteComp['gamma']==0.1)].groupby(['alpha','tacticalPlanHorizon','k'])['is_sig_lower'].sum().unstack()
