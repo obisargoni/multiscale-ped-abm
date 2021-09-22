@@ -182,7 +182,7 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
 
         VehCountAv = VehCountTick.groupby(['run', 'pedRLID']).apply( lambda df: df['VehCount'].sum() / df['duration'].values[0]).reset_index().rename(columns = {0:'AvVehCount'})
 
-        VehCountAv.to_csv(output_path)
+        VehCountAv.to_csv(output_path, index=False)
     else:
         VehCountAv = pd.read_csv(output_path)
     
