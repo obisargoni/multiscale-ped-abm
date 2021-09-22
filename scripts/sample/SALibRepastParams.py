@@ -57,6 +57,8 @@ def run(method=method, problem=problem, N_samples=N_samples, random_seed=random_
 
 	export_params(params)
 
+	return sampled_values
+
 def sample_params(method, problem, N_samples, random_seed, num_levels):
 	sampled_values = None
 	if method == 'morris':
