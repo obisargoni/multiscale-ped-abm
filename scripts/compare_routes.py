@@ -278,7 +278,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
-def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, output_path = "sp_similarity.csv"):
+def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
 
     ######################################
     #
@@ -287,6 +287,10 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
     #
     #
     ######################################
+
+    if exclude_stuck_peds:
+        stuck_peds_index = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)].index
+        dfPedRoutes.drop(stuck_peds_index, inplace=True)
 
     if os.path.exists(output_path)==False:
         dfSPSim = pd.DataFrame()
@@ -500,7 +504,7 @@ gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), '
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
-dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, output_path = output_sp_similarity_path)
+dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 
 
 ######################################
