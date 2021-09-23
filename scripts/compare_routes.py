@@ -569,3 +569,41 @@ if setting == "morris_factor_fixing":
     f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs")
     f_spsi.show()
     f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis.{}.png".format(file_datetime_string)))
+
+
+#########################################
+#
+#
+# Scatter plot of two variables, coloured by output metric
+#
+#
+#########################################
+if setting == "epsilon_gamma_scatter":
+
+    fixed_columns = ['random_seed', 'addPedTicks', 'alpha','addVehicleTicks','tacticalPlanHorizon', 'minCrossingProp']
+    variable_columns = ['epsilon', 'gamma', 'lambda']
+    metric = 'frac_completed_journeys'
+
+    dfScatter = dfRouteCompletion.reindex(columns = variable_columns+[metric])
+
+    # Groupby lambda and make scatter plot for each lambda value
+    grouped = dfScatter.groupby("lambda")
+    group_keys = list(grouped.groups.keys())
+    f, axs = plt.subplots(1, len(group_keys), figsize = (20,10))
+    for i, l in enumerate(group_keys):
+        df = grouped.get_group(l)
+        im = axs[i].scatter(df['epsilon'], df['gamma'], c=df['frac_completed_journeys'], cmap='viridis')
+        
+        axs[i].set_ylabel('gamma')
+        axs[i].set_xlabel('epsilon')
+        axs[i].set_title('Lambda = {}'.format(l))
+
+    # Add colourbar
+    cbar_fontdict = {"size":14}
+    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
+    cbar.ax.set_ylabel('Fraction Completed Journeys', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+    
+    f.suptitle("Fraction of completed journeys")
+    f.savefig(os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string)))
