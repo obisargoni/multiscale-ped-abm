@@ -172,16 +172,23 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
         dfVehRls = dfVehRls.loc[ (dfVehRls['tick']>=dfVehRls['tick_start']) & (dfVehRls['tick']<=dfVehRls['tick_end'])]
 
         # Merge with ITN links to get lookup to ped rl ID
-        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','pedRLID'])
+        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','pedRLID', 'length'])
         dfVehRls = dfVehRls.reindex(columns = ['tick','run','ID','duration','CurrentRoadLinkID'])
         dfVehRls = pd.merge( dfVehRls, gdfITNLinks, left_on = 'CurrentRoadLinkID', right_on = 'fid', how = 'left')
 
         # get average count of vehicles on each ped road link, by first getting count per tick then summing and averaging this.
         VehCountTick = dfVehRls.groupby(['run', 'duration', 'pedRLID','tick'])['ID'].apply(lambda ids: ids.unique().shape[0]).reset_index().rename(columns = {'ID':'VehCount'})
+
+        # get total lenth of ITN links per each pedRLID
+        AggITNLengths = gdfITNLinks.groupby(['pedRLID'])['length'].sum().reset_index()
+
         dfVehRls = None
         gdfITNLinks = None
 
         VehCountAv = VehCountTick.groupby(['run', 'pedRLID']).apply( lambda df: df['VehCount'].sum() / df['duration'].values[0]).reset_index().rename(columns = {0:'AvVehCount'})
+        VehCountAv = pd.merge(VehCountAv, AggITNLengths, on = 'pedRLID')
+        VehCountAv['AvVehDen'] = VehCountAv['AvVehCount'] / VehCountAv['length']
+        VehCountAv.drop('length', axis=1, inplace=True)
 
         VehCountAv.to_csv(output_path, index=False)
     else:
