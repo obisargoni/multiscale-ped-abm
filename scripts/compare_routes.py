@@ -569,17 +569,20 @@ if setting == "morris_factor_fixing":
     print("\nCalculating sensitivity indices - Comparison to shortest path")
 
     # Get array of parameter values and output values
-    k = 0
-    X = dfSPSim.loc[ dfSPSim['k']==k, problem['names']].values
-    Y = dfSPSim.loc[ dfSPSim['k']==k, 'mean'].values
+    grouped = dfSPSim.groupby("k")
+    group_keys = list(grouped.groups.keys())
+    for i, k in enumerate(group_keys):
+        dfSPSim_k = grouped.get_group(k)
+        X = dfSPSim_k.loc[:, problem['names']].values
+        Y = dfSPSim_k.loc[:, 'mean'].values
 
-    Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
-    # Gather into a dataframe
-    dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs")
-    f_spsi.show()
-    f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis.{}.png".format(file_datetime_string)))
+        # Gather into a dataframe
+        dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+        f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs, k={}".format(k))
+        f_spsi.show()
+        f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
 
 #########################################
