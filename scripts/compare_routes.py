@@ -196,6 +196,22 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
     
     return VehCountAv
 
+def unstack_sp_string(df, sp_string_col = 'FullStrategicPathString'):
+    links = df[sp_string_col].values[0].split(":")[1:]
+    return pd.DataFrame({'pedRLID':links})
+
+def get_road_link_pedestrian_counts(dfPedCrossings, gdfPaveLinks):
+
+    dfUnstacked = dfPedCrossings.groupby(['run','ID']).apply(unstack_sp_string).reset_index()
+
+    dfORPedCounts = dfUnstacked.groupby(['run','pedRLID'])['ID'].apply(lambda s: s.unique().shape[0]).reset_index()
+    dfORPedCounts.rename(columns={'ID':'ped_count'}, inplace=True)
+
+    # Now merge with lookup from or link to pave link
+    dfORPedCounts = pd.merge(dfORPedCounts, gdfPaveLinks.reindex(columns = ['fid', 'pedRLID']).drop_duplicates(), on = 'pedRLID')
+
+    return dfORPedCounts
+
 def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     print("\nExtracting Pedestrian Agent Routes")
@@ -285,6 +301,38 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
+def get_ped_cross_events(dfPedCrossings):
+    '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
+    Crossing event defined by crossing type, location and minimum TTC during crossing.
+    '''
+
+    # Process raw ped crossings data to 
+    # - drop rows that don't correspond to a crossing event
+    # - aggregate TTC data to choose the lowest TTC value per crossing event
+    # - this produces dataset with 1 row per crossing event
+    # - Drop duplicates, expect just one crossing per ped per pavement link
+    # - Check that there is one crossing per link per ped
+
+    # check there won't be any ttC data lost when excluding 'none' crossing events
+    assert dfPedCrossings.loc[ (dfPedCrossings['ChosenCrossingTypeString']=='none') & (~dfPedCrossings['TTC'].isnull()) ].shape[0]==0
+    assert dfPedCrossings['CurrentPavementLinkID'].isnull().any()==False
+
+    dfCrossEvents = dfPedCrossings.loc[dfPedCrossings['ChosenCrossingTypeString']!='none'].reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'ChosenCrossingTypeString', 'CurrentPavementLinkID', 'CrossingCoordsString', 'TTC'])
+    dfCrossEvents = dfCrossEvents.drop_duplicates()
+
+    # Group by run, ID and CurrentPavementLinkID to find crossing coordinates and lowest TTC
+    dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['TTC'].transform(lambda s: s.min())
+    dfCrossEvents['CrossingCoordsString'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['CrossingCoordsString'].transform(lambda s: max(s.dropna(), key=len) if ~s.isnull().all() else None)
+
+    # Drop duplicates again now that TTC and crossing coord processed
+    dfCrossEvents = dfCrossEvents.drop_duplicates()
+
+    # Check that there is a single crossing event per ped per pavement link.
+    cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'CurrentPavementLinkID']).apply(lambda df: df.shape[0])
+    assert cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]==0
+
+    return dfCrossEvents
+
 def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
 
     ######################################
@@ -346,6 +394,40 @@ def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.c
         dfCompletions = pd.read_csv(output_path)
 
     return dfCompletions
+
+def agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC'):
+    '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the 
+    mean TTC per run.
+    '''
+
+    # Join with pavement links data and aggregate to OR road link ID to get number of peds per OR road link for normalising crossing counts
+
+
+    calc_conflict_count = lambda s: s.dropna().shape[0]
+    calc_mean_ttc = lambda s: s.dropna().mean()
+    calc_var_ttc = lambda s: s.dropna().var()
+
+    dfRunConflicts = dfCrossEvents.groupby("run").agg(  conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),
+                                                        meanTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_mean_ttc),
+                                                        varTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_var_ttc),
+                                                        ).reset_index()
+
+    # get conflict counts normalsied by numbers of peds on road links
+    dfPaveLinkConflictCounts = dfCrossEvents.groupby(['run','CurrentPavementLinkID']).agg( conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),).reset_index()
+    dfPaveLinkConflictCounts = pd.merge(dfPaveLinkConflictCounts, dfLinkPedCounts, left_on = ['run', 'CurrentPavementLinkID'], right_on = ['run', 'fid'], indicator=True)
+    assert dfPaveLinkConflictCounts.loc[ dfPaveLinkConflictCounts['_merge']!='both'].shape[0]==0
+    dfPaveLinkConflictCounts['norm_conflict_count'] = dfPaveLinkConflictCounts['conflict_count'] / dfPaveLinkConflictCounts['ped_count']
+
+    # now aggregate trun
+    dfRunConflictsNorm = dfPaveLinkConflictCounts.groupby("run").agg(   meanNormCC=pd.NamedAgg(column='norm_conflict_count', aggfunc=np.mean),
+                                                                        varNormCC =pd.NamedAgg(column='norm_conflict_count', aggfunc=np.var),).reset_index()
+
+    dfRunConflicts = pd.merge(dfRunConflicts, dfRunConflictsNorm, on='run')
+
+    # Merge with run params
+    dfRunConflicts = pd.merge(dfRun, dfRunConflicts, on='run')
+
+    return dfRunConflicts
 
 def factor_map(problem, X, Y, threshold):
     # Identify outputs that are above and below threshold
@@ -506,13 +588,19 @@ weight_params = range(0, 1000, 100)
 # First process vehicle road link data, since this is largest file
 dfRunDurations =  get_pedestrian_run_durations(dfPedCrossings)
 VehCountAv = get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, vehicle_rls_file, output_vehicle_density_file)
+dfLinkPedCounts = get_road_link_pedestrian_counts(dfPedCrossings, gdfPaveLinks)
+
 gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
+
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
+dfCrossEvents = get_ped_cross_events(dfPedCrossings)
+
+# Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
 dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = output_sp_similarity_path)
-
+dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC')
 
 ######################################
 #
@@ -564,6 +652,25 @@ if setting == "morris_factor_fixing":
     f_compsi = morris_si_bar_figure(dfcompsi, "Jouney Completion SIs")
     f_compsi.show()
     f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
+
+
+    print("\nCalculating sensitivity indices - Conflicts")
+
+    metrics = ['conflict_count', 'meanNormCC', 'varNormCC', 'meanTTC', 'varTTC']
+    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
+                    'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
+    for metric in metrics:
+        X = dfConflicts.loc[:, problem['names']].values
+        Y = dfConflicts.loc[:, metric].values.astype(float)
+        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+
+        # Gather into a dataframe
+        df = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+
+        # Create figures
+        f_ccsi = morris_si_bar_figure(df, "{} SIs".format(title_dict[metric]))
+        f_ccsi.show()
+        f_ccsi.savefig(os.path.join(img_dir, "{}_sis.{}.png".format(metric, file_datetime_string)))
 
 
     print("\nCalculating sensitivity indices - Comparison to shortest path")
