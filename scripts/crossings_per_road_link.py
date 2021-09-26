@@ -165,19 +165,24 @@ gdfCrossingCountsAv['um_cmap_value'] = gdfCrossingCountsAv['um_cross_count_pp'].
 #
 # Aggregate conflicts to pavement links
 #
-dfConflictCounts = dfORCrossEvents.groupby(['run', 'CurrentPavementLinkID'])['TTC'].apply(lambda s: s.dropna().shape[0]).reset_index()
-dfConflictCounts.rename(columns = {'TTC':'conflict_count'}, inplace=True)
-dfConflictCounts['meanTTC'] = dfORCrossEvents.groupby(['run', 'CurrentPavementLinkID'])['TTC'].transform(lambda s: s.dropna().mean())
-dfConflictCounts['varTTC'] = dfORCrossEvents.groupby(['run', 'CurrentPavementLinkID'])['TTC'].transform(lambda s: s.dropna().var())
+calc_conflict_count = lambda s: s.dropna().shape[0]
+calc_mean_ttc = lambda s: s.dropna().mean()
+calc_var_ttc = lambda s: s.dropna().var()
+
+dfConflictCounts = dfORCrossEvents.groupby(['run', 'CurrentPavementLinkID']).agg(   conflict_count=pd.NamedAgg(column="TTC", aggfunc=calc_conflict_count),
+                                                                                    meanTTC=pd.NamedAgg(column="TTC", aggfunc=calc_mean_ttc),
+                                                                                    varTTC=pd.NamedAgg(column="TTC", aggfunc=calc_var_ttc),
+                                                                                    )
 
 # Now average over random seeds
 dfConflictCounts = pd.merge(dfRun, dfConflictCounts, on = 'run')
 param_cols = [c for c in dfRun.columns if c not in ['run', 'randomSeed']]
 
-dfAvConflictCounts = dfConflictCounts.groupby(param_cols + ['CurrentPavementLinkID'])['conflict_count'].apply(lambda s: s.mean()).reset_index()
-dfAvConflictCounts.rename(columns = {'conflict_count':'mean_conflict_count'}, inplace=True)
-dfAvConflictCounts['totMeanTTC'] = dfConflictCounts.groupby(param_cols)['varTTC'].transform( lambda s: s.mean())
-dfAvConflictCounts['totVarTTC'] = dfConflictCounts.groupby(param_cols)['varTTC'].transform( lambda s: s.mean())
+
+dfAvConflictCounts = dfConflictCounts.groupby(['run', 'CurrentPavementLinkID']).agg(    mean_conflict_count=pd.NamedAgg(column="conflict_count", aggfunc=np.mean),
+                                                                                        totMeanTTC=pd.NamedAgg(column='meanTTC', aggfunc=np.mean),
+                                                                                        totVarTTC=pd.NamedAgg(column="varTTC", aggfunc=np.mean),
+                                                                                        )
 
 # Merge with pavement links to get the geometries
 gdfAvConflictCounts = pd.merge(dfAvConflictCounts, gdfPaveNetwork.reindex(columns = ['fid','geometry']), left_on = 'CurrentPavementLinkID', right_on = 'fid')
