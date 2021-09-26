@@ -73,3 +73,4 @@ hs_err_pid*
 /scripts/gis_data_processing/cache/*
 /scripts/__pycache__/*
 /scripts/config.json
+/scripts/sample/batch_params.xml
