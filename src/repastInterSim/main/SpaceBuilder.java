@@ -118,7 +118,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static ISchedulableAction addVehicleAction;
 	private static ISchedulableAction addPedAction;
+	private static ISchedulableAction stopAddingPedsAction;
 	private static ISchedulableAction removeMAgentAction;
+	private int nPedsCreated;
 	
 	/*
 	 * A logger for this class. Note that there is a static block that is used to configure all logging for the model
@@ -141,6 +143,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
+		this.nPedsCreated=0;
 		
 		// Correct way to register multiple random number streams
 		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", RandomHelper.getSeed()+1);
@@ -389,12 +392,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
 	    // Stop adding agents to the simulation at endTick ticks
-	    int endTick = startPedsTick + 1000;
-	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(endTick, ScheduleParameters.LAST_PRIORITY);
-	    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
-	    
-	    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(endTick,10,ScheduleParameters.LAST_PRIORITY);
-	    schedule.schedule(endRunScheduleParams, this, "endSimulation");
+	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createRepeating(startPedsTick+1, addPedTicks, ScheduleParameters.LAST_PRIORITY);
+	    stopAddingPedsAction = schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
 	    
 	    //IO.exportGridCoverageData(baseGrid);
 		return context;
@@ -405,16 +404,36 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * Stop adding Ped agents to the simulation
 	 */
 	public void stopAddingPedAgents() {
-		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-
-		// Remove add agents methods from the scedule
-		boolean success = schedule.removeAction(addPedAction);
 		
-		// if action not removed, reschedule this method for the following tick
-		if (success==false) {
-		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
-		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
+		// Check number of peds in model
+		int nPedsToCreate = RunEnvironment.getInstance().getParameters().getInteger("nPeds");
+		
+		if (this.nPedsCreated>=nPedsToCreate) {
+			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+
+			// Remove add agents methods from the scedule
+			boolean success = schedule.removeAction(addPedAction);
+			
+			// if action not removed, reschedule this method for the following tick
+			if (success==false) {
+			    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+			    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
+			}
+			else {
+				// If successfully stop adding peds to model, schedule methods that monitors when ti end the simulation
+			    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(schedule.getTickCount()+1,10,ScheduleParameters.LAST_PRIORITY);
+			    schedule.schedule(endRunScheduleParams, this, "endSimulation");
+			    
+			    // Also schedule action that removes the action that triggers this function
+			    ScheduleParameters sp = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.FIRST_PRIORITY);
+			    schedule.schedule(sp, this, "stopStopAddingPedAgents");			    
+			}
 		}
+	}
+	
+	public void stopStopAddingPedAgents() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		boolean sucess = schedule.removeAction(stopAddingPedsAction);
 	}
 	
 	/**
@@ -481,6 +500,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		for (int i=0; i< ods.size(); i++) {
 			OD[] od = ods.get(i);
 			addPed(od[0], od[1]);
+			this.nPedsCreated++;
 		}
 	}
 	
