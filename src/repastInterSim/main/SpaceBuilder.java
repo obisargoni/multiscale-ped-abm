@@ -143,9 +143,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		
 		// Correct way to register multiple random number streams
-		RandomEngine eng = RandomHelper.registerGenerator("maODThresholds", RandomHelper.getSeed()+1);
-		Uniform maODUniform = new Uniform(0, 1, eng);
-		RandomHelper.registerDistribution("maODThresholds", maODUniform);
+		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", RandomHelper.getSeed()+1);
+		Uniform pedODUniform = new Uniform(0, 1, engPedOD);
+		RandomHelper.registerDistribution("pedODThresholds", pedODUniform);
+		
+		RandomEngine engVehOD = RandomHelper.registerGenerator("vehODThresholds", RandomHelper.getSeed()+1);
+		Uniform vehODUniform = new Uniform(0, 1, engVehOD);
+		RandomHelper.registerDistribution("vehODThresholds", vehODUniform);
 		
 		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", RandomHelper.getSeed()+2);
 		Uniform pedMinCrossUniform = new Uniform(0, 1, engPedMinCross);
@@ -456,7 +460,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	public void addVehicleAgents(List<String[]> odData) {
 		
-		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData);
+		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData, "vehODThresholds");
 		
 		for (int i=0; i< ods.size(); i++) {
 			OD[] od = ods.get(i);
@@ -472,7 +476,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      */
 	public void addPedestrianAgents(List<String[]> odData) {
 		
-		List<OD[]> ods = mobileAgentODs(pedestrianDestinationGeography, odData);
+		List<OD[]> ods = mobileAgentODs(pedestrianDestinationGeography, odData, "pedODThresholds");
 		
 		for (int i=0; i< ods.size(); i++) {
 			OD[] od = ods.get(i);
@@ -483,7 +487,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	/*
 	 * Produce list of origin and destination pairs that are used to initialise a group of mobile agents.
 	 */
-	private List<OD[]> mobileAgentODs(Geography<OD> odGeography, List<String[]> odFlows) {
+	private List<OD[]> mobileAgentODs(Geography<OD> odGeography, List<String[]> odFlows, String randomDistribution) {
 		
 		List<OD[]> ods = new ArrayList<OD[]>();
 		
@@ -507,7 +511,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				
 				// Get the OD matrix entry
 				Float flow = Float.parseFloat(odFlows.get(iO+1)[iD]);
-				double threshold = RandomHelper.getDistribution("maODThresholds").nextDouble();
+				double threshold = RandomHelper.getDistribution(randomDistribution).nextDouble();
 				
 				// According to flow rate, record this od pair as a pair to create mobile agent moving between.
 				if (flow > threshold) {
