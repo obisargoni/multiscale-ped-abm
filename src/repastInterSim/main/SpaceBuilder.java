@@ -497,10 +497,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		List<OD[]> ods = mobileAgentODs(pedestrianDestinationGeography, odData, "pedODThresholds");
 		
+		int nPedsToCreate = RunEnvironment.getInstance().getParameters().getInteger("nPeds");
+		
 		for (int i=0; i< ods.size(); i++) {
 			OD[] od = ods.get(i);
-			addPed(od[0], od[1]);
-			this.nPedsCreated++;
+			
+			if (this.nPedsCreated<nPedsToCreate) {
+				addPed(od[0], od[1]);
+				this.nPedsCreated++;
+			}
 		}
 	}
 	
