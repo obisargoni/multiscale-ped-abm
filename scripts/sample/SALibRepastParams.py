@@ -7,7 +7,8 @@ from xml.etree import ElementTree as et
 
 
 # Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
-params = {
+params = {	
+			"randomSeed":{			"type":"constant", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
 			"pedODSeed":{			"type":"list", "data_type":"int", 		"value":"1", 	"bounds":[1,100], "dist":"unif"},
 			"vehODSeed":{			"type":"list", "data_type":"int", 		"value":"101", 	"bounds":[101,200], "dist":"unif"},
 			"caSampleSeed":{		"type":"list", "data_type":"int", 		"value":"201", 	"bounds":[201,300], "dist":"unif"},
