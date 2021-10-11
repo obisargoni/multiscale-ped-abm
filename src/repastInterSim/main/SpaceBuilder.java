@@ -153,10 +153,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		RandomEngine engVehOD = RandomHelper.registerGenerator("vehODThresholds", RandomHelper.getSeed()+1);
 		Uniform vehODUniform = new Uniform(0, 1, engVehOD);
 		RandomHelper.registerDistribution("vehODThresholds", vehODUniform);
-		
-		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", RandomHelper.getSeed()+2);
-		Uniform pedMinCrossUniform = new Uniform(0, 1, engPedMinCross);
-		RandomHelper.registerDistribution("pedMinCrossThresholds", pedMinCrossUniform);
    
 		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", RandomHelper.getSeed()+3);
 		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
@@ -645,10 +641,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         
         // Instantiate a new pedestrian agent and add the agent to the context
 		Parameters  params = RunEnvironment.getInstance().getParameters();
-		boolean minimiseCrossing = false;
-		if (params.getDouble("minCrossingProp") > RandomHelper.getDistribution("pedMinCrossThresholds").nextDouble()) {
-			minimiseCrossing = true;
-		}
 		
 		// Draw velocity and mass from random distribution
 		Double v = GlobalVars.pedVavg + 3*GlobalVars.pedVsd; // Initialises as a value far from mean
@@ -662,7 +654,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			m = RandomHelper.getDistribution("pedMasses").nextDouble();
 		}
 		
-    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), minimiseCrossing, params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

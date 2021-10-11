@@ -43,10 +43,10 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
-								<parameter name="minCrossingProp" displayName="Proportion of pedestrian agents that prioritise minimising crossings" type="double" 
-						defaultValue="1" 
+								<parameter name="minCrossing" displayName="Whether pedestrian agents minimising no. crossings" type="boolean" 
+						defaultValue="true" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
 									
 		/>
 								<parameter name="tacticalPlanHorizon" displayName="Cumulative angular distance pedestrian percieves at tactical level" type="double" 
