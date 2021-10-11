@@ -612,7 +612,8 @@ dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC
 from SALib.analyze import morris
 import sys
 sys.path.append(".\\sample")
-from SALibRepastParams import num_levels, problem, random_seed
+from SALibRepastParams import num_levels, params, random_seed
+problem = SALibRepastParams.init_problem(params = params)
 
 ######################################
 #

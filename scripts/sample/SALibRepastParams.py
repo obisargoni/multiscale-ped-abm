@@ -1,4 +1,5 @@
 # Function to create repast simphony batch param xml file
+import copy
 import numpy as np
 from SALib.sample import saltelli
 from SALib.sample import morris
@@ -23,46 +24,52 @@ params = {
 			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"70", 	"bounds":[10,150], 	"dist":"unif"}
 		}
 
-# Create problem dict from params dict
-# Problem dict is used by SALib to produce parameter sample
-problem = {
-    'num_vars': 0,
-    'names': [],
-    'bounds': [],
-    'dists':[]
-}
-
-for name, details in params.items():
-	if details['type']=="list":
-		problem['num_vars']+=1
-		problem['names'].append(name)
-		problem['bounds'].append(details['bounds'])
-		problem['dists'].append(details['dist'])
 
 # Sample values for non-constant parameters
 # From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
-N_samples = 500
-random_seed = 10
+N_samples = 25
+random_seed = 100
 num_levels = 6
-method = 'mc'
+method = 'morris'
 
-def run(method=method, problem=problem, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels):
+def run(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels):
+	problem = init_problem(params = params)
 	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels)
+
+	repast_params = copy.deepcopy(params)
 
 	# Add sampled values into the params dictionary as the values these parameters should take
 	for i, name in enumerate(problem['names']):
 		param_values = sampled_values[:, i]
-		del params[name]['value']
+		del repast_params[name]['value']
 
 		# convert to int if param data type is int
-		if params[name]['data_type']=='int':
+		if repast_params[name]['data_type']=='int':
 			param_values = param_values.astype(int)
 
-		params[name]['values'] = " ".join(str(v) for v in param_values)
+		repast_params[name]['values'] = " ".join(str(v) for v in param_values)
 
-	export_params(params)
+	export_params(repast_params)
 
 	return sampled_values
+
+def init_problem(params = params):
+	'''Create problem dict from params dict. Problem dict is used by SALib to produce parameter sample
+	'''
+	problem = {
+	    'num_vars': 0,
+	    'names': [],
+	    'bounds': [],
+	    'dists':[]
+	}
+
+	for name, details in params.items():
+		if details['type']=="list":
+			problem['num_vars']+=1
+			problem['names'].append(name)
+			problem['bounds'].append(details['bounds'])
+			problem['dists'].append(details['dist'])
+	return problem
 
 def sample_params(method, problem, N_samples, random_seed, num_levels):
 	sampled_values = None
