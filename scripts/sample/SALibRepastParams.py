@@ -7,20 +7,20 @@ from xml.etree import ElementTree as et
 
 # Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
 params = {
-			"pedODSeed":{			"type":"list", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
-			"vehODSeed":{			"type":"list", "data_type":"int", 		"value":"2", "bounds":[1,100], "dist":"unif"},
-			"caSampleSeed":{		"type":"list", "data_type":"int", 		"value":"3", "bounds":[1,100], "dist":"unif"},
-			"pedMassSeed":{			"type":"list", "data_type":"int", 		"value":"4", "bounds":[1,100], "dist":"unif"},
-			"pedSpeedSeed":{		"type":"list", "data_type":"int", 		"value":"5", "bounds":[1,100], "dist":"unif"},
-			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", "bounds":[0.1,2], "dist":"unif"},
-			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", "bounds":[0,1], "dist":"unif"},
-			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", "bounds":[10,200], "dist":"unif"},
-			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"400", "bounds":[200,600], "dist":"unif"},
-			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", "bounds":[0.6,1], "dist":"unif"},
-			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", "bounds":[0,1], "dist":"unif"},
-			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", "bounds":[20,360], "dist":"unif"},
-			"minCrossing":{			"type":"list", "data_type":"double", 	"value":"1.0", "bounds":[0,1], 	"dist":"unif"},
-			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"70", "bounds":[10,150], 	"dist":"unif"}
+			"pedODSeed":{			"type":"list", "data_type":"int", 		"value":"1", 	"bounds":[1,100], "dist":"unif"},
+			"vehODSeed":{			"type":"list", "data_type":"int", 		"value":"101", 	"bounds":[101,200], "dist":"unif"},
+			"caSampleSeed":{		"type":"list", "data_type":"int", 		"value":"201", 	"bounds":[201,300], "dist":"unif"},
+			"pedMassSeed":{			"type":"list", "data_type":"int", 		"value":"301", 	"bounds":[301,400], "dist":"unif"},
+			"pedSpeedSeed":{		"type":"list", "data_type":"int", 		"value":"401", 	"bounds":[401,500], "dist":"unif"},
+			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", 	"bounds":[0.1,2], "dist":"unif"},
+			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", 	"bounds":[0,1], "dist":"unif"},
+			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", 	"bounds":[10,200], "dist":"unif"},
+			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"400", 	"bounds":[200,600], "dist":"unif"},
+			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
+			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
+			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
+			"minCrossing":{			"type":"list", "data_type":"double", 	"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
+			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"70", 	"bounds":[10,150], 	"dist":"unif"}
 		}
 
 # Create problem dict from params dict
