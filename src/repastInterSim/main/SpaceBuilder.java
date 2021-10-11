@@ -136,6 +136,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public Context<Object> build(Context<Object> c) {
 		
 		//RepastInterSimLogging.init();
+		Parameters params = RunEnvironment.getInstance ().getParameters();
 		
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
@@ -146,23 +147,24 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		this.nPedsCreated=0;
 		
 		// Correct way to register multiple random number streams
-		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", RandomHelper.getSeed()+1);
+		
+		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", params.getInteger("pedODSeed"));
 		Uniform pedODUniform = new Uniform(0, 1, engPedOD);
 		RandomHelper.registerDistribution("pedODThresholds", pedODUniform);
 		
-		RandomEngine engVehOD = RandomHelper.registerGenerator("vehODThresholds", RandomHelper.getSeed()+1);
+		RandomEngine engVehOD = RandomHelper.registerGenerator("vehODThresholds", params.getInteger("vehODSeed"));
 		Uniform vehODUniform = new Uniform(0, 1, engVehOD);
 		RandomHelper.registerDistribution("vehODThresholds", vehODUniform);
    
-		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", RandomHelper.getSeed()+3);
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", params.getInteger("caSampleSeed"));
 		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
 		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
 		
-		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", RandomHelper.getSeed()+4);
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", params.getInteger("pedSpeedSeed"));
 		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
 		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
 		
-		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", RandomHelper.getSeed()+5);
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", params.getInteger("pedMassSeed"));
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		
@@ -371,7 +373,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-		Parameters params = RunEnvironment.getInstance ().getParameters();
 		
 		int  addVehicleTicks = params.getInteger("addVehicleTicks");
 	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, addVehicleTicks, ScheduleParameters.FIRST_PRIORITY);
