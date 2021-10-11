@@ -21,7 +21,7 @@ params = {
 			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
 			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
 			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
-			"minCrossing":{			"type":"list", "data_type":"double", 	"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
+			"minCrossing":{			"type":"list", "data_type":"bool", 		"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
 			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"70", 	"bounds":[10,150], 	"dist":"unif"}
 		}
 
@@ -47,8 +47,10 @@ def run(method=method, params=params, N_samples=N_samples, random_seed=random_se
 		# convert to int if param data type is int
 		if repast_params[name]['data_type']=='int':
 			param_values = param_values.astype(int)
+		elif repast_params[name]['data_type']=='bool':
+			param_values = np.round(param_values).astype(bool)
 
-		repast_params[name]['values'] = " ".join(str(v) for v in param_values)
+		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
 
 	export_params(repast_params)
 
