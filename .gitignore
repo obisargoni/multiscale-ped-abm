@@ -74,3 +74,7 @@ hs_err_pid*
 /scripts/__pycache__/*
 /scripts/config.json
 /scripts/sample/batch_params.xml
+
+
+# Compiled python files
+*.pyc
