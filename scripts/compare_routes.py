@@ -130,7 +130,7 @@ def node_paths_overlap(npa, npb, normalised=True):
         n_tot = len(npa) + len(npb)
         return float(n_diff) / n_tot
 
-def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = sim.frechet_dist, account_for_path_length = False, weight = None):
+def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = 'frechet', account_for_path_length = False, weight = None):
     '''
 
     accound_for_path_length: It's possible that the two paths have the same path length but different nodes. This occurs when there are multiple shortest paths.
@@ -139,12 +139,19 @@ def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = sim.f
     weight: If account_for_path_length is True this gives the weight attribute to use to calculate path weight.
     '''
 
-    if distance_function is None:
+    if distance_function == 'node_overlap':
         d = node_paths_overlap(npa, npb)
-    else:
+    elif distance_function == 'path_length':
+        lengtha = nx.path_weight(graph, npa, weight=weight)
+        lengthb = nx.path_weight(graph, npb, weight=weight)
+        d = abs(lengtha-lengthb) / lengthb
+    elif distance_function == 'frechet':
         pos_a = [dict_node_pos[i] for i in npa]
         pos_b = [dict_node_pos[i] for i in npb]
-        d = distance_function(pos_a, pos_b)
+        d = sim.frechet_dist(pos_a, pos_b)
+    else:
+        return None
+
 
     if account_for_path_length:
         lengtha = nx.path_weight(graph, npa, weight=weight)
@@ -333,7 +340,7 @@ def get_ped_cross_events(dfPedCrossings):
 
     return dfCrossEvents
 
-def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
+def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'node_overlap', exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
 
     ######################################
     #
@@ -350,7 +357,7 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
     if os.path.exists(output_path)==False:
         dfSPSim = pd.DataFrame()
         for k in weight_params:
-            dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function), axis=1)
+            dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, weight='length'), axis=1)
             
             # This is only meaning full for the shortest path unweighted by vehicle traffic, where we can expect the path to match the ABM tactical path, and therefore compare path lengths to check for equivalence.
             dfPedRoutes['comp_path_weight_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, account_for_path_length=True, weight='length'), axis=1)
@@ -599,7 +606,8 @@ dfCrossEvents = get_ped_cross_events(dfPedCrossings)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
-dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = None, exclude_stuck_peds = True, output_path = output_sp_similarity_path)
+dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'node_overlap', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
+dfSPSimLen = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC')
 
 ######################################
