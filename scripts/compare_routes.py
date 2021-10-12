@@ -560,6 +560,7 @@ output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv"
 # Data from model run
 dfPedCrossings = pd.read_csv(ped_crossings_file)
 dfRun = pd.read_csv(os.path.join(data_dir, batch_file)).sort_values(by = 'run')
+dfRun['minCrossing'] = dfRun['minCrossing'].astype(int)
 
 # GIS Data
 gdfPaveLinks = gpd.read_file(pavement_links_file)
@@ -710,7 +711,7 @@ if setting == "morris_factor_fixing":
 #########################################
 if setting == "epsilon_gamma_scatter":
 
-    fixed_columns = ['random_seed', 'addPedTicks', 'alpha','addVehicleTicks','tacticalPlanHorizon', 'minCrossingProp']
+    fixed_columns = ['random_seed', 'addPedTicks', 'alpha','addVehicleTicks','tacticalPlanHorizon', 'minCrossing']
     variable_columns = ['epsilon', 'gamma', 'lambda']
     metric = 'frac_completed_journeys'
 
