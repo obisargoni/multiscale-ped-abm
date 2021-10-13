@@ -16,12 +16,15 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
+import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.OD;
+import repastInterSim.environment.Road;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 
@@ -109,7 +112,7 @@ class PedTest {
     	// First find the minimum displacement distance and associated angle for obstruction geometries
     	double start = System.currentTimeMillis();
     	if(intersects) {
-    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructGeography);
+    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, EnvironmentSetup.pedObstructGeography);
             d2s = new double[fovAngles.size()];
         	displacementDistances = new double[fovAngles.size()];
     		pedMinDist.displacementDistancesToObstacleGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);

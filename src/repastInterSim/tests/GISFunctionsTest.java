@@ -139,14 +139,14 @@ class GISFunctionsTest {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<PedObstruction> pedObstructContext = new PedObstructionContext();
 		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
-		SpaceBuilder.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
-		SpaceBuilder.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
+		EnvironmentSetup.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
+		EnvironmentSetup.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		
 		// Load ped obstructions data
 		String testPedObstructFile = testGISDir + "boundaryPedestrianVehicleArea.shp";
-		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, SpaceBuilder.pedObstructGeography, pedObstructContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.pedObstructGeography, PedObstruction.class);
+		GISFunctions.readShapefile(PedObstruction.class, testPedObstructFile, EnvironmentSetup.pedObstructGeography, pedObstructContext);
+		SpatialIndexManager.createIndex(EnvironmentSetup.pedObstructGeography, PedObstruction.class);
 	}
 	
 	void setUpRoadNetwork() {
@@ -284,7 +284,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.farthestUnobstructedGeomCoordinate(o, r.getGeom(), SpaceBuilder.pedObstructGeography);			
+			destCoord = GISFunctions.farthestUnobstructedGeomCoordinate(o, r.getGeom(), EnvironmentSetup.pedObstructGeography);			
 			assert expectedCoords.contains(destCoord);
 		}
 	}
@@ -321,7 +321,7 @@ class GISFunctionsTest {
 		Coordinate destCoord = null;
 		for (int i=0;i<currentPedRoads.size(); i++) {
 			Road r = currentPedRoads.get(i);
-			destCoord = GISFunctions.nearestUnobstructedGeomCoordinate(o, r.getGeom(), SpaceBuilder.pedObstructGeography);
+			destCoord = GISFunctions.nearestUnobstructedGeomCoordinate(o, r.getGeom(), EnvironmentSetup.pedObstructGeography);
 			assert expectedCoords.contains(destCoord);
 		}
 	}
