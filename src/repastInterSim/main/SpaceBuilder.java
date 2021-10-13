@@ -753,19 +753,41 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		return g;
 	}
 	
-	public static <T> Geography<T> getGeography(String geogName) {
-		Geography<T> g = null;
+	private static <T> Projection<T> getSpaceBuilderProjection(String name){
 		Context c = RunState.getInstance().getMasterContext();
 		for (Object o : c.getSubContexts()) {
 			Context sc = (Context) o;
 			Collection<Projection> ps = sc.getProjections();
 			for (Projection p: ps) {
-				if (p.getName().contentEquals(geogName)) {
-					g = (Geography<T>) p;
-					return g;
+				if (p.getName().contentEquals(name)) {
+					return p;
 				}
 			}
 		}
+		return null;
+	}
+	
+	public static <T> Geography<T> getGeography(String geogName) {
+		Projection<T> p = getSpaceBuilderProjection(geogName);
+		Geography<T> g = (Geography<T>) p;
 		return g;
+	}
+	
+	public static <T> Network<T> getNetwork(String netName) {
+		Projection<T> p = getSpaceBuilderProjection(netName);
+		Network<T> n = (Network<T>) p;
+		return n;
+	}
+	
+	public static Context getContext(String contextName) {
+		Context mc = RunState.getInstance().getMasterContext();
+		for (Object o : mc.getSubContexts()) {
+			Context sc = (Context) o;
+			String name = (String) sc.getId();
+			if (name.contentEquals(contextName)) {
+				return sc;
+			}
+		}
+		return null;
 	}
 }
