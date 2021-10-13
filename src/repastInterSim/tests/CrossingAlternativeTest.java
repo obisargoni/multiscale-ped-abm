@@ -440,7 +440,7 @@ class CrossingAlternativeTest {
 		
 		// Check that vehicle is still on road but that vehicle flow passing through crossing has fallen to zero
 		int count = 0;
-		for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+		for (RoadLink orRL: EnvironmentSetup.orRoadLinkGeography.getAllObjects()) {
 			if(orRL.getFID().contentEquals(uc.getRoadLinkID())) {
 				List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(orRL);
 				for (int i=0; i<itnLinks.size(); i++) {

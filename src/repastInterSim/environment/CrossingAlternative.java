@@ -8,8 +8,10 @@ import java.util.List;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
+import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class CrossingAlternative extends Signal implements FixedGeography  {
@@ -136,7 +138,8 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	public void setRoadLinkID(String rlID) {
 		this.roadLinkID = rlID;
 		
-		for(RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+		Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		for(RoadLink rl: orRoadLinkGeography.getAllObjects()) {
 			if (rl.getFID().contentEquals(rlID)) {
 				this.orRoadLink = rl;
 			}

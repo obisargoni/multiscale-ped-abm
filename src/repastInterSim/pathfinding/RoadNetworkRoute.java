@@ -238,7 +238,8 @@ public class RoadNetworkRoute implements Cacheable {
 			 */
 
 			// Start by Finding the road that this coordinate is on
-			RoadLink currentRoad = findNearestObject(currentCoord, SpaceBuilder.orRoadLinkGeography, null,
+			Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+			RoadLink currentRoad = findNearestObject(currentCoord, orRoadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction is closest to us on the road.
 			List<Junction> currentJunctions = currentRoad.getJunctions();
@@ -246,7 +247,7 @@ public class RoadNetworkRoute implements Cacheable {
 			/* Find the nearest Junctions to our destination (road endpoints) */
 
 			// Find the road that this coordinate is on
-			RoadLink destRoad = findNearestObject(destCoord, SpaceBuilder.orRoadLinkGeography, null,
+			RoadLink destRoad = findNearestObject(destCoord, orRoadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction connected to the edge is closest to the coordinate.
 			List<Junction> destJunctions = destRoad.getJunctions();
@@ -306,7 +307,8 @@ public class RoadNetworkRoute implements Cacheable {
 			String currentORLinkFID = GISFunctions.getCoordinateRoad(currentCoord, currentPaveJ.getGeom().getCoordinate()).getRoadLinkID();
 			String destORLinkFID = GISFunctions.getCoordinateRoad(destCoord, destPaveJ.getGeom().getCoordinate()).getRoadLinkID();
 			
-			for (RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+			Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+			for (RoadLink rl: orRoadLinkGeography.getAllObjects()) {
 				if (rl.getFID().contentEquals(currentORLinkFID)) {
 					currentRoad = rl;
 				}
@@ -981,8 +983,8 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return The road(s) which the coordinate is part of or null if the coordinate is not part of any road
 	 */
 	private List<RoadLink> getRoadFromCoordCache(Coordinate coord) {
-
-		populateCoordCache(SpaceBuilder.orRoadLinkGeography); // Check the cache has been populated
+		Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		populateCoordCache(orRoadLinkGeography); // Check the cache has been populated
 		return coordCache.get(coord);
 	}
 
@@ -994,7 +996,8 @@ public class RoadNetworkRoute implements Cacheable {
 	 * @return True if the coordinate is part of a road segment
 	 */
 	private boolean coordOnRoad(Coordinate coord) {
-		populateCoordCache(SpaceBuilder.orRoadLinkGeography); // check the cache has been populated
+		Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		populateCoordCache(orRoadLinkGeography); // check the cache has been populated
 		return coordCache.containsKey(coord);
 	}
 

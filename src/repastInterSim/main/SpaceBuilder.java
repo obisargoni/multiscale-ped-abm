@@ -76,9 +76,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
 	
-	public static Context<RoadLink> orRoadLinkContext;
-	public static Geography<RoadLink> orRoadLinkGeography;
-	
 	public static Context<CrossingAlternative> caContext;
 	public static Geography<CrossingAlternative> caGeography;
 	
@@ -186,8 +183,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(roadLinkContext);
 		fixedGeographies.add(roadLinkGeography);
 		
-		orRoadLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_CONTEXT);
-		orRoadLinkGeography = createTypedGeography(RoadLink.class, orRoadLinkContext, GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		RoadLinkContext orRoadLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_CONTEXT);
+		Geography<RoadLink> orRoadLinkGeography = createTypedGeography(RoadLink.class, orRoadLinkContext, GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
 		context.addSubContext(orRoadLinkContext);
 		fixedGeographies.add(orRoadLinkGeography);
 		
@@ -301,7 +298,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			SpatialIndexManager.createIndex(roadGeography, Road.class);
 			
 			// Create lookups from OR road links to ITN links and visa versa
-			for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+			for (RoadLink orRL: orRoadLinkGeography.getAllObjects()) {
 				List<RoadLink> itnLinks = new ArrayList<RoadLink>();
 				
 				for(RoadLink itnLink: roadLinkGeography.getAllObjects()) {

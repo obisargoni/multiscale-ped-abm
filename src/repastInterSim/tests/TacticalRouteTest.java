@@ -245,7 +245,7 @@ class TacticalRouteTest {
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
 		String[] roadLinkIDs = {"A8675945-DE94-4E22-9905-B0623A326221_0", "9745D155-3C95-4CCD-BC65-0908D57FA83A_0"};
-		for (RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+		for (RoadLink rl: EnvironmentSetup.orRoadLinkGeography.getAllObjects()) {
 			for (int i=0;i<roadLinkIDs.length; i++) {
 				if(rl.getFID().contentEquals(roadLinkIDs[i])) {
 					rls.add(rl);
@@ -265,7 +265,7 @@ class TacticalRouteTest {
 		// Repeat with just one road link
 		rls = new ArrayList<RoadLink>();
 		String[] roadLinkIDs2 = {"A8675945-DE94-4E22-9905-B0623A326221_0"};
-		for (RoadLink rl: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
+		for (RoadLink rl: EnvironmentSetup.orRoadLinkGeography.getAllObjects()) {
 			for (int i=0;i<roadLinkIDs2.length; i++) {
 				if(rl.getFID().contentEquals(roadLinkIDs2[i])) {
 					rls.add(rl);
