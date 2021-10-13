@@ -72,9 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<CrossingAlternative> caContext;
-	public static Geography<CrossingAlternative> caGeography;
-	
 	public static Context<Junction> orJunctionContext;
 	public static Geography<Junction> orJunctionGeography;
 	public static Network<Junction> orRoadNetwork;
@@ -216,8 +213,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
-		caContext = new CAContext();
-		caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
+		CAContext caContext = new CAContext();
+		Geography<CrossingAlternative> caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
 		context.addSubContext(caContext);
 		fixedGeographies.add(caGeography);
 		

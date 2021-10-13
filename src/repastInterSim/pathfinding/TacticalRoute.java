@@ -171,7 +171,8 @@ public class TacticalRoute {
 				crossingLinks.add(crossingLink);
 				
 				Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
-				List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, roadGeography);
+				Geography<CrossingAlternative> caGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+				List<CrossingAlternative> cas = getCrossingAlternatives(caGeography, crossingLinks, ped, roadGeography);
 				
 				// Initialise accumulator crossing choice model
 				this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge, directCrossing);

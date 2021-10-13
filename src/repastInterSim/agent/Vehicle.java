@@ -378,7 +378,8 @@ public class Vehicle extends MobileAgent {
 		
 		// Agent identifies crossing locations on the road links passed in
 		// Loop through these and get crossing alternatives that belong to these road links
-		for (CrossingAlternative ca: SpaceBuilder.caGeography.getAllObjects()) {
+		Geography<CrossingAlternative> caGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		for (CrossingAlternative ca: caGeography.getAllObjects()) {
 			if (ca.getITNRoadLinkIDs()==null) continue;
 			
 			for(int i=0; i< ca.getITNRoadLinkIDs().length; i++) {

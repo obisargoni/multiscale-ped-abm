@@ -42,11 +42,11 @@ class CrossingAlternativeTest {
 			e.printStackTrace();
 		}
 		
-		assert SpaceBuilder.caGeography != null;
-		assert SpaceBuilder.caGeography.size() == 5;
+		assert EnvironmentSetup.caGeography != null;
+		assert EnvironmentSetup.caGeography.size() == 5;
 		
 		CrossingAlternative ca1 = null;
-		for (CrossingAlternative ca_: SpaceBuilder.caGeography.getAllObjects()) {
+		for (CrossingAlternative ca_: EnvironmentSetup.caGeography.getAllObjects()) {
 			if(ca_.getID() == 3) {
 				ca1 = ca_;
 				break;
@@ -95,13 +95,13 @@ class CrossingAlternativeTest {
 			e.printStackTrace();
 		}
 		
-		assert SpaceBuilder.caGeography != null;
-		assert SpaceBuilder.caGeography.size() == 5;
+		assert EnvironmentSetup.caGeography != null;
+		assert EnvironmentSetup.caGeography.size() == 5;
 		
 		CrossingAlternative ca1030 = null;
 		CrossingAlternative ca530a = null;
 		CrossingAlternative ca530b = null;
-		for (CrossingAlternative ca_: SpaceBuilder.caGeography.getAllObjects()) {
+		for (CrossingAlternative ca_: EnvironmentSetup.caGeography.getAllObjects()) {
 			if(ca_.getID() == 3) {
 				ca1030 = ca_;
 			}
@@ -187,12 +187,12 @@ class CrossingAlternativeTest {
 			e.printStackTrace();
 		}
 		
-		assert SpaceBuilder.caGeography != null;
-		assert SpaceBuilder.caGeography.size() == 5;
+		assert EnvironmentSetup.caGeography != null;
+		assert EnvironmentSetup.caGeography.size() == 5;
 		
 		CrossingAlternative us1 = null;
 		CrossingAlternative us2 = null;
-		for (CrossingAlternative ca_: SpaceBuilder.caGeography.getAllObjects()) {
+		for (CrossingAlternative ca_: EnvironmentSetup.caGeography.getAllObjects()) {
 			if(ca_.getID() == 1) {
 				us1 = ca_;
 			}
@@ -404,7 +404,7 @@ class CrossingAlternativeTest {
 		}
 		
 		// Identify crossing alternatives
-		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(EnvironmentSetup.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
 		
 		// Get unmarked crossing alternative
 		UnmarkedCrossingAlternative uc = (UnmarkedCrossingAlternative) cas.stream().filter(ca -> ca.getType().contentEquals("unmarked")).collect(Collectors.toList()).get(0);
@@ -500,7 +500,7 @@ class CrossingAlternativeTest {
 		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0)); //  Add vehicle to first road link in its route.
 				
 		// Identify crossing alternatives
-		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(EnvironmentSetup.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
 		
 		// Place ped at edge of a crossing, wlaking in the direction of the other side of the crossing.
 		CrossingAlternative ca = cas.stream().filter(ca_ -> ca_.getType().contentEquals("unsignalised")).collect(Collectors.toList()).get(0);
