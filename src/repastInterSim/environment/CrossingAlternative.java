@@ -131,23 +131,29 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	public List<RoadLink> getCurrentVehicleRoadLinks() {
-		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(this.orRoadLink);
+		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(this.getORRoadLink());
 		return itnLinks;
 	}
 	
 	public void setRoadLinkID(String rlID) {
 		this.roadLinkID = rlID;
-		
-		Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
-		for(RoadLink rl: orRoadLinkGeography.getAllObjects()) {
-			if (rl.getFID().contentEquals(rlID)) {
-				this.orRoadLink = rl;
-			}
-		}
 	}
 	
 	public String getRoadLinkID() {
 		return this.roadLinkID;
+	}
+	
+	public RoadLink getORRoadLink() {
+		if (this.orRoadLink == null) {
+			Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+			for(RoadLink rl: orRoadLinkGeography.getAllObjects()) {
+				if (rl.getFID().contentEquals(this.roadLinkID)) {
+					this.orRoadLink = rl;
+					break;
+				}
+			}
+		}
+		return this.orRoadLink;
 	}
 	
 	/*
