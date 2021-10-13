@@ -25,6 +25,7 @@ import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.exceptions.RoutingException;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
@@ -145,7 +146,8 @@ public class PedPathFinder {
 		// Initialise Accumulator Route that agent will use to navigate along the planning horizon, and update the number of links in the tactical planning horizon
 		// Calculate number of links in planning horizon
 		int tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
-		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
     }
 	
 	/*

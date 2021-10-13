@@ -41,6 +41,7 @@ import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.exceptions.RoutingException;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 
@@ -724,8 +725,8 @@ public class GISFunctions {
      */
 	public static List<Road> getGridPolygonRoads(Polygon p) throws RoutingException {
 		Road r = null;
-		
-		List<Road> containingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, p, "contains");
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		List<Road> containingRoads = SpatialIndexManager.findIntersectingObjects(roadGeography, p, "contains");
     	
     	return containingRoads;
 	}
@@ -763,8 +764,8 @@ public class GISFunctions {
      */
 	public static Road getCoordinateRoad(Coordinate c) throws RoutingException {
 		Road r = null;
-		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(roadGeography, c);
     	
     	if(intersectingRoads.size() == 0) {
     		// Method returns default value, null, if there are no intersecting roads
@@ -788,8 +789,8 @@ public class GISFunctions {
      */
 	public static Road getCoordinateRoad(Coordinate c, Coordinate backupC) throws RoutingException {
 		Road r = null;
-		
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, c);
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(roadGeography, c);
     	
     	if(intersectingRoads.size() == 0) {
     		// Method returns default value, null, if there are no intersecting roads

@@ -7,6 +7,7 @@ import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.exceptions.RoutingException;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class MobileAgent {
@@ -47,8 +48,9 @@ public class MobileAgent {
 	
 	public Road getCurrentRoad() {
 		Road r = null;
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
 		try {
-			r = GISFunctions.getCoordinateRoad(this.getLoc(), SpaceBuilder.roadGeography);
+			r = GISFunctions.getCoordinateRoad(this.getLoc(), roadGeography);
 		} catch (RoutingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

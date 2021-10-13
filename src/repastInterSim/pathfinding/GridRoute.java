@@ -21,6 +21,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 
 import repast.simphony.random.RandomHelper;
+import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
@@ -299,7 +300,8 @@ public class GridRoute {
 		isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, SpaceBuilder.pedObstructGeography);
 		
 		// check if line passes through two different priority road objects
-		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(SpaceBuilder.roadGeography, pathLine);
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		List<Road> intersectingRoads = SpatialIndexManager.findIntersectingObjects(roadGeography, pathLine);
 		if (intersectingRoads.size()>0) {
 			String priority = intersectingRoads.get(0).getPriority();
 			intersectingRoads.remove(0);

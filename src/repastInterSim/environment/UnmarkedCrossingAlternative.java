@@ -16,6 +16,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 
@@ -291,7 +292,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 
 	public Coordinate getC2() {
-		return oppositeSideOfRoadCoord(this.ped.getLoc(), SpaceBuilder.roadGeography, SpaceBuilder.pedObstructGeography);
+		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+		return oppositeSideOfRoadCoord(this.ped.getLoc(), roadGeography, SpaceBuilder.pedObstructGeography);
 	}
 	
 	public String getType() {

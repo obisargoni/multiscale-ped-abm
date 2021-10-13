@@ -18,6 +18,7 @@ import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class TacticalRoute {
@@ -167,7 +168,9 @@ public class TacticalRoute {
 				// Identify crossing alternatives
 				List<RoadLink> crossingLinks = new ArrayList<RoadLink>();
 				crossingLinks.add(crossingLink);
-				List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, SpaceBuilder.roadGeography);
+				
+				Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
+				List<CrossingAlternative> cas = getCrossingAlternatives(SpaceBuilder.caGeography, crossingLinks, ped, roadGeography);
 				
 				// Initialise accumulator crossing choice model
 				this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge, directCrossing);
