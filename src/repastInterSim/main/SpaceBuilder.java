@@ -72,10 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<Junction> junctionContext;
-	public static Geography<Junction> junctionGeography;
-	public static Network<Junction> roadNetwork;
-	
 	public static Context<CrossingAlternative> caContext;
 	public static Geography<CrossingAlternative> caGeography;
 	
@@ -194,8 +190,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(pavementLinkGeography);
 
 		// Junction geography also used to create the road network
-		junctionContext = new JunctionContext();
-		junctionGeography = createTypedGeography(Junction.class, junctionContext, GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY);
+		JunctionContext junctionContext = new JunctionContext();
+		Geography<Junction> junctionGeography = createTypedGeography(Junction.class, junctionContext, GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY);
 		context.addSubContext(junctionContext);
 		fixedGeographies.add(junctionGeography);
 		
@@ -253,7 +249,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// 2a. vehicle roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			roadNetwork = builder.buildNetwork();
+			Network<Junction> roadNetwork = builder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
 			
 			// 2b. open road road network (use by pedestrian agents)

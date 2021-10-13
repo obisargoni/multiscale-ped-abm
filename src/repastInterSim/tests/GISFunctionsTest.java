@@ -152,14 +152,14 @@ class GISFunctionsTest {
 	void setUpRoadNetwork() {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		SpaceBuilder.junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
-		SpaceBuilder.junctionGeography.setCRS(GlobalVars.geographyCRSString);		
+		EnvironmentSetup.junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		EnvironmentSetup.junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 2. Build road network
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext,SpaceBuilder.junctionGeography, SpaceBuilder.roadNetwork);
+		EnvironmentSetup.roadNetwork = builder.buildNetwork();
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext,EnvironmentSetup.junctionGeography, EnvironmentSetup.roadNetwork);
 	}
 	
 	int getNumberIntersectingCoords(String lineDataFile) {

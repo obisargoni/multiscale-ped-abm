@@ -78,9 +78,9 @@ class NetworkPathFinderTest {
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.roadNetwork = builder.buildNetwork();
+		EnvironmentSetup.roadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext, junctionGeography, EnvironmentSetup.roadNetwork);
 	}
 	
 	void setUpPavementNetwork() {
@@ -116,7 +116,7 @@ class NetworkPathFinderTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: SpaceBuilder.roadNetwork.getNodes()) {
+		for(Junction j: EnvironmentSetup.roadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(j1ID)) {
@@ -134,7 +134,7 @@ class NetworkPathFinderTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(EnvironmentSetup.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

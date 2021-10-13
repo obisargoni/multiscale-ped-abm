@@ -49,6 +49,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import cern.colt.Arrays;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.graph.ShortestPath;
 import repastInterSim.environment.Cacheable;
@@ -58,6 +59,7 @@ import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
+import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.exceptions.RoutingException;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
@@ -648,7 +650,8 @@ public class Route implements Cacheable {
 								+ "to ignore this as a route should still be created anyway.");
 								*/
 					} else {
-						p = new ShortestPath<Junction>(SpaceBuilder.roadNetwork);
+						Network<Junction> roadNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK);
+						p = new ShortestPath<Junction>(roadNetwork);
 						pathLength = p.getPathLength(o,d);
 						if (pathLength < shortestPathLength) {
 							shortestPathLength = pathLength;
@@ -1144,7 +1147,9 @@ public class Route implements Cacheable {
 		// then using similar method as other distance() function
 		Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 		GeodeticCalculator calculator = new GeodeticCalculator(roadLinkGeography.getCRS());
-		Coordinate c1 = SpaceBuilder.junctionContext.getRandomObject().getGeom().getCoordinate();
+		
+		JunctionContext junctionContext = (JunctionContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.JUNCTION_CONTEXT);
+		Coordinate c1 = junctionContext.getRandomObject().getGeom().getCoordinate();
 		calculator.setStartingGeographicPoint(c1.x, c1.y);
 		calculator.setDestinationGeographicPoint(c1.x, c1.y + dist);
 		return String.valueOf(calculator.getOrthodromicDistance());

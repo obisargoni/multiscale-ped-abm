@@ -58,9 +58,9 @@ public class RoadNetworkRouteTest {
 		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", EnvironmentSetup.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
-		SpaceBuilder.junctionContext = new JunctionContext();
+		EnvironmentSetup.junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", SpaceBuilder.junctionContext, GeoParamsJunc);
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", EnvironmentSetup.junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// 1. Load road network data
@@ -69,10 +69,10 @@ public class RoadNetworkRouteTest {
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		// 2. Build road network
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,SpaceBuilder.junctionContext, isDirected);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,EnvironmentSetup.junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-		SpaceBuilder.roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, SpaceBuilder.junctionContext,junctionGeography, SpaceBuilder.roadNetwork);
+		EnvironmentSetup.roadNetwork = builder.buildNetwork();
+		GISFunctions.buildGISRoadNetwork(roadLinkGeography, EnvironmentSetup.junctionContext,junctionGeography, EnvironmentSetup.roadNetwork);
 		
     }
 
@@ -103,7 +103,7 @@ public class RoadNetworkRouteTest {
 		// The route is actually calculated using junctions. 
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
+		for(Junction j: EnvironmentSetup.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals("osgb4000000029971605")) {
@@ -121,7 +121,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(EnvironmentSetup.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -175,7 +175,7 @@ public class RoadNetworkRouteTest {
 		List<Junction> destJunctions = new ArrayList<Junction>();
 		String currentJunctionFID = "osgb4000000029970684";
 		String destJunctionFID = "osgb4000000029970684";
-		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
+		for(Junction j: EnvironmentSetup.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(currentJunctionFID)) {
@@ -193,7 +193,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(EnvironmentSetup.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -239,7 +239,7 @@ public class RoadNetworkRouteTest {
 		List<Junction> destJunctions = new ArrayList<Junction>();
 		String currentJunctionFID = "osgb4000000029970684";
 		String destJunctionFID = "osgb4000000029970447";
-		for(Junction j: SpaceBuilder.junctionContext.getObjects(Junction.class)) {
+		for(Junction j: EnvironmentSetup.junctionContext.getObjects(Junction.class)) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(currentJunctionFID)) {
@@ -257,7 +257,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(EnvironmentSetup.roadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
