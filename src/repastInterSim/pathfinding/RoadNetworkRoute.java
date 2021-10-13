@@ -187,7 +187,8 @@ public class RoadNetworkRoute implements Cacheable {
 			 * form shortest route
 			 */
 			this.routeEndpoints = new Junction[2];
-			List<RepastEdge<Junction>> shortestPath = getShortestRoute(SpaceBuilder.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints);
+			Network<Junction> orRoadNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+			List<RepastEdge<Junction>> shortestPath = getShortestRoute(orRoadNetwork, currentJunctions, destJunctions, routeEndpoints);
 
 			/*
 			 * Add the road links that make up the shortest path to the class attribute lists
@@ -336,7 +337,8 @@ public class RoadNetworkRoute implements Cacheable {
 			
 			// Check whether the road the Origin belongs to, curentRoad, connects with the start of the road link route
 			// If is does prefix the route with the currentRoad. This check is required to esure the links in the road link route form a path.
-			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(currentORJ.get(0))) {
+			Network<Junction> orRoadNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+			for ( RepastEdge<Junction> re: orRoadNetwork.getEdges(currentORJ.get(0))) {
 				if (re.equals(currentRoad.getEdge())) {
 					this.prefixToRoute(currentRoad, currentRoad.getEdge().getSpeed(), "Prefixing road link origin on manually");
 				}
@@ -347,7 +349,8 @@ public class RoadNetworkRoute implements Cacheable {
 		if (!this.roadsX.get(this.roadsX.size()-1).getFID().contentEquals(destRoad.getFID())) {
 			
 			// Again, add the destination road to the route if it connects to end junction
-			for ( RepastEdge<Junction> re: SpaceBuilder.orRoadNetwork.getEdges(destORJ.get(0))) {
+			Network<Junction> orRoadNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+			for ( RepastEdge<Junction> re: orRoadNetwork.getEdges(destORJ.get(0))) {
 				if (re.equals(destRoad.getEdge())) {
 					this.addToRoute(destRoad, destRoad.getEdge().getSpeed(), "Adding road link destination on manually");
 				}

@@ -333,7 +333,7 @@ public class RoadNetworkRouteTest {
 		
 		List<Junction> currentJunctions = new ArrayList<Junction>();
 		List<Junction> destJunctions = new ArrayList<Junction>();
-		for(Junction j: SpaceBuilder.orRoadNetwork.getNodes()) {
+		for(Junction j: EnvironmentSetup.orRoadNetwork.getNodes()) {
 			
 			// Set the test current junctions 
 			if (j.getFID().contentEquals(currentJunctionFID)) {
@@ -351,7 +351,7 @@ public class RoadNetworkRouteTest {
 		// Get shortest Route according to the Route class
 		List<RepastEdge<Junction>> shortestRoute = null;
 		try {
-			shortestRoute = rnr.getShortestRoute(SpaceBuilder.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
+			shortestRoute = rnr.getShortestRoute(EnvironmentSetup.orRoadNetwork, currentJunctions, destJunctions, routeEndpoints, false);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

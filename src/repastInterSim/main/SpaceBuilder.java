@@ -72,10 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<Junction> orJunctionContext;
-	public static Geography<Junction> orJunctionGeography;
-	public static Network<Junction> orRoadNetwork;
-	
 	public static Context<Junction> pavementJunctionContext;
 	public static Geography<Junction> pavementJunctionGeography;
 	public static Context<RoadLink> pavementLinkContext;
@@ -192,8 +188,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(junctionContext);
 		fixedGeographies.add(junctionGeography);
 		
-		orJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_CONTEXT);
-		orJunctionGeography = createTypedGeography(Junction.class, orJunctionContext, GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY);
+		JunctionContext orJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_CONTEXT);
+		Geography<Junction> orJunctionGeography = createTypedGeography(Junction.class, orJunctionContext, GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY);
 		context.addSubContext(orJunctionContext);
 		fixedGeographies.add(orJunctionGeography);
 		
@@ -252,7 +248,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// 2b. open road road network (use by pedestrian agents)
 			NetworkBuilder<Junction> orBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
 			orBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			orRoadNetwork = orBuilder.buildNetwork();
+			Network<Junction> orRoadNetwork = orBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
 			
 			// 2c pavement network
@@ -262,7 +258,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
 			
 			// Create lookup from OR road junctions to pavement junctions
-			for (Junction orJ : SpaceBuilder.orJunctionGeography.getAllObjects()) {
+			for (Junction orJ : orJunctionGeography.getAllObjects()) {
 				if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
 					SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
 				}
