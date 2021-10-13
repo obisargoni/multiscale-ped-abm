@@ -72,9 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<RoadLink> roadLinkContext;
-	public static Geography<RoadLink> roadLinkGeography;
-	
 	public static Context<Junction> junctionContext;
 	public static Geography<Junction> junctionGeography;
 	public static Network<Junction> roadNetwork;
@@ -184,8 +181,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(pedObstructGeography);
 
 		// Road link geography is used to create the road network projection
-		roadLinkContext = new RoadLinkContext();
-		roadLinkGeography = createTypedGeography(RoadLink.class, roadLinkContext, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		RoadLinkContext roadLinkContext = new RoadLinkContext();
+		Geography<RoadLink> roadLinkGeography = createTypedGeography(RoadLink.class, roadLinkContext, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 		context.addSubContext(roadLinkContext);
 		fixedGeographies.add(roadLinkGeography);
 		
@@ -307,7 +304,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			for (RoadLink orRL: SpaceBuilder.orRoadLinkGeography.getAllObjects()) {
 				List<RoadLink> itnLinks = new ArrayList<RoadLink>();
 				
-				for(RoadLink itnLink: SpaceBuilder.roadLinkGeography.getAllObjects()) {
+				for(RoadLink itnLink: roadLinkGeography.getAllObjects()) {
 					if (itnLink.getPedRLID().contentEquals(orRL.getFID())) {
 						SpaceBuilder.itnToOR.put(itnLink, orRL);
 						itnLinks.add(itnLink);

@@ -63,7 +63,7 @@ class NetworkPathFinderTest {
 	}
 	
 	void setUpRoadLinks(String roadLinkFile) throws Exception {
-		SpaceBuilder.roadLinkGeography = setUpLinks(roadLinkFile);
+		EnvironmentSetup.roadLinkGeography = setUpLinks(roadLinkFile);
 	}
 	
 	void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
@@ -80,7 +80,7 @@ class NetworkPathFinderTest {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		SpaceBuilder.roadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext, junctionGeography, SpaceBuilder.roadNetwork);
 	}
 	
 	void setUpPavementNetwork() {

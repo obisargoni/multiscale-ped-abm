@@ -63,6 +63,10 @@ public class EnvironmentSetup {
 	
 	public static Context<OD> pedestrianDestinationContext;
 	public static Geography<OD> pedestrianDestinationGeography;
+	
+	public static Context<RoadLink> roadLinkContext;
+	public static Geography<RoadLink> roadLinkGeography;
+	
 	static String testGISDir = ".//data//test_gis_data//";
 	static String serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 	

@@ -53,9 +53,9 @@ public class RoadNetworkRouteTest {
 		setUpProperties();
 		
 	    // Initialise contexts and geographies used by all tests	
-		SpaceBuilder.roadLinkContext = new RoadLinkContext();
+		EnvironmentSetup.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", EnvironmentSetup.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		SpaceBuilder.junctionContext = new JunctionContext();
@@ -65,7 +65,7 @@ public class RoadNetworkRouteTest {
 		
 		// 1. Load road network data
 		String roadLinkFile = TestDataDir + "mastermap-itn RoadLink Intersect Within with orientation.shp";
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, EnvironmentSetup.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		// 2. Build road network
@@ -386,13 +386,13 @@ public class RoadNetworkRouteTest {
 		Coordinate d = testODContext.getObjects(OD.class).get(1).getGeom().getCoordinate();
 				
 		// Initialise test road link geography and context
-		SpaceBuilder.roadLinkContext = new RoadLinkContext();
+		EnvironmentSetup.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", EnvironmentSetup.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		String roadLinkFile = TestDataDir + "parity_test_lines3.shp";
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, EnvironmentSetup.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		List<RoadLink> roads = new ArrayList<RoadLink>();

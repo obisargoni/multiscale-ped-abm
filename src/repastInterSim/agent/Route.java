@@ -235,7 +235,8 @@ public class Route implements Cacheable {
 
 			
 			// Find the road link the agent is currently on
-			List<RoadLink> currItersectingRoads = Route.findIntersectingObjects(currentCoord, SpaceBuilder.roadLinkGeography);
+			Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+			List<RoadLink> currItersectingRoads = Route.findIntersectingObjects(currentCoord, roadLinkGeography);
 
 			// For each of the road links the agent intersects, find which junctions can be accessed. ie is the target junction.
 			// These are the junctions to input into the shortest path function
@@ -246,7 +247,7 @@ public class Route implements Cacheable {
 			}
 			
 			// Find the road link the agent is currently on
-			List<RoadLink> destIntersectingRoads = Route.findIntersectingObjects(destCoord, SpaceBuilder.roadLinkGeography);
+			List<RoadLink> destIntersectingRoads = Route.findIntersectingObjects(destCoord, roadLinkGeography);
 
 			// For each of the road links the agent intersects, find which junctions the destCoord can be accessed from. ie is the source junction.
 			// These are the junctions to input into the shortest path function
@@ -435,7 +436,8 @@ public class Route implements Cacheable {
 			 * TODO EFFICIENCY: often the agent will be creating a new route from a building so will always find the
 			 * same road, could use a cache. Even better, could implement a cache in FindNearestObject() method!
 			 */
-			RoadLink currentRoad = Route.findNearestObject(currentCoord, SpaceBuilder.roadLinkGeography, null,
+			Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+			RoadLink currentRoad = Route.findNearestObject(currentCoord, roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction is closest to us on the road.
 			List<Junction> currentJunctions = currentRoad.getJunctions();
@@ -443,7 +445,7 @@ public class Route implements Cacheable {
 			/* Find the nearest Junctions to our destination (road endpoints) */
 
 			// Find the road that this coordinate is on
-			RoadLink destRoad = Route.findNearestObject(destCoord, SpaceBuilder.roadLinkGeography, null,
+			RoadLink destRoad = Route.findNearestObject(destCoord, roadLinkGeography, null,
 					GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.LARGE);
 			// Find which Junction connected to the edge is closest to the coordinate.
 			List<Junction> destJunctions = destRoad.getJunctions();
@@ -606,8 +608,9 @@ public class Route implements Cacheable {
 				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
 				
 				Geography<OD> vehicleDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
+				Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(vehicleDestinationGeography,
-						odsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
+						odsFile, roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized
 		return nearestRoadCoordCache.get(inCoord);
@@ -1062,8 +1065,8 @@ public class Route implements Cacheable {
 			/*
 			LOGGER.log(Level.FINER, "Route.populateCoordCache: is empty, creating new cache of all Road coordinates.");
 			*/
-
-			for (RoadLink r : SpaceBuilder.roadLinkGeography.getAllObjects()) {
+			Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+			for (RoadLink r : roadLinkGeography.getAllObjects()) {
 				for (Coordinate c : r.getGeom().getCoordinates()) {
 					if (coordCache.containsKey(c)) {
 						coordCache.get(c).add(r);
@@ -1099,7 +1102,8 @@ public class Route implements Cacheable {
 	 */
 	public static synchronized double distance(Coordinate c1, Coordinate c2, double[] returnVals) {
 		// TODO check this now, might be different way of getting distance in new Simphony
-		GeodeticCalculator calculator = new GeodeticCalculator(SpaceBuilder.roadLinkGeography.getCRS());
+		Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		GeodeticCalculator calculator = new GeodeticCalculator(roadLinkGeography.getCRS());
 		calculator.setStartingGeographicPoint(c1.x, c1.y);
 		calculator.setDestinationGeographicPoint(c2.x, c2.y);
 		double distance = calculator.getOrthodromicDistance();
@@ -1138,7 +1142,8 @@ public class Route implements Cacheable {
 	public static synchronized String distanceToMeters(double dist) throws Exception {
 		// Works by creating two coords (close to a randomly chosen object) which are a certain distance apart
 		// then using similar method as other distance() function
-		GeodeticCalculator calculator = new GeodeticCalculator(SpaceBuilder.roadLinkGeography.getCRS());
+		Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		GeodeticCalculator calculator = new GeodeticCalculator(roadLinkGeography.getCRS());
 		Coordinate c1 = SpaceBuilder.junctionContext.getRandomObject().getGeom().getCoordinate();
 		calculator.setStartingGeographicPoint(c1.x, c1.y);
 		calculator.setDestinationGeographicPoint(c1.x, c1.y + dist);
@@ -1305,10 +1310,11 @@ class NearestRoadCoordCache implements Serializable {
 		double bufferMultiplier = 1.0;
 		Envelope searchEnvelope = coordGeom.buffer(bufferDist * bufferMultiplier).getEnvelopeInternal();
 		StringBuilder debug = new StringBuilder(); // incase the operation fails
+		
+		Geography<RoadLink> roadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		for (RoadLink r : roadLinkGeography.getObjectsWithin(searchEnvelope)) {
 
-		for (RoadLink r : SpaceBuilder.roadLinkGeography.getObjectsWithin(searchEnvelope)) {
-
-			DistanceOp distOp = new DistanceOp(coordGeom, SpaceBuilder.roadLinkGeography.getGeometry(r));
+			DistanceOp distOp = new DistanceOp(coordGeom, roadLinkGeography.getGeometry(r));
 			double thisDist = distOp.distance();
 			// BUG?: if an agent is on a really long road, the long road will not be found by getObjectsWithin because
 			// it is not within the buffer
@@ -1338,7 +1344,7 @@ class NearestRoadCoordCache implements Serializable {
 		/* IF HERE THEN ERROR, PRINT DEBUGGING INFO */
 		StringBuilder debugIntro = new StringBuilder(); // Some extra info for debugging
 		debugIntro.append("Route.NearestRoadCoordCache.get() error: couldn't find a coordinate to return.\n");
-		Iterable<RoadLink> roads = SpaceBuilder.roadLinkGeography.getObjectsWithin(searchEnvelope);
+		Iterable<RoadLink> roads = roadLinkGeography.getObjectsWithin(searchEnvelope);
 		debugIntro.append("Looking for nearest road coordinate around ").append(c.toString()).append(".\n");
 		debugIntro.append("roadLinkEnvironment.getObjectsWithin() returned ").append(
 				SpaceBuilder.sizeOfIterable(roads) + " roads, printing debugging info:\n");

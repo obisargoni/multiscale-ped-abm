@@ -54,9 +54,9 @@ class GISFunctionsTest {
 	void setUp(String lineDataFile) throws Exception {
 		
 	    // Initialise contexts and geographies used by all tests	
-		SpaceBuilder.roadLinkContext = new RoadLinkContext();
+		EnvironmentSetup.roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", SpaceBuilder.roadLinkContext, GeoParams);
+		Geography<RoadLink> roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", EnvironmentSetup.roadLinkContext, GeoParams);
 		roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		EnvironmentSetup.pedestrianDestinationContext = new PedestrianDestinationContext();
@@ -66,7 +66,7 @@ class GISFunctionsTest {
 		
 		// 1. Load road network data
 		String roadLinkFile = TestDataDir + lineDataFile;
-		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, SpaceBuilder.roadLinkContext);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkFile, roadLinkGeography, EnvironmentSetup.roadLinkContext);
 		SpatialIndexManager.createIndex(roadLinkGeography, RoadLink.class);
 		
 		String testODFile = TestDataDir + "parity_test_OD.shp";
@@ -113,11 +113,11 @@ class GISFunctionsTest {
 		// Initialise test road link geography and context
 		Context<RoadLink> roadLinkContext = new RoadLinkContext();
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		SpaceBuilder.roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
-		SpaceBuilder.roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
+		EnvironmentSetup.roadLinkGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadLinkGeography", roadLinkContext, GeoParams);
+		EnvironmentSetup.roadLinkGeography.setCRS(GlobalVars.geographyCRSString);
 				
-		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, SpaceBuilder.roadLinkGeography, roadLinkContext);
-		SpatialIndexManager.createIndex(SpaceBuilder.roadLinkGeography, RoadLink.class);
+		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, EnvironmentSetup.roadLinkGeography, roadLinkContext);
+		SpatialIndexManager.createIndex(EnvironmentSetup.roadLinkGeography, RoadLink.class);
 		
 	}
 		
@@ -159,7 +159,7 @@ class GISFunctionsTest {
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		SpaceBuilder.roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(SpaceBuilder.roadLinkGeography, junctionContext,SpaceBuilder.junctionGeography, SpaceBuilder.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext,SpaceBuilder.junctionGeography, SpaceBuilder.roadNetwork);
 	}
 	
 	int getNumberIntersectingCoords(String lineDataFile) {
@@ -182,9 +182,9 @@ class GISFunctionsTest {
 
 		
 		// Loop through road links in the rout and count number of times the ODLine intersects
-		Geometry[] rlGeoms = new Geometry[SpaceBuilder.roadLinkContext.getObjects(RoadLink.class).size()];
+		Geometry[] rlGeoms = new Geometry[EnvironmentSetup.roadLinkContext.getObjects(RoadLink.class).size()];
 		i = 0;
-		for (RoadLink rl: SpaceBuilder.roadLinkContext.getObjects(RoadLink.class)) {
+		for (RoadLink rl: EnvironmentSetup.roadLinkContext.getObjects(RoadLink.class)) {
 			rlGeoms[i] = rl.getGeom();
 			i++;
 		}
@@ -216,7 +216,7 @@ class GISFunctionsTest {
 		
 		setUp("parity_test_lines1.shp");
 		
-		IndexedIterable<RoadLink> lines = SpaceBuilder.roadLinkContext.getObjects(RoadLink.class);
+		IndexedIterable<RoadLink> lines = EnvironmentSetup.roadLinkContext.getObjects(RoadLink.class);
 		
 		l1 = (LineString) lines.get(0).getGeom();
 		l2 = (LineString) lines.get(1).getGeom();
