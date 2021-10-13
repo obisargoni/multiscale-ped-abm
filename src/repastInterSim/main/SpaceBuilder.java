@@ -74,8 +74,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static Context<Junction> pavementJunctionContext;
 	public static Geography<Junction> pavementJunctionGeography;
-	public static Context<RoadLink> pavementLinkContext;
-	public static Geography<RoadLink> pavementLinkGeography;
 	public static Network<Junction> pavementNetwork;
 	
 	// Lookups between or and itn road links
@@ -177,8 +175,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(orRoadLinkContext);
 		fixedGeographies.add(orRoadLinkGeography);
 		
-		pavementLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT);
-		pavementLinkGeography = createTypedGeography(RoadLink.class, pavementLinkContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+		RoadLinkContext pavementLinkContext = new RoadLinkContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT);
+		Geography<RoadLink> pavementLinkGeography = createTypedGeography(RoadLink.class, pavementLinkContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 		context.addSubContext(pavementLinkContext);
 		fixedGeographies.add(pavementLinkGeography);
 
