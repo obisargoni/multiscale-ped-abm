@@ -86,19 +86,19 @@ class GISFunctionsTest {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
+		EnvironmentSetup.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		EnvironmentSetup.roadGeography.setCRS(GlobalVars.geographyCRSString);
 
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, EnvironmentSetup.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, EnvironmentSetup.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
+		SpatialIndexManager.createIndex(EnvironmentSetup.roadGeography, Road.class);
 
 	}
 	
@@ -270,7 +270,7 @@ class GISFunctionsTest {
 		
 		String roadLinkID = "A8675945-DE94-4E22-9905-B0623A326221_0";
 		
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(EnvironmentSetup.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Expected coords
 		Coordinate c1 = new Coordinate(530507.95, 180893.35);
@@ -307,7 +307,7 @@ class GISFunctionsTest {
 		
 		String roadLinkID = "A8675945-DE94-4E22-9905-B0623A326221_0";
 		
-		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> currentPedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(EnvironmentSetup.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Expected coords
 		Coordinate c1 = new Coordinate(530506.8,180891.45);

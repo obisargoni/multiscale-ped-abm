@@ -49,6 +49,8 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class EnvironmentSetup {
 	
+	public static Context<Road> roadContext;
+	public static Geography<Road> roadGeography;
 	static String testGISDir = ".//data//test_gis_data//";
 	static String serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 	
@@ -97,21 +99,21 @@ public class EnvironmentSetup {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
-		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);
+		EnvironmentSetup.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		EnvironmentSetup.roadGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
 		String vehicleRoadsPath = testGISDir + "topographicAreaVehicle.shp";
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, vehicleRoadsPath, EnvironmentSetup.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, pedestrianRoadsPath, EnvironmentSetup.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		SpatialIndexManager.createIndex(SpaceBuilder.roadGeography, Road.class);
+		SpatialIndexManager.createIndex(EnvironmentSetup.roadGeography, Road.class);
 	}
 	
 	static Geography<RoadLink> setUpRoadLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {

@@ -102,7 +102,7 @@ class TacticalRouteTest {
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
-        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());                
+        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());                
         
         
         // Test needs to get end junction of route path and use that rather than current junction, current junction could not connect to remainder path if first link is a crossing link
@@ -191,7 +191,7 @@ class TacticalRouteTest {
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
-        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, SpaceBuilder.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());        
+        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, SpaceBuilder.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());        
         
 		assert tr.getCurrentJunction().getFID().contentEquals("pave_node_106"); // This is the default junction
 		assert tr.getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_108");
@@ -254,7 +254,7 @@ class TacticalRouteTest {
 		}
 		
 		// Get crossing alternatives
-		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, rls, ped, SpaceBuilder.roadGeography);
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, rls, ped, EnvironmentSetup.roadGeography);
 		
 		// Validate crossing alternatives by checking types are as expected
 		String[] expectedTypes = {"unsignalised", "unsignalised", "unmarked"};
@@ -274,7 +274,7 @@ class TacticalRouteTest {
 		}
 		
 		// Get crossing alternatives
-		cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, rls, ped, SpaceBuilder.roadGeography);
+		cas = TacticalRoute.getCrossingAlternatives(SpaceBuilder.caGeography, rls, ped, EnvironmentSetup.roadGeography);
 		
 		String[] expectedTypes2 = {"unsignalised", "unmarked"};
 		for (int i=0;i<expectedTypes2.length; i++) {

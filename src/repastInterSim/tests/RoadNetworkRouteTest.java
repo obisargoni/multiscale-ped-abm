@@ -413,13 +413,13 @@ public class RoadNetworkRouteTest {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		SpaceBuilder.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadGeography", testRoadContext, GeoParamsRoad);
-		SpaceBuilder.roadGeography.setCRS(GlobalVars.geographyCRSString);		
+		EnvironmentSetup.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("roadGeography", testRoadContext, GeoParamsRoad);
+		EnvironmentSetup.roadGeography.setCRS(GlobalVars.geographyCRSString);		
 		
 		// Load vehicle origins and destinations
 		try {
-			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaVehicle.shp", SpaceBuilder.roadGeography, testRoadContext);
-			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaPedestrian.shp", SpaceBuilder.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaVehicle.shp", EnvironmentSetup.roadGeography, testRoadContext);
+			GISFunctions.readShapefile(Road.class, TestDataDir + "topographicAreaPedestrian.shp", EnvironmentSetup.roadGeography, testRoadContext);
 		} catch (MalformedURLException | FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -441,7 +441,7 @@ public class RoadNetworkRouteTest {
 		
 		// Road link pedestrian roads cache requires OR link id
 		String roadLinkID = "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0";
-		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> roads = RoadNetworkRoute.getRoadLinkRoads(EnvironmentSetup.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
 		assert roads.size() == 3;
@@ -462,7 +462,7 @@ public class RoadNetworkRouteTest {
 		
 		// Road link pedestrian roads cache requires OR link id
 		String roadLinkID = "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0";
-		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(SpaceBuilder.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
+		List<Road> pedRoads = RoadNetworkRoute.getRoadLinkPedestrianRoads(EnvironmentSetup.roadGeography, vehcileRoadsFile, pedestrianRoadsFile, serialisedLoc, roadLinkID);
 		
 		// Check the expected number of roads have been returned		
 		assert pedRoads.size() == 2;
