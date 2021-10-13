@@ -54,6 +54,9 @@ public class EnvironmentSetup {
 	
 	public static Context<PedObstruction> pedObstructContext;
 	public static Geography<PedObstruction> pedObstructGeography;
+	
+	public static Context<PedObstruction> pedObstructionPointsContext;
+	public static Geography<PedObstruction> pedObstructionPointsGeography;
 	static String testGISDir = ".//data//test_gis_data//";
 	static String serialisedLookupPath = testGISDir + "road_link_roads_cache.serialised";
 	

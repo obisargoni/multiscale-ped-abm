@@ -118,7 +118,7 @@ class PedTest {
     		pedMinDist.displacementDistancesToObstacleGeometries(obstGeomsPoints, fovAngles, d2s, displacementDistances);
     	}
     	else {
-    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, SpaceBuilder.pedObstructionPointsGeography);
+    		obstGeomsPoints = pedMinDist.getObstacleGeometries(fieldOfVisionApprox, EnvironmentSetup.pedObstructionPointsGeography);
             d2s = new double[fovAngles.size()-1];
         	displacementDistances = new double[fovAngles.size()-1];
         	
