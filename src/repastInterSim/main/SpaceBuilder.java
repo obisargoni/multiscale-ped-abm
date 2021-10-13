@@ -68,9 +68,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
 	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
-		
-	public static Context<Object> context;
-	public static Geography<Object> geography;
 	
 	// Lookups between or and itn road links
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
@@ -98,7 +95,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 
 	 */
 	@Override
-	public Context<Object> build(Context<Object> c) {
+	public Context<Object> build(Context<Object> context) {
 		
 		//RepastInterSimLogging.init();
 		Parameters params = RunEnvironment.getInstance ().getParameters();
@@ -107,7 +104,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		RoadNetworkRoute.clearCaches();
 		SpatialIndexManager.clearCaches();
 	    
-		context = c;
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		this.nPedsCreated=0;
 		
@@ -144,7 +140,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	   
 		// Initiate geographic spaces
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		Geography geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		geography.setCRS(GlobalVars.geographyCRSString);
 		context.add(geography);
 		
@@ -422,6 +418,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public void endSimulation() {
 		
 		// First stop adding vehicle agents if no more pedestrian agents
+		Context context = RunState.getInstance().getMasterContext();
 		if (context.getObjects(Ped.class).size()==0) {
 			stopAddingVehicleAgents();
 		}
@@ -539,7 +536,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 			The destination agent that was added to the context and geography
 	 */
 	public OD addRandomDestination(Geometry bndry) {
-		
+		Context context = RunState.getInstance().getMasterContext();
 		OD d = new OD();
 		context.add(d);
 		
@@ -547,6 +544,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Coordinate destCoord = GeometryUtil.generateRandomPointsInPolygon(bndry, 1).get(0);
 		
 		Geometry destGeom = fac.createPoint(destCoord);
+		
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
 		geography.move(d, destGeom);
 				
 		return d;
@@ -570,7 +569,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 			The destination agent that was added to the context and geography
 	 */
 	public OD addUserDestination( String paramX, String paramY) {
-		
+		Context context = RunState.getInstance().getMasterContext();
+
 		OD d = new OD();
 		context.add(d);
 		
@@ -584,6 +584,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		Geometry destGeom = fac.createPoint(destCoord);
 		
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
 		geography.move(d, destGeom);
 		
 		return d;
@@ -605,6 +606,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 			The coordinate to move the centroid of the pedestrian to in the geography
 	 */
     private Ped addPed(OD o, OD d)  {
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
         
         // Instantiate a new pedestrian agent and add the agent to the context
 		Parameters  params = RunEnvironment.getInstance().getParameters();
@@ -646,6 +649,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      * Initialise a vehicle agent and add to to the context and projection
      */
     private Vehicle addVehicle(OD o, OD d) {
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
 		Vehicle V = new Vehicle(GlobalVars.maxVehicleSpeed, GlobalVars.defaultVehicleAcceleration, GlobalVars.initialVehicleSpeed, o, d);
 		context.add(V);
 		Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -658,6 +664,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     }
     
 	public void removeAgentsAtDestinations() {
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
         ArrayList<MobileAgent> AgentsToRemove = new ArrayList<MobileAgent>();
         
         // Iterate over peds and remove them if they have arrived at the destination
@@ -666,7 +675,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         	
         	// Get the geometries in the CRS used for spatial calculations
         	Geometry dGeom =  mA.getDestination().getGeom();
-        	Geometry mAGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, mA);
+        	Geometry mAGeom = GISFunctions.getAgentGeometry(geography, mA);
         	
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
         	if (dGeom.isWithinDistance(mAGeom, GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance)) {
@@ -688,6 +697,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
     }
 	
 	public static void removeMobileAgent(MobileAgent mA, String msg) {
+		Context context = RunState.getInstance().getMasterContext();
+		
 		if (msg!=null) {
     		LOGGER.log(Level.FINE, msg);
 		}

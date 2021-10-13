@@ -3,6 +3,7 @@ package repastInterSim.agent;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.space.gis.Geography;
+import repast.simphony.util.ContextUtils;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
@@ -89,10 +90,6 @@ public class MobileAgent {
 	public void setLoc() {
 		// TODO Auto-generated method stub
 		
-	}
-	
-	public Geography<Object> getGeography(){
-		return SpaceBuilder.geography;
 	}
 	
 	public int getID() {

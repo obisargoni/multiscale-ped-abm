@@ -19,6 +19,8 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
+import repast.simphony.context.Context;
+import repast.simphony.engine.environment.RunState;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
@@ -208,7 +210,9 @@ public class Ped extends MobileAgent {
         
         // Move the agent to the new location. This requires transforming the geometry 
         // back to the geometry used by the geography, which is what this function does.
-        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, this);
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+        GISFunctions.moveAgentToGeometry(geography, pGeomNew, this);
         
         // Update the coordinate after moving the pedestrian
         setLoc();
@@ -240,7 +244,9 @@ public class Ped extends MobileAgent {
         fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
         
         // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
-        Geometry thisGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+        Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
         List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
         HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
         contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
@@ -407,7 +413,9 @@ public class Ped extends MobileAgent {
     public void dispalcementDistancesToPointGeometries(Iterable<Geometry> obstGeoms, List<Double> fovAngles, double[] ds, double[] dds) {
     	double[] output = new double[3];
     	output[1] = Double.MAX_VALUE;
-    	Geometry agentG = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this);
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+    	Geometry agentG = GISFunctions.getAgentGeometry(geography, this);
     	for (Geometry g: obstGeoms) {
     		DistanceOp distOp = new DistanceOp(agentG, g);
     		
@@ -774,10 +782,13 @@ public class Ped extends MobileAgent {
     public List<Geometry> getObstacleGeometries(Polygon fieldOfVisionApprox, Geography<PedObstruction> pedObstGeog) {
         // Get list of all geometries of other pedestrian agents and pedestrian obstructions that intersect field of vision
         List<Geometry> obstacleGeoms = SpatialIndexManager.searchGeoms(pedObstGeog, fieldOfVisionApprox);
-        Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
+        Iterable<Ped> pedsInArea = geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
         	if (p != this) {
-        		Geometry pGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, p);
+        		Geometry pGeom = GISFunctions.getAgentGeometry(geography, p);
         		obstacleGeoms.add(pGeom);
         	}
         }
@@ -786,10 +797,13 @@ public class Ped extends MobileAgent {
     
     public HashMap<Ped, Geometry> getPedsAndGeomsWithinGeometry(Geometry fieldOfVisionApprox) {
     	HashMap<Ped, Geometry> peds = new HashMap<Ped, Geometry>();
-        Iterable<Ped> pedsInArea = SpaceBuilder.geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
+        Iterable<Ped> pedsInArea = geography.getObjectsWithin(fieldOfVisionApprox.getEnvelopeInternal(), Ped.class);
         for (Ped p: pedsInArea) {
         	if (p != this) {
-        		Geometry pGeom = GISFunctions.getAgentGeometry(SpaceBuilder.geography, p);
+        		Geometry pGeom = GISFunctions.getAgentGeometry(geography, p);
         		peds.put(p, pGeom);
         	}
         }
@@ -820,7 +834,10 @@ public class Ped extends MobileAgent {
     @Override
     public void setLoc()  {
     	// Get centroid coordinate of this agent
-    	Coordinate pL = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this).getCentroid().getCoordinate();
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
+    	Coordinate pL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	this.maLoc = pL;
     }
     
@@ -838,11 +855,6 @@ public class Ped extends MobileAgent {
     
     public PedPathFinder getPathFinder() {
     	return this.pathFinder;
-    }
-    
-    @Override
-    public Geography<Object> getGeography() {
-    	return SpaceBuilder.geography;
     }
     
     public String getPrimaryRouteCoordinatesString() {    	

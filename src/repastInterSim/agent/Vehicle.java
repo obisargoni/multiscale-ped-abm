@@ -10,6 +10,8 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
+import repast.simphony.context.Context;
+import repast.simphony.engine.environment.RunState;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.OD;
@@ -41,8 +43,11 @@ public class Vehicle extends MobileAgent {
 		this.dmax = 20/GlobalVars.spaceScale; // Assuming vehicle drivers adjust their driving according to what's happening 20m in front.
 		
 		this.destination = d;
-		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate(); 
-		this.route = new Route(SpaceBuilder.geography, this, dCoord);
+		Coordinate dCoord = this.destination.getGeom().getCentroid().getCoordinate();
+		
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		this.route = new Route(geography, this, dCoord);
 	}
 
 	/*
@@ -78,6 +83,8 @@ public class Vehicle extends MobileAgent {
 	 * 
 	 */
 	public void drive() {
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
 		
 		// Check for nearby cars, pedestrians and signals
 		Vehicle vehicleInFront = getVehicleInFront();
@@ -169,7 +176,7 @@ public class Vehicle extends MobileAgent {
 		}
 		
 		Polygon vehicleGeom = vehicleRectangePolygon(vehicleLoc, this.bearing);
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, vehicleGeom, this);
+		GISFunctions.moveAgentToGeometry(geography, vehicleGeom, this);
 		
 		setLoc();
 		
@@ -485,8 +492,11 @@ public class Vehicle extends MobileAgent {
      */
 	@Override
     public void setLoc()  {
+		Context context = RunState.getInstance().getMasterContext();
+		Geography<Object> geography = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
     	// Get centroid coordinate of this agent
-    	Coordinate vL = GISFunctions.getAgentGeometry(SpaceBuilder.geography, this).getCentroid().getCoordinate();
+    	Coordinate vL = GISFunctions.getAgentGeometry(geography, this).getCentroid().getCoordinate();
     	DecimalFormat newFormat = new DecimalFormat("#.#######");
     	vL.x = Double.valueOf(newFormat.format(vL.x));
     	vL.y = Double.valueOf(newFormat.format(vL.y));
@@ -512,11 +522,6 @@ public class Vehicle extends MobileAgent {
      */
 	public Route getRoute() {
     	return this.route;
-    }
-    
-    @Override
-    public Geography<Object> getGeography() {
-    	return SpaceBuilder.geography;
     }
     
     public void setCurrentRoadLinkAndQueuePos(RoadLink rl) {

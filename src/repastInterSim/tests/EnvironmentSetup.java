@@ -50,7 +50,7 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class EnvironmentSetup {
 	
-	public static Context<Object> context;
+	public static Context<Object> context = new DefaultContext<Object>();
 	public static Geography<Object> geography; 
 	
 	public static Context<Road> roadContext;
@@ -107,6 +107,11 @@ public class EnvironmentSetup {
 		IO.readProperties();
 		EnvironmentSetup.clearCaches();
 		SpaceBuilder.fac = new GeometryFactory();
+		
+		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
+		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
+		geography.setCRS(GlobalVars.geographyCRSString);
+		context.add(geography);
 	}
 	
 	static void setUpRandomDistributions() {

@@ -91,7 +91,7 @@ class TacticalRouteTest {
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
+		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, p);
         p.setLoc();
         
         PedPathFinder ppf = p.getPathFinder();
@@ -180,7 +180,7 @@ class TacticalRouteTest {
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
+		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, p);
         p.setLoc();
         
         PedPathFinder ppf = p.getPathFinder();

@@ -40,11 +40,11 @@ class PedPathFinderTest {
 
 	
 	public void addPedToWorld(Ped p, OD o) {
-        SpaceBuilder.context.add(p);        
+        EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, p);
+		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, p);
 		p.setLoc();
 	}
 	
@@ -715,11 +715,11 @@ class PedPathFinderTest {
 						
 		boolean minimiseCrossings = true;
 		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
-		SpaceBuilder.context.add(pMinCross);
+		EnvironmentSetup.context.add(pMinCross);
         
         minimiseCrossings = false;
         Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
-        SpaceBuilder.context.add(pMinCross);
+        EnvironmentSetup.context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
         List<RoadLink> sP = pMinCross.getPathFinder().getStrategicPath();
@@ -809,11 +809,11 @@ class PedPathFinderTest {
 		
 		boolean minimiseCrossings = true;
 		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
-		SpaceBuilder.context.add(pMinCross);
+		EnvironmentSetup.context.add(pMinCross);
         
         minimiseCrossings = false;
         Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
-        SpaceBuilder.context.add(pMinCross);
+        EnvironmentSetup.context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
         List<RoadLink> sP = pMinCross.getPathFinder().getStrategicPath();
@@ -1187,11 +1187,11 @@ class PedPathFinderTest {
 		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
-        SpaceBuilder.context.add(pedMinDist);        
+        EnvironmentSetup.context.add(pedMinDist);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(pedMinDist.getRad());		
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, pedMinDist);
+		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, pedMinDist);
 		pedMinDist.setLoc();
 		
 		// Set up ped path finder
@@ -1391,11 +1391,11 @@ class PedPathFinderTest {
 		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
-        SpaceBuilder.context.add(pedMinDist);        
+        EnvironmentSetup.context.add(pedMinDist);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(pedMinDist.getRad());		
-		GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, circle, pedMinDist);
+		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, pedMinDist);
 		pedMinDist.setLoc();
 		
 		

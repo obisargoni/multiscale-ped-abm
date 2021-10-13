@@ -47,7 +47,7 @@ class PedTest {
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
 		Geometry pGeomNew = pt.buffer(ped.getRad());
-        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, ped);
+        GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, pGeomNew, ped);
 		ped.setLoc();
 		ped.setBearing(b);
 		return ped;
@@ -94,7 +94,7 @@ class PedTest {
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
 		Geometry pGeomNew = pt.buffer(pedMinDist.getRad());
-        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, pedMinDist);
+        GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, pGeomNew, pedMinDist);
 		pedMinDist.setLoc();
 		pedMinDist.setBearing(b);	
 		
@@ -527,7 +527,7 @@ class PedTest {
 		Coordinate c = new Coordinate(530428.678340819, 180841.2802190967);
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
 		Geometry pGeomNew = pt.buffer(p17.getRad());
-        GISFunctions.moveAgentToGeometry(SpaceBuilder.geography, pGeomNew, p17);
+        GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, pGeomNew, p17);
 		p17.setLoc();
 		p17.setBearing(4.016138701200504);
 		double[] v17 = {-0.6213405465259059, -0.5193776759134808};
