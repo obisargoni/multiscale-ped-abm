@@ -200,7 +200,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
 		CAContext caContext = new CAContext();
-		Geography<CrossingAlternative> caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_CONTEXT);
+		Geography<CrossingAlternative> caGeography = createTypedGeography(CrossingAlternative.class, caContext, GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		context.addSubContext(caContext);
 		fixedGeographies.add(caGeography);
 		

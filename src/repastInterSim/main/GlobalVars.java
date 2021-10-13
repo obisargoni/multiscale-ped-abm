@@ -157,10 +157,10 @@ public abstract class GlobalVars {
 		public static final String PAVEMENT_NETWORK = "PAVEMENT_NETWORK";
 
 		
-		public static final String VEHICLE_DESTINATION_CONTEXT = "DestinationContext";
-		public static final String VEHICLE_DESTINATION_GEOGRAPHY = "DestinationGeography";
-		public static final String PEDESTRIAN_DESTINATION_CONTEXT = "DestinationContext";
-		public static final String PEDESTRIAN_DESTINATION_GEOGRAPHY = "DestinationGeography";
+		public static final String VEHICLE_DESTINATION_CONTEXT = "VehicleDestinationContext";
+		public static final String VEHICLE_DESTINATION_GEOGRAPHY = "VehicleDestinationGeography";
+		public static final String PEDESTRIAN_DESTINATION_CONTEXT = "PedestrianDestinationContext";
+		public static final String PEDESTRIAN_DESTINATION_GEOGRAPHY = "PedestrianDestinationGeography";
 		
 		public static final String CA_CONTEXT = "CAContext";
 		public static final String CA_GEOGRAPHY = "CAGeography";
