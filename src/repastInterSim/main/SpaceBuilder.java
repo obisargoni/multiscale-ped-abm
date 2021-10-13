@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,7 @@ import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.dataLoader.ContextBuilder;
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.environment.RunState;
 import repast.simphony.engine.schedule.ISchedulableAction;
 import repast.simphony.engine.schedule.ISchedule;
 import repast.simphony.engine.schedule.ScheduleParameters;
@@ -35,6 +37,7 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
+import repast.simphony.space.projection.Projection;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
@@ -767,6 +770,22 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Geography<T> g = GeographyFactoryFinder.createGeographyFactory(null).createGeography(geographyName, context, GeoParams);
 		g.setCRS(GlobalVars.geographyCRSString);
 		
+		return g;
+	}
+	
+	public static <T> Geography<T> getGeography(String geogName) {
+		Geography<T> g = null;
+		Context c = RunState.getInstance().getMasterContext();
+		for (Object o : c.getSubContexts()) {
+			Context sc = (Context) o;
+			Collection<Projection> ps = sc.getProjections();
+			for (Projection p: ps) {
+				if (p.getName().contentEquals(geogName)) {
+					g = (Geography<T>) p;
+					return g;
+				}
+			}
+		}
 		return g;
 	}
 }
