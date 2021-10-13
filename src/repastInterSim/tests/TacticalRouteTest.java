@@ -74,7 +74,7 @@ class TacticalRouteTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 9) {
 				o = i;
 			}
@@ -162,7 +162,7 @@ class TacticalRouteTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 11) {
 				o = i;
 			}
@@ -231,7 +231,7 @@ class TacticalRouteTest {
 		// origin and destination don't matter, just choose arbitrarily
 		OD o = null;
 		OD d = null;
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId()==3) {
 				o = i;
 			}

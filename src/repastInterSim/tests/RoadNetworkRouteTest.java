@@ -296,7 +296,7 @@ public class RoadNetworkRouteTest {
 		// Select pedestrian origins and destinations to test
 		Coordinate o = null;
 		Coordinate d = null;
-		for ( OD od: SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for ( OD od: EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (od.getId() == 1) {
 				o = od.getGeom().getCoordinate();
 			}

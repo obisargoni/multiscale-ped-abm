@@ -704,7 +704,7 @@ class PedPathFinderTest {
 		// Initialise origin-destination pair to test
 		OD o = null;
 		OD d = null;
-		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD od : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (od.getId() == 5) {
 				o = od;
 			}
@@ -798,7 +798,7 @@ class PedPathFinderTest {
 		// Initialise origin-destination pair to test
 		OD o = null;
 		OD d = null;
-		for (OD od : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD od : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (od.getId() == 6) {
 				o = od;
 			}
@@ -904,7 +904,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 5) {
 				o = i;
 			}
@@ -990,7 +990,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 8) {
 				o = i;
 			}
@@ -1060,7 +1060,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 8) {
 				o = i;
 			}
@@ -1173,7 +1173,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 3) {
 				o = i;
 			}
@@ -1294,7 +1294,7 @@ class PedPathFinderTest {
 		
 		OD o = null;
 		OD d = null;
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId()==10) {
 				o = i;
 			}
@@ -1377,7 +1377,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 3) {
 				o = i;
 			}
@@ -1470,7 +1470,7 @@ class PedPathFinderTest {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : SpaceBuilder.pedestrianDestinationGeography.getAllObjects()) {
+		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
 			if (i.getId() == 5) {
 				o = i;
 			}
