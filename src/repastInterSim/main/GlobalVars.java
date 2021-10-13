@@ -154,6 +154,7 @@ public abstract class GlobalVars {
 		
 		public static final String PAVEMENT_LINK_CONTEXT = "PavementLinkContext";
 		public static final String PAVEMENT_LINK_GEOGRAPHY = "PavementLinkGeography";
+		public static final String PAVEMENT_NETWORK = "PAVEMENT_NETWORK";
 
 		
 		public static final String VEHICLE_DESTINATION_CONTEXT = "DestinationContext";

@@ -250,7 +250,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
 			
 			// 2c pavement network
-			NetworkBuilder<Junction> pavementBuilder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", pavementJunctionContext, false);
+			NetworkBuilder<Junction> pavementBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK, pavementJunctionContext, false);
 			pavementBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			pavementNetwork = pavementBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
