@@ -72,9 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<PedObstruction> pedObstructionPointsContext;
-	public static Geography<PedObstruction> pedObstructionPointsGeography;
-	
 	public static Context<OD> vehicleDestinationContext;
 	public static Geography<OD> vehicleDestinationGeography;
 	
