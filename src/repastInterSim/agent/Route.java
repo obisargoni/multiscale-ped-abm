@@ -604,8 +604,9 @@ public class Route implements Cacheable {
 				File odsFile = new File(gisDir + IO.getProperty(GlobalVars.VehicleDestinationsFile));
 				File roadsFile = new File(gisDir + IO.getProperty(GlobalVars.RoadLinkShapefile));
 				File serialisedLoc = new File(gisDir + IO.getProperty(GlobalVars.ODORRoadLinkCoordsCache));
-
-				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(SpaceBuilder.vehicleDestinationGeography,
+				
+				Geography<OD> vehicleDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
+				nearestRoadCoordCache = NearestRoadCoordCache.getInstance(vehicleDestinationGeography,
 						odsFile, SpaceBuilder.roadLinkGeography, roadsFile, serialisedLoc, new GeometryFactory());
 			} // if not cached
 		} // synchronized

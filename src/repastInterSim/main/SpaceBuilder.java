@@ -72,12 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<OD> vehicleDestinationContext;
-	public static Geography<OD> vehicleDestinationGeography;
-	
-	public static Context<OD> pedestrianDestinationContext;
-	public static Geography<OD> pedestrianDestinationGeography;
-	
 	public static Context<RoadLink> roadLinkContext;
 	public static Geography<RoadLink> roadLinkGeography;
 	
@@ -222,13 +216,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(pavementJunctionGeography);
 		
 		// Destinations geography used for creating cache of destinations and their nearest road coordinates		
-		vehicleDestinationContext = new VehicleDestinationContext();
-		vehicleDestinationGeography = createTypedGeography(OD.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
+		VehicleDestinationContext vehicleDestinationContext = new VehicleDestinationContext();
+		Geography<OD> vehicleDestinationGeography = createTypedGeography(OD.class, vehicleDestinationContext, GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		context.addSubContext(vehicleDestinationContext);
 		fixedGeographies.add(vehicleDestinationGeography);
 
-		pedestrianDestinationContext = new PedestrianDestinationContext();
-		pedestrianDestinationGeography = createTypedGeography(OD.class, pedestrianDestinationContext, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
+		PedestrianDestinationContext pedestrianDestinationContext = new PedestrianDestinationContext();
+		Geography<OD> pedestrianDestinationGeography = createTypedGeography(OD.class, pedestrianDestinationContext, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
 		context.addSubContext(pedestrianDestinationContext);
 		fixedGeographies.add(pedestrianDestinationGeography);
 		
@@ -469,7 +463,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * 
 	 */
 	public void addVehicleAgents(List<String[]> odData) {
-		
+		Geography<OD> vehicleDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData, "vehODThresholds");
 		
 		for (int i=0; i< ods.size(); i++) {
@@ -486,6 +480,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
      */
 	public void addPedestrianAgents(List<String[]> odData) {
 		
+		Geography<OD> pedestrianDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
 		List<OD[]> ods = mobileAgentODs(pedestrianDestinationGeography, odData, "pedODThresholds");
 		
 		int nPedsToCreate = RunEnvironment.getInstance().getParameters().getInteger("nPeds");

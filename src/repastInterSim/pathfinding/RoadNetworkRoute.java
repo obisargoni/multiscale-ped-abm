@@ -672,7 +672,8 @@ public class RoadNetworkRoute implements Cacheable {
 				// Create a new cache object, this will be read from disk if
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
-				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+				Geography<OD> pedestrianDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
 		} // synchronized
 		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
@@ -685,7 +686,8 @@ public class RoadNetworkRoute implements Cacheable {
 		// Don't bother with the cache for now
 		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
-				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(SpaceBuilder.pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+				Geography<OD> pedestrianDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
 		} // synchronized
 		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
