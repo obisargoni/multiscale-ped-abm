@@ -85,7 +85,7 @@ class TacticalRouteTest {
 		
 		// Set up ped path finder
 		boolean minimiseCrossings = false;		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -102,7 +102,7 @@ class TacticalRouteTest {
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
-        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());                
+        TacticalRoute tr = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());                
         
         
         // Test needs to get end junction of route path and use that rather than current junction, current junction could not connect to remainder path if first link is a crossing link
@@ -174,7 +174,7 @@ class TacticalRouteTest {
 		// Set up ped path finder
 		boolean minimiseCrossings = false;
 		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
         context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -191,7 +191,7 @@ class TacticalRouteTest {
 		
 		// Now test planning the first tactical path with this ped path finder object
         int tacticalHorizonLinks = PedPathFinder.getNLinksWithinAngularDistance(ppf.getStrategicPath(), p.getpHorizon());
-        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());        
+        TacticalRoute tr = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, tacticalHorizonLinks, p, ppf.getStrategicPath(), ppf.getStartPavementJunction(), ppf.getDestPavementJunction(), ppf.getPrimaryCostHeuristic(), ppf.getSecondaryCostHeuristic());        
         
 		assert tr.getCurrentJunction().getFID().contentEquals("pave_node_106"); // This is the default junction
 		assert tr.getAccumulatorRoute().getTargetJunction().getFID().contentEquals("pave_node_108");
@@ -240,7 +240,7 @@ class TacticalRouteTest {
 			}
 		}
         boolean minimiseCrossings = false;
-        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
         
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();

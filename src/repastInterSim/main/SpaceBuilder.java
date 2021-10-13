@@ -72,10 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<Junction> pavementJunctionContext;
-	public static Geography<Junction> pavementJunctionGeography;
-	public static Network<Junction> pavementNetwork;
-	
 	// Lookups between or and itn road links
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
 	public static HashMap<RoadLink, RoadLink> itnToOR = new HashMap<RoadLink, RoadLink>();
@@ -191,8 +187,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		context.addSubContext(orJunctionContext);
 		fixedGeographies.add(orJunctionGeography);
 		
-		pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_CONTEXT);
-		pavementJunctionGeography = createTypedGeography(Junction.class, pavementJunctionContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
+		JunctionContext pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_CONTEXT);
+		Geography<Junction> pavementJunctionGeography = createTypedGeography(Junction.class, pavementJunctionContext, GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
 		context.addSubContext(pavementJunctionContext);
 		fixedGeographies.add(pavementJunctionGeography);
 		
@@ -252,7 +248,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// 2c pavement network
 			NetworkBuilder<Junction> pavementBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK, pavementJunctionContext, false);
 			pavementBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
-			pavementNetwork = pavementBuilder.buildNetwork();
+			Network<Junction> pavementNetwork = pavementBuilder.buildNetwork();
 			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
 			
 			// Create lookup from OR road junctions to pavement junctions
@@ -260,7 +256,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
 					SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
 				}
-				for (Junction paveJ : SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+				for (Junction paveJ : pavementJunctionGeography.getAllObjects()) {
 					if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
 						SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
 					}
@@ -625,7 +621,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			m = RandomHelper.getDistribution("pedMasses").nextDouble();
 		}
 		
-    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), pavementJunctionGeography, pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

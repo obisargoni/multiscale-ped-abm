@@ -671,6 +671,7 @@ public class RoadNetworkRoute implements Cacheable {
 		// double time = System.nanoTime();
 		
 		// Don't bother with the cache for now
+		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
 		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
 
@@ -678,10 +679,10 @@ public class RoadNetworkRoute implements Cacheable {
 				// possible (which is why the getInstance() method is used
 				// instead of the constructor.
 				Geography<OD> pedestrianDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
-				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
 		} // synchronized
-		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
+		return odPaveJuncCache.get(c, pavementJunctionGeography);
 	}
 	
 	/*
@@ -689,13 +690,14 @@ public class RoadNetworkRoute implements Cacheable {
 	 */
 	public static synchronized Junction getNearestpavementJunctionToOD(Coordinate c, File odFile, File pavementJunctionFile, File paveJuncSeriealizedLoc) throws Exception {
 		// Don't bother with the cache for now
+		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
 		synchronized (odPaveJuncCacheLock) {
 			if (odPaveJuncCache == null) {
 				Geography<OD> pedestrianDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
-				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, SpaceBuilder.pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
+				odPaveJuncCache = NearestPavementJunctionCoordCache.getInstance(pedestrianDestinationGeography, odFile, pavementJunctionGeography, pavementJunctionFile, paveJuncSeriealizedLoc, geomFac);
 			} // if not cached
 		} // synchronized
-		return odPaveJuncCache.get(c, SpaceBuilder.pavementJunctionGeography);
+		return odPaveJuncCache.get(c, pavementJunctionGeography);
 	}
 
 	/**

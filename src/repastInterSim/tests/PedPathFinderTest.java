@@ -155,7 +155,7 @@ class PedPathFinderTest {
 		}
 		
 		// Get a ped junction and check its attributes are not null
-		for (Junction pJ: SpaceBuilder.pavementJunctionGeography.getAllObjects()) {
+		for (Junction pJ: EnvironmentSetup.pavementJunctionGeography.getAllObjects()) {
 			assert pJ.getp1pID() != null;
 			assert pJ.getp1rlID() != null;
 			assert pJ.getp2pID() != null;
@@ -184,7 +184,7 @@ class PedPathFinderTest {
 		
 		// Check all the junctions but this time via the network nodes.
 		// Get a ped junction and check its attributes are not null
-		for (Junction pJ: SpaceBuilder.pavementNetwork.getNodes()) {
+		for (Junction pJ: EnvironmentSetup.pavementNetwork.getNodes()) {
 			assert pJ.getp1pID() != null;
 			assert pJ.getp1rlID() != null;
 			assert pJ.getp2pID() != null;
@@ -234,7 +234,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -288,7 +288,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -342,7 +342,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -396,7 +396,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -450,7 +450,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -504,7 +504,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonEndJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		assert tacticalEndJunctions.size() > 0;
 	}
@@ -547,7 +547,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -601,7 +601,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -655,7 +655,7 @@ class PedPathFinderTest {
 			}
 		}
 		
-		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(SpaceBuilder.pavementNetwork, rlEndHorz, rlOutHorz);
+		List<Junction> tacticalEndJunctions = PedPathFinder.tacticalHorizonOutsideJunctions(EnvironmentSetup.pavementNetwork, rlEndHorz, rlOutHorz);
 		
 		// Now check the nodes as as expected - only one junction returned in this case due to complicated junction
 		String endJID1 = tacticalEndJunctions.get(0).getFID();
@@ -714,11 +714,11 @@ class PedPathFinderTest {
 		}
 						
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		SpaceBuilder.context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
         SpaceBuilder.context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -731,7 +731,7 @@ class PedPathFinderTest {
 		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		
-        TacticalRoute tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute tr = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		// Now validate the tactical route
 		// Check that target junction is the no crossing junction as expected
@@ -747,7 +747,7 @@ class PedPathFinderTest {
 		assert tr.getRemainderPath().size() == 0;
 		
 		// Produce tactical route for min distance ped 
-        tr = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        tr = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
 		
 		final String end2ID = "pave_node_88";		
@@ -808,11 +808,11 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		SpaceBuilder.context.add(pMinCross);
         
         minimiseCrossings = false;
-        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+        Ped pMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
         SpaceBuilder.context.add(pMinCross);
         
         // Get the strategic path - will be the same for both pedestrians
@@ -825,8 +825,8 @@ class PedPathFinderTest {
 		assert pMinCross.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		assert pMinDist.getPathFinder().getDestPavementJunction().getFID().contentEquals("pave_node_112");
 		
-        TacticalRoute trMinCross = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
-        TacticalRoute trMinDist = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute trMinCross = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        TacticalRoute trMinDist = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
 
         // With tactical planning horizon of one link, min distance and min crossing tactical paths should be the same
 		final String end1ID = "pave_node_79";
@@ -842,8 +842,8 @@ class PedPathFinderTest {
 		
 		// Now re-plan with planning horizon equal to the whole strategic path
 		horizonNLinks = sP.size();
-        trMinCross = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
-        trMinDist = PedPathFinder.planTacticalPath(SpaceBuilder.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinDist.getPathFinder().getSecondaryCostHeuristic());                
+        trMinCross = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinCross, sP, pMinCross.getPathFinder().getStartPavementJunction(), pMinCross.getPathFinder().getDestPavementJunction(), pMinCross.getPathFinder().getPrimaryCostHeuristic(), pMinCross.getPathFinder().getSecondaryCostHeuristic());                
+        trMinDist = PedPathFinder.planTacticalPath(EnvironmentSetup.pavementNetwork, EnvironmentSetup.caGeography, EnvironmentSetup.roadGeography, horizonNLinks, pMinDist, sP, pMinDist.getPathFinder().getStartPavementJunction(), pMinDist.getPathFinder().getDestPavementJunction(), pMinDist.getPathFinder().getPrimaryCostHeuristic(), pMinDist.getPathFinder().getSecondaryCostHeuristic());                
         
         // Initial section of the path should be the same for both peds
         // Need to starting junction using the accumulator route since first link is a crossing link
@@ -915,7 +915,7 @@ class PedPathFinderTest {
 				
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 	 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinDist.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -932,7 +932,7 @@ class PedPathFinderTest {
 		
 		// Repeat test for ped that minimises crossings
 		minimiseCrossings = true;
-		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
 		// Check the start and end pavement junctions are as expected
 		assert pedMinCross.getPathFinder().getStartPavementJunction().getFID().contentEquals("pave_node_85");
@@ -1001,7 +1001,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, 180.0, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinDist = new Ped(o, d, GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, 180.0, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "56CF7BBA-28E4-4ACA-9F58-E096E88094FB_0", "B2B9D137-2BA4-4864-8350-2EDAA5910747_0"};
@@ -1071,7 +1071,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = true;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 				
 		// Check the strategic path is as expected
 		String[] expectedRoadIDs = {"762DB27A-3B61-4EAA-B63E-6F1B0BD80D98_0", "A8675945-DE94-4E22-9905-B0623A326221_0", "F4C0B1FB-762C-4492-BB0D-673CC4950CBE_0", "8A9E2D7B-3B48-4A19-B89A-0B4F4D516870_2"};
@@ -1184,7 +1184,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
         SpaceBuilder.context.add(pedMinDist);        
@@ -1304,7 +1304,7 @@ class PedPathFinderTest {
 		}
 		
 		boolean minimiseCrossings = true;
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
 		Junction startJ = p.getPathFinder().getStartPavementJunction();
 		Junction destJ = p.getPathFinder().getDestPavementJunction();
@@ -1388,7 +1388,7 @@ class PedPathFinderTest {
 		
 		// Initialise a pedestrian, this internally initialises a ped path finder
 		boolean minimiseCrossings = false;
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 		
 		// Need to give ped location in order to test updating tactical path following crossing choice
         SpaceBuilder.context.add(pedMinDist);        
@@ -1480,9 +1480,9 @@ class PedPathFinderTest {
 		}
 		
 		// Create distance minimising and crossing minimising pedestrians
-		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, false, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);		
+		Ped pedMinDist = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, false, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);		
 		
-		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, true, SpaceBuilder.pavementJunctionGeography, SpaceBuilder.pavementNetwork);
+		Ped pedMinCross = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, true, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
 		// Step the peds once to initiase their routes
 		try {

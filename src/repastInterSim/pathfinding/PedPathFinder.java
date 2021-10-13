@@ -148,7 +148,8 @@ public class PedPathFinder {
 		int tacticalHorizonLinks = getNLinksWithinAngularDistance(this.strategicPath, this.ped.getpHorizon());
 		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
 		Geography<CrossingAlternative> caGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
-		this.tacticalPath = planTacticalPath(SpaceBuilder.pavementNetwork, caGeography, roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		this.tacticalPath = planTacticalPath(pavementNetwork, caGeography, roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
     }
 	
 	/*
