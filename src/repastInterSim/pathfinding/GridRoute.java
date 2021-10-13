@@ -28,6 +28,7 @@ import repast.simphony.space.graph.ShortestPath;
 import repast.simphony.space.graph.UndirectedJungNetwork;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.NetworkEdgeCreator;
+import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.SpatialIndexManager;
@@ -297,7 +298,8 @@ public class GridRoute {
 
 		
 		// Check if line passes through a ped obstruction
-		isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, SpaceBuilder.pedObstructGeography);
+		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
+		isObstructingObjects = GISFunctions.doesIntersectGeographyObjects(pathLine, pedObstructGeography);
 		
 		// check if line passes through two different priority road objects
 		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);

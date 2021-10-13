@@ -293,7 +293,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 
 	public Coordinate getC2() {
 		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
-		return oppositeSideOfRoadCoord(this.ped.getLoc(), roadGeography, SpaceBuilder.pedObstructGeography);
+		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
+		return oppositeSideOfRoadCoord(this.ped.getLoc(), roadGeography, pedObstructGeography);
 	}
 	
 	public String getType() {

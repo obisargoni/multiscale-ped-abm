@@ -72,9 +72,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static Context<Object> context;
 	public static Geography<Object> geography;
 	
-	public static Context<PedObstruction> pedObstructContext;
-	public static Geography<PedObstruction> pedObstructGeography;
-	
 	public static Context<PedObstruction> pedObstructionPointsContext;
 	public static Geography<PedObstruction> pedObstructionPointsGeography;
 	
@@ -190,8 +187,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		fixedGeographies.add(roadGeography);
 		
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
-		pedObstructContext = new PedObstructionContext();
-		pedObstructGeography = createTypedGeography(PedObstruction.class, pedObstructContext, GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
+		PedObstructionContext pedObstructContext = new PedObstructionContext();
+		Geography<PedObstruction> pedObstructGeography = createTypedGeography(PedObstruction.class, pedObstructContext, GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
 		context.addSubContext(pedObstructContext);
 		fixedGeographies.add(pedObstructGeography);
 
