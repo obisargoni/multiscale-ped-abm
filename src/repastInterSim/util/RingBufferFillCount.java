@@ -58,6 +58,7 @@ public class RingBufferFillCount<T> {
         }
         int nextSlot = this.readPos();
         T nextObj = elements[nextSlot];
+        elements[nextSlot] = null; // Need to set to null so that vehicle object does not have references pointing to it
         count--;
         return nextObj;
     }
