@@ -1050,6 +1050,10 @@ public class RoadNetworkRoute implements Cacheable {
 			odPaveJuncCache.clear();
 			odPaveJuncCache = null;
 		}
+		if (roadLinkRoadsCache != null) {
+			roadLinkRoadsCache.clear();
+			roadLinkRoadsCache = null;
+		}
 		
 	}
 	

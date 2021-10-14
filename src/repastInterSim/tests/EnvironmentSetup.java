@@ -106,7 +106,7 @@ public class EnvironmentSetup {
 	static void setUpProperties() throws IOException {
 		IO.readProperties();
 		EnvironmentSetup.clearCaches();
-		SpaceBuilder.fac = new GeometryFactory();
+		GeometryFactory fac = new GeometryFactory();
 		
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);

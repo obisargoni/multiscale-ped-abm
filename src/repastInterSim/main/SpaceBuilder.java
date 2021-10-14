@@ -64,24 +64,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
-	private static Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. 
-	
-	private static Integer pDI = 0; // Pedestrian destination index. Used to select which destination to assign to pedestrians
-	private static Integer vDI = 0; // Vehicle destination index. Used to select which destination to assign to pedestrians
+	private Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. s
 	
 	// Lookups between or and itn road links
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
 	public static HashMap<RoadLink, RoadLink> itnToOR = new HashMap<RoadLink, RoadLink>();
 	public static HashMap<Junction, List<Junction>> orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 	
-	private static ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
+	private GeometryFactory fac = new GeometryFactory();
 	
-	public static GeometryFactory fac;
-	
-	private static ISchedulableAction addVehicleAction;
-	private static ISchedulableAction addPedAction;
-	private static ISchedulableAction stopAddingPedsAction;
-	private static ISchedulableAction removeMAgentAction;
+	private ISchedulableAction addVehicleAction;
+	private ISchedulableAction addPedAction;
+	private ISchedulableAction stopAddingPedsAction;
+	private ISchedulableAction removeMAgentAction;
 	private int nPedsCreated;
 	
 	/*
@@ -103,6 +98,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
 		SpatialIndexManager.clearCaches();
+		
+		ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
+		SpaceBuilder.orToITN = new HashMap<RoadLink, List<RoadLink>>();
+		SpaceBuilder.itnToOR = new HashMap<RoadLink, RoadLink>();
+		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 	    
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		this.nPedsCreated=0;
@@ -128,8 +128,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", params.getInteger("pedMassSeed"));
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
-		
-		fac = new GeometryFactory();
 		
 		// Read in the model properties
 		try {
@@ -257,8 +255,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 						SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
 					}
 				}
-			}
-			
+			}			
 			
 			// Build the fixed environment
 			

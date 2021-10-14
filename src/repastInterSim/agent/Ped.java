@@ -37,7 +37,7 @@ import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {
-	private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
+	//private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
 
     private PedPathFinder pathFinder;
         
@@ -774,7 +774,8 @@ public class Ped extends MobileAgent {
         Coordinate c3 = new Coordinate(maLoc.x + r*Math.sin(a2), maLoc.y + r*Math.cos(a2));
         
         Coordinate[] fovCoords = {maLoc, c1, c2, c3, maLoc};
-        Polygon fovArea = SpaceBuilder.fac.createPolygon(fovCoords);
+        GeometryFactory fac = new GeometryFactory();
+        Polygon fovArea = fac.createPolygon(fovCoords);
         
         return fovArea;
     }
