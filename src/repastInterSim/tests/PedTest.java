@@ -633,7 +633,7 @@ class PedTest {
 		Junction targetJ = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getTargetJunction();
 		Junction defaultJ = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getDefaultJunction();
 		
-		assert defaultJ.equals(currentJ);
+		assert defaultJ.getGeom().equals(currentJ.getGeom());
 		
 		// step ped until crossing chosen
 		while( (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen()==false) & (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired()) ) {
@@ -649,7 +649,7 @@ class PedTest {
 		assert pedMinDist.getChosenCrossingType().contentEquals("none")==false;
 				
 		// Now currentJunction should be the targetJunction 
-		assert targetJ.equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction());
+		assert targetJ.getGeom().equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getGeom());
 		
 		// the accumulator route should have coordinates to go to
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()>0;
