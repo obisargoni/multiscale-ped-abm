@@ -308,21 +308,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			e1.printStackTrace();
 		}
 		
-		// Set the internal context and geography attributes of the destination agents
-		IndexedIterable<OD> vehicleDestinations = vehicleDestinationContext.getObjects(OD.class);
-		for (OD d : vehicleDestinations) {
-			d.setRootContext(context);
-			d.setRootGeography(geography);
-			d.setDestinationGeography(vehicleDestinationGeography);
-		}
-		
-		IndexedIterable<OD> pedestrianDestinations = pedestrianDestinationContext.getObjects(OD.class);
-		for (OD d : pedestrianDestinations) {
-			d.setRootContext(context);
-			d.setRootGeography(geography);
-			d.setDestinationGeography(pedestrianDestinationGeography);
-		}		
-		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + IO.getProperty("vehicleODFlowsFile"));
 		

@@ -7,9 +7,6 @@ import repast.simphony.space.gis.Geography;
 
 public class OD implements FixedGeography{
 	
-	private Context<Object> context;
-	private Geography<Object> geography;
-	private Geography<OD> destinationGeography;
 	private Geometry geom;
 	private Long id;
 	private String fid;
@@ -26,18 +23,6 @@ public class OD implements FixedGeography{
 	@Override
 	public void setGeom(Geometry g) {
 		this.geom = g;
-	}
-	
-	public void setRootGeography(Geography<Object> G) {
-		this.geography = G;
-	}
-	
-	public void setDestinationGeography(Geography<OD> G) {
-		this.destinationGeography = G;
-	}
-	
-	public void setRootContext(Context<Object> C) {
-		this.context = C;
 	}
 
 	public Long getId() {
