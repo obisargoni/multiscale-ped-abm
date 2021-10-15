@@ -193,7 +193,7 @@ public class TacticalRoute {
 	
 	public Junction edgeAdjacentJunction(RepastEdge<Junction> e, Junction j) {
 		Junction adj = null;
-		if (e.getSource().equals(j)) {
+		if (e.getSource().getGeom().equals(j.getGeom())) {
 			adj = e.getTarget();
 		}
 		else {

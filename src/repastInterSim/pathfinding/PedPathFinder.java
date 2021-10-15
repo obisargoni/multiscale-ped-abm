@@ -306,7 +306,7 @@ public class PedPathFinder {
 			RepastEdge<Junction> e = path.get(i);
 			
 			Junction next = null;
-			if (e.getSource().equals(prev)) {
+			if (e.getSource().getGeom().equals(prev.getGeom())) {
 				next = e.getTarget();
 			}
 			else {

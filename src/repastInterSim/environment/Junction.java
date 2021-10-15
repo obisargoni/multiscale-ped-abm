@@ -91,20 +91,6 @@ public class Junction implements FixedGeography, Serializable{
 	}
 	
 	/**
-	 * Tests if Junctions are equal by comparing the coorinates.
-	 * @param j The junction to be compared with this one
-	 * @return True if their coordinates are equal, false otherwise
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof Junction)) {
-			return false;
-		}
-		Junction j = (Junction) obj;
-		return this.getGeom().equals(j.getGeom());
-	}
-
-	/**
 	 * Get the coordinate of this junction
 	 */
 	public Geometry getGeom() {
