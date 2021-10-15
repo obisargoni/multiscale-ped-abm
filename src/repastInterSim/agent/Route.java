@@ -1155,7 +1155,7 @@ public class Route implements Cacheable {
 		return String.valueOf(calculator.getOrthodromicDistance());
 	}
 
-	public void clearCaches() {
+	public static void clearCaches() {
 		if (coordCache != null)
 			coordCache.clear();
 		if (nearestRoadCoordCache != null) {

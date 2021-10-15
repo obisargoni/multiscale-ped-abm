@@ -41,6 +41,7 @@ import repast.simphony.space.projection.Projection;
 import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
+import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
@@ -97,6 +98,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
+		Route.clearCaches();
 		SpatialIndexManager.clearCaches();
 		
 		ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
