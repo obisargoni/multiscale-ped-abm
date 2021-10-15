@@ -54,4 +54,10 @@ public class Road implements FixedGeography, Serializable {
 	public String getRoadLinkID() {
 		return this.roadLinkID;
 	}
+	
+	public void clear() {
+		this.geom=null;
+		this.roadLinkID=null;
+		this.priority=null;
+	}
 }

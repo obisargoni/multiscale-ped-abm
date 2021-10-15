@@ -179,5 +179,24 @@ public class RoadLink implements FixedGeography, Serializable {
 	public List<Road> getRoads(){
 		return this.roads;
 	}
+	
+	public void clear() {
+		this.geom = null;
+		this.priority = null;
+		this.junctions = null;
+		
+		this.edge.clear();
+		this.edge = null;
+		
+		this.fid = null;
+		this.pedRLID = null;
+		this.pedRoadID = null;
+		this.direction = null;
+		this.MNodeFID = null;
+		this.PNodeFID = null;
+		this.queue = null;
+		this.peds = null;
+		this.roads = null;
+	}
 
 }

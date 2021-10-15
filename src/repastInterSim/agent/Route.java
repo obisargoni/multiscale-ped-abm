@@ -1187,6 +1187,17 @@ public class Route implements Cacheable {
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
 	}
+	
+	public void clear() {
+		this.geography=null;
+		this.mA=null;
+		this.origin=null;
+		this.destination=null;
+		this.routeX=null;
+		this.routeSpeedsX=null;
+		this.roadsX=null;
+		this.routeDescriptionX=null;
+	}
 
 	/**
 	 * Will add the given buildings to the awareness space of the Burglar who is being controlled by this Route.

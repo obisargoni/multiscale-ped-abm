@@ -33,5 +33,6 @@ public interface FixedGeography {
 	
 	Geometry getGeom();
 	void setGeom(Geometry c);
+	void clear();
 
 }

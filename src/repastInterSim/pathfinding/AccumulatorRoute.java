@@ -333,5 +333,15 @@ public class AccumulatorRoute {
 	public boolean isDirectCrossing() {
 		return this.directCrossing;
 	}
+	
+	public void clear() {
+		this.ped=null;
+		this.cas = null;
+		this.targetRouteEdge = null;
+		this.targetJunction=null;
+		this.defaultJunction=null;
+		this.chosenCA = null;
+		this.crossingCoordinates = null;
+	}
 
 }

@@ -183,4 +183,11 @@ public class Junction implements FixedGeography, Serializable{
 		this.juncNodeID = juncNodeID;
 	}
 	
+	public void clear() {
+		this.geom=null;
+		this.roadLinks=null;
+		this.fid = null;
+		this.juncNodeID = this.p1pID = this.p2pID = this.p1rlID = this.p2rlID = this.v1pID = this.v2pID = this.v1rlID = this.v2rlID = null;
+	}
+	
 }

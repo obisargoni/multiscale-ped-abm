@@ -40,4 +40,11 @@ public class OD implements FixedGeography{
 	public void setFID(String s) {
 		this.fid = s;
 	}
+	
+	public void clear() {
+		this.geom=null;
+		this.fid=null;
+		this.id=null;
+		
+	}
 }

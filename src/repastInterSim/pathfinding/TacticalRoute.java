@@ -27,7 +27,7 @@ public class TacticalRoute {
 	
 	private List<RoadLink> strategicPath;
 	
-	private NetworkPathFinder<Junction> nP;
+	private NetworkPathFinder<Junction> nP = new NetworkPathFinder<Junction>();
 	private Junction currentJunction = null;
 	private RepastEdge<Junction> currentEdge = null;
 	private Junction endJunction = null;
@@ -127,6 +127,7 @@ public class TacticalRoute {
 		this.currentEdge = this.routePath.poll();
 		
 		// initialise black accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
+		this.accumulator.clear();
 		this.accumulator = new AccumulatorRoute();
 		
 		// Identify the next junction
@@ -350,5 +351,22 @@ public class TacticalRoute {
 
 	public RepastEdge<Junction> getCurrentEdge() {
 		return this.currentEdge;
+	}
+	
+	public void clear() {
+		this.ped=null;
+		this.strategicPath=null;
+		this.nP.clear();
+		this.nP=null;
+		this.currentJunction = null;
+		this.currentEdge = null;
+		this.endJunction = null;
+		this.finalJunction = null;
+		this.routePath = null;
+		this.initPath=null; 
+		this.pathToEnd=null;
+		this.pathRemainder=null;
+		this.accumulator.clear();
+		this.accumulator=null;
 	}
 }

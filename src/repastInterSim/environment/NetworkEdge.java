@@ -43,6 +43,7 @@ public class NetworkEdge<T> extends RepastEdge<T> implements Serializable {
 															// edge
 	private boolean majorRoad = false; // If edge represents a major road car drivers can travel very fast
 	private RoadLink roadLink; // The Road object which this Edge is used to represent
+	private int hashCode;
 
 	/**
 	 * Create a new network edge (same as RepastEdge constructor) but also define how the road can be accessed
@@ -155,6 +156,7 @@ public class NetworkEdge<T> extends RepastEdge<T> implements Serializable {
 	 */
 	public void setRoad(RoadLink rl) {
 		this.roadLink = rl;
+		this.hashCode = rl.hashCode(); // Road should be unique for this edge.
 	}
 
 	@Override
@@ -176,7 +178,12 @@ public class NetworkEdge<T> extends RepastEdge<T> implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return this.roadLink.hashCode(); // Road should be unique for this edge.
+		return this.hashCode;
+	}
+	
+	public void clear() {
+		this.access = null;
+		this.roadLink=null;
 	}
 
 }

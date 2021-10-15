@@ -26,4 +26,9 @@ public class PedObstruction implements FixedGeography {
 	public void setPriority(String p) {
 		this.priority = p;
 	}
+	
+	public void clear() {
+		this.geom=null;
+		this.priority=null;
+	}
 }

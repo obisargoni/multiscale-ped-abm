@@ -241,4 +241,17 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	public long getID() {
 		return this.id;
 	}
+	
+	/*
+	 * Used in cleanup to break links between agents
+	 */
+	public void clear() {
+		this.geom = null;
+		this.orRoadLink=null;
+		this.c1 = null;
+		this.c2 = null;
+		this.type=null;
+		this.roadLinkID=null;
+		this.orRoadLink=null;
+	}
 }

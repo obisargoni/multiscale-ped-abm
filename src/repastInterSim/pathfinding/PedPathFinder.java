@@ -149,6 +149,7 @@ public class PedPathFinder {
 		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
 		Geography<CrossingAlternative> caGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		this.tacticalPath.clear();
 		this.tacticalPath = planTacticalPath(pavementNetwork, caGeography, roadGeography, tacticalHorizonLinks, this.ped, this.strategicPath, startJunction, this.destPavementJunction, this.primaryCostHeuristic, this.secondaryCostHeuristic);
     }
 	
@@ -561,6 +562,21 @@ public class PedPathFinder {
 	
 	public Transformer<RepastEdge<Junction>,Integer> getSecondaryCostHeuristic() {
 		return this.secondaryCostHeuristic;
+	}
+	
+	public void clear() {
+		this.ped=null;
+	    this.primaryCostHeuristic=null;
+	    this.secondaryCostHeuristic=null;
+		this.origin=null;
+		this.destination=null;
+		this.fullStrategicPathString = null;
+		this.strategicPath=null;
+		this.startPavementJunction=null;
+		this.destPavementJunction=null;
+		this.tacticalPath.clear();
+		this.tacticalPath=null;
+		this.nextCrossingCoord=null;	
 	}
 	
 }

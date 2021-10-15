@@ -564,5 +564,14 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			sp.finalize();
 			sp=null;
 			return sp;
-		}		
+		}
+		
+		public void clear() {
+			this.net=null;
+			this.graph=null;
+			this.transformer=null;
+			this.dsp=null;
+			this.nodePath=null;
+			this.edgePaths=null;
+		}
 }
