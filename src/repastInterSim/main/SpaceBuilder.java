@@ -410,9 +410,35 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Then if all agents have completed trips end simulation
-		if (context.getObjects(MobileAgent.class).size() == 0) {			
+		if (context.getObjects(MobileAgent.class).size() == 0) {
+			runCleanUP();
 			RunEnvironment.getInstance().endRun();
 		}
+	}
+	
+	/*
+	 * Method to remove agents from the simulation. Requires some care because of links created between agents.
+	 */
+	private void runCleanUP() {
+		
+		for (Geography g: this.fixedGeographies) {
+			for (Object o : g.getAllObjects()) {
+				FixedGeography fg = (FixedGeography)o;
+				fg.clear();
+			}
+		}
+		
+		RoadNetworkRoute.clearCaches();
+		Route.clearCaches();
+		SpatialIndexManager.clearCaches();
+		
+		fixedGeographies = new ArrayList<Geography>();
+		SpaceBuilder.orToITN = new HashMap<RoadLink, List<RoadLink>>();
+		SpaceBuilder.itnToOR = new HashMap<RoadLink, RoadLink>();
+		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
+		
+		Context mc = RunState.getInstance().getMasterContext();
+		mc.clear();
 	}
 
 	/*
