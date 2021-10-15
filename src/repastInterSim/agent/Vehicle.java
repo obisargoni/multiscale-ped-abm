@@ -406,6 +406,11 @@ public class Vehicle extends MobileAgent {
 	@Override
 	public void tidyForRemoval() {
 		this.currentRoadLink.removeVehicleFromQueue();
+		
+		this.currentRoadLink=null;
+		this.queuePos=null;
+		this.route.clear();
+		this.route=null;		
 	}
 	
 	/*

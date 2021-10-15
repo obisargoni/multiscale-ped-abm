@@ -700,6 +700,17 @@ public class Ped extends MobileAgent {
      */
     public void tidyForRemoval() {
     	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
+    	this.pathFinder.clear();
+    	this.pathFinder=null;
+    	
+        this.pedPrimaryRoute=null;
+        this.nextPathSection=null;
+        this.roadLinkFID = null;
+        this.pHorizon=null;
+        this.col=null;
+        this.currentCrossingType=null;
+    	this.currentPavementLinkID = null;
+    	this.ttc = null;
     }
     
     public Color getColor() {
