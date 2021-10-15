@@ -45,6 +45,7 @@ import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
+import repastInterSim.environment.FixedGeography;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdgeCreator;
@@ -66,6 +67,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
 	private Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. s
+	private ArrayList<Geography> fixedGeographies;
 	
 	// Lookups between or and itn road links
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
@@ -101,7 +103,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Route.clearCaches();
 		SpatialIndexManager.clearCaches();
 		
-		ArrayList<Geography> fixedGeographies = new ArrayList<Geography>();
+		fixedGeographies = new ArrayList<Geography>();
 		SpaceBuilder.orToITN = new HashMap<RoadLink, List<RoadLink>>();
 		SpaceBuilder.itnToOR = new HashMap<RoadLink, RoadLink>();
 		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
