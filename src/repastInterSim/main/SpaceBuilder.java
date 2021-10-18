@@ -420,13 +420,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * Method to remove agents from the simulation. Requires some care because of links created between agents.
 	 */
 	private void runCleanUP() {
-		
+		/*
 		for (Geography g: this.fixedGeographies) {
 			for (Object o : g.getAllObjects()) {
 				FixedGeography fg = (FixedGeography)o;
 				fg.clear();
 			}
 		}
+		*/
 		
 		RoadNetworkRoute.clearCaches();
 		Route.clearCaches();
@@ -495,7 +496,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int nOD = odGeography.size();
 		for (int iD = 0; iD<nOD; iD++) {			
 			for (int iO = 0; iO<nOD; iO++) {
-				// If ped already going to be created at this origin skip it, can have two peds created at same location
+				// If ped already going to be created at this origin skip it, cant have two peds created at same location
 				boolean inList = originsThisStep.contains(iO);
 				if (inList) {
 					continue;
