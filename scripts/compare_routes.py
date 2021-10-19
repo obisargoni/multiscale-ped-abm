@@ -303,7 +303,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
-def get_ped_cross_events(dfPedCrossings):
+def get_ped_cross_events(dfPedCrossings, gdfPaveLinks):
     '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
     Crossing event defined by crossing type, location and minimum TTC during crossing.
     '''
@@ -328,6 +328,11 @@ def get_ped_cross_events(dfPedCrossings):
 
     # Drop duplicates again now that TTC and crossing coord processed
     dfCrossEvents = dfCrossEvents.drop_duplicates()
+
+    # Merge with pave links to get link type
+    dfLinkTypes = gdfPaveLinks.reindex(columns = ['fid','linkType']).drop_duplicates()
+    dfCrossEvents = pd.merge(dfCrossEvents, dfLinkTypes, left_on = 'CurrentPavementLinkID', right_on = 'fid', how = 'left')
+    dfCrossEvents.drop('fid', axis=1,inplace=True)
 
     # Check that there is a single crossing event per ped per pavement link.
     cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'CurrentPavementLinkID']).apply(lambda df: df.shape[0])
@@ -601,7 +606,7 @@ gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on 
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
-dfCrossEvents = get_ped_cross_events(dfPedCrossings)
+dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
