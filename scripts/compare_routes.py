@@ -117,18 +117,13 @@ def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes
 
     return tuple(dijkstra_path)
 
-def node_paths_overlap(npa, npb, normalised=True):
-    '''An alternative methods for comparing paths expressed as sequences of nodes. 
-    Simply count number of nodes that are not in both paths and optionally normalise by
-    total number of nodes in both paths. A simpler method that is not influecenced by node position.
+def node_path_dice_distance(npa, npb):
+    '''Calculates the Sørensen–Dice index of similarity between two discrete sets. Returns 1-similarity score
     '''
-
-    n_diff = len(set(npa).symmetric_difference(set(npb)))
-    if normalised==False:
-        return n_diff
-    else:
-        n_tot = len(npa) + len(npb)
-        return float(n_diff) / n_tot
+    n_sim = len(set(npa).intersection(set(npb)))
+    n_tot = len(npa) + len(npb)
+    sim = (2*n_sim) / float(n_tot)
+    return 1-sim
 
 def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = 'frechet', account_for_path_length = False, weight = None):
     '''
@@ -139,8 +134,8 @@ def compare_node_paths(graph, npa, npb, dict_node_pos, distance_function = 'frec
     weight: If account_for_path_length is True this gives the weight attribute to use to calculate path weight.
     '''
 
-    if distance_function == 'node_overlap':
-        d = node_paths_overlap(npa, npb)
+    if distance_function == 'dice_dist':
+        d = node_path_dice_distance(npa, npb)
     elif distance_function == 'path_length':
         lengtha = nx.path_weight(graph, npa, weight=weight)
         lengthb = nx.path_weight(graph, npb, weight=weight)
@@ -340,7 +335,7 @@ def get_ped_cross_events(dfPedCrossings):
 
     return dfCrossEvents
 
-def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'node_overlap', exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
+def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
 
     ######################################
     #
@@ -607,7 +602,7 @@ dfCrossEvents = get_ped_cross_events(dfPedCrossings)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
-dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'node_overlap', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
+dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC')
 
