@@ -613,6 +613,10 @@ dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = outp
 dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC')
+dfConflictsMarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unsignalised'], dfLinkPedCounts, ttc_col = 'TTC')
+dfConflictsUnmarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unmarked'], dfLinkPedCounts, ttc_col = 'TTC')
+dfConflictsDirect = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='direct_cross'], dfLinkPedCounts, ttc_col = 'TTC')
+dfConflictsDiagonal = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='diag_cross'], dfLinkPedCounts, ttc_col = 'TTC')
 
 ######################################
 #
@@ -669,21 +673,23 @@ if setting == "morris_factor_fixing":
 
     print("\nCalculating sensitivity indices - Conflicts")
 
+    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal}
     metrics = ['conflict_count', 'meanNormCC', 'varNormCC', 'meanTTC', 'varTTC']
     title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
                     'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
-    for metric in metrics:
-        X = dfConflicts.loc[:, problem['names']].values
-        Y = dfConflicts.loc[:, metric].values.astype(float)
-        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+    for cat, dfC in conflicts_data.items():
+        for metric in metrics:
+            X = dfC.loc[:, problem['names']].values
+            Y = dfC.loc[:, metric].values.astype(float)
+            Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
 
-        # Gather into a dataframe
-        df = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+            # Gather into a dataframe
+            df = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
 
-        # Create figures
-        f_ccsi = morris_si_bar_figure(df, "{} SIs".format(title_dict[metric]))
-        f_ccsi.show()
-        f_ccsi.savefig(os.path.join(img_dir, "{}_sis.{}.png".format(metric, file_datetime_string)))
+            # Create figures
+            f_ccsi = morris_si_bar_figure(df, "{} SIs - {} crossings".format(title_dict[metric], cat))
+            #f_ccsi.show()
+            f_ccsi.savefig(os.path.join(img_dir, "{}_{}_sis.{}.png".format(metric, cat, file_datetime_string)))
 
 
     print("\nCalculating sensitivity indices - Comparison to shortest path")
