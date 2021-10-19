@@ -667,7 +667,7 @@ if setting == "morris_factor_fixing":
     # Gather into a dataframe
     dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_compsi = morris_si_bar_figure(dfcompsi, "Jouney Completion SIs")
-    f_compsi.show()
+    #f_compsi.show()
     f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
 
 
@@ -707,7 +707,7 @@ if setting == "morris_factor_fixing":
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
         f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs, k={}".format(k))
-        f_spsi.show()
+        #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
 
