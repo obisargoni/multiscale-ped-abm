@@ -397,7 +397,7 @@ def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.c
 
     return dfCompletions
 
-def agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC'):
+def agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC', ttc_threshold = 3):
     '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the 
     mean TTC per run.
     '''
@@ -405,9 +405,12 @@ def agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC'):
     # Join with pavement links data and aggregate to OR road link ID to get number of peds per OR road link for normalising crossing counts
 
 
-    calc_conflict_count = lambda s: s.dropna().shape[0]
-    calc_mean_ttc = lambda s: s.dropna().mean()
-    calc_var_ttc = lambda s: s.dropna().var()
+    calc_conflict_count = lambda s: s.shape[0]
+    calc_mean_ttc = lambda s: s.mean()
+    calc_var_ttc = lambda s: s.var()
+
+    dfCrossEvents = dfCrossEvents.dropna(subset = [ttc_col])
+    dfCrossEvents = dfCrossEvents.loc[ dfCrossEvents[ttc_col]<ttc_threshold]    
 
     dfRunConflicts = dfCrossEvents.groupby("run").agg(  conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),
                                                         meanTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_mean_ttc),
