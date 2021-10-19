@@ -28,7 +28,7 @@ params = {
 
 # Sample values for non-constant parameters
 # From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
-N_samples = 25
+N_samples = 20
 random_seed = 100
 num_levels = 6
 method = 'morris'
