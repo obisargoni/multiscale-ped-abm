@@ -22,7 +22,7 @@ params = {
 			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
 			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
 			"minCrossing":{			"type":"list", "data_type":"boolean", 		"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
-			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"70", 	"bounds":[10,150], 	"dist":"unif"}
+			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"150", 	"bounds":[10,150], 	"dist":"unif"}
 		}
 
 
