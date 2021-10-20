@@ -618,7 +618,6 @@ weight_params = range(0, 1000, 100)
 # First process vehicle road link data, since this is largest file
 dfRunDurations =  get_pedestrian_run_durations(dfPedCrossings)
 VehCountAv = get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, vehicle_rls_file, output_vehicle_density_file)
-dfLinkPedCounts = get_road_link_pedestrian_counts(dfPedCrossings, gdfPaveLinks)
 
 gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
 
@@ -626,16 +625,17 @@ gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), '
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
 dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks)
+dfLinkCrossCounts = get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
 dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
-dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkPedCounts, ttc_col = 'TTC')
-dfConflictsMarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unsignalised'], dfLinkPedCounts, ttc_col = 'TTC')
-dfConflictsUnmarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unmarked'], dfLinkPedCounts, ttc_col = 'TTC')
-dfConflictsDirect = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='direct_cross'], dfLinkPedCounts, ttc_col = 'TTC')
-dfConflictsDiagonal = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='diag_cross'], dfLinkPedCounts, ttc_col = 'TTC')
+dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsMarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsUnmarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsDirect = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='direct_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsDiagonal = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='diag_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
 
 ######################################
 #
