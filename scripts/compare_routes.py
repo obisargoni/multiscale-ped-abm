@@ -504,7 +504,7 @@ def factor_map(problem, X, Y, threshold):
 
     return dfks, dfcorrs
 
-def morris_si_bar_figure(dfsi, fig_title):
+def morris_si_bar_figure_w_sigma(dfsi, fig_title):
     f, axs = plt.subplots(1,2, figsize = (20,10))
     axs[0].bar(range(dfsi.shape[0]), dfsi['mu_star'], width=0.8, yerr = dfsi['mu_star_conf'], align='center')
     axs[1].bar(range(dfsi.shape[0]), dfsi['sigma'], width=0.8, align='center')
@@ -514,6 +514,15 @@ def morris_si_bar_figure(dfsi, fig_title):
     axs[1].set_xticklabels(dfsi['names'], rotation = 45)
     axs[0].set_title("mu star")
     axs[1].set_title("sigma")
+    f.suptitle(fig_title)
+    return f
+
+def morris_si_bar_figure(dfsi, fig_title):
+    f, ax = plt.subplots(1,1, figsize = (10,10))
+    ax.bar(range(dfsi.shape[0]), dfsi['mu_star'], width=0.8, yerr = dfsi['mu_star_conf'], align='center')
+    ax.set_xticks(range(dfsi.shape[0]))
+    ax.set_xticklabels(dfsi['names'], rotation = 45)
+    ax.set_title("mu star")
     f.suptitle(fig_title)
     return f
 
