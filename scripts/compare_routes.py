@@ -578,6 +578,7 @@ batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 # output paths for processed data
 output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
 output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
+output_sp_similarity_length_path = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
 output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
 
 #####################################
