@@ -645,6 +645,7 @@ dfConflictsMarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['Chosen
 dfConflictsUnmarked = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['ChosenCrossingTypeString']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDirect = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='direct_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonal = agg_cross_conflicts(dfCrossEvents.loc[ dfCrossEvents['linkType']=='diag_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEvents.loc[ (dfCrossEvents['linkType']=='diag_cross') & (dfCrossEvents['ChosenCrossingTypeString']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 
 ######################################
 #
@@ -701,7 +702,7 @@ if setting == "morris_factor_fixing":
 
     print("\nCalculating sensitivity indices - Conflicts")
 
-    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal}
+    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
     metrics = ['conflict_count', 'meanNormCC', 'varNormCC', 'meanTTC', 'varTTC']
     title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
                     'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
