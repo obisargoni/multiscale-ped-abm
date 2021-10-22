@@ -2,23 +2,23 @@
 import copy
 import numpy as np
 from SALib.sample import saltelli
-from SALib.sample import morris
+from SALib.sample import morris, saltelli
 from xml.etree import ElementTree as et
 
 
 # Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
 params = {	
 			"randomSeed":{			"type":"constant", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
-			"pedODSeed":{			"type":"list", "data_type":"int", 		"value":"1", 	"bounds":[1,100], "dist":"unif"},
-			"vehODSeed":{			"type":"list", "data_type":"int", 		"value":"101", 	"bounds":[101,200], "dist":"unif"},
-			"caSampleSeed":{		"type":"list", "data_type":"int", 		"value":"201", 	"bounds":[201,300], "dist":"unif"},
-			"pedMassSeed":{			"type":"list", "data_type":"int", 		"value":"301", 	"bounds":[301,400], "dist":"unif"},
-			"pedSpeedSeed":{		"type":"list", "data_type":"int", 		"value":"401", 	"bounds":[401,500], "dist":"unif"},
+			"pedODSeed":{			"type":"constant", "data_type":"int", 		"value":"1", 	"bounds":[1,100], "dist":"unif"},
+			"vehODSeed":{			"type":"constant", "data_type":"int", 		"value":"101", 	"bounds":[101,200], "dist":"unif"},
+			"caSampleSeed":{		"type":"constant", "data_type":"int", 		"value":"201", 	"bounds":[201,300], "dist":"unif"},
+			"pedMassSeed":{			"type":"constant", "data_type":"int", 		"value":"301", 	"bounds":[301,400], "dist":"unif"},
+			"pedSpeedSeed":{		"type":"constant", "data_type":"int", 		"value":"401", 	"bounds":[401,500], "dist":"unif"},
 			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", 	"bounds":[0.1,2], "dist":"unif"},
 			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", 	"bounds":[0,1], "dist":"unif"},
 			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", 	"bounds":[10,200], "dist":"unif"},
-			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"400", 	"bounds":[30,300], "dist":"unif"},
-			"gamma":{				"type":"list", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
+			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"60", 	"bounds":[30,300], "dist":"unif"},
+			"gamma":{				"type":"constant", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
 			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
 			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
 			"minCrossing":{			"type":"list", "data_type":"boolean", 		"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
@@ -28,14 +28,15 @@ params = {
 
 # Sample values for non-constant parameters
 # From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
-N_samples = 20
+N_samples = 64
 random_seed = 100
 num_levels = 6
-method = 'morris'
+calc_second_order = False
+method = 'saltelli'
 
-def run(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels):
+def run(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels, calc_second_order=calc_second_order):
 	problem = init_problem(params = params)
-	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels)
+	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order)
 
 	repast_params = copy.deepcopy(params)
 
@@ -74,10 +75,12 @@ def init_problem(params = params):
 			problem['dists'].append(details['dist'])
 	return problem
 
-def sample_params(method, problem, N_samples, random_seed, num_levels):
+def sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order):
 	sampled_values = None
 	if method == 'morris':
 		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
+	elif method == 'saltelli':
+		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = False, skip_values = N_samples)
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
 	return sampled_values
