@@ -600,6 +600,7 @@ output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv"
 output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
 output_sp_similarity_length_path = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
 output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
+output_cross_events_path = os.path.join(data_dir, "cross_events.{}.csv".format(file_datetime_string))
 
 #####################################
 #
@@ -654,7 +655,7 @@ gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on 
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
-dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks)
+dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = output_cross_events_path)
 dfLinkCrossCounts = get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks)
 
 # Data aggregated to run level, used to calculate sensitivity indices
