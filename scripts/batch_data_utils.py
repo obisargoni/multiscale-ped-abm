@@ -51,7 +51,12 @@ def most_recent_directory_file(directory, file_regex):
     files = os.listdir(directory)
     filtered_files = [f for f in files if file_regex.search(f) is not None]
     filtered_files.sort(key = lambda x: dt_from_file_name(x, file_regex), reverse=True)
-    return filtered_files[0]
+    chosen_path = ""
+    if len(filtered_files)>0:
+        chosen_path = filtered_files[0]
+    else:
+        print("No paths found for regex {}".format(file_regex))
+    return chosen_path
 
 
 ######################################
