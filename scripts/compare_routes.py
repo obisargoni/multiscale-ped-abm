@@ -532,6 +532,20 @@ def morris_si_bar_figure(dfsi, fig_title):
     f.suptitle(fig_title)
     return f
 
+def sobol_si_bar_figure(dfsi, fig_title):
+    f, ax = plt.subplots(1,1, figsize = (10,10))
+    bar_width=0.4
+    x_pos = np.arange(dfsi.shape[0])
+    ax.bar(x_pos, dfsi['S1'], width=bar_width, yerr = dfsi['S1_conf'], align='center', label="S1")
+    ax.bar(x_pos+bar_width, dfsi['ST'], width=bar_width, yerr = dfsi['ST_conf'], align='center', label="ST")
+
+    ax.set_xticks(x_pos + bar_width / 2)
+    ax.set_xticklabels(dfsi['names'], rotation=45)
+    ax.legend()
+
+    f.suptitle(fig_title)
+    return f
+
 #####################################
 #
 #
