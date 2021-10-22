@@ -676,10 +676,10 @@ dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEvents.loc[ (dfCrossEvents['l
 #
 #
 ######################################
-from SALib.analyze import morris
+from SALib.analyze import morris, sobol
 import sys
 sys.path.append(".\\sample")
-from SALibRepastParams import num_levels, params, random_seed, init_problem
+from SALibRepastParams import num_levels, params, random_seed, init_problem, calc_second_order
 problem = init_problem(params = params)
 
 ######################################
@@ -761,6 +761,49 @@ if setting == "morris_factor_fixing":
         #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
+if setting == 'sobol_si':
+
+    print("\nCalculating sensitivity indices - Conflicts")
+
+    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
+    metrics = ['conflict_count', 'meanNormCC']
+    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
+                    'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
+    for cat, dfC in conflicts_data.items():
+        for metric in metrics:
+            X = dfC.loc[:, problem['names']].values
+            Y = dfC.loc[:, metric].values.astype(float)
+            Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
+            Sis['names'] = problem['names']
+
+            # Gather into a dataframe
+            df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+
+            # Create figures
+            f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat))
+            f_si.savefig(os.path.join(img_dir, "{}_{}_sobol1T.{}.png".format(metric, cat, file_datetime_string)))
+            f_si.clear()
+
+    print("Calculating Sobol Sensitivity Indices - Shortest Path Comparison")
+
+    # Get array of parameter values and output values
+    grouped = dfSPSim.groupby("k")
+    group_keys = list(grouped.groups.keys())
+    for i, k in enumerate(group_keys):
+        dfSPSim_k = grouped.get_group(k)
+        X = dfSPSim_k.loc[:, problem['names']].values
+        Y = dfSPSim_k.loc[:, 'mean'].values
+
+        Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
+        Sis['names'] = problem['names']
+
+        # Gather into a dataframe
+        df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+
+        # Plot
+        f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices, k={}".format(k))
+        f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_{}.{}.png".format(k, file_datetime_string)))
+        f_si.clear()
 
 #########################################
 #
