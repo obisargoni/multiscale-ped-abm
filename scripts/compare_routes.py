@@ -322,40 +322,46 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
-def get_ped_cross_events(dfPedCrossings, gdfPaveLinks):
+def get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = "cross_events.csv"):
     '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
     Crossing event defined by crossing type, location and minimum TTC during crossing.
     '''
 
-    # Process raw ped crossings data to 
-    # - drop rows that don't correspond to a crossing event
-    # - aggregate TTC data to choose the lowest TTC value per crossing event
-    # - this produces dataset with 1 row per crossing event
-    # - Drop duplicates, expect just one crossing per ped per pavement link
-    # - Check that there is one crossing per link per ped
+    if os.path.exists(output_path)==False:
 
-    # check there won't be any ttC data lost when excluding 'none' crossing events
-    assert dfPedCrossings.loc[ (dfPedCrossings['ChosenCrossingTypeString']=='none') & (~dfPedCrossings['TTC'].isnull()) ].shape[0]==0
-    assert dfPedCrossings['CurrentPavementLinkID'].isnull().any()==False
+        # Process raw ped crossings data to 
+        # - drop rows that don't correspond to a crossing event
+        # - aggregate TTC data to choose the lowest TTC value per crossing event
+        # - this produces dataset with 1 row per crossing event
+        # - Drop duplicates, expect just one crossing per ped per pavement link
+        # - Check that there is one crossing per link per ped
 
-    dfCrossEvents = dfPedCrossings.loc[dfPedCrossings['ChosenCrossingTypeString']!='none'].reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'ChosenCrossingTypeString', 'CurrentPavementLinkID', 'CrossingCoordsString', 'TTC'])
-    dfCrossEvents = dfCrossEvents.drop_duplicates()
+        # check there won't be any ttC data lost when excluding 'none' crossing events
+        assert dfPedCrossings.loc[ (dfPedCrossings['ChosenCrossingTypeString']=='none') & (~dfPedCrossings['TTC'].isnull()) ].shape[0]==0
+        assert dfPedCrossings['CurrentPavementLinkID'].isnull().any()==False
 
-    # Group by run, ID and CurrentPavementLinkID to find crossing coordinates and lowest TTC
-    dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['TTC'].transform(lambda s: s.min())
-    dfCrossEvents['CrossingCoordsString'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['CrossingCoordsString'].transform(lambda s: max(s.dropna(), key=len) if ~s.isnull().all() else None)
+        dfCrossEvents = dfPedCrossings.loc[dfPedCrossings['ChosenCrossingTypeString']!='none'].reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'ChosenCrossingTypeString', 'CurrentPavementLinkID', 'CrossingCoordsString', 'TTC'])
+        dfCrossEvents = dfCrossEvents.drop_duplicates()
 
-    # Drop duplicates again now that TTC and crossing coord processed
-    dfCrossEvents = dfCrossEvents.drop_duplicates()
+        # Group by run, ID and CurrentPavementLinkID to find crossing coordinates and lowest TTC
+        dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['TTC'].transform(lambda s: s.min())
+        dfCrossEvents['CrossingCoordsString'] = dfCrossEvents.groupby(['run', 'ID', 'ChosenCrossingTypeString', 'CurrentPavementLinkID'])['CrossingCoordsString'].transform(lambda s: max(s.dropna(), key=len) if ~s.isnull().all() else None)
 
-    # Merge with pave links to get link type
-    dfLinkTypes = gdfPaveLinks.reindex(columns = ['fid','linkType']).drop_duplicates()
-    dfCrossEvents = pd.merge(dfCrossEvents, dfLinkTypes, left_on = 'CurrentPavementLinkID', right_on = 'fid', how = 'left')
-    dfCrossEvents.drop('fid', axis=1,inplace=True)
+        # Drop duplicates again now that TTC and crossing coord processed
+        dfCrossEvents = dfCrossEvents.drop_duplicates()
 
-    # Check that there is a single crossing event per ped per pavement link.
-    cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'CurrentPavementLinkID']).apply(lambda df: df.shape[0])
-    assert cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]==0
+        # Merge with pave links to get link type
+        dfLinkTypes = gdfPaveLinks.reindex(columns = ['fid','linkType']).drop_duplicates()
+        dfCrossEvents = pd.merge(dfCrossEvents, dfLinkTypes, left_on = 'CurrentPavementLinkID', right_on = 'fid', how = 'left')
+        dfCrossEvents.drop('fid', axis=1,inplace=True)
+
+        # Check that there is a single crossing event per ped per pavement link.
+        cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'CurrentPavementLinkID']).apply(lambda df: df.shape[0])
+        assert cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]==0
+
+        dfCrossEvents.to_csv(output_path, index=False)
+    else:
+        dfCrossEvents = pd.read_csv(output_path)
 
     return dfCrossEvents
 
