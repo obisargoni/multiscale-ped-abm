@@ -1,5 +1,6 @@
 package repastInterSim.environment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -9,6 +10,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.main.GlobalVars;
@@ -131,7 +134,27 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	public List<RoadLink> getCurrentVehicleRoadLinks() {
-		List<RoadLink> itnLinks = SpaceBuilder.orToITN.get(this.getORRoadLink());
+		// Get or link this crossing is on and the neighbournig links
+		Network<Junction> orRoadNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+		List<RoadLink> rls = new ArrayList<RoadLink>();
+		
+		rls.add(this.getORRoadLink());
+				
+		for (Junction j: this.getORRoadLink().getJunctions()) {
+			for (RepastEdge<Junction> e: orRoadNetwork.getEdges(j)) {
+				NetworkEdge<Junction> ne = (NetworkEdge<Junction>) e;
+				if (rls.contains(ne.getRoadLink())==false) {
+					rls.add(ne.getRoadLink());
+				}
+			}
+		}
+
+		List<RoadLink> itnLinks = new ArrayList<RoadLink>();
+		for (RoadLink orLink: rls) {
+			for (RoadLink itnLink: SpaceBuilder.orToITN.get(orLink)){
+				itnLinks.add(itnLink);
+			}
+		}
 		return itnLinks;
 	}
 	
