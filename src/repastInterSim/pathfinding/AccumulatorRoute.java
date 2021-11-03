@@ -38,6 +38,9 @@ public class AccumulatorRoute {
 	private boolean caChosen;
 	private boolean crossingRequired;
 	private boolean isCrossing = false;
+	private CrossingAlternative sampledCA = null;
+	private double sampledCAve;
+	private double sampledCAwt;
 	private CrossingAlternative chosenCA = null;
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
 	
@@ -200,6 +203,11 @@ public class AccumulatorRoute {
 		
 		double caWT = caRoadsideDetourIndicator(ca);
 		double caVE = caVehicleExposureIndicator(ca);
+				
+		this.sampledCA = ca;
+		this.sampledCAve = caVE;
+		this.sampledCAwt = caWT;
+		
 		return this.ped.getAlpha()*caWT + (1-this.ped.getAlpha())*caVE;
 	}
 	
@@ -351,6 +359,48 @@ public class AccumulatorRoute {
 	
 	public boolean isDirectCrossing() {
 		return this.directCrossing;
+	}
+	
+	public String caActivationString() {
+		String output = "";
+		if (this.isBlank==false) {
+			for (int i=0; i< this.caActivations.length; i++) {
+				output += Double.toString(this.caActivations[i]) + ";";
+			}
+		}
+		return output;
+	}
+	
+	public String caString() {
+		String output = "";
+		if (this.isBlank==false) {
+			for (int i=0; i< this.cas.size(); i++) {
+				CrossingAlternative ca = this.cas.get(i);
+				String caString = ca.getType()+Long.toString(ca.getID()) + ";";
+				output += caString;
+			}
+		}
+		return output;
+	}
+	
+	public String sampledCAString() {
+		String output = "";
+		if (this.isBlank==false) {
+			output += this.sampledCA.getType() + Long.toString(this.sampledCA.getID()) + ";";
+			output += Double.toString(this.sampledCAwt) + ";";
+			output+= Double.toString(this.sampledCAve) + ";";
+		}
+		return output;
+	}
+	
+	public String targetRouteEdgeFID() {
+		if (this.isBlank) {
+			return "";
+		}
+		else {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge;
+			return ne.getRoadLink().getFID();
+		}
 	}
 	
 	public void clear() {
