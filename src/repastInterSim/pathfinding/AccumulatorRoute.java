@@ -132,6 +132,16 @@ public class AccumulatorRoute {
 	}
 	
 	/*
+	 * Binary indicator of whether or not crossing at this crossing alternative now will result in a vehicle conflict if
+	 * if pedestrian agent and vehicle agents do not alter course. Returns 1 if no conflicts would occur, 0 otherwise.
+	 * 
+	 * @param CrossingAlternative ca
+	 */
+	public int isCAConfictsFree(CrossingAlternative ca) {
+		return 1 - ca.wouldConflictOccur(this.ped);
+	}
+	
+	/*
 	 * Get the crossing exposure indicator value for the input crossing alternative
 	 * 
 	 * @param CrossingAlternative ca
