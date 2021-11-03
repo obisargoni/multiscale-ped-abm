@@ -178,8 +178,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		Coordinate rlCent = this.getORRoadLink().getGeom().getCentroid().getCoordinate();
 		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
 		
-		double range1 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp1);
-		double range2 = Vector.acuteRangeBetweenAngles(rlToPedBearing, perp2);
+		double range1 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp1);
+		double range2 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp2);
 		
 		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
 		// Use this to identify if a coordinate is on the opposite side of the road
@@ -217,7 +217,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 
 			// Check if this coordinate is on the opposite side of the road
 			double angToC = GISFunctions.bearingBetweenCoordinates(rlCent, nearC);
-			double angRange = Vector.acuteRangeBetweenAngles(angToC, oppRoadAngle);
+			double angRange = Vector.nonReflexAngleBetweenBearings(angToC, oppRoadAngle);
 			
 			// If angle between bearing from centre of road link and coord and direction perpendicular to road link towards opposite side of the road
 			// is greater than 90 degs this coordinate is not on the other side of the road

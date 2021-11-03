@@ -131,7 +131,7 @@ public class Vector {
 		return a;
 	}
 	
-	public static double acuteRangeBetweenAngles(double a1, double a2) {
+	public static double nonReflexAngleBetweenBearings(double a1, double a2) {
 		// Map to range 0-2pi
 		a1 = a1%(2*Math.PI);
 		a2 = a2%(2*Math.PI);
