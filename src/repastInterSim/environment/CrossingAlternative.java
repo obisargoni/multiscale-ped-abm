@@ -72,6 +72,18 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	/*
+	 * Returns 1 if a conflict would occur between the input pedestrian and vehicles if the pedestrian were 
+	 * to cross at this crossing alternative.
+	 * 
+	 * By definition, pedestrian expects no conflicts at marked crossing alternatives.
+	 * 
+	 * @param Ped p
+	 */
+	public int wouldConflictOccur(Ped p) {
+		return 0;
+	}
+	
+	/*
 	 * Return the number of vehicles passing through the crossing alternative divided by the total vehicle capacity of the road links that pass through the crossing alternative.
 	 */
 	public double getNormalisedVFlow() {
