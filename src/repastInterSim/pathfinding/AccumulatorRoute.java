@@ -144,13 +144,21 @@ public class AccumulatorRoute {
 	
 	/*
 	 * Get the crossing exposure indicator value for the input crossing alternative
+	/*
+	 * Returns 1 if there is zero vehicle flow through the crossing line during the time it would take
+	 * the pedestrian to cross the road. 0 otherwise, indicating the presence of vehicles.
 	 * 
 	 * @param CrossingAlternative ca
 	 */
 	public double caVehicleExposureIndicator(CrossingAlternative ca) {
 		
-		double vNormalisedFlow = ca.getNormalisedVFlow();  
-		return 1 - vNormalisedFlow;
+		double vFlow = ca.getvFlow();
+		if (vFlow==0) {
+			return 1.0;
+		}
+		else {
+			return 0.0;
+		}
 	}
 	
 	/*
@@ -191,7 +199,7 @@ public class AccumulatorRoute {
 	double caUtility(CrossingAlternative ca) {
 		
 		double caWT = caRoadsideDetourIndicator(ca);
-		double caVE = isCAConfictsFree(ca);
+		double caVE = caVehicleExposureIndicator(ca);
 		return this.ped.getAlpha()*caWT + (1-this.ped.getAlpha())*caVE;
 	}
 	
