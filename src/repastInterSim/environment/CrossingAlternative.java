@@ -107,8 +107,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	/*
-	 * Get the time to collision between the vehicles travelling on this road link and either an actual crossing pedestrian agent or a hypothetical 
-	 * pedestrian agent moving between crossing coordinates
+	 * Get the time to collision between the vehicles travelling on this road link and and a pedestrian agent.
 	 * 
 	 * @param Ped p
 	 * 		The pedestrian agent to calculate time-to-collision for
@@ -142,7 +141,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 			}
 		}
 		
-		return vehicleTTCs;		
+		return vehicleTTCs;
 	}
 	
 	public List<RoadLink> getCurrentVehicleRoadLinks() {
