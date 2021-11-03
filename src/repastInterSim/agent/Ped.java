@@ -932,6 +932,10 @@ public class Ped extends MobileAgent {
 		return v;
 	}
     
+    public double getDesiredSpeed() {
+    	return this.v0;
+    }
+    
     // Used for testing only
     public void setV(double[] v) {
     	this.v = v;
