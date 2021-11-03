@@ -598,6 +598,8 @@ public class Vehicle extends MobileAgent {
     
     /*
      * Calculate the time to collision to an object at location pLoc travelling at velocity pV.
+     * 
+     * Method taken from Laureshyn et al, Accident Analysis & Prevention, 2010
      */
     public Double TTC(double[] pLoc, double[] pV) {
     	
