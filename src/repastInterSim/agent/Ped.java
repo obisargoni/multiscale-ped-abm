@@ -986,4 +986,15 @@ public class Ped extends MobileAgent {
     public void setTTC(Double ttc) {
     	this.ttc = ttc;
     }
+    
+    public String AccumulatorData() {
+    	String output = "";
+    	
+    	output += this.pathFinder.getTacticalPath().getAccumulatorRoute().targetRouteEdgeFID()+":";
+    	output += this.pathFinder.getTacticalPath().getAccumulatorRoute().caString()+":";
+    	output += this.pathFinder.getTacticalPath().getAccumulatorRoute().caActivationString()+":";
+    	output += this.pathFinder.getTacticalPath().getAccumulatorRoute().sampledCAString()+":";
+    	
+    	return output;
+    }
 }
