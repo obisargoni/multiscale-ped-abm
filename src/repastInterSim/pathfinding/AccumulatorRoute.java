@@ -190,8 +190,8 @@ public class AccumulatorRoute {
 	
 	double caUtility(CrossingAlternative ca) {
 		
-		double caWT = caRoadsideWalkTimeIndicator(ca);
-		double caVE = caVehicleExposureIndicator(ca);
+		double caWT = caRoadsideDetourIndicator(ca);
+		double caVE = isCAConfictsFree(ca);
 		return this.ped.getAlpha()*caWT + (1-this.ped.getAlpha())*caVE;
 	}
 	
