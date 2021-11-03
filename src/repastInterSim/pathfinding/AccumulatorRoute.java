@@ -157,7 +157,7 @@ public class AccumulatorRoute {
 	 * 
 	 * @param CrossingAlternative ca
 	 */
-	public double caRoadsideWalkTimeIndicator(CrossingAlternative ca) {
+	public double caRoadsideDetourIndicator(CrossingAlternative ca) {
 		
 		// If the input crossing alternative is unmarked then return 1, as by definition there is no detour using this alternative
 		if (ca.getType().contentEquals("unmarked")) {
@@ -179,12 +179,12 @@ public class AccumulatorRoute {
 		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
 		Double umDFromCAToDest = umCA.distanceTo(this.targetJunction.getGeom().getCoordinate());
 		
-		double detourWalkTime = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest)) / this.ped.getSpeed();
+		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));
 				
 		// Need characteristic walk time to compare this to - use the length of the roads in planning horizon
-		double charWT = this.roadLength / this.ped.getSpeed();
+		double charDist = this.roadLength;
 		
-		return 1 - (detourWalkTime / charWT);
+		return 1 - (detourDist / charDist);
 	}
 	
 	double caUtility(CrossingAlternative ca) {
