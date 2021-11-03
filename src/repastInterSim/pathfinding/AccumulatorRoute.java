@@ -20,6 +20,7 @@ import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 
 public class AccumulatorRoute {
 	
