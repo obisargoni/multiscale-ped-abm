@@ -109,7 +109,7 @@ public class TacticalRoute {
 				// Update ped attributes that are recorded for analysis
 				// If current edge is null, tactical path needs updating so do not update ped attributes yet.
 				if (this.currentEdge != null) {
-					this.ped.setChosenCrossingType("none"); // Looks like this happens at the wrong point. Crossing type set to None before crossing ends.
+					this.ped.setChosenCrossingType("none");
 					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 				}
