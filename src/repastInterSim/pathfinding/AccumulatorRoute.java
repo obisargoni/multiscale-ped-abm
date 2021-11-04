@@ -33,6 +33,7 @@ public class AccumulatorRoute {
 	private RepastEdge<Junction> targetRouteEdge = null;
 	private Junction targetJunction;
 	private Junction defaultJunction;
+	private Coordinate targetCoordinate;
 	
 	private boolean directCrossing;
 	private boolean caChosen;
@@ -53,7 +54,7 @@ public class AccumulatorRoute {
 		this.crossingRequired = false;
 	}
 	
-	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, List<CrossingAlternative> cas, RepastEdge<Junction> tRE, boolean dC) {
+	public AccumulatorRoute(Ped p, double rL, Junction dJ, Junction tJ, Coordinate tC, List<CrossingAlternative> cas, RepastEdge<Junction> tRE, boolean dC) {
 		this.ped = p;
 		this.roadLength = rL;
 		
@@ -65,6 +66,7 @@ public class AccumulatorRoute {
 		
 		this.targetRouteEdge = tRE;
 		this.targetJunction = tJ;
+		this.targetCoordinate=tC;
 		this.defaultJunction = dJ;
 		this.caChosen = false;
 		
@@ -178,7 +180,7 @@ public class AccumulatorRoute {
 		
 		// Get walk time to crossing alternative and from crossing alternative to destination
 		Double dToCA = ca.distanceTo(this.ped.getLoc());
-		Double dFromCAToDest = ca.distanceTo(this.targetJunction.getGeom().getCoordinate());
+		Double dFromCAToDest = ca.distanceTo(this.targetCoordinate);
 				
 		// Get the unmarked crossing alternative and calculate the distance to dest using it
 		CrossingAlternative umCA = null;
@@ -189,7 +191,7 @@ public class AccumulatorRoute {
 		}
 		
 		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
-		Double umDFromCAToDest = umCA.distanceTo(this.targetJunction.getGeom().getCoordinate());
+		Double umDFromCAToDest = umCA.distanceTo(this.targetCoordinate);
 		
 		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));
 				

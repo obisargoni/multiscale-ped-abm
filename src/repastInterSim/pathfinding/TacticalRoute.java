@@ -175,8 +175,18 @@ public class TacticalRoute {
 				Geography<CrossingAlternative> caGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 				List<CrossingAlternative> cas = getCrossingAlternatives(caGeography, crossingLinks, ped, roadGeography);
 				
+				// Need to specify the target coordinate used to calculate the walking distance for each crossing alternative
+				// If at end of journey target coordinate is the agent's destination, otherwise its the coordinate of the target junction
+				Coordinate targetCoordinate = null;
+				if ( (this.strategicPath.size() == 1) & (this.routePath.size()==0) ) {
+					targetCoordinate = this.ped.getDestination().getGeom().getCoordinate();
+				}
+				else {
+					targetCoordinate = nextJunction.getGeom().getCoordinate();
+				}
+				
 				// Initialise accumulator crossing choice model
-				this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, cas, targetRouteEdge, directCrossing);
+				this.accumulator = new AccumulatorRoute(this.ped, roadLength, defaultJunction, nextJunction, targetCoordinate, cas, targetRouteEdge, directCrossing);
 				
 				// Set target junction to be the default, no crossing, junction while agent chooses crossing location
 				nextJunction = this.accumulator.getDefaultJunction();			
