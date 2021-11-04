@@ -697,7 +697,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         	}
         	
         	// Also check whether the mobile agent has reached its default destination
-        	if (mA.getDefaultDestination().distance(mAGeom.getCoordinate()) < GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance) {
+        	if (mA.getDestination().getGeom().getCoordinate().distance(mAGeom.getCoordinate()) < GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance) {
         		AgentsToRemove.add(mA);
         		continue;
         	}
