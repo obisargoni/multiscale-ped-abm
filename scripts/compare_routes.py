@@ -435,12 +435,9 @@ def agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC', ttc_t
     # Join with pavement links data and aggregate to OR road link ID to get number of peds per OR road link for normalising crossing counts
 
 
-    calc_conflict_count = lambda s: s.shape[0]
-    calc_mean_ttc = lambda s: s.mean()
-    calc_var_ttc = lambda s: s.var()
-
-    dfCrossEvents = dfCrossEvents.dropna(subset = [ttc_col])
-    dfCrossEvents = dfCrossEvents.loc[ dfCrossEvents[ttc_col]<ttc_threshold]    
+    calc_conflict_count = lambda s: s.dropna().loc[s<ttc_threshold].shape[0]
+    calc_mean_ttc = lambda s: s.dropna().loc[s<ttc_threshold].mean()
+    calc_var_ttc = lambda s: s.dropna().loc[s<ttc_threshold].var()
 
     dfRunConflicts = dfCrossEvents.groupby("run").agg(  conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),
                                                         meanTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_mean_ttc),
