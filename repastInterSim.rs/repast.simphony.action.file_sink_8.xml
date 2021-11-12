@@ -1,15 +1,15 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.6.0">
-  <name>Vehicle Road Links</name>
-  <dataSet>Vehicle Road Links</dataSet>
+  <name>PedAccumulator</name>
+  <dataSet>PedAccumulator</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
+    <string>AccumulatorData</string>
     <string>tick</string>
     <string>run</string>
     <string>random_seed</string>
-    <string>CurrentRoadLinkID</string>
     <string>ID</string>
   </sourceIds>
-  <fileName>.\batch\model_run_data\vehicle_road_links.csv</fileName>
+  <fileName>.\batch\model_run_data\ped_accumulator.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
