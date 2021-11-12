@@ -598,6 +598,8 @@ output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format
 output_sp_similarity_length_path = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
 output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
 output_cross_events_path = os.path.join(data_dir, "cross_events.{}.csv".format(file_datetime_string))
+output_ks_factormap = os.path.join(data_dir , "ks_factor_map.{}.csv".format (file_datetime_string))
+output_corr_factormap = os.path.join(data_dir , "corr_factor_map.{}.csv".format (file_datetime_string))
 
 #####################################
 #
@@ -695,6 +697,9 @@ if setting == 'monte_carlo_filtering':
     # Identify factors that are significantly different between scenarios where peds complete journeys and those where they don't
     threshold = 0.0
     dfks, dfcorrs = factor_map(problem, X_rc, Y_rc, threshold)
+
+    dfks.to_csv(output_ks_factormap)
+    dfcorrs.to_csv(output_corr_factormap)
 
 ######################################
 #
