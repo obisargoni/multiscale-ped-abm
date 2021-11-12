@@ -129,7 +129,11 @@ def get_processed_crossing_locations_data(data_dir, file_prefix, file_datetime =
     # Now group by run to get count of each crossing type
     df_cc_count = df_ped_cc.groupby(['run','CrossingChoice']).count().unstack()
     df_cc_count.columns = [c[1] for c in df_cc_count.columns]
-    df_cc_count.rename(columns = {'none':'undecided'}, inplace=True)
+
+    if 'none' in df_cc_count.columns:
+        df_cc_count.rename(columns = {'none':'undecided'}, inplace=True)
+    else:
+        df_cc_count['undecided'] = np.nan
     df_cc_count.fillna(0, inplace = True)
 
     # Join to df of npeds per run and calculate percentages

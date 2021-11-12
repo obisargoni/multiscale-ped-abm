@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from colorspacious import cspace_convert
 
 from importlib import reload
-import process_batch_data
-process_batch_data = reload(process_batch_data)
-from process_batch_data import get_processed_crossing_locations_data
+import batch_data_utils
+batch_data_utils = reload(batch_data_utils)
+from batch_data_utils import get_processed_crossing_locations_data
 
 
 #####################################
@@ -245,13 +245,13 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 "gamma":r"$\mathrm{\gamma}$",
                 "between": "Between Configuration",
                 "beyond":"Beyond Configuration",
-                10:"High\nVehicle\nFlow",
-                50:"Low\nVehicle\nFlow"
+                50:"High\nVehicle\nFlow",
+                5:"Low\nVehicle\nFlow"
                 }
 
 configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2020.Oct.08.20_55_52", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2020.Oct.09.12_57_05", "%Y.%b.%d.%H_%M_%S")
+                                    "between":  dt.strptime("2021.Nov.05.11_52_07", "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime("2021.Nov.05.12_22_38", "%Y.%b.%d.%H_%M_%S")
                                 }
 
 data_dir = "..\\output\\batch\\model_run_data\\"
@@ -269,7 +269,7 @@ groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
-fig_file = "..\\output\\img\\al_crossing_heatmap.png"
+fig_file = "..\\output\\img\\al_crossing_heatmap_Nov2021_replication.png"
 
 f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
 f.show()
@@ -283,8 +283,8 @@ f.show()
 #
 #####################################
 configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2020.Oct.13.19_06_08", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2020.Oct.13.16_26_17", "%Y.%b.%d.%H_%M_%S")
+                                    "between":  dt.strptime("2021.Nov.05.15_01_54", "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime("2021.Nov.05.13_37_55", "%Y.%b.%d.%H_%M_%S")
                                 }
 
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
@@ -307,7 +307,7 @@ parameter_sweep_columns = ['epsilon', 'gamma']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "$\mathrm{\gamma}$")
 
-fig_file = "..\\output\\img\\eg_crossing_heatmap.png"
+fig_file = "..\\output\\img\\eg_crossing_heatmap_Nov2021_replication.png"
 
 # 'inverse_undecided_frac'
 
