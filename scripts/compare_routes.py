@@ -734,7 +734,13 @@ if setting == "morris_factor_fixing":
         for metric in metrics:
             X = dfC.loc[:, problem['names']].values
             Y = dfC.loc[:, metric].values.astype(float)
-            Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+
+            try:
+                Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+            except ValueError as e:
+                print(e)
+                print(cat)
+                continue
 
             # Gather into a dataframe
             df = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
@@ -755,7 +761,12 @@ if setting == "morris_factor_fixing":
         X = dfSPSim_k.loc[:, problem['names']].values
         Y = dfSPSim_k.loc[:, 'mean'].values
 
-        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+        try:
+            Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+        except ValueError as e:
+            print(e)
+            print(k)
+            continue
 
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
