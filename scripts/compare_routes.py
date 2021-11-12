@@ -854,3 +854,57 @@ if setting == "epsilon_gamma_scatter":
     
     f.suptitle("Fraction of completed journeys")
     f.savefig(os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string)))
+
+
+    # Measure numbers of agents crossing at a particular link
+    target_links = ['pave_link_218_219', 'pave_link_217_219']
+
+    # Aggregate cross events to get counts of peds crossing at a particular link
+
+    # Only consider runs where some peds peds that didn't complete route
+    runs_ped_complete = dfRouteCompletion.loc[ dfRouteCompletion['frac_completed_journeys']>0, 'run'].unique()
+
+    # Need to select based on run and ID
+    dfCrossEvents['run_ID'] = dfCrossEvents.apply(lambda row: (row['run'], row['ID']), axis=1)
+    dfPedRoutes_removedpeds['run_ID'] = dfPedRoutes_removedpeds.apply(lambda row: (row['run'], row['ID']), axis=1)
+    
+    dfCrossEventsCompleteJourney = dfCrossEvents.loc[ ~dfCrossEvents['run_ID'].isin(dfPedRoutes_removedpeds['run_ID'])]
+
+    # Get count of peds per run
+    dfNPeds = dfCrossEventsCompleteJourney.groupby('run')['ID'].apply(lambda s: s.unique().shape[0]).reset_index().rename(columns = {'ID':'nPedsComplete'})
+
+    dfCrossAtTarget = dfCrossEventsCompleteJourney.loc[dfCrossEventsCompleteJourney['CurrentPavementLinkID'].isin(target_links)]
+    dfCrossAtTarget = dfCrossAtTarget.groupby('run')['ID'].apply(lambda s: s.unique().shape[0]).reset_index().rename(columns = {'ID':'n_target_cross'})
+
+    dfCrossAtTarget = pd.merge(dfRun.loc[dfRun['run'].isin(runs_ped_complete)], dfCrossAtTarget, on='run', how = 'left')
+    dfCrossAtTarget = pd.merge(dfCrossAtTarget, dfNPeds, on='run', how = 'inner')
+
+    dfCrossAtTarget['n_target_cross'] = dfCrossAtTarget['n_target_cross'].fillna(0)
+    dfCrossAtTarget['frac_target_cross'] = dfCrossAtTarget['n_target_cross'] / dfCrossAtTarget['nPedsComplete']
+
+    # Now plot
+    grouped = dfCrossAtTarget.groupby('lambda')
+    group_keys = list(grouped.groups.keys())
+    f, axs = plt.subplots(1, len(group_keys), figsize = (20,10))
+    for i, l in enumerate(group_keys):
+        df = grouped.get_group(l)
+        im = axs[i].scatter(df['epsilon'], df['gamma'], c=df['frac_target_cross'], cmap='viridis')
+        
+        axs[i].set_ylabel('gamma')
+        axs[i].set_xlabel('epsilon')
+        axs[i].set_title('Lambda = {}'.format(l))
+
+    # Add colourbar
+    cbar_fontdict = {"size":14}
+    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
+    cbar.ax.set_ylabel('Postponing Crossing', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+    
+    f.suptitle("Postponing Crossing")
+    f.savefig(os.path.join(img_dir, "postpone_crossing_eg.{}.png".format(file_datetime_string)))
+
+
+
+
+
