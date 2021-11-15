@@ -385,7 +385,7 @@ public class AccumulatorRoute {
 	
 	public String sampledCAString() {
 		String output = "";
-		if (this.isBlank==false) {
+		if (this.sampledCA!=null) {
 			output += this.sampledCA.getType() + Long.toString(this.sampledCA.getID()) + ";";
 			output += Double.toString(this.sampledCAwt) + ";";
 			output+= Double.toString(this.sampledCAve) + ";";
