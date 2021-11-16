@@ -92,6 +92,12 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
+								<parameter name="timeThreshold" displayName="Time threshold to trigger crossing alternative choice at (direct crossing only)" type="int" 
+						defaultValue="120" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+									
+		/>
 		</parameters>
 
 
