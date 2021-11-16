@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
@@ -248,6 +250,8 @@ public class AccumulatorRoute {
 	
 	public void chooseCA() {
 		
+		boolean chooseCA=false;
+		
 		// Sort the activations
 		int nCAs = this.caActivations.length;
 		double[] sortedActivations = this.caActivations.clone();
@@ -255,9 +259,20 @@ public class AccumulatorRoute {
 		
 		// Compare the largest activation to the second largest
 		double maxActivation = sortedActivations[nCAs-1];
-		  
-		if (maxActivation > this.ped.getEpsilon()) {
-			
+		
+		Parameters  params = RunEnvironment.getInstance().getParameters();
+		int accumulatorTimeThreshold = params.getInteger("timeThreshold");
+		if ((this.directCrossing | this.endOfRoute) & (this.nAccumulations>accumulatorTimeThreshold)) {
+			// Force choice of CA with highest activation
+			chooseCA=true;
+		}
+		else if (maxActivation > this.ped.getEpsilon()) {
+			// Choose CA if activation exceeds threshold
+			chooseCA=true;
+		}
+		
+		// Choose top CA
+		if (chooseCA) {
 			// initialise variable to record index of chosen crossing alterantive
 			Integer choseni = null;
 			
