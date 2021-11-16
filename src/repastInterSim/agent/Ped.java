@@ -153,9 +153,9 @@ public class Ped extends MobileAgent {
         	pathFinder.step();
     	}
    		
-   		// If agent does intend to yield, agent walks as usual until the crossing point is reached
-   		// Once crossing point is reached agent does not move whilst in yield state
-   		// Separation here between intention to yield and performing of yielding action (during which intention could be allowed to change, in principle)
+   		// Yielding set to true when agent is not able to update its target coordiante because it is still choosing
+   		// a crossing alternative.
+   		// Whilst yielding continue to step() path finder so that crossing alternative is chosen.
     	else {
         	pathFinder.step();
     	}
