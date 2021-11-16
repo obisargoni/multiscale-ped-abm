@@ -997,4 +997,8 @@ public class Ped extends MobileAgent {
     	
     	return output;
     }
+
+	public void setYield(boolean y) {
+		this.yieldAtCrossing=y;
+	}
 }
