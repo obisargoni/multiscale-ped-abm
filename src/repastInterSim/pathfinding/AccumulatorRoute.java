@@ -29,6 +29,7 @@ public class AccumulatorRoute {
 	private double roadLength;
 	private List<CrossingAlternative> cas = new ArrayList<CrossingAlternative>();
 	private double[] caActivations;
+	private int nAccumulations = 0; // Used to trigger choice based on time limit 
 	
 	private RepastEdge<Junction> targetRouteEdge = null;
 	private Junction targetJunction;
@@ -281,6 +282,7 @@ public class AccumulatorRoute {
 		// Accumulate activation and chooses a crossing alternative if choice not made yet
 		if ((isBlank == false) & (this.caChosen==false) & (this.crossingRequired==true)) {
 			this.accumulateCAActivation();
+			this.nAccumulations++;
 			this.chooseCA();
 		}
 		
