@@ -35,6 +35,7 @@ public class AccumulatorRoute {
 	private Junction defaultJunction;
 	private Coordinate targetCoordinate;
 	
+	private boolean endOfRoute;
 	private boolean directCrossing;
 	private boolean caChosen;
 	private boolean crossingRequired;
@@ -79,6 +80,13 @@ public class AccumulatorRoute {
 		}
 		
 		this.directCrossing = dC;
+		
+		if (this.ped.getDestination().getGeom().getCoordinate().equals2D(targetCoordinate)) {
+			this.endOfRoute=true;
+		}
+		else {
+			this.endOfRoute=false;
+		}
 	}
 	/*
 	 * Calculate the probability of sampling each crossing alternative using the softmax function
