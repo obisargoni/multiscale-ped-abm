@@ -156,23 +156,8 @@ public class Ped extends MobileAgent {
    		// If agent does intend to yield, agent walks as usual until the crossing point is reached
    		// Once crossing point is reached agent does not move whilst in yield state
    		// Separation here between intention to yield and performing of yielding action (during which intention could be allowed to change, in principle)
-    	else if (this.yieldAtCrossing) {
-    		double distanceToCrossing = this.maLoc.distance(pathFinder.getNextCrossingCoord());
-        	if (distanceToCrossing > 2) {
-            	// Walk towards the next coordinate along the route
-            	
-        		// If the current junction is null, tactical path needs to be updated. Using while enables handling empty tactical paths caused by issues with pavement network data
-        		while ( (this.pathFinder.getTacticalPath().getCurrentJunction()==null) & (nUpdates<2) ) {
-        			pathFinder.updateTacticalPath();
-        			nUpdates++;
-            	}
-            	walk(pathFinder.getTacticalPath().getTargetCoordinate());
-            	pathFinder.step();
-
-        	}
-        	else {
-        		assert true;
-        	}
+    	else {
+        	pathFinder.step();
     	}
    		
     	// Finally update the target coordinate if current target coordinate has been reached
