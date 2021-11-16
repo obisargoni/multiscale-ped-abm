@@ -325,6 +325,7 @@ public class AccumulatorRoute {
 		this.caChosen = true;
 		this.crossingCoordinates.push(this.chosenCA.nearestCoord(this.ped.getLoc()));
 		this.crossingCoordinates.push(this.chosenCA.farthestCoord(this.ped.getLoc()));
+		this.ped.setYield(false);
 	}
 	
 	public Junction getTargetJunction() {

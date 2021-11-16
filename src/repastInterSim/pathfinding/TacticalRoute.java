@@ -115,6 +115,9 @@ public class TacticalRoute {
 				}
 				updated=true;
 			}
+			else {
+				this.ped.setYield(true);
+			}
 		}
 		return updated;
 	}
