@@ -543,6 +543,80 @@ def sobol_si_bar_figure(dfsi, fig_title):
     f.suptitle(fig_title)
     return f
 
+def batch_run_scatter(df_data, groupby_columns, parameter_sweep_columns, value_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None):
+
+    grouped = df_data.groupby(groupby_columns)
+    keys = list(grouped.groups.keys())
+
+    # Want to get separate array of data for each value of 'addVehicleTicks'
+    p = len(df_data[groupby_columns[0]].unique())
+    q = len(df_data[groupby_columns[1]].unique())
+
+    key_indices = np.reshape(np.arange(len(keys)), (p,q))
+
+    f,axs = plt.subplots(p, q, figsize=(20,10), sharey=False, sharex=False)
+
+    # Make sure axes array in shame that matches the layout
+    axs = np.reshape(axs, (p, q))
+
+    # Select data to work with and corresponding axis
+    for pi in range(p):
+        for qi in range(q):
+            key_index = key_indices[pi, qi]
+            group_key = keys[key_index]
+            df = grouped.get_group(group_key)
+
+            # Select the corresponding axis
+            ax = axs[pi, qi]
+            im = ax.scatter(df[parameter_sweep_columns[0]], df[parameter_sweep_columns[1]], c=df[value_col], cmap=cmap, norm = None, vmin=0.0, vmax=1.0)
+
+            # optionally add line indiceting e-g region where threhold can be met
+            e = np.linspace(min(df[parameter_sweep_columns[0]])+0.001, max(df[parameter_sweep_columns[0]]),60)
+            g = 1 - 1/e
+            inds = np.where(g>=0)[0]
+
+            ax.plot(e[inds], g[inds], color='black')
+            #im = ax.scatter(e, g, c='black')
+        
+            ax.set_ylabel(rename_dict[parameter_sweep_columns[1]])
+            ax.set_xlabel(rename_dict[parameter_sweep_columns[0]])
+
+    # Add colourbar
+    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+
+    cbar_fontdict = {"size":14}
+    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
+    cbar.ax.set_ylabel(rename_dict[value_col], rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+
+    # Now add text annotations to indicate the scenario
+    for i in range(p):
+        ki = key_indices[i, 0]
+        group_key = keys[ki]
+        ax = axs[i, 0]
+
+        s = "{}".format(rename_dict[group_key[0]])
+        plt.text(-0.25,0.5, s, fontsize = 11, transform = ax.transAxes)
+    
+
+    for j in range(q):
+        ki = key_indices[-1, j]
+        group_key = keys[ki]
+
+        ax = axs[-1, j]
+
+        s = "{}".format(rename_dict[group_key[1]])
+        plt.text(0.45,-0.25, s, fontsize = 11, transform = ax.transAxes)
+
+    if title is not None:
+        f.suptitle(title, fontsize=16, y = 1)
+    if cbarlabel is not None:
+        cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
+    if output_path is not None:
+        plt.savefig(output_path)
+
+    return f, axs
+
 #####################################
 #
 #
@@ -825,36 +899,33 @@ if setting == 'sobol_si':
 #
 #
 #########################################
+
 if setting == "epsilon_gamma_scatter":
 
-    fixed_columns = ['random_seed', 'addPedTicks', 'alpha','addVehicleTicks','tacticalPlanHorizon', 'minCrossing']
-    variable_columns = ['epsilon', 'gamma', 'lambda']
-    metric = 'frac_completed_journeys'
-
-    dfScatter = dfRouteCompletion.reindex(columns = variable_columns+[metric])
-
-    # Groupby lambda and make scatter plot for each lambda value
-    grouped = dfScatter.groupby("lambda")
-    group_keys = list(grouped.groups.keys())
-    f, axs = plt.subplots(1, len(group_keys), figsize = (20,10))
-    for i, l in enumerate(group_keys):
-        df = grouped.get_group(l)
-        im = axs[i].scatter(df['epsilon'], df['gamma'], c=df['frac_completed_journeys'], cmap='viridis')
-        
-        axs[i].set_ylabel('gamma')
-        axs[i].set_xlabel('epsilon')
-        axs[i].set_title('Lambda = {}'.format(l))
-
-    # Add colourbar
-    cbar_fontdict = {"size":14}
-    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
-    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
-    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
-    cbar.ax.set_ylabel('Fraction Completed Journeys', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+    fixed_columns = ['random_seed', 'addPedTicks', 'alpha','tacticalPlanHorizon', 'minCrossing']
+    variable_columns = ['epsilon', 'gamma', 'lambda', 'addVehicleTicks']
     
-    f.suptitle("Fraction of completed journeys")
-    f.savefig(os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string)))
+    metric = 'frac_completed_journeys'
+    groupby_columns = ['addVehicleTicks', 'lambda']
+    parameter_sweep_columns = ['epsilon', 'gamma']
 
+    output_path = os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string))
+    fig_title = "Route Completions\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
+
+    rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
+                'alpha':r"$\mathrm{\alpha}$",
+                'lambda':r"$\mathrm{\lambda}$",
+                "epsilon":r"$\mathrm{\epsilon}$",
+                "gamma":r"$\mathrm{\gamma}$",
+                0.5: r"$\mathrm{\lambda}=0.5$",
+                1.5:r"$\mathrm{\lambda}=1.5$",
+                5:"High\nVehicle\nFlow",
+                50:"Low\nVehicle\nFlow",
+                'frac_target_cross': 'Postpone crossing proportion',
+                'frac_completed_journeys': 'Complete journey proportion'
+                }
+
+    f, ax = batch_run_scatter(dfRouteCompletion, groupby_columns, parameter_sweep_columns, metric, rename_dict, 'viridis', title = fig_title, cbarlabel = None, output_path = output_path)
 
     # Measure numbers of agents crossing at a particular link
     target_links = ['pave_link_218_219', 'pave_link_217_219']
@@ -883,28 +954,8 @@ if setting == "epsilon_gamma_scatter":
     dfCrossAtTarget['frac_target_cross'] = dfCrossAtTarget['n_target_cross'] / dfCrossAtTarget['nPedsComplete']
 
     # Now plot
-    grouped = dfCrossAtTarget.groupby('lambda')
-    group_keys = list(grouped.groups.keys())
-    f, axs = plt.subplots(1, len(group_keys), figsize = (20,10))
-    for i, l in enumerate(group_keys):
-        df = grouped.get_group(l)
-        im = axs[i].scatter(df['epsilon'], df['gamma'], c=df['frac_target_cross'], cmap='viridis')
-        
-        axs[i].set_ylabel('gamma')
-        axs[i].set_xlabel('epsilon')
-        axs[i].set_title('Lambda = {}'.format(l))
+    metric = 'frac_target_cross'
+    output_path = os.path.join(img_dir, "postpone_crossing_eg.{}.png".format(file_datetime_string))
+    fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
-    # Add colourbar
-    cbar_fontdict = {"size":14}
-    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
-    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
-    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
-    cbar.ax.set_ylabel('Postponing Crossing', rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
-    
-    f.suptitle("Postponing Crossing")
-    f.savefig(os.path.join(img_dir, "postpone_crossing_eg.{}.png".format(file_datetime_string)))
-
-
-
-
-
+    f, ax = batch_run_scatter(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, 'viridis', title = fig_title, cbarlabel = None, output_path = output_path)

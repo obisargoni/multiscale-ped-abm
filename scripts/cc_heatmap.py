@@ -1,3 +1,5 @@
+import os
+import json
 from datetime import datetime as dt
 import pandas as pd
 import numpy as np
@@ -254,7 +256,13 @@ configuration_datetime_strings = {
                                     "beyond":   dt.strptime("2021.Nov.05.12_22_38", "%Y.%b.%d.%H_%M_%S")
                                 }
 
-data_dir = "..\\output\\batch\\model_run_data\\"
+with open(".//config.json") as f:
+    config = json.load(f)
+
+data_dir = config['batch_data_dir']
+img_dir = "..\\output\\img\\"
+
+
 
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
 btwn_ped_cc["configuration"] = "between"
@@ -269,9 +277,9 @@ groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
-fig_file = "..\\output\\img\\al_crossing_heatmap_Nov2021_replication.png"
+fig_path = os.path.join(img_dir, "al_crossing_heatmap_{}.png".format(configuration_datetime_strings['between'].strftime("%Y.%b.%d.%H_%M_%S")))
 
-f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
 f.show()
 
 
@@ -306,10 +314,9 @@ groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['epsilon', 'gamma']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", "$\mathrm{\gamma}$")
-
-fig_file = "..\\output\\img\\eg_crossing_heatmap_Nov2021_replication.png"
+fig_path = os.path.join(img_dir, "eg_crossing_heatmap_{}.png".format(configuration_datetime_strings['between'].strftime("%Y.%b.%d.%H_%M_%S")))
 
 # 'inverse_undecided_frac'
 
-f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'opacity', 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_file)
+f, axs = batch_run_heatmap(df_cc_count_eg, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', 'opacity', 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
 f.show()
