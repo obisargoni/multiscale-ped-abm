@@ -21,8 +21,9 @@ params = {
 			"gamma":{				"type":"constant", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
 			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
 			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
-			"minCrossing":{			"type":"list", "data_type":"boolean", 		"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
-			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"150", 	"bounds":[10,150], 	"dist":"unif"}
+			"minCrossing":{			"type":"list", "data_type":"boolean", 	"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
+			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"100", 	"bounds":[10,150], 	"dist":"unif"},
+			"timeThreshold":{       "type":"constant", "data_type":"int",   "value":"120",  "bounds":[60,180],  "dist":"unif"}
 		}
 
 
