@@ -394,8 +394,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
 		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingVehicleAgents");
 		}
+		else {
+			// If successfully stop adding vehicle agents, can schedule method remove all vehicle agents from the simualtion, to trigger the end of the run.
+		    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+		    schedule.schedule(removeAllVehicleAgentsParams, this, "removeAllVehicleAgents");
+		}
 	}
 	
+	public void removeAllVehicleAgents() {
+		Context context = RunState.getInstance().getMasterContext();
+	        
+        // Iterate over vehicles and remove them
+		List<Vehicle> vehiclesToRemove = new ArrayList<Vehicle>();
+        for (Object o :context.getObjects(Vehicle.class)) {
+        	Vehicle v  = (Vehicle) o;
+        	vehiclesToRemove.add(v);
+        }
+		
+		for (Vehicle v: vehiclesToRemove) {
+			removeMobileAgent(v, null);
+		}
+
+	}
 	
 	
 	/**
