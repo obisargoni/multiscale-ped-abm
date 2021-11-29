@@ -96,7 +96,6 @@ for col in selection_columns:
 #
 #
 #################################
-'''
 # Use hexagonal tiles to bin pedestrian locations, create heat map of trajectories
 gdf_hex = gpd.read_file(hex_polys_file)
 print(gdf_hex.crs)
@@ -122,7 +121,6 @@ gdf_hex_counts.crs = gdf_hex.crs
 
 # Save the data
 gdf_hex_counts.to_file(output_trajectories_path, drive='GPKG')
-'''
 #################################
 #
 #
