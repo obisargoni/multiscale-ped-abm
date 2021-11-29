@@ -293,7 +293,8 @@ batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_
 #
 #####################################
 
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, FFMpegWriter
+ plt.rcParams['animation.ffmpeg_path'] = "C:\\Anaconda3\\bin\\ffmpeg"
 
 # Get crossing locations and origin and destination
 gdfCA = gpd.read_file(os.path.join(gis_data_dir, "simple_pedestrian_trips", "CrossingAlternatives.shp"))
@@ -354,4 +355,6 @@ def update(frame_points):
     return scat,
 
 ani = FuncAnimation(fig, update, frames = points_filter[:1000], init_func=init, blit=True)
-ani.save(os.path.join(img_dir, 'simple_paths_animation_final.{}.mp4'.format(file_datetime_string)))
+
+FFwriter = FFMpegWriter()
+ani.save(os.path.join(img_dir, 'simple_paths_animation_final.{}.mp4'.format(file_datetime_string)), writer = FFwriter)
