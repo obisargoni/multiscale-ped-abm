@@ -81,7 +81,7 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 	if method == 'morris':
 		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
 	elif method == 'saltelli':
-		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = False, skip_values = N_samples)
+		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = calc_second_order, skip_values = N_samples)
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
 	return sampled_values
