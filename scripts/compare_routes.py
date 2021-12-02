@@ -906,7 +906,7 @@ if setting == "morris_factor_fixing":
 
     # Get array of parameter values and output values
     X = dfRouteLength.loc[:, problem['names']].values
-    Y = dfRouteLength.loc[:, 'route_length'].values
+    Y = dfRouteLength.loc[:, 'route_length'].astype(float).values
     try:
         Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
     except ValueError as e:
