@@ -330,8 +330,8 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "p
 
         dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
 
-        dfPedRoutes = pd.to_csv(output_path, index=False)
-        dfPedRoutes_removedpeds = pd.to_csv(routes_removed_path, index=False)
+        dfPedRoutes.to_csv(output_path, index=False)
+        dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
