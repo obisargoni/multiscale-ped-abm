@@ -242,6 +242,14 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "p
         # Load data from file
         dfPedRoutes = pd.read_csv(output_path)
         dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
+
+        # Convert string node paths to lists
+        dfPedRoutes['node_path'] = dfPedRoutes['node_path'].map(lambda np: np.strip('"[').strip(']"').replace("'","").split(", "))
+        dfPedRoutes_removedpeds['node_path'] = dfPedRoutes_removedpeds['node_path'].map(lambda np: np.strip('"[').strip(']"').replace("'","").split(", "))
+
+        for k in weight_params:
+            col = 'sp_{}'.format(0)
+            dfPedRoutes[col] = dfPedRoutes[col].map(lambda np: np.strip('"(').strip(')"').replace("'","").split(", "))
     else:
         # Otherwise create data
 
