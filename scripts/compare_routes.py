@@ -893,6 +893,23 @@ if setting == "morris_factor_fixing":
         #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
+    print("\nCalculating sensitivity indices - Total route length")
+
+    # Get array of parameter values and output values
+    X = dfRouteLength.loc[:, problem['names']].values
+    Y = dfRouteLength.loc[:, 'route_length'].values
+    try:
+        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+    except ValueError as e:
+        print(e)
+        print(k)
+        continue
+
+    # Gather into a dataframe
+    dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    f_rlsi = morris_si_bar_figure(dfRLSis, "Total Route Length Sensitivities")
+    f_rlsi.savefig(os.path.join(img_dir, "route_length_sis.{}.png".format(file_datetime_string)))
+
 if setting == 'sobol_si':
 
     print("\nCalculating sensitivity indices - Conflicts")
