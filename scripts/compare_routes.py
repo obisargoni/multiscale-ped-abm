@@ -429,6 +429,37 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
 
     return dfSPSim
 
+def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = "run_route_length.csv"):
+
+    ######################################
+    #
+    #
+    # Compare these various shortest path routes to the ABM routes by calculating a metric of difference between their node paths
+    #
+    #
+    ######################################
+
+    if exclude_stuck_peds:
+        stuck_peds_index = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)].index
+        dfPedRoutes.drop(stuck_peds_index, inplace=True)
+
+    if os.path.exists(output_path)==False:
+        dfRouteLength = pd.DataFrame()
+
+        dfPedRoutes['route_length'] = dfPedRoutes.apply(lambda row: nx.path_weight(pavement_graph, row['node_path'], weight='length'), axis=1)
+        
+        dfRouteLength = dfPedRoutes.groupby('run')['route_length'].sum()
+
+        # Merge in parameter values
+        dfRouteLength = pd.merge(dfRun, dfRouteLength, on = 'run')
+
+        # Save date for future use
+        dfRouteLength.to_csv(output_path, index=False)
+    else:
+        dfRouteLength = pd.read_csv(output_path)
+
+    return dfRouteLength
+
 def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.csv'):
     if os.path.exists(output_path)==False:
         dfPedRoutes['completed_journey'] = dfPedRoutes['node_path'].map(lambda x: int(len(x)>0))
