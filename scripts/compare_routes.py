@@ -233,92 +233,105 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
 
     return dfRLCrossCounts
 
-def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params):
-
-    print("\nExtracting Pedestrian Agent Routes")
+def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "ped_routes.csv"):
     
-    ######################################
-    #
-    #
-    # Extract pedestrian pavement node routes
-    #
-    #
-    ######################################
+    split_path = os.path.splitext(output_path)
+    routes_removed_path = split_path[0] + "_removed_peds" + split_path[1]
 
-    # Function to get edge route from data
-    dfPedRoutes = dfPedCrossings.groupby(['run', 'ID'])['CurrentPavementLinkID'].apply(lambda s: list(s.unique())).reset_index()
-    dfPedRoutes.rename(columns = {'CurrentPavementLinkID':'edge_path'}, inplace=True)
+    if os.path.exists(output_path):
+        # Load data from file
+        dfPedRoutes = pd.read_csv(output_path)
+        dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
+    else:
+        # Otherwise create data
 
-    # Get strategic path link list. First check that there is a single strategic path per run-ped
-    assert (dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().shape[0]).value_counts().index == 1).all()
-    dfPedStratPaths = dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: tuple(s.drop_duplicates().values[0].split(':')[1:])).reset_index()
-    dfPedRoutes = pd.merge(dfPedRoutes, dfPedStratPaths, on = ['run', 'ID'])
+        print("\nExtracting Pedestrian Agent Routes")
+        
+        ######################################
+        #
+        #
+        # Extract pedestrian pavement node routes
+        #
+        #
+        ######################################
 
-    dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
-    dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on = ['run', 'ID'])
+        # Function to get edge route from data
+        dfPedRoutes = dfPedCrossings.groupby(['run', 'ID'])['CurrentPavementLinkID'].apply(lambda s: list(s.unique())).reset_index()
+        dfPedRoutes.rename(columns = {'CurrentPavementLinkID':'edge_path'}, inplace=True)
 
-    ## Need to keep these in or keep a record of what rows got dropped in order to calculate SIs later
-    # Or avoid dropping.
-    dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
-    dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)]
-    removed_peds_index = dfPedRoutes_removedpeds.index
+        # Get strategic path link list. First check that there is a single strategic path per run-ped
+        assert (dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: s.drop_duplicates().shape[0]).value_counts().index == 1).all()
+        dfPedStratPaths = dfPedCrossings.groupby(['run','ID'])['FullStrategicPathString'].apply(lambda s: tuple(s.drop_duplicates().values[0].split(':')[1:])).reset_index()
+        dfPedRoutes = pd.merge(dfPedRoutes, dfPedStratPaths, on = ['run', 'ID'])
 
-    ######################################
-    #
-    #
-    # Identify unique OD trips
-    #
-    #
-    ######################################
+        dfPedOD = dfPedCrossings.groupby(['run', 'ID'])['StartPavementJunctionID', 'DestPavementJunctionID'].apply(lambda df: df.drop_duplicates()).reset_index()
+        dfPedRoutes = pd.merge(dfPedRoutes, dfPedOD, left_on = ['run', 'ID'], right_on = ['run', 'ID'])
 
-    # In some cases the first pavement edge does not get included in the data. I think due to the ped origin being v close to pavement junction
-    # In this case need to alter what the start node is
-    # So if node path doesn't include start node, calculate alternative path using first node in path.
+        ## Need to keep these in or keep a record of what rows got dropped in order to calculate SIs later
+        # Or avoid dropping.
+        dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
+        dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)]
+        removed_peds_index = dfPedRoutes_removedpeds.index
 
-    print("Checking for node_path missing the start pavement node (excluding peds removed from simulation)")
-    dfPedRoutes['missing_start_node'] = np.nan
-    dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'missing_start_node'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
-    print(dfPedRoutes['missing_start_node'].value_counts(dropna=True))
+        ######################################
+        #
+        #
+        # Identify unique OD trips
+        #
+        #
+        ######################################
 
-    print("Checking instances where the first node in node_path matches the start pavement node (excluding peds removed from simulation)")
-    dfPedRoutes['sn_at_start'] = np.nan
-    dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'sn_at_start'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
-    print(dfPedRoutes['sn_at_start'].value_counts(dropna=True))
+        # In some cases the first pavement edge does not get included in the data. I think due to the ped origin being v close to pavement junction
+        # In this case need to alter what the start node is
+        # So if node path doesn't include start node, calculate alternative path using first node in path.
 
-    # Use first not in path as start node, as opposed to the node the ped actually starts their journey from since these only differ in a handful of cases.
-    dfPedRoutes['start_node'] = dfPedRoutes.apply(lambda row: row['node_path'][0] if len(row['node_path'])>0 else row['StartPavementJunctionID'], axis=1)
-    dfPedRoutes['end_node'] = dfPedRoutes.apply(lambda row: row['node_path'][-1] if len(row['node_path'])>0 else row['DestPavementJunctionID'], axis=1)
+        print("Checking for node_path missing the start pavement node (excluding peds removed from simulation)")
+        dfPedRoutes['missing_start_node'] = np.nan
+        dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'missing_start_node'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] not in row['node_path'], axis=1)
+        print(dfPedRoutes['missing_start_node'].value_counts(dropna=True))
 
-    # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
-    dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
+        print("Checking instances where the first node in node_path matches the start pavement node (excluding peds removed from simulation)")
+        dfPedRoutes['sn_at_start'] = np.nan
+        dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index), 'sn_at_start'] = dfPedRoutes.loc[~dfPedRoutes.index.isin(removed_peds_index)].apply(lambda row: row['StartPavementJunctionID'] == row['node_path'][0], axis=1)
+        print(dfPedRoutes['sn_at_start'].value_counts(dropna=True))
 
-    ######################################
-    #
-    #
-    # Calculate shortest paths using weight accounting for vehicle density.
-    #
-    # Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
-    #
-    ######################################
+        # Use first not in path as start node, as opposed to the node the ped actually starts their journey from since these only differ in a handful of cases.
+        dfPedRoutes['start_node'] = dfPedRoutes.apply(lambda row: row['node_path'][0] if len(row['node_path'])>0 else row['StartPavementJunctionID'], axis=1)
+        dfPedRoutes['end_node'] = dfPedRoutes.apply(lambda row: row['node_path'][-1] if len(row['node_path'])>0 else row['DestPavementJunctionID'], axis=1)
 
-    # Set dfPedRoutes to just have columns we are interested in
-    dfPedRoutes = dfPedRoutes.reindex(columns = [   'run', 'ID', 'edge_path', 'FullStrategicPathString',
-                                                    'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
-                                                    'start_node', 'end_node'])
+        # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
+        dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
 
-    for k in weight_params:
-        weight_name = "weight{}".format(k)
-        gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
-        gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+        ######################################
+        #
+        #
+        # Calculate shortest paths using weight accounting for vehicle density.
+        #
+        # Compare to the distance weighted shortest path by comparing the means of the frechet distances between shortest path and the pedestrians actual path.
+        #
+        ######################################
 
-        # Weight pavement network crossing links by average vehicle flow
-        weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-        nx.set_edge_attributes(pavement_graph, weight01_attributes, name = weight_name)
+        # Set dfPedRoutes to just have columns we are interested in
+        dfPedRoutes = dfPedRoutes.reindex(columns = [   'run', 'ID', 'edge_path', 'FullStrategicPathString',
+                                                        'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
+                                                        'start_node', 'end_node'])
 
-        dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+        for k in weight_params:
+            weight_name = "weight{}".format(k)
+            gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
+            gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+
+            # Weight pavement network crossing links by average vehicle flow
+            weight01_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+            nx.set_edge_attributes(pavement_graph, weight01_attributes, name = weight_name)
+
+            dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
 
 
-    dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
+        dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
+
+        dfPedRoutes = pd.to_csv(output_path, index=False)
+        dfPedRoutes_removedpeds = pd.to_csv(routes_removed_path, index=False)
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
