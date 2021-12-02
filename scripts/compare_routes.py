@@ -903,7 +903,6 @@ if setting == "morris_factor_fixing":
     except ValueError as e:
         print(e)
         print(k)
-        continue
 
     # Gather into a dataframe
     dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
