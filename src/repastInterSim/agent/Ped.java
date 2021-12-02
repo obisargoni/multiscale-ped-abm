@@ -37,6 +37,8 @@ import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {
+	private static int uniqueID = 0;
+	
 	//private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
 
     private PedPathFinder pathFinder;
@@ -100,7 +102,9 @@ public class Ped extends MobileAgent {
     }
     
     private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-        this.v0  = s;
+        this.id = Ped.uniqueID++;
+    	
+    	this.v0  = s;
         this.m  = m;
         this.rad = m / 320; // As per Moussaid 2011
         
