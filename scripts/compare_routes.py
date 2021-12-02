@@ -444,11 +444,9 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck
         dfPedRoutes.drop(stuck_peds_index, inplace=True)
 
     if os.path.exists(output_path)==False:
-        dfRouteLength = pd.DataFrame()
-
         dfPedRoutes['route_length'] = dfPedRoutes.apply(lambda row: nx.path_weight(pavement_graph, row['node_path'], weight='length'), axis=1)
         
-        dfRouteLength = dfPedRoutes.groupby('run')['route_length'].sum()
+        dfRouteLength = dfPedRoutes.groupby('run')['route_length'].sum().reset_index()
 
         # Merge in parameter values
         dfRouteLength = pd.merge(dfRun, dfRouteLength, on = 'run')
