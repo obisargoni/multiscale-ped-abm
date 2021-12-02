@@ -717,6 +717,7 @@ file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetim
 batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # output paths for processed data
+output_ped_routes_file = os.path.join(data_dir, "ped_routes.{}.csv".format(vehicle_density_timestamp))
 output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
 output_route_length_file = os.path.join(data_dir, "run_route_length.{}.csv".format(vehicle_density_timestamp))
 output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
@@ -778,14 +779,14 @@ gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on 
 
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
 
-dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params)
+dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_ped_routes_file)
 dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = output_cross_events_path)
 dfLinkCrossCounts = get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
 
-dfRouteLength = get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = "run_route_length.csv")
+dfRouteLength = get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = output_route_length_file)
 dfSPSim = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC')
