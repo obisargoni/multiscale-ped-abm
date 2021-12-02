@@ -37,7 +37,7 @@ import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {
-	private static int uniqueID = 0;
+	private static int uniqueID = 1;
 	
 	//private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
 
