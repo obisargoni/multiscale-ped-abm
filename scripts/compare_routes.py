@@ -723,7 +723,7 @@ points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
 node_posistions = list(zip(points_pos['x'], points_pos['y']))
 dict_node_pos = dict(zip(points_pos.index, node_posistions))
 
-weight_params = range(0, 1000, 100)
+weight_params = range(0, 100, 100)
 
 ######################################
 #
