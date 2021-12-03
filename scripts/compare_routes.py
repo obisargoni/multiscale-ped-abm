@@ -570,12 +570,12 @@ def morris_si_bar_figure_w_sigma(dfsi, fig_title):
     f.suptitle(fig_title)
     return f
 
-def morris_si_bar_figure(dfsi, fig_title):
+def morris_si_bar_figure(dfsi, fig_title, ylabel, xticklabels):
     f, ax = plt.subplots(1,1, figsize = (10,10))
     ax.bar(range(dfsi.shape[0]), dfsi['mu_star'], width=0.8, yerr = dfsi['mu_star_conf'], align='center')
-    ax.set_xticks(range(dfsi.shape[0]))
-    ax.set_xticklabels(dfsi['names'], rotation = 45)
-    ax.set_title("mu star")
+    ax.set_xticks(range(xticklabels))
+    ax.set_xticklabels(xticklabels, rotation = 45)
+    ax.sey_ylabel(ylabel)
     f.suptitle(fig_title)
     return f
 
@@ -816,6 +816,21 @@ sys.path.append(".\\sample")
 from SALibRepastParams import num_levels, params, random_seed, init_problem, calc_second_order
 problem = init_problem(params = params)
 
+rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
+                'lambda':r"$\mathrm{\lambda}$",
+                "epsilon":r"$\mathrm{\epsilon}$",
+                "gamma":r"$\mathrm{\gamma}$",
+                "minCrossing": r"$\mathrm{MC}$",
+                "tacticalPlanHorizon": r"$\mathrm{PH}$",
+                "addVehicleTicks": r"$\mathrm{T_{veh}}$",
+                "addPedTicks": r"$\mathrm{T_{ped}}$",
+                "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
+                "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
+                "caSampleSeed": r"$\mathrm{Seed_{CA}}$",
+                "vehODSeed": r"$\mathrm{Seed_{veh}}$",
+                "timeThreshold": r"$\mathrm{\tau}$"
+                }
+
 ######################################
 #
 #
@@ -854,7 +869,7 @@ if setting == "morris_factor_fixing":
 
     # Gather into a dataframe
     dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_compsi = morris_si_bar_figure(dfcompsi, "Jouney Completion SIs")
+    f_compsi = morris_si_bar_figure(dfcompsi, r"Jouney Completion $\mathrm{\mu^\*}$", 'Fraction journeys completed', dfcompsi['names'].replace(rename_dict))
     #f_compsi.show()
     f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
 
@@ -881,7 +896,7 @@ if setting == "morris_factor_fixing":
             df = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
 
             # Create figures
-            f_ccsi = morris_si_bar_figure(df, "{} SIs - {} crossings".format(title_dict[metric], cat))
+            f_ccsi = morris_si_bar_figure(df, r"{} - {} Crossing Sensitivity".format(title_dict[metric], cat), r"$\mathrm{\mu^\*}$", f_ccsi['names'].replace(rename_dict))
             #f_ccsi.show()
             f_ccsi.savefig(os.path.join(img_dir, "{}_{}_sis.{}.png".format(metric, cat, file_datetime_string)))
 
@@ -905,7 +920,7 @@ if setting == "morris_factor_fixing":
 
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-        f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path Node Similarity SIs")
+        f_spsi = morris_si_bar_figure(dfspsi, r"Shortest Path Dice Distance Sensitivity", r"$\mathrm{\mu^\*}$", dfspsi['names'].replace(rename_dict))
         #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
@@ -926,7 +941,7 @@ if setting == "morris_factor_fixing":
 
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-        f_spsi = morris_si_bar_figure(dfspsi, "Path Length Sensitivity")
+        f_spsi = morris_si_bar_figure(dfspsi, r"Path Length Sensitivity", r"$\mathrm{\mu^\*}$", dfspsi['names'].replace(rename_dict))
         #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_len_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
@@ -943,7 +958,7 @@ if setting == "morris_factor_fixing":
 
     # Gather into a dataframe
     dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_rlsi = morris_si_bar_figure(dfRLSis, "Total Route Length Sensitivities")
+    f_rlsi = morris_si_bar_figure(dfRLSis, "Total Path Length Sensitivity", r"$\mathrm{\mu^\*}$", dfRLSis['names'].replace(rename_dict))
     f_rlsi.savefig(os.path.join(img_dir, "route_length_sis.{}.png".format(file_datetime_string)))
 
 if setting == 'sobol_si':
