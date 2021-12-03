@@ -717,9 +717,9 @@ file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetim
 batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
 
 # output paths for processed data
-output_ped_routes_file = os.path.join(data_dir, "ped_routes.{}.csv".format(vehicle_density_timestamp))
+output_ped_routes_file = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
 output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
-output_route_length_file = os.path.join(data_dir, "run_route_length.{}.csv".format(vehicle_density_timestamp))
+output_route_length_file = os.path.join(data_dir, "run_route_length.{}.csv".format(file_datetime_string))
 output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
 output_sp_similarity_length_path = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
 output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
