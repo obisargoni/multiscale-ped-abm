@@ -905,9 +905,30 @@ if setting == "morris_factor_fixing":
 
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-        f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path SIs, k={}".format(k))
+        f_spsi = morris_si_bar_figure(dfspsi, "Shortest Path Node Similarity SIs")
         #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
+
+    # Repeat for shortest path similarity based on path length
+    grouped = dfSPSimLen.groupby("k")
+    group_keys = list(grouped.groups.keys())
+    for i, k in enumerate(group_keys):
+        dfSPSimLen_k = grouped.get_group(k)
+        X = dfSPSimLen_k.loc[:, problem['names']].values
+        Y = dfSPSimLen_k.loc[:, 'mean'].values
+
+        try:
+            Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+        except ValueError as e:
+            print(e)
+            print(k)
+            continue
+
+        # Gather into a dataframe
+        dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+        f_spsi = morris_si_bar_figure(dfspsi, "Path Length Sensitivity")
+        #f_spsi.show()
+        f_spsi.savefig(os.path.join(img_dir, "sp_len_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
 
     print("\nCalculating sensitivity indices - Total route length")
 
