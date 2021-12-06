@@ -1197,4 +1197,5 @@ if setting == "epsilon_gamma_scatter":
     output_path = os.path.join(img_dir, "postpone_crossing_eg.{}.png".format(file_datetime_string))
     fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
-    f, ax = batch_run_scatter(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, 'viridis', title = fig_title, cbarlabel = None, output_path = output_path)
+    f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
+    
