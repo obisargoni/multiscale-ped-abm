@@ -667,6 +667,132 @@ def batch_run_scatter(df_data, groupby_columns, parameter_sweep_columns, value_c
 
     return f, axs
 
+def tile_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = None, cmap = plt.cm.viridis):
+
+    # Values used for pixel colours
+    colour_data = df_group.reindex(columns = [row, col, value_col]).set_index([row, col]).unstack().sort_index(ascending=False)
+
+    # Get rgb data from values
+    norm = plt.Normalize()
+    rgba = cmap(norm(colour_data.values))
+
+    # Replace alpha 
+    if alpha_col is not None:
+        alpha_data = df_group.reindex(columns = [row, col, alpha_col]).set_index([row, col]).unstack()
+        rgba[:,:,3] = alpha_data.values
+
+    row_labels = colour_data.index
+    col_labels = colour_data.columns.get_level_values(1)
+
+    return rgba, row_labels, col_labels
+
+def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None, figsize=(20,10)):
+
+    grouped = df_data.groupby(groupby_columns)
+    keys = list(grouped.groups.keys())
+
+    # Want to get separate array of data for each value of 'addVehicleTicks'
+    p = len(df_data[groupby_columns[0]].unique())
+    q = len(df_data[groupby_columns[1]].unique())
+
+    key_indices = np.reshape(np.arange(len(keys)), (p,q))
+
+    f,axs = plt.subplots(p, q, figsize=figsize, sharey=False, sharex=False)
+
+    # Make sure axes array in shame that matches the layout
+    axs = np.reshape(axs, (p, q))
+
+    # Select data to work with and corresponding axis
+    for pi in range(p):
+        for qi in range(q):
+            key_index = key_indices[pi, qi]
+            group_key = keys[key_index]
+            df = grouped.get_group(group_key)
+
+            # get extent of x and y values, helps with setting axis ticks
+            x_min, x_max = df[parameter_sweep_columns[0]].min(), df[parameter_sweep_columns[0]].max()
+            y_min, y_max = df[parameter_sweep_columns[1]].min(), df[parameter_sweep_columns[1]].max()
+
+            extent = [x_min , x_max, 0 , 2]
+
+            # Select the corresponding axis
+            ax = axs[pi, qi]
+
+            rgba_data, row_labels, col_labels = tile_rgba_data(df, parameter_sweep_columns[1], parameter_sweep_columns[0], value_col = value_col, alpha_col = None, cmap = cmap)
+            
+            # Plot the tile
+            im = ax.imshow(rgba_data, extent=extent)
+
+            # Create Major and Minor ticks
+
+            from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+            ax.xaxis.set_major_locator(MultipleLocator(1))
+            ax.xaxis.set_major_formatter('{x:.0f}')
+            ax.xaxis.set_minor_locator(MultipleLocator(0.25))
+
+            #ax.set_xticks(np.arange(rgba_data.shape[1]))
+            #ax.yaxis.set_major_locator(MultipleLocator(1.5))
+            #ax.yaxis.set_major_formatter('{x:.0f}')
+            ax.set_yticks([0.5, 1.5])
+            ax.set_yticklabels(row_labels[::-1])
+
+            # ... and label them with the respective list entries.
+            #ax.set_xticklabels(col_labels)
+            #ax.set_yticklabels(row_labels)
+
+            '''
+            # optionally add line indiceting e-g region where threhold can be met
+            e = np.linspace(min(df[parameter_sweep_columns[0]])+0.001, max(df[parameter_sweep_columns[0]]),60)
+            g = 1 - 1/e
+            inds = np.where(g>=0)[0]
+
+            ax.plot(e[inds], g[inds], color='black')
+            '''
+            e08 = 1 / (1-0.8)
+            e09 = 1 / (1-0.9)
+
+            ax.plot([e08,e08], [0,1],color='black',linewidth=2)
+            ax.plot([e09,e09], [1,2],color='black',linewidth=2)
+        
+            ax.set_ylabel(rename_dict[parameter_sweep_columns[1]])
+            ax.set_xlabel(rename_dict[parameter_sweep_columns[0]])
+
+    # Add colourbar
+    smap = plt.cm.ScalarMappable(cmap='viridis', norm=None)
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+
+    cbar_fontdict = {"size":14}
+    cbar.ax.tick_params(labelsize=cbar_fontdict['size']-3)
+    cbar.ax.set_ylabel(rename_dict[value_col], rotation=-90, labelpad = 15, fontdict = cbar_fontdict)
+
+    # Now add text annotations to indicate the scenario
+    for i in range(p):
+        ki = key_indices[i, 0]
+        group_key = keys[ki]
+        ax = axs[i, 0]
+
+        s = "{}".format(rename_dict[group_key[0]])
+        plt.text(-0.25,0.5, s, fontsize = 11, transform = ax.transAxes)
+    
+
+    for j in range(q):
+        ki = key_indices[-1, j]
+        group_key = keys[ki]
+
+        ax = axs[-1, j]
+
+        s = "{}".format(rename_dict[group_key[1]])
+        plt.text(0.45,-0.55, s, fontsize = 11, transform = ax.transAxes)
+
+    if title is not None:
+        f.suptitle(title, fontsize=16, y = 1)
+    if cbarlabel is not None:
+        cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
+    if output_path is not None:
+        plt.savefig(output_path)
+
+    return f, axs
+
 #####################################
 #
 #
