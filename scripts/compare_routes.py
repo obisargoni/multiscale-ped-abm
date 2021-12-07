@@ -1131,6 +1131,26 @@ if setting == 'sobol_si':
         f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_{}.{}.png".format(k, file_datetime_string)))
         f_si.clear()
 
+    print("Calculating Sobol indices - Total route length")
+
+    X = dfRouteLength.loc[:, problem['names']].values
+    Y = dfRouteLength.loc[:, 'route_length'].astype(float).values
+    try:
+        Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
+    except ValueError as e:
+        print(e)
+        print(k)
+
+    Sis['names'] = problem['names']
+
+    # Gather into a dataframe
+    df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+
+    # Plot
+    f_si = sobol_si_bar_figure(df, "Total Path Length Sensitivity", df['names'].replace(rename_dict))
+    f_si.savefig(os.path.join(img_dir, "route_length_sobol.{}.png".format(file_datetime_string)))
+    f_si.clear()
+
 #########################################
 #
 #
