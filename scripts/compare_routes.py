@@ -1151,6 +1151,13 @@ if setting == 'sobol_si':
     f_si.savefig(os.path.join(img_dir, "route_length_sobol.{}.png".format(file_datetime_string)))
     f_si.clear()
 
+    # If second_order then produce plot show interdependence of parameter sensitivity
+    if calc_second_order==True:
+        from sobol_plot import plot_sobol_indices
+
+        f_second_order = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01)
+        f_second_order.savefig(os.path.join(img_dir, "rotue_length_second_order_sobol.{}.png".format(file_datetime_string)))
+
 #########################################
 #
 #
