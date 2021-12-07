@@ -579,7 +579,7 @@ def morris_si_bar_figure(dfsi, fig_title, ylabel, xticklabels):
     f.suptitle(fig_title)
     return f
 
-def sobol_si_second_order_bar_figure(dfsi, fig_title, xticklabels):
+def sobol_si_bar_figure(dfsi, fig_title, xticklabels):
     f, ax = plt.subplots(1,1, figsize = (10,10))
     bar_width=0.4
     x_pos = np.arange(dfsi.shape[0])
