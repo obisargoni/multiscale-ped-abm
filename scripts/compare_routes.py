@@ -940,6 +940,7 @@ from SALib.analyze import morris, sobol
 import sys
 sys.path.append(".\\sample")
 from SALibRepastParams import num_levels, params, random_seed, init_problem, calc_second_order
+from sobol_plot import plot_sobol_indices
 problem = init_problem(params = params)
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -1100,15 +1101,21 @@ if setting == 'sobol_si':
             X = dfC.loc[:, problem['names']].values
             Y = dfC.loc[:, metric].values.astype(float)
             Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
-            Sis['names'] = problem['names']
 
             # Gather into a dataframe
-            df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+            Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+            df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+            df['names'] = problem['names']
 
             # Create figures
             f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat), df['names'].replace(rename_dict))
             f_si.savefig(os.path.join(img_dir, "{}_{}_sobol1T.{}.png".format(metric, cat, file_datetime_string)))
             f_si.clear()
+
+            if calc_second_order==True:
+                f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001)
+                f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T.{}.png".format(metric, cat, file_datetime_string)))
+                f_si.clear()
 
     print("Calculating Sobol Indices - Shortest Path Comparison")
 
@@ -1121,15 +1128,21 @@ if setting == 'sobol_si':
         Y = dfSPSim_k.loc[:, 'mean'].values
 
         Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
-        Sis['names'] = problem['names']
 
         # Gather into a dataframe
-        df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+        Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+        df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+        df['names'] = problem['names']
 
         # Plot
         f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices", df['names'].replace(rename_dict))
         f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_{}.{}.png".format(k, file_datetime_string)))
         f_si.clear()
+
+        if calc_second_order==True:
+            f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001)
+            f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_2ndorder_{}.{}.png".format(k, file_datetime_string)))
+            f_si.clear()
 
     print("Calculating Sobol indices - Total route length")
 
@@ -1141,10 +1154,10 @@ if setting == 'sobol_si':
         print(e)
         print(k)
 
-    Sis['names'] = problem['names']
-
     # Gather into a dataframe
-    df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
+    Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+    df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+    df['names'] = problem['names']
 
     # Plot
     f_si = sobol_si_bar_figure(df, "Total Path Length Sensitivity", df['names'].replace(rename_dict))
@@ -1156,7 +1169,7 @@ if setting == 'sobol_si':
         from sobol_plot import plot_sobol_indices
 
         f_second_order = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01)
-        f_second_order.savefig(os.path.join(img_dir, "rotue_length_second_order_sobol.{}.png".format(file_datetime_string)))
+        f_second_order.savefig(os.path.join(img_dir, "route_length_sobol_2ndorder_.{}.png".format(file_datetime_string)))
 
 #########################################
 #
