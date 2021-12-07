@@ -579,7 +579,7 @@ def morris_si_bar_figure(dfsi, fig_title, ylabel, xticklabels):
     f.suptitle(fig_title)
     return f
 
-def sobol_si_bar_figure(dfsi, fig_title):
+def sobol_si_second_order_bar_figure(dfsi, fig_title, xticklabels):
     f, ax = plt.subplots(1,1, figsize = (10,10))
     bar_width=0.4
     x_pos = np.arange(dfsi.shape[0])
@@ -587,7 +587,7 @@ def sobol_si_bar_figure(dfsi, fig_title):
     ax.bar(x_pos+bar_width, dfsi['ST'], width=bar_width, yerr = dfsi['ST_conf'], align='center', label="ST")
 
     ax.set_xticks(x_pos + bar_width / 2)
-    ax.set_xticklabels(dfsi['names'], rotation=45)
+    ax.set_xticklabels(xticklabels, rotation=45)
     ax.legend()
 
     f.suptitle(fig_title)
@@ -1089,7 +1089,7 @@ if setting == "morris_factor_fixing":
 
 if setting == 'sobol_si':
 
-    print("\nCalculating sensitivity indices - Conflicts")
+    print("\nCalculating sobol indices - Conflicts")
 
     conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
     metrics = ['conflict_count', 'meanNormCC']
@@ -1106,11 +1106,11 @@ if setting == 'sobol_si':
             df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
 
             # Create figures
-            f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat))
+            f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat), df['names'].replace(rename_dict))
             f_si.savefig(os.path.join(img_dir, "{}_{}_sobol1T.{}.png".format(metric, cat, file_datetime_string)))
             f_si.clear()
 
-    print("Calculating Sobol Sensitivity Indices - Shortest Path Comparison")
+    print("Calculating Sobol Indices - Shortest Path Comparison")
 
     # Get array of parameter values and output values
     grouped = dfSPSim.groupby("k")
@@ -1127,7 +1127,7 @@ if setting == 'sobol_si':
         df = pd.DataFrame(Sis).sort_values(by='S1', ascending=False)
 
         # Plot
-        f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices, k={}".format(k))
+        f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices", df['names'].replace(rename_dict))
         f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_{}.{}.png".format(k, file_datetime_string)))
         f_si.clear()
 
