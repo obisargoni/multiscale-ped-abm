@@ -54,7 +54,7 @@ def filter(sobol_indices, names, locs, criterion, threshold):
     return filtered_names, filtered_locs
 
 
-def plot_sobol_indices(sobol_indices, sa_problem, criterion='ST', threshold=0.01):
+def plot_sobol_indices(sobol_indices, sa_problem, criterion='ST', threshold=0.01, rename_dict = None):
     '''Plot sobol indices on a radial plot
 
     Parameters
@@ -103,7 +103,12 @@ def plot_sobol_indices(sobol_indices, sa_problem, criterion='ST', threshold=0.01
     ax.spines['polar'].set_visible(False)
     ax.set_xticks(locs)  # steipatr, changed from ticklocs
 
-    ax.set_xticklabels(names)
+    if rename_dict is not None:
+        display_names = [rename_dict[i] for i in names]
+    else:
+        display_names = names
+
+    ax.set_xticklabels(display_names)
     ax.set_yticklabels([])
     ax.set_ylim(top=1.4)
     legend(ax)

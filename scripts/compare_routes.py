@@ -1103,9 +1103,9 @@ if setting == 'sobol_si':
             Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
 
             # Gather into a dataframe
-            Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+            Sis['names'] = problem['names']
+            Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
             df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
-            df['names'] = problem['names']
 
             # Create figures
             f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat), df['names'].replace(rename_dict))
@@ -1113,7 +1113,7 @@ if setting == 'sobol_si':
             f_si.clear()
 
             if calc_second_order==True:
-                f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001)
+                f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
                 f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T.{}.png".format(metric, cat, file_datetime_string)))
                 f_si.clear()
 
@@ -1130,9 +1130,9 @@ if setting == 'sobol_si':
         Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
 
         # Gather into a dataframe
-        Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+        Sis['names'] = problem['names']
+        Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
         df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
-        df['names'] = problem['names']
 
         # Plot
         f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices", df['names'].replace(rename_dict))
@@ -1140,7 +1140,7 @@ if setting == 'sobol_si':
         f_si.clear()
 
         if calc_second_order==True:
-            f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001)
+            f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
             f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_2ndorder_{}.{}.png".format(k, file_datetime_string)))
             f_si.clear()
 
@@ -1154,10 +1154,11 @@ if setting == 'sobol_si':
         print(e)
         print(k)
 
+
     # Gather into a dataframe
-    Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf']}
+    Sis['names'] = problem['names']
+    Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
     df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
-    df['names'] = problem['names']
 
     # Plot
     f_si = sobol_si_bar_figure(df, "Total Path Length Sensitivity", df['names'].replace(rename_dict))
@@ -1166,10 +1167,9 @@ if setting == 'sobol_si':
 
     # If second_order then produce plot show interdependence of parameter sensitivity
     if calc_second_order==True:
-        from sobol_plot import plot_sobol_indices
-
-        f_second_order = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01)
-        f_second_order.savefig(os.path.join(img_dir, "route_length_sobol_2ndorder_.{}.png".format(file_datetime_string)))
+        f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01, rename_dict = rename_dict)
+        f_si.savefig(os.path.join(img_dir, "route_length_sobol_2ndorder_.{}.png".format(file_datetime_string)))
+        f_si.clear()
 
 #########################################
 #
