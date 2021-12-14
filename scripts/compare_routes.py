@@ -78,7 +78,7 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
 
         if prev == start_node:
             break
-        
+
 
     # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
     # In this case return empty list
@@ -195,7 +195,7 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
         VehCountAv.to_csv(output_path, index=False)
     else:
         VehCountAv = pd.read_csv(output_path)
-    
+
     return VehCountAv
 
 def unstack_sp_string(df, sp_string_col = 'FullStrategicPathString'):
@@ -220,7 +220,7 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
     '''
 
     dfCrossCounts = dfCrossEvents.groupby(['run','CurrentPavementLinkID'])['ID'].apply(lambda s: s.unique().shape[0]).reset_index()
-    dfCrossCounts.rename(columns={'ID':'cross_count'}, inplace=True)    
+    dfCrossCounts.rename(columns={'ID':'cross_count'}, inplace=True)
 
     # Now merge with lookup from or link to pave link
     dfCrossCounts = pd.merge(dfCrossCounts, gdfPaveLinks.reindex(columns = ['fid', 'pedRLID']).drop_duplicates(), left_on = 'CurrentPavementLinkID', right_on = 'fid')
@@ -234,7 +234,7 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
     return dfRLCrossCounts
 
 def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "ped_routes.csv"):
-    
+
     split_path = os.path.splitext(output_path)
     routes_removed_path = split_path[0] + "_removed_peds" + split_path[1]
 
@@ -254,7 +254,7 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "p
         # Otherwise create data
 
         print("\nExtracting Pedestrian Agent Routes")
-        
+
         ######################################
         #
         #
@@ -350,7 +350,7 @@ def get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = "cross_even
 
     if os.path.exists(output_path)==False:
 
-        # Process raw ped crossings data to 
+        # Process raw ped crossings data to
         # - drop rows that don't correspond to a crossing event
         # - aggregate TTC data to choose the lowest TTC value per crossing event
         # - this produces dataset with 1 row per crossing event
@@ -404,7 +404,7 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
         dfSPSim = pd.DataFrame()
         for k in weight_params:
             dfPedRoutes['comp_value_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, weight='length'), axis=1)
-            
+
             # This is only meaning full for the shortest path unweighted by vehicle traffic, where we can expect the path to match the ABM tactical path, and therefore compare path lengths to check for equivalence.
             dfPedRoutes['comp_path_weight_{}'.format(k)] = dfPedRoutes.apply(lambda row: compare_node_paths(pavement_graph, row['node_path'], row['sp_{}'.format(k)], dict_node_pos, distance_function = distance_function, account_for_path_length=True, weight='length'), axis=1)
 
@@ -453,7 +453,7 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck
 
     if os.path.exists(output_path)==False:
         dfPedRoutes['route_length'] = dfPedRoutes.apply(lambda row: nx.path_weight(pavement_graph, row['node_path'], weight='length'), axis=1)
-        
+
         dfRouteLength = dfPedRoutes.groupby('run')['route_length'].sum().reset_index()
 
         # Merge in parameter values
@@ -478,7 +478,7 @@ def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.c
     return dfCompletions
 
 def agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC', ttc_threshold = 3):
-    '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the 
+    '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the
     mean TTC per run.
     '''
 
@@ -536,7 +536,7 @@ def factor_map(problem, X, Y, threshold):
         # Gather results into a dictionary
         ks_result = {'name':f, 'm':m, 's':s, 'm_':m_, 's_':s_, 'D':D, 'p_ks':p_ks, 'T':T, 'p_t':p_t}
         ks_results.append(ks_result)
-    
+
     dfks = pd.DataFrame(ks_results).sort_values(by = 'p_ks')
 
     # Calculate correlations between parameters in behavioural group
@@ -627,7 +627,7 @@ def batch_run_scatter(df_data, groupby_columns, parameter_sweep_columns, value_c
 
             ax.plot(e[inds], g[inds], color='black')
             #im = ax.scatter(e, g, c='black')
-        
+
             ax.set_ylabel(rename_dict[parameter_sweep_columns[1]])
             ax.set_xlabel(rename_dict[parameter_sweep_columns[0]])
 
@@ -647,7 +647,7 @@ def batch_run_scatter(df_data, groupby_columns, parameter_sweep_columns, value_c
 
         s = "{}".format(rename_dict[group_key[0]])
         plt.text(-0.25,0.5, s, fontsize = 11, transform = ax.transAxes)
-    
+
 
     for j in range(q):
         ki = key_indices[-1, j]
@@ -676,7 +676,7 @@ def tile_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col = 
     norm = plt.Normalize()
     rgba = cmap(norm(colour_data.values))
 
-    # Replace alpha 
+    # Replace alpha
     if alpha_col is not None:
         alpha_data = df_group.reindex(columns = [row, col, alpha_col]).set_index([row, col]).unstack()
         rgba[:,:,3] = alpha_data.values
@@ -719,7 +719,7 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
             ax = axs[pi, qi]
 
             rgba_data, row_labels, col_labels = tile_rgba_data(df, parameter_sweep_columns[1], parameter_sweep_columns[0], value_col = value_col, alpha_col = None, cmap = cmap)
-            
+
             # Plot the tile
             im = ax.imshow(rgba_data, extent=extent)
 
@@ -753,7 +753,7 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
 
             ax.plot([e08,e08], [0,1],color='black',linewidth=2)
             ax.plot([e09,e09], [1,2],color='black',linewidth=2)
-        
+
             ax.set_ylabel(rename_dict[parameter_sweep_columns[1]])
             ax.set_xlabel(rename_dict[parameter_sweep_columns[0]])
 
@@ -773,7 +773,7 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
 
         s = "{}".format(rename_dict[group_key[0]])
         plt.text(-0.25,0.5, s, fontsize = 11, transform = ax.transAxes)
-    
+
 
     for j in range(q):
         ki = key_indices[-1, j]
@@ -1005,7 +1005,7 @@ if setting == "morris_factor_fixing":
 
     conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
     metrics = ['conflict_count', 'meanNormCC', 'varNormCC', 'meanTTC', 'varTTC']
-    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
+    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)",
                     'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
     for cat, dfC in conflicts_data.items():
         for metric in metrics:
@@ -1094,7 +1094,7 @@ if setting == 'sobol_si':
 
     conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
     metrics = ['conflict_count', 'meanNormCC']
-    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)", 
+    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)",
                     'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
     for cat, dfC in conflicts_data.items():
         for metric in metrics:
@@ -1183,7 +1183,7 @@ if setting == "epsilon_gamma_scatter":
 
     fixed_columns = ['random_seed', 'addPedTicks', 'alpha','tacticalPlanHorizon', 'minCrossing']
     variable_columns = ['epsilon', 'gamma', 'lambda', 'addVehicleTicks']
-    
+
     metric = 'frac_completed_journeys'
     groupby_columns = ['addVehicleTicks', 'lambda']
     parameter_sweep_columns = ['epsilon', 'gamma']
@@ -1217,7 +1217,7 @@ if setting == "epsilon_gamma_scatter":
     # Need to select based on run and ID
     dfCrossEvents['run_ID'] = dfCrossEvents.apply(lambda row: (row['run'], row['ID']), axis=1)
     dfPedRoutes_removedpeds['run_ID'] = dfPedRoutes_removedpeds.apply(lambda row: (row['run'], row['ID']), axis=1)
-    
+
     dfCrossEventsCompleteJourney = dfCrossEvents.loc[ ~dfCrossEvents['run_ID'].isin(dfPedRoutes_removedpeds['run_ID'])]
 
     # Get count of peds per run
@@ -1238,4 +1238,3 @@ if setting == "epsilon_gamma_scatter":
     fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
-    
