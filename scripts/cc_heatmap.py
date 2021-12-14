@@ -276,7 +276,7 @@ df_cc_count_al = pd.concat([btwn_ped_cc, bynd_ped_cc])
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
-fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$")
 fig_path = os.path.join(img_dir, "al_crossing_heatmap_{}.png".format(configuration_datetime_strings['between'].strftime("%Y.%b.%d.%H_%M_%S")))
 
 f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
