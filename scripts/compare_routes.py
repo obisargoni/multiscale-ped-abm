@@ -793,6 +793,17 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
 
     return f, axs
 
+
+#####################################
+#
+#
+# Load config file
+#
+#
+#####################################
+with open(".//config.json") as f:
+    config = json.load(f)
+
 #####################################
 #
 #
@@ -800,9 +811,10 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
 #
 #
 #####################################
-file_datetime_string = "2021.Sep.22.08_17_14"
-vehicle_density_timestamp = "2021.Sep.20.15_18_00"
-setting = 'monte_carlo_filtering'
+file_datetime_string = config['file_datetime_string']
+vehicle_density_timestamp = config['vehicle_density_timestamp']
+setting = config['setting']
+
 
 #####################################
 #
@@ -810,9 +822,6 @@ setting = 'monte_carlo_filtering'
 #
 #####################################
 project_crs = {'init': 'epsg:27700'}
-
-with open(".//config.json") as f:
-    config = json.load(f)
 
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
