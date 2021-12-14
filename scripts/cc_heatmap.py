@@ -27,7 +27,7 @@ def heatmap_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col
     norm = plt.Normalize()
     rgba = cmap(norm(colour_data.values))
 
-    # Replace alpha 
+    # Replace alpha
     if alpha_col is not None:
         alpha_data = df_group.reindex(columns = [row, col, alpha_col]).set_index([row, col]).unstack()
         rgba[:,:,3] = alpha_data.values
@@ -81,7 +81,7 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
 
     # Let the horizontal axes labeling appear on top.
     ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
-    ax.xaxis.set_label_position('top') 
+    ax.xaxis.set_label_position('top')
 
     # Rotate the tick labels and set their alignment.
     #plt.setp(ax.get_xticklabels(), rotation=-30, ha="right", rotation_mode="anchor")
@@ -196,7 +196,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 
 
     # Adjust the plot to make space for the colourbar axis
-    plt.subplots_adjust(right=0.8, wspace = 0.1)    
+    plt.subplots_adjust(right=0.8, wspace = 0.1)
 
     # Create new axis at far right of plot - [left, bottom, width, height]
     cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
@@ -211,7 +211,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 
         s = "{}".format(rename_dict[group_key[0]])
         plt.text(-0.4,0.5, s, fontsize = 11, transform = ax.transAxes)
-    
+
 
     for j in range(q):
         ki = key_indices[-1, j]
