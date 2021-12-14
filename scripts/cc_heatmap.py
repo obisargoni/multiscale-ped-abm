@@ -247,8 +247,8 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 "gamma":r"$\mathrm{\gamma}$",
                 "between": "Between Configuration",
                 "beyond":"Beyond Configuration",
-                50:"High\nVehicle\nFlow",
-                5:"Low\nVehicle\nFlow"
+                5:"High\nVehicle\nFlow",
+                50:"Low\nVehicle\nFlow"
                 }
 
 configuration_datetime_strings = {
