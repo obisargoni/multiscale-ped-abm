@@ -251,9 +251,9 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 5:"Low\nVehicle\nFlow"
                 }
 
-configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2021.Nov.05.11_52_07", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2021.Nov.05.12_22_38", "%Y.%b.%d.%H_%M_%S")
+configuration_datetime_strings = {
+                                    "between":  dt.strptime(config['al_sweep_between'], "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime(config['al_sweep_beyond'], "%Y.%b.%d.%H_%M_%S")
                                 }
 
 with open(".//config.json") as f:
@@ -290,9 +290,9 @@ f.show()
 #
 #
 #####################################
-configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2021.Nov.05.15_01_54", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2021.Nov.05.13_37_55", "%Y.%b.%d.%H_%M_%S")
+configuration_datetime_strings = {
+                                    "between":  dt.strptime(config['eg_sweep_between'], "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime(config['eg_sweep_beyond'], "%Y.%b.%d.%H_%M_%S")
                                 }
 
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
