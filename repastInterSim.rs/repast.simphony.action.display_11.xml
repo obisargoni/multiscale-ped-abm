@@ -1,4 +1,4 @@
-<repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.6.0">
+<repast.simphony.gis.visualization.engine.GISDisplayDescriptor simphonyVersion="2.7.0">
   <name>2D GIS Intersection Display</name>
   <type>GIS</type>
   <styles>
