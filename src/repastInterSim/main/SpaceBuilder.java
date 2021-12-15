@@ -440,14 +440,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * Method to remove agents from the simulation. Requires some care because of links created between agents.
 	 */
 	private void runCleanUP() {
-		/*
 		for (Geography g: this.fixedGeographies) {
 			for (Object o : g.getAllObjects()) {
 				FixedGeography fg = (FixedGeography)o;
 				fg.clear();
 			}
 		}
-		*/
 		
 		RoadNetworkRoute.clearCaches();
 		Route.clearCaches();
@@ -459,7 +457,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 		
 		Context mc = RunState.getInstance().getMasterContext();
-		mc.clear();
+		for (Object o: mc.getSubContexts()) {
+			Context sc  = (Context) o;
+			sc.clear();
+		}
 	}
 
 	/*
