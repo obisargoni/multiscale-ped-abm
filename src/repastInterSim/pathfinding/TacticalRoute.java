@@ -125,7 +125,10 @@ public class TacticalRoute {
 	/*
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
-	public void updateCurrentJunction() {		
+	public void updateCurrentJunction() {
+		// Add edge that has just been traversed to the record of the pedestrian's tactical path
+		this.ped.getPathFinder().addTacticalLinkToFullTacticalPathString(ped.getCurrentPavementLinkID());
+
 		// Update the current edge			
 		this.currentEdge = this.routePath.poll();
 		
