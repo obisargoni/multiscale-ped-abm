@@ -46,6 +46,7 @@ public class PedPathFinder {
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
 	private TacticalRoute tacticalPath = new TacticalRoute();
+	private String fullTacticalPathString = "";
 	
 	private Coordinate nextCrossingCoord;	
 
@@ -506,6 +507,14 @@ public class PedPathFinder {
 	
 	public TacticalRoute getTacticalPath() {
 		return this.tacticalPath;
+	}
+	
+	public void addTacticalLinkToFullTacticalPathString(String rlID) {
+		this.fullTacticalPathString += rlID + ":";
+	}
+	
+	public String getFullTacticalPathString() {
+		return this.fullTacticalPathString;
 	}
 	
 	public Coordinate getNextCrossingCoord() {
