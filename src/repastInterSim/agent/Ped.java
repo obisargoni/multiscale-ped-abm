@@ -689,6 +689,9 @@ public class Ped extends MobileAgent {
      * Method to be run when agent is removed from the context.
      */
     public void tidyForRemoval() {
+    	// Add the final tactical link to the reord
+    	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
+    	
     	// Record the ped's route for data collection
     	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString());
     	RunState.getInstance().getMasterContext().add(pd);
