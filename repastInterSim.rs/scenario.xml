@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Scenario simphonyVersion="2.7.0">
-<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="repastInterSim" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_0.xml" />
+<repast.simphony.action.data_set context="repastInterSim" file="repast.simphony.action.data_set_0.xml" />
 <repast.simphony.action.data_set context="repastInterSim" file="repast.simphony.action.data_set_1.xml" />
 <repast.simphony.action.data_set context="repastInterSim" file="repast.simphony.action.data_set_2.xml" />
 <repast.simphony.action.data_set context="repastInterSim" file="repast.simphony.action.data_set_3.xml" />
@@ -11,5 +11,7 @@
 <repast.simphony.action.file_sink context="repastInterSim" file="repast.simphony.action.file_sink_8.xml" />
 <repast.simphony.action.file_sink context="repastInterSim" file="repast.simphony.action.file_sink_9.xml" />
 <repast.simphony.action.file_sink context="repastInterSim" file="repast.simphony.action.file_sink_10.xml" />
-<repast.simphony.action.display context="repastInterSim" file="repast.simphony.action.display_11.xml" />
+<repast.simphony.action.file_sink context="repastInterSim" file="repast.simphony.action.file_sink_11.xml" />
+<repast.simphony.dataLoader.engine.ClassNameDataLoaderAction context="repastInterSim" file="repast.simphony.dataLoader.engine.ClassNameDataLoaderAction_12.xml" />
+<repast.simphony.action.display context="repastInterSim" file="repast.simphony.action.display_13.xml" />
 </Scenario>
