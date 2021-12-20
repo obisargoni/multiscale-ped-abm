@@ -980,7 +980,8 @@ gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), '
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_ped_routes_file)
 dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = output_cross_events_path)
 
-dfPedRoutesNew, dfPedRoutesNew_removedpeds = load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
+dfPedRoutes, dfPedRoutes_removedpeds = load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
+dfCrossEvents = load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
