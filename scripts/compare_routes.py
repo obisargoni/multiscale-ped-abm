@@ -446,6 +446,40 @@ def get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = "cross_even
 
     return dfCrossEvents
 
+def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.csv"):
+    '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
+    Crossing event defined by crossing type, location and minimum TTC during crossing.
+    '''
+    d,f = os.path.split(cross_events_path)
+    output_path = os.path.join(d, 'processed_'+f)
+
+    if os.path.exists(output_path)==False:
+
+        dfCrossEvents = pd.read_csv(cross_events_path)
+
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC'])
+
+        # Group by run, ID and CurrentPavementLinkID to find min TTC per cross event
+        dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['TTC'].transform(lambda s: s.min())
+
+        # Drop duplicates again now that TTC and crossing coord processed
+        dfCrossEvents = dfCrossEvents.drop_duplicates()
+
+        # Merge with pave links to get link type
+        dfLinkTypes = gdfPaveLinks.reindex(columns = ['fid','linkType']).drop_duplicates()
+        dfCrossEvents = pd.merge(dfCrossEvents, dfLinkTypes, left_on = 'TacticalEdgeID', right_on = 'fid', how = 'left')
+        dfCrossEvents.drop('fid', axis=1,inplace=True)
+
+        # Check that there is a single crossing event per ped per pavement link.
+        cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'TacticalEdgeID']).apply(lambda df: df.shape[0])
+        assert cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]==0
+
+        dfCrossEvents.to_csv(output_path, index=False)
+    else:
+        dfCrossEvents = pd.read_csv(output_path)
+
+    return dfCrossEvents
+
 def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
 
     ######################################
@@ -904,6 +938,9 @@ ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(
 
 file_re = bd_utils.get_file_regex("pedestrian_routes", file_datetime = file_datetime)
 ped_routes_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
+
+file_re = bd_utils.get_file_regex("cross_events", file_datetime = file_datetime)
+cross_events_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
