@@ -343,6 +343,66 @@ def get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_path = "p
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
+def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv"):
+
+    split_path = os.path.splitext(ped_routes_path)
+    routes_removed_path = split_path[0] + "_removed_peds" + split_path[1]
+
+    if os.path.exists(ped_routes_path)==False:
+        print("\nPedestrian routes path not found.\n")
+
+    else:
+        # Otherwise create data
+
+        print("\nLoading Pedestrian Agent Routes")
+
+
+        # Load data from file
+        dfPedRoutes = pd.read_csv(ped_routes_path)
+
+        # Convert strategic path to list
+        dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(dict.fromkeys(s.strip(":").split(":"))))
+
+        # Convert string tactical path to list
+        dfPedRoutes['edge_path'] = dfPedRoutes['FullTacticalRouteString'].map(lambda s: tuple(dict.fromkeys(s.strip(":").split(":"))))
+
+        # Convert edge path to node path
+        dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
+
+        ## Need to keep these in or keep a record of what rows got dropped in order to calculate SIs later
+        # Or avoid dropping.
+        dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: x[-1])!=dfPedRoutes['DestPavementJunctionID']]
+        removed_peds_index = dfPedRoutes_removedpeds.index
+
+        # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
+        dfPedRoutes['start_node'] = dfPedRoutes.apply(lambda row: row['node_path'][0] if len(row['node_path'])>0 else row['StartPavementJunctionID'], axis=1)
+        dfPedRoutes['end_node'] = dfPedRoutes.apply(lambda row: row['node_path'][-1] if len(row['node_path'])>0 else row['DestPavementJunctionID'], axis=1)
+        dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
+
+                # Set dfPedRoutes to just have columns we are interested in
+        dfPedRoutes = dfPedRoutes.reindex(columns = [   'run', 'ID', 'FullStrategicPathString', 'edge_path',
+                                                        'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
+                                                        'start_node', 'end_node'])
+
+        for k in weight_params:
+            weight_name = "weight{}".format(k)
+            gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
+            gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+
+            # Weight pavement network crossing links by average vehicle flow
+            weight_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+            nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+            dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+
+
+        dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
+
+        #dfPedRoutes.to_csv(output_path, index=False)
+        #dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
+
+    return dfPedRoutes, dfPedRoutes_removedpeds
+
 def get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = "cross_events.csv"):
     '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
     Crossing event defined by crossing type, location and minimum TTC during crossing.
@@ -842,6 +902,9 @@ file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
 ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
+file_re = bd_utils.get_file_regex("pedestrian_routes", file_datetime = file_datetime)
+ped_routes_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
+
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
 
@@ -916,6 +979,8 @@ gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), '
 
 dfPedRoutes, dfPedRoutes_removedpeds = get_ped_routes(dfPedCrossings, gdfPaveLinks, weight_params, output_ped_routes_file)
 dfCrossEvents = get_ped_cross_events(dfPedCrossings, gdfPaveLinks, output_path = output_cross_events_path)
+
+dfPedRoutesNew, dfPedRoutesNew_removedpeds = load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
 
 # Data aggregated to run level, used to calculate sensitivity indices
 dfRouteCompletion = agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
