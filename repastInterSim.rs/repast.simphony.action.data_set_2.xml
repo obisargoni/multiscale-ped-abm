@@ -1,7 +1,7 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Vehicle Road Links</name>
+  <name>PedAccumulator</name>
   <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.agent.Vehicle</sourceType>
+  <sourceType>repastInterSim.agent.Ped</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>true</inclRandomSeed>
@@ -12,7 +12,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1987736564</hashCode>
+    <hashCode>-1398689020</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -20,16 +20,16 @@
       <string>ID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>ID</id>
-        <className>repastInterSim.agent.Vehicle</className>
+        <className>repastInterSim.agent.Ped</className>
         <methodName>getID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>CurrentRoadLinkID</string>
+      <string>AccumulatorData</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>CurrentRoadLinkID</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getCurrentRoadLinkID</methodName>
+        <id>AccumulatorData</id>
+        <className>repastInterSim.agent.Ped</className>
+        <methodName>AccumulatorData</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

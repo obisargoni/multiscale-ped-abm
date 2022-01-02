@@ -78,8 +78,6 @@ public class Ped extends MobileAgent {
     
     private String currentCrossingType = "none";
 	private String currentPavementLinkID = "";
-	private Double ttc = null;
-
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     
@@ -707,7 +705,6 @@ public class Ped extends MobileAgent {
         this.col=null;
         this.currentCrossingType=null;
     	this.currentPavementLinkID = null;
-    	this.ttc = null;
     }
     
     public Color getColor() {
@@ -895,28 +892,29 @@ public class Ped extends MobileAgent {
 		return alpha;
 	}
 
-
 	public double getGamma() {
 		return gamma;
 	}
 
-
 	public double getEpsilon() {
 		return epsilon;
-	}
-
-
-	public String getChosenCrossingType() {
-		return currentCrossingType;
-	}
-
-	public void setChosenCrossingType(String chosenCrossingType) {
-		this.currentCrossingType = chosenCrossingType;
 	}
 	
 	public void setCurrentPavementLinkID(String paveLinkID) {
 		this.currentPavementLinkID = paveLinkID;
 	}
+	
+    public String getCurrentPavementLinkID() { 
+    	return this.currentPavementLinkID;
+    }
+    
+    public String getOriginID() {
+    	return this.origin.getFID();
+    }
+    
+    public String getDestinationID() {
+    	return this.destination.getFID();
+    }
 	
 	/*
 	 * Flag that indicates whether this pedestrian has chosen a crossing and is therefore attempting to cross the road
@@ -936,52 +934,6 @@ public class Ped extends MobileAgent {
     // Used for testing only
     public void setV(double[] v) {
     	this.v = v;
-    }
-    
-    public String getCurrentPavementLinkID() { 
-    	return this.currentPavementLinkID;
-    }
-    
-    public String getStartPavementJunctionID() {
-    	return this.pathFinder.getStartPavementJunction().getFID();
-    }
-    
-    public String getDestPavementJunctionID() {
-    	return this.pathFinder.getDestPavementJunction().getFID();
-    }
-    
-    public String getCrossingCoordsString() {
-    	String ccString = "";
-    	for (Coordinate c: this.pathFinder.getTacticalPath().getAccumulatorRoute().getCrossingCoordinates()) {
-    		ccString += c.toString();
-    		ccString += ",";
-    	}
-    	return ccString;
-    }
-    
-    public String getFullStrategicPathString() {
-    	return this.pathFinder.getFullStrategicPathString();
-    }
-    
-    public String getOriginID() {
-    	return this.origin.getFID();
-    }
-    
-    public String getDestinationID() {
-    	return this.destination.getFID();
-    }
-    
-    public String getTTCString() {
-    	if (this.ttc==null) {
-    		return "";
-    	}
-    	else {
-    		return this.ttc.toString();
-    	}
-    }
-    
-    public void setTTC(Double ttc) {
-    	this.ttc = ttc;
     }
     
     public String AccumulatorData() {

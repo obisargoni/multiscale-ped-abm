@@ -311,11 +311,9 @@ public class AccumulatorRoute {
 			List<Double> values =  ttcs.values().stream().filter(x->x!=null).collect(Collectors.toList());
 			if (values.size()>0) {
 				double ttc = values.stream().min(Comparator.comparing(Double::valueOf)).get();
-				ped.setTTC(ttc);
 				this.ced.setTTC(ttc);
 			}
 			else {
-				ped.setTTC(null);
 				this.ced.setTTC(null);
 			}
 		}
@@ -384,7 +382,6 @@ public class AccumulatorRoute {
 			this.crossingRequired = false;
 			this.caChosen = false;
 			this.isCrossing = false;
-			this.ped.setTTC(null);
 			
 			// Remove crossing data collector from context and set to null
 			RunState.getInstance().getMasterContext().remove(this.ced);

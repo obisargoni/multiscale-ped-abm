@@ -109,7 +109,6 @@ public class TacticalRoute {
 				// Update ped attributes that are recorded for analysis
 				// If current edge is null, tactical path needs updating so do not update ped attributes yet.
 				if (this.currentEdge != null) {
-					this.ped.setChosenCrossingType("none");
 					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 				}
@@ -324,7 +323,6 @@ public class TacticalRoute {
 			caChosenUpdateCurrentJunction();
 			
 			// Update the ped attributes that are collected for data analysis
-			this.ped.setChosenCrossingType(this.accumulator.getChosenCA().getType());
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 		}

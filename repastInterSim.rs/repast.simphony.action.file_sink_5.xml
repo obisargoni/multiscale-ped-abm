@@ -1,15 +1,19 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.7.0">
-  <name>PedAccumulator</name>
-  <dataSet>PedAccumulator</dataSet>
+  <name>Pedestrian Locations</name>
+  <dataSet>Pedestrian Locations</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
-    <string>AccumulatorData</string>
+    <string>ID</string>
+    <string>LocXString</string>
+    <string>LocYString</string>
+    <string>CrossingChoice</string>
     <string>tick</string>
     <string>run</string>
+    <string>OriginID</string>
+    <string>DestinationID</string>
     <string>random_seed</string>
-    <string>ID</string>
   </sourceIds>
-  <fileName>.\batch\model_run_data\ped_accumulator.csv</fileName>
+  <fileName>.\batch\model_run_data\pedestrian_locations.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
