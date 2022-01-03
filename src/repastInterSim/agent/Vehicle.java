@@ -634,5 +634,9 @@ public class Vehicle extends MobileAgent {
     	
     	return minTTC;
     }
+    
+	static public void resetID() {
+		Vehicle.uniqueID=1;
+	}
 
 }
