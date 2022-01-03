@@ -878,11 +878,11 @@ dfRouteLength = get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pav
 dfSPSim = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsMarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsUnmarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsMarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType#']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsUnmarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDirect = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='direct_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonal = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='diag_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 
 ######################################
 #
