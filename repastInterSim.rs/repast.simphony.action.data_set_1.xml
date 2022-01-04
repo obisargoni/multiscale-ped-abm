@@ -1,7 +1,7 @@
 <repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
-  <name>Vehicle Road Links</name>
+  <name>Cross Events</name>
   <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.agent.Vehicle</sourceType>
+  <sourceType>repastInterSim.datasources.CrossEventData</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>true</inclRandomSeed>
@@ -12,7 +12,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>1987736564</hashCode>
+    <hashCode>212890158</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -20,16 +20,40 @@
       <string>ID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>ID</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getID</methodName>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getPedID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>CurrentRoadLinkID</string>
+      <string>TacticalEdgeID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>CurrentRoadLinkID</id>
-        <className>repastInterSim.agent.Vehicle</className>
-        <methodName>getCurrentRoadLinkID</methodName>
+        <id>TacticalEdgeID</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getTacticalEdgeID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>CrossingType</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>CrossingType</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getCrossingType</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>CrossingCoordinatesString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>CrossingCoordinatesString</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getCrossingCoordinatesString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>TTC</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>TTC</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getTTCString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>
