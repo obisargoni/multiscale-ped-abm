@@ -110,6 +110,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		this.nPedsCreated=0;
+		Ped.resetID();
+		Vehicle.resetID();
 		
 		// Correct way to register multiple random number streams
 		

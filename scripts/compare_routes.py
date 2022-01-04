@@ -219,11 +219,11 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
     Then provide lookup from pavement link to OR link so that crossings on a pavement link can be normalised by total number of crossings on the corresponding road link.
     '''
 
-    dfCrossCounts = dfCrossEvents.groupby(['run','CurrentPavementLinkID'])['ID'].apply(lambda s: s.unique().shape[0]).reset_index()
+    dfCrossCounts = dfCrossEvents.groupby(['run','TacticalEdgeID'])['ID'].apply(lambda s: s.unique().shape[0]).reset_index()
     dfCrossCounts.rename(columns={'ID':'cross_count'}, inplace=True)
 
     # Now merge with lookup from or link to pave link
-    dfCrossCounts = pd.merge(dfCrossCounts, gdfPaveLinks.reindex(columns = ['fid', 'pedRLID']).drop_duplicates(), left_on = 'CurrentPavementLinkID', right_on = 'fid')
+    dfCrossCounts = pd.merge(dfCrossCounts, gdfPaveLinks.reindex(columns = ['fid', 'pedRLID']).drop_duplicates(), left_on = 'TacticalEdgeID', right_on = 'fid')
 
     # Aggregate to get road link cross counts
     dfRLCrossCounts = dfCrossCounts.groupby(['run','pedRLID'])['cross_count'].apply(lambda s: s.sum()).reset_index()
@@ -261,7 +261,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
 
         ## Need to keep these in or keep a record of what rows got dropped in order to calculate SIs later
         # Or avoid dropping.
-        dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: x[-1])!=dfPedRoutes['DestPavementJunctionID']]
+        dfPedRoutes_removedpeds = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x))==0]
         removed_peds_index = dfPedRoutes_removedpeds.index
 
         # Find the unique set of start and end node and calculate shortest paths between these. Then merge into the ped routes data.
@@ -306,7 +306,7 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
         dfCrossEvents = dfCrossEvents.reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC'])
 
-        # Group by run, ID and CurrentPavementLinkID to find min TTC per cross event
+        # Group by run, ID and TacticalEdgeID to find min TTC per cross event
         dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['TTC'].transform(lambda s: s.min())
 
         # Drop duplicates again now that TTC and crossing coord processed
@@ -436,8 +436,8 @@ def agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC', ttc_t
                                                         ).reset_index()
 
     # get conflict counts normalsied by numbers of peds on road links
-    dfPaveLinkConflictCounts = dfCrossEvents.groupby(['run','CurrentPavementLinkID']).agg( conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),).reset_index()
-    dfPaveLinkConflictCounts = pd.merge(dfPaveLinkConflictCounts, dfLinkCrossCounts, left_on = ['run', 'CurrentPavementLinkID'], right_on = ['run', 'fid'], indicator=True)
+    dfPaveLinkConflictCounts = dfCrossEvents.groupby(['run','TacticalEdgeID']).agg( conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),).reset_index()
+    dfPaveLinkConflictCounts = pd.merge(dfPaveLinkConflictCounts, dfLinkCrossCounts, left_on = ['run', 'TacticalEdgeID'], right_on = ['run', 'fid'], indicator=True)
     assert dfPaveLinkConflictCounts.loc[ dfPaveLinkConflictCounts['_merge']!='both'].shape[0]==0
     dfPaveLinkConflictCounts['norm_conflict_count'] = dfPaveLinkConflictCounts['conflict_count'] / dfPaveLinkConflictCounts['cross_count']
 
@@ -878,11 +878,11 @@ dfRouteLength = get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pav
 dfSPSim = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsMarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsUnmarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsMarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsUnmarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDirect = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='direct_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonal = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='diag_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
-dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['ChosenCrossingTypeString']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 
 ######################################
 #
@@ -1178,7 +1178,7 @@ if setting == "epsilon_gamma_scatter":
     # Get count of peds per run
     dfNPeds = dfCrossEventsCompleteJourney.groupby('run')['ID'].apply(lambda s: s.unique().shape[0]).reset_index().rename(columns = {'ID':'nPedsComplete'})
 
-    dfCrossAtTarget = dfCrossEventsCompleteJourney.loc[dfCrossEventsCompleteJourney['CurrentPavementLinkID'].isin(target_links)]
+    dfCrossAtTarget = dfCrossEventsCompleteJourney.loc[dfCrossEventsCompleteJourney['TacticalEdgeID'].isin(target_links)]
     dfCrossAtTarget = dfCrossAtTarget.groupby('run')['ID'].apply(lambda s: s.unique().shape[0]).reset_index().rename(columns = {'ID':'n_target_cross'})
 
     dfCrossAtTarget = pd.merge(dfRun.loc[dfRun['run'].isin(runs_ped_complete)], dfCrossAtTarget, on='run', how = 'left')
