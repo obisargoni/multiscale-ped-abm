@@ -174,7 +174,9 @@ public class Ped extends MobileAgent {
     	// Remove stuck agents from the simulation
     	if (this.stepsSinceReachedTarget>GlobalVars.stuckPedNSteps) {
     		String msg = "Removed stuck ped. Origin ID: " + this.origin.getFID() + " Dest ID: " + this.destination.getFID();
-    		SpaceBuilder.removeMobileAgent(this, msg);
+    		//SpaceBuilder.removeMobileAgent(this, msg);
+    		this.snapToNearestTacticalLinkCoordinate();
+    		this.stepsSinceReachedTarget=0;
     	}
     }
     
@@ -192,7 +194,14 @@ public class Ped extends MobileAgent {
         maLoc.x += this.v[0]*this.tau;
         maLoc.y += this.v[1]*this.tau;
         
-        // Now create new geometry at the location of the new centroid
+        // Now create new geometry at new maLoc and move agent to this geometry
+        setGeom();
+        
+        // Set the direction the pedestrian faces to be the direction of its velocity vector
+        setPedestrianBearingFromVelocity(this.v);
+    }
+    
+    public void setGeom() {
         Point pt = GISFunctions.pointGeometryFromCoordinate(maLoc);
 		Geometry pGeomNew = pt.buffer(this.rad);
         
@@ -204,9 +213,6 @@ public class Ped extends MobileAgent {
         
         // Update the coordinate after moving the pedestrian
         setLoc();
-        
-        // Set the direction the pedestrian faces to be the direction of its velocity vector
-        setPedestrianBearingFromVelocity(this.v);
     }
    
     /*
@@ -621,6 +627,30 @@ public class Ped extends MobileAgent {
             input[0] = input[0]*norm;
             input[1] = input[1]*norm;}
         return input;
+    }
+    
+    /*
+     * Method to move pedestrian agent to the nearest coordinate of its pavement link. Used when ped agents get stuck behind walls
+     */
+    public void snapToNearestTacticalLinkCoordinate() {
+    	// Find nearest coordinate
+    	NetworkEdge<Junction> tacticalEdge = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge();
+    	Geometry tacticalEdgeGeom = tacticalEdge.getRoadLink().getGeom();
+    	
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+    	Geometry agentG = GISFunctions.getAgentGeometry(geography, this);
+    	
+    	// Find nearest coordinate
+    	DistanceOp linkDist = new DistanceOp(agentG, tacticalEdgeGeom);
+    	Coordinate snapLoc = linkDist.nearestPoints()[1];
+    	this.maLoc = snapLoc;
+    	
+    	setGeom();
+    	
+    	// Set velocity to zero so ped start walking from standing
+    	this.v[0] = 0.0;
+    	this.v[1] = 0.0;
     }
     
     /**
