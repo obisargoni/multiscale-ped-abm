@@ -630,20 +630,34 @@ public class Ped extends MobileAgent {
     }
     
     /*
-     * Method to move pedestrian agent to the nearest coordinate of its pavement link. Used when ped agents get stuck behind walls
+     * Method to move pedestrian agent to the nearest coordinate of its pavement link (if attempting to cross) or to its next target junction (otherwise). 
+     * Used when ped agents get stuck behind walls
      */
     public void snapToNearestTacticalLinkCoordinate() {
-    	// Find nearest coordinate
-    	NetworkEdge<Junction> tacticalEdge = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge();
-    	Geometry tacticalEdgeGeom = tacticalEdge.getRoadLink().getGeom();
-    	
+    	// Get agent geometry
 		Context context = RunState.getInstance().getMasterContext();
 		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
     	Geometry agentG = GISFunctions.getAgentGeometry(geography, this);
     	
-    	// Find nearest coordinate
-    	DistanceOp linkDist = new DistanceOp(agentG, tacticalEdgeGeom);
-    	Coordinate snapLoc = linkDist.nearestPoints()[1];
+    	
+    	Coordinate snapLoc= null;
+    	
+    	if (this.pathFinder.getTacticalPath().getAccumulatorRoute().isBlank()) {
+    		// Move to target coordinate
+    		Coordinate target = this.pathFinder.getTacticalPath().getTargetCoordinate();
+    		
+    		// Slightly vary coord to avoid placing right on top of target coordiante
+    		snapLoc = new Coordinate(target.x+0.01,target.y+0.01);
+    	}
+    	else {
+    		// Find nearest coordinate
+        	NetworkEdge<Junction> tacticalEdge = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge();
+        	Geometry tacticalEdgeGeom = tacticalEdge.getRoadLink().getGeom();
+        	
+        	// Find nearest coordinate
+        	DistanceOp dist = new DistanceOp(agentG, tacticalEdgeGeom);
+        	snapLoc = dist.nearestPoints()[1];
+    	}
     	this.maLoc = snapLoc;
     	
     	setGeom();
