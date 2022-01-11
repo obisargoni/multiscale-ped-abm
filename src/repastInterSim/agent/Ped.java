@@ -642,10 +642,8 @@ public class Ped extends MobileAgent {
     	
     	if (this.pathFinder.getTacticalPath().getAccumulatorRoute().isBlank()) {
     		// Move to target coordinate
-    		Coordinate target = this.pathFinder.getTacticalPath().getTargetCoordinate();
+    		snapLoc = this.pathFinder.getTacticalPath().getTargetCoordinate();
     		
-    		// Slightly vary coord to avoid placing right on top of target coordiante
-    		snapLoc = new Coordinate(target.x+0.01,target.y+0.01);
     	}
     	else {
     		// Find nearest coordinate
@@ -656,7 +654,8 @@ public class Ped extends MobileAgent {
         	DistanceOp dist = new DistanceOp(agentG, tacticalEdgeGeom);
         	snapLoc = dist.nearestPoints()[1];
     	}
-    	this.maLoc = snapLoc;
+    	// Slightly vary coord to avoid placing right on top of target coordiante
+    	this.maLoc = new Coordinate(snapLoc.x+0.01, snapLoc.y+0.01);;
     	
     	setGeom();
     	
