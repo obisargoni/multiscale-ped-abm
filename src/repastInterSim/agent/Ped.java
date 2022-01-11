@@ -383,9 +383,20 @@ public class Ped extends MobileAgent {
     		}
     	}
     	
+    	// Exception handling put in place to try an avoid bug where null pointer exception thrown by output.put("angle", sampledAngles.get(lowi)); when performing batch runs
+    	Double ang = null;
+    	Double d = null;
+    	try {
+    		ang = sampledAngles.get(lowi);
+    		d = distances[lowi];
+    	} catch (NullPointerException e) {
+    		ang = this.bearing;
+    		d = 0.0;
+    	}
+    	
     	Map<String, Double> output = new HashMap<String, Double>();
-    	output.put("angle", sampledAngles.get(lowi));
-    	output.put("collision_distance", distances[lowi]);
+    	output.put("angle", ang);
+    	output.put("collision_distance", d);
     	
     	return output;    	
     }
