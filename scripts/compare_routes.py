@@ -335,7 +335,7 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
     return dfCrossEvents
 
-def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = "sp_similarity.csv"):
+def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', output_path = "sp_similarity.csv"):
 
     ######################################
     #
@@ -344,10 +344,6 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
     #
     #
     ######################################
-
-    if exclude_stuck_peds:
-        stuck_peds_index = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)].index
-        dfPedRoutes.drop(stuck_peds_index, inplace=True)
 
     if os.path.exists(output_path)==False:
         dfSPSim = pd.DataFrame()
@@ -386,7 +382,7 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
 
     return dfSPSim
 
-def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = "run_route_length.csv"):
+def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, output_path = "run_route_length.csv"):
 
     ######################################
     #
@@ -395,10 +391,6 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck
     #
     #
     ######################################
-
-    if exclude_stuck_peds:
-        stuck_peds_index = dfPedRoutes.loc[ dfPedRoutes['node_path'].map(lambda x: len(x)==0)].index
-        dfPedRoutes.drop(stuck_peds_index, inplace=True)
 
     if os.path.exists(output_path)==False:
         dfPedRoutes['route_length'] = dfPedRoutes.apply(lambda row: nx.path_weight(pavement_graph, row['node_path'], weight='length'), axis=1)
@@ -880,9 +872,9 @@ dfLinkCrossCounts = get_road_link_pedestrian_crossing_counts(dfCrossEventsConsis
 
 
 print("\nCalculating/Loading Output Metrics")
-dfRouteLength = get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = output_route_length_file)
-dfSPSim = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
-dfSPSimLen = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
+dfRouteLength = get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
+dfSPSim = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', output_path = output_sp_similarity_path)
+dfSPSimLen = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', output_path = output_sp_similarity_length_path)
 dfConflicts = agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsMarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unsignalised'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsUnmarked = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
