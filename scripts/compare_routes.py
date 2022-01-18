@@ -236,16 +236,20 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
 
 def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv"):
 
+    d,f = os.path.split(ped_routes_path)
+    output_path = os.path.join(d, 'processed_'+f)
+
     split_path = os.path.splitext(ped_routes_path)
     routes_removed_path = split_path[0] + "_removed_peds" + split_path[1]
 
-    if os.path.exists(ped_routes_path)==False:
-        print("\nPedestrian routes path not found.\n")
-
+    if os.path.exists(output_path):
+        print("\nLoading routes path not found.\n")
+        dfPedRoutes = pd.read_csv(output_path, index=False)
+        dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path, index=False)
     else:
         # Otherwise create data
 
-        print("\nLoading Pedestrian Agent Routes")
+        print("\nProcessing Pedestrian Agent Routes")
 
 
         # Load data from file
@@ -289,8 +293,8 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
 
         dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
 
-        #dfPedRoutes.to_csv(output_path, index=False)
-        #dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
+        dfPedRoutes.to_csv(output_path, index=False)
+        dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
