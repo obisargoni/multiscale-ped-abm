@@ -397,8 +397,12 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, output_path =
 
         dfRouteLength = dfPedRoutes.groupby('run')['route_length'].sum().reset_index()
 
+        # Also calculate route length per ped
+        dfRouteLengthPerPed = dfPedRoutes.groupby('run')['route_length'].mean().reset_index().rename(columns = {'route_length':'route_length_pp'})
+
         # Merge in parameter values
         dfRouteLength = pd.merge(dfRun, dfRouteLength, on = 'run')
+        dfRouteLength = pd.merge(dfRun, dfRouteLengthPerPed, on = 'run')
 
         # Save date for future use
         dfRouteLength.to_csv(output_path, index=False)
@@ -914,7 +918,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 }
 
 # Create an excel writer to record the senstitivity indices
-xlWriter = pd.pd.ExcelWriter(os.path.join(output_path, "{}_results.{}.xlsx".format(setting, file_datetime_string)), if_sheet_exists="new", engine_kwargs=None)
+xlWriter = pd.ExcelWriter(os.path.join(output_path, "{}_results.{}.xlsx".format(setting, file_datetime_string)), if_sheet_exists="new", engine_kwargs=None)
 
 
 ######################################
@@ -1039,7 +1043,7 @@ if setting == "morris_factor_fixing":
 
     # Get array of parameter values and output values
     X = dfRouteLength.loc[:, problem['names']].values
-    Y = dfRouteLength.loc[:, 'route_length'].astype(float).values
+    Y = dfRouteLength.loc[:, 'route_length_pp'].astype(float).values
     try:
         Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
     except ValueError as e:
@@ -1048,10 +1052,10 @@ if setting == "morris_factor_fixing":
 
     # Gather into a dataframe
     dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_rlsi = morris_si_bar_figure(dfRLSis, "Total Path Length Sensitivity", r"$\mathrm{\mu^*}$", dfRLSis['names'].replace(rename_dict))
-    f_rlsi.savefig(os.path.join(img_dir, "route_length_sis.{}.png".format(file_datetime_string)))
+    f_rlsi = morris_si_bar_figure(dfRLSis, "Mean Path Length Sensitivity", r"$\mathrm{\mu^*}$", dfRLSis['names'].replace(rename_dict))
+    f_rlsi.savefig(os.path.join(img_dir, "route_length_pp_sis.{}.png".format(file_datetime_string)))
     f_rlsi.clear()
-    dfRLSis.to_excel(xlWriter, sheet_name = "route_length_sis_{}".format(k))
+    dfRLSis.to_excel(xlWriter, sheet_name = "route_length_pp_sis_{}".format(k))
 
 
 if setting == 'sobol_si':
@@ -1114,7 +1118,7 @@ if setting == 'sobol_si':
     print("Calculating Sobol indices - Total route length")
 
     X = dfRouteLength.loc[:, problem['names']].values
-    Y = dfRouteLength.loc[:, 'route_length'].astype(float).values
+    Y = dfRouteLength.loc[:, 'route_length_pp'].astype(float).values
     try:
         Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
     except ValueError as e:
@@ -1126,19 +1130,19 @@ if setting == 'sobol_si':
     Sis['names'] = problem['names']
     Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
     df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
-    df.to_excel(xlWriter, sheet_name = "route_length_sobol")
+    df.to_excel(xlWriter, sheet_name = "route_length_pp_sobol")
 
     # Plot
-    f_si = sobol_si_bar_figure(df, "Total Path Length Sensitivity", df['names'].replace(rename_dict))
-    f_si.savefig(os.path.join(img_dir, "route_length_sobol.{}.png".format(file_datetime_string)))
+    f_si = sobol_si_bar_figure(df, "Mean Path Length Sensitivity", df['names'].replace(rename_dict))
+    f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol.{}.png".format(file_datetime_string)))
     f_si.clear()
 
     # If second_order then produce plot show interdependence of parameter sensitivity
     if calc_second_order==True:
         f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01, rename_dict = rename_dict)
-        f_si.savefig(os.path.join(img_dir, "route_length_sobol_2ndorder_.{}.png".format(file_datetime_string)))
+        f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol_2ndorder_.{}.png".format(file_datetime_string)))
         f_si.clear()
-        save_second_order_sobol_indices(xlWriter, "route_length_sobol_2ndorder", Sis, problem)
+        save_second_order_sobol_indices(xlWriter, "route_length_pp_sobol_2ndorder", Sis, problem)
 
 
 #########################################
