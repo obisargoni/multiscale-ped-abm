@@ -150,3 +150,26 @@ def legend(ax):
     ax.legend(some_identifiers, ['ST', 'S1', 'S2'],
               loc=(1, 0.75), borderaxespad=0.1, mode='expand',
               handler_map={plt.Circle: HandlerCircle()})
+
+
+def save_second_order_sobol_indices(xlWriter, sheet_name, sobol_indices, sa_problem):
+    '''Saves sobol indices to sheets of an excel file
+    '''
+
+    s2 = pd.DataFrame(sobol_indices['S2'], index=sa_problem['names'], columns=sa_problem['names'])
+    s2_conf = pd.DataFrame(sobol_indices['S2'], index=sa_problem['names'], columns=sa_problem['names'])
+
+    # Reformat and combine
+    s2.columns.name = 'i'
+    s2.index.name = 'j'
+    s2_conf.columns.name = 'i'
+    s2_conf.index.name = 'j'
+
+    s2 = s2.stack().reset_index().rename(columns = {0:'S2'}, inplace=True)
+    s2_conf = s2_conf.stack().reset_index().rename(columns = {0:'S2_conf'}, inplace=True)
+
+    s2 = pd.merge(s2, s2_conf, on = ['i','j'])
+
+    s2.to_excel(xlWriter, sheet_name)
+
+    return s2
