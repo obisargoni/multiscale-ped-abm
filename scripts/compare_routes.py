@@ -858,13 +858,8 @@ weight_params = range(0, 100, 100)
 #
 #
 ######################################
-# First process vehicle road link data, since this is largest file
-#dfRunDurations =  get_pedestrian_run_durations(dfPedCrossings)
-VehCountAv = get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, vehicle_rls_file, output_vehicle_density_file)
-
-gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
-
-gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0
+# Not currently using vehicle density in the calculation of route lenght so just set to 0 everywhere
+gdfPaveLinks['AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
 dfCrossEvents = load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
