@@ -891,6 +891,8 @@ dfConflictsDirect = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCross
 dfConflictsDiagonal = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='diag_cross'], dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonalUm = agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 
+conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
+
 ######################################
 #
 #
@@ -964,13 +966,10 @@ if setting == "morris_factor_fixing":
 
 
     print("\nCalculating sensitivity indices - Conflicts")
-
-    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
-    conflict_metrics = ['conflict_count', 'meanNormCC', 'varNormCC', 'meanTTC', 'varTTC']
-    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)",
-                    'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
-    for cat, dfC in conflicts_data.items():
-        for metric in conflict_metrics:
+    title_dict = config["title_dict"]
+    for cat in config["conflict_categories"]:
+        dfC = conflicts_data[cat]
+        for metric in config["conflict_metrics"]:
             X = dfC.loc[:, problem['names']].values
             Y = dfC.loc[:, metric].values.astype(float)
 
@@ -1053,13 +1052,10 @@ if setting == "morris_factor_fixing":
 if setting == 'sobol_si':
 
     print("\nCalculating sobol indices - Conflicts")
-
-    conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
-    conflict_metrics = ['conflict_count', 'meanNormCC']
-    title_dict = {  'conflict_count':"Conflict Count", 'meanTTC':"Conflict TTC (mean)", "varTTC":"Conflict TTC (variance)",
-                    'meanNormCC':'Normalised Conflict Counts (mean)', 'varNormCC': 'Normalised Conflict Counts (variance)'}
-    for cat, dfC in conflicts_data.items():
-        for metric in conflict_metrics:
+    title_dict = config["title_dict"]
+    for cat in config["conflict_categories"]:
+        dfC = conflicts_data[cat]
+        for metric in config["conflict_metrics"]:
             X = dfC.loc[:, problem['names']].values
             Y = dfC.loc[:, metric].values.astype(float)
             Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
