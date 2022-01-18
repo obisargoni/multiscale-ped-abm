@@ -218,6 +218,7 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
     '''Count the number of pedestrians crossing on each pavement road link. Aggregate this to OR Road Link to get total number of crossings on that road link.
     Then provide lookup from pavement link to OR link so that crossings on a pavement link can be normalised by total number of crossings on the corresponding road link.
     '''
+    print("\nCalculating Road Link Aggregated Crossing Counts")
 
     dfCrossCounts = dfCrossEvents.groupby(['run','TacticalEdgeID'])['ID'].apply(lambda s: s.unique().shape[0]).reset_index()
     dfCrossCounts.rename(columns={'ID':'cross_count'}, inplace=True)
@@ -302,6 +303,8 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
     if os.path.exists(output_path)==False:
 
+        print("\nProcessing Pedestrian Cross Events")
+
         dfCrossEvents = pd.read_csv(cross_events_path)
 
         dfCrossEvents = dfCrossEvents.reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC'])
@@ -323,6 +326,7 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
         dfCrossEvents.to_csv(output_path, index=False)
     else:
+        print("\nLoading Existing Processed Pedestrian Cross Events")
         dfCrossEvents = pd.read_csv(output_path)
 
     return dfCrossEvents
@@ -409,11 +413,13 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, exclude_stuck
 
 def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.csv'):
     if os.path.exists(output_path)==False:
+        print("\nProcessing Pedestrian Route Completions")
         dfPedRoutes['completed_journey'] = dfPedRoutes['node_path'].map(lambda x: int(len(x)>0))
         dfCompletions = dfPedRoutes.groupby('run').apply( lambda df: df['completed_journey'].sum() / float(df.shape[0])).reset_index().rename(columns = {0:'frac_completed_journeys'})
         dfCompletions = pd.merge(dfRun, dfCompletions, on = 'run')
         dfCompletions.to_csv(output_path, )
     else:
+        print("\nLoading Pedestrian Route Completions")
         dfCompletions = pd.read_csv(output_path)
 
     return dfCompletions
@@ -874,6 +880,7 @@ dfCrossEventsConsistentPeds = dfCrossEvents.loc[ ~dfCrossEvents['ID'].isin(dfPed
 dfLinkCrossCounts = get_road_link_pedestrian_crossing_counts(dfCrossEventsConsistentPeds, gdfPaveLinks)
 
 
+print("\nCalculating/Loading Output Metrics")
 dfRouteLength = get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, exclude_stuck_peds = True, output_path = output_route_length_file)
 dfSPSim = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', exclude_stuck_peds = True, output_path = output_sp_similarity_path)
 dfSPSimLen = get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'path_length', exclude_stuck_peds = True, output_path = output_sp_similarity_length_path)
