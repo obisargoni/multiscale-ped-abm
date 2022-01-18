@@ -904,7 +904,7 @@ from SALib.analyze import morris, sobol
 import sys
 sys.path.append(".\\sample")
 from SALibRepastParams import num_levels, params, random_seed, init_problem, calc_second_order
-from sobol_plot import plot_sobol_indices
+from sobol_plot import plot_sobol_indices, save_second_order_sobol_indices
 problem = init_problem(params = params)
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -921,6 +921,10 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "vehODSeed": r"$\mathrm{Seed_{veh}}$",
                 "timeThreshold": r"$\mathrm{\tau}$"
                 }
+
+# Create an excel writer to record the senstitivity indices
+xlWriter = pd.pd.ExcelWriter(os.path.join(output_path, "{}_results.{}.xlsx".format(setting, file_datetime_string)), if_sheet_exists="new", engine_kwargs=None)
+
 
 ######################################
 #
@@ -961,8 +965,9 @@ if setting == "morris_factor_fixing":
     # Gather into a dataframe
     dfcompsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_compsi = morris_si_bar_figure(dfcompsi, r"Jouney Completion $\mathrm{\mu^*}$", 'Fraction journeys completed', dfcompsi['names'].replace(rename_dict))
-    #f_compsi.show()
     f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
+    f_compsi.clear()
+    dfcompsi.to_excel(xlWriter, sheet_name = 'frac_completed_journeys')
 
 
     print("\nCalculating sensitivity indices - Conflicts")
@@ -985,8 +990,10 @@ if setting == "morris_factor_fixing":
 
             # Create figures
             f_ccsi = morris_si_bar_figure(df, r"{} - {} Crossing Sensitivity".format(title_dict[metric], cat), r"$\mathrm{\mu^*}$", df['names'].replace(rename_dict))
-            #f_ccsi.show()
             f_ccsi.savefig(os.path.join(img_dir, "{}_{}_sis.{}.png".format(metric, cat, file_datetime_string)))
+            f_ccsi.clear()
+            df.to_excel(xlWriter, sheet_name = "{}_{}_sis".format(metric, cat))
+
 
 
     print("\nCalculating sensitivity indices - Comparison to shortest path")
@@ -1009,8 +1016,10 @@ if setting == "morris_factor_fixing":
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
         f_spsi = morris_si_bar_figure(dfspsi, r"Shortest Path Dice Distance Sensitivity", r"$\mathrm{\mu^*}$", dfspsi['names'].replace(rename_dict))
-        #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
+        f_spsi.clear()
+        dfspsi.to_excel(xlWriter, sheet_name = "sp_similarity_sis_{}".format(k))
+
 
     # Repeat for shortest path similarity based on path length
     grouped = dfSPSimLen.groupby("k")
@@ -1030,8 +1039,10 @@ if setting == "morris_factor_fixing":
         # Gather into a dataframe
         dfspsi = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
         f_spsi = morris_si_bar_figure(dfspsi, r"Path Length Sensitivity", r"$\mathrm{\mu^*}$", dfspsi['names'].replace(rename_dict))
-        #f_spsi.show()
         f_spsi.savefig(os.path.join(img_dir, "sp_len_similarity_sis_{}.{}.png".format(k, file_datetime_string)))
+        f_spsi.clear()
+        dfspsi.to_excel(xlWriter, sheet_name = "sp_len_similarity_sis_{}".format(k))
+
 
     print("\nCalculating sensitivity indices - Total route length")
 
@@ -1048,6 +1059,9 @@ if setting == "morris_factor_fixing":
     dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_rlsi = morris_si_bar_figure(dfRLSis, "Total Path Length Sensitivity", r"$\mathrm{\mu^*}$", dfRLSis['names'].replace(rename_dict))
     f_rlsi.savefig(os.path.join(img_dir, "route_length_sis.{}.png".format(file_datetime_string)))
+    f_rlsi.clear()
+    dfRLSis.to_excel(xlWriter, sheet_name = "route_length_sis_{}".format(k))
+
 
 if setting == 'sobol_si':
 
@@ -1064,6 +1078,7 @@ if setting == 'sobol_si':
             Sis['names'] = problem['names']
             Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
             df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+            df.to_excel(xlWriter, sheet_name="{}_{}_sobol1T".format(metric, cat))
 
             # Create figures
             f_si = sobol_si_bar_figure(df, "{} Sobol Indices - {} crossings".format(title_dict[metric], cat), df['names'].replace(rename_dict))
@@ -1074,6 +1089,7 @@ if setting == 'sobol_si':
                 f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
                 f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T.{}.png".format(metric, cat, file_datetime_string)))
                 f_si.clear()
+                save_second_order_sobol_indices(xlWriter, "{}_{}_sobol2T".format(metric, cat), Sis, problem)
 
     print("Calculating Sobol Indices - Shortest Path Comparison")
 
@@ -1091,6 +1107,7 @@ if setting == 'sobol_si':
         Sis['names'] = problem['names']
         Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
         df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+        df.to_excel(xlWriter, sheet_name = "sp_similarity_sobol_{}".format(k))
 
         # Plot
         f_si = sobol_si_bar_figure(df, "Shortest Path Similarity Sobol Indices", df['names'].replace(rename_dict))
@@ -1101,6 +1118,7 @@ if setting == 'sobol_si':
             f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
             f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_2ndorder_{}.{}.png".format(k, file_datetime_string)))
             f_si.clear()
+            save_second_order_sobol_indices(xlWriter, "sp_similarity_sobol_2ndorder_{}".format(k), Sis, problem)
 
     print("Calculating Sobol indices - Total route length")
 
@@ -1117,6 +1135,7 @@ if setting == 'sobol_si':
     Sis['names'] = problem['names']
     Sis_filtered = {k:Sis[k] for k in ['ST', 'ST_conf', 'S1', 'S1_conf', 'names']}
     df = pd.DataFrame(Sis_filtered).sort_values(by='S1', ascending=False)
+    df.to_excel(xlWriter, sheet_name = "route_length_sobol")
 
     # Plot
     f_si = sobol_si_bar_figure(df, "Total Path Length Sensitivity", df['names'].replace(rename_dict))
@@ -1128,6 +1147,8 @@ if setting == 'sobol_si':
         f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01, rename_dict = rename_dict)
         f_si.savefig(os.path.join(img_dir, "route_length_sobol_2ndorder_.{}.png".format(file_datetime_string)))
         f_si.clear()
+        save_second_order_sobol_indices(xlWriter, "route_length_sobol_2ndorder", Sis, problem)
+
 
 #########################################
 #
