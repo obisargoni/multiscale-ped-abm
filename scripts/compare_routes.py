@@ -246,6 +246,14 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         print("\nLoading routes path not found.\n")
         dfPedRoutes = pd.read_csv(output_path, index=False)
         dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path, index=False)
+
+        # Convert columns to tuples
+        dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfPedRoutes['edge_path'] = dfPedRoutes['edge_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfPedRoutes['node_path'] = dfPedRoutes['node_path'].map(lambda s: s.strip("['").strip("']").split("', '"))
+
+        for k in weight_params:
+            dfPedRoutes['sp_{}'.format(k)] = dfPedRoutes['sp_{}'.format(k)].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
     else:
         # Otherwise create data
 
