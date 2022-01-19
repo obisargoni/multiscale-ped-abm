@@ -244,8 +244,8 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
 
     if os.path.exists(output_path):
         print("\nLoading routes path not found.\n")
-        dfPedRoutes = pd.read_csv(output_path, index=False)
-        dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path, index=False)
+        dfPedRoutes = pd.read_csv(output_path)
+        dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
 
         # Convert columns to tuples
         dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
