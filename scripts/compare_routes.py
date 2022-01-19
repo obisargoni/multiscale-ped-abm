@@ -243,7 +243,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
     routes_removed_path = split_path[0] + "_removed_peds" + split_path[1]
 
     if os.path.exists(output_path):
-        print("\nLoading routes path not found.\n")
+        print("\nLoading Pedestrian Agent Routes")
         dfPedRoutes = pd.read_csv(output_path)
         dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
 
