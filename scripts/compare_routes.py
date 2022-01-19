@@ -926,7 +926,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 }
 
 # Create an excel writer to record the senstitivity indices
-xlWriter = pd.ExcelWriter(os.path.join(data_dir, "{}_results.{}.xlsx".format(setting, file_datetime_string)), mode='a', if_sheet_exists="new", engine_kwargs=None)
+xlWriter = pd.ExcelWriter(os.path.join(data_dir, "{}_results.{}.xlsx".format(setting, file_datetime_string)), mode='w', engine_kwargs=None)
 
 
 ######################################
@@ -1220,3 +1220,5 @@ if setting == "epsilon_gamma_scatter":
     fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
+
+xlWriter.close()
