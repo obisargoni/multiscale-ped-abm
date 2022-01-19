@@ -918,7 +918,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 }
 
 # Create an excel writer to record the senstitivity indices
-xlWriter = pd.ExcelWriter(os.path.join(output_path, "{}_results.{}.xlsx".format(setting, file_datetime_string)), if_sheet_exists="new", engine_kwargs=None)
+xlWriter = pd.ExcelWriter(os.path.join(data_dir, "{}_results.{}.xlsx".format(setting, file_datetime_string)), if_sheet_exists="new", engine_kwargs=None)
 
 
 ######################################
