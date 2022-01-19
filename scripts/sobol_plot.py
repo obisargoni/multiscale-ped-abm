@@ -165,8 +165,8 @@ def save_second_order_sobol_indices(xlWriter, sheet_name, sobol_indices, sa_prob
     s2_conf.columns.name = 'i'
     s2_conf.index.name = 'j'
 
-    s2 = s2.stack().reset_index().rename(columns = {0:'S2'}, inplace=True)
-    s2_conf = s2_conf.stack().reset_index().rename(columns = {0:'S2_conf'}, inplace=True)
+    s2 = s2.stack().reset_index().rename(columns = {0:'S2'})
+    s2_conf = s2_conf.stack().reset_index().rename(columns = {0:'S2_conf'})
 
     s2 = pd.merge(s2, s2_conf, on = ['i','j'])
 
