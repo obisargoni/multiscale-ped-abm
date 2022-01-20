@@ -157,7 +157,7 @@ def save_second_order_sobol_indices(xlWriter, sheet_name, sobol_indices, sa_prob
     '''
 
     s2 = pd.DataFrame(sobol_indices['S2'], index=sa_problem['names'], columns=sa_problem['names'])
-    s2_conf = pd.DataFrame(sobol_indices['S2'], index=sa_problem['names'], columns=sa_problem['names'])
+    s2_conf = pd.DataFrame(sobol_indices['S2_conf'], index=sa_problem['names'], columns=sa_problem['names'])
 
     # Reformat and combine
     s2.columns.name = 'i'
