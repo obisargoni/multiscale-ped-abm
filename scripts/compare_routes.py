@@ -1075,6 +1075,10 @@ if setting == 'sobol_si':
         for metric in config["conflict_metrics"]:
             X = dfC.loc[:, problem['names']].values
             Y = dfC.loc[:, metric].values.astype(float)
+            if pd.Series(Y).isnull().any():
+                print("Null values in utput for {} - {}, skipping".format(cat, metric))
+                continue
+                
             Sis = sobol.analyze(problem, Y, calc_second_order=calc_second_order, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
 
             # Gather into a dataframe
