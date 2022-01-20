@@ -1152,7 +1152,7 @@ if setting == 'sobol_si':
     # If second_order then produce plot show interdependence of parameter sensitivity
     if calc_second_order==True:
         f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01, rename_dict = rename_dict)
-        f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol_2ndorder_.{}.png".format(file_datetime_string)))
+        f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol_2ndorder.{}.png".format(file_datetime_string)))
         f_si.clear()
         save_second_order_sobol_indices(xlWriter, "route_length_pp_sobol_2ndorder", Sis, problem)
 
