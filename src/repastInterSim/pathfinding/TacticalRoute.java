@@ -109,7 +109,6 @@ public class TacticalRoute {
 				// Update ped attributes that are recorded for analysis
 				// If current edge is null, tactical path needs updating so do not update ped attributes yet.
 				if (this.currentEdge != null) {
-					this.ped.setChosenCrossingType("none");
 					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 				}
@@ -125,7 +124,10 @@ public class TacticalRoute {
 	/*
 	 * Remove first entry from route junctions and then set current junction to new first entry
 	 */
-	public void updateCurrentJunction() {		
+	public void updateCurrentJunction() {
+		// Add edge that has just been traversed to the record of the pedestrian's tactical path
+		this.ped.getPathFinder().addTacticalLinkToFullTacticalPathString(ped.getCurrentPavementLinkID());
+
 		// Update the current edge			
 		this.currentEdge = this.routePath.poll();
 		
@@ -321,7 +323,6 @@ public class TacticalRoute {
 			caChosenUpdateCurrentJunction();
 			
 			// Update the ped attributes that are collected for data analysis
-			this.ped.setChosenCrossingType(this.accumulator.getChosenCA().getType());
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 		}

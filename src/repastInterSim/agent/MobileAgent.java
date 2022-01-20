@@ -12,8 +12,6 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
 public class MobileAgent {
-    private static int uniqueID = 0;
-
     protected int id;
     protected Coordinate maLoc; // The coordinate of the centroid of the agent.
     protected OD origin; // The origin agent this agent starts at
@@ -22,7 +20,6 @@ public class MobileAgent {
     protected double tau; // Agent reaction time
     
     MobileAgent(OD o, OD d){
-    	this.id = MobileAgent.uniqueID++;
     	this.origin = o;
     	this.destination = d;
     }

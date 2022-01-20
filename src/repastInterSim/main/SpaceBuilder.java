@@ -110,6 +110,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	    
 		context.setId(GlobalVars.CONTEXT_NAMES.MAIN_CONTEXT);	
 		this.nPedsCreated=0;
+		Ped.resetID();
+		Vehicle.resetID();
 		
 		// Correct way to register multiple random number streams
 		
@@ -394,8 +396,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
 		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingVehicleAgents");
 		}
+		else {
+			// If successfully stop adding vehicle agents, can schedule method remove all vehicle agents from the simualtion, to trigger the end of the run.
+		    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+		    schedule.schedule(removeAllVehicleAgentsParams, this, "removeAllVehicleAgents");
+		}
 	}
 	
+	public void removeAllVehicleAgents() {
+		Context context = RunState.getInstance().getMasterContext();
+	        
+        // Iterate over vehicles and remove them
+		List<Vehicle> vehiclesToRemove = new ArrayList<Vehicle>();
+        for (Object o :context.getObjects(Vehicle.class)) {
+        	Vehicle v  = (Vehicle) o;
+        	vehiclesToRemove.add(v);
+        }
+		
+		for (Vehicle v: vehiclesToRemove) {
+			removeMobileAgent(v, null);
+		}
+
+	}
 	
 	
 	/**
@@ -420,14 +442,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * Method to remove agents from the simulation. Requires some care because of links created between agents.
 	 */
 	private void runCleanUP() {
-		/*
 		for (Geography g: this.fixedGeographies) {
 			for (Object o : g.getAllObjects()) {
 				FixedGeography fg = (FixedGeography)o;
 				fg.clear();
 			}
 		}
-		*/
 		
 		RoadNetworkRoute.clearCaches();
 		Route.clearCaches();
@@ -439,7 +459,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 		
 		Context mc = RunState.getInstance().getMasterContext();
-		mc.clear();
+		for (Object o: mc.getSubContexts()) {
+			Context sc  = (Context) o;
+			sc.clear();
+		}
 	}
 
 	/*

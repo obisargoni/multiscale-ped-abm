@@ -1,0 +1,63 @@
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
+  <name>Pedestrian Routes</name>
+  <type>NON_AGGREGATE</type>
+  <sourceType>repastInterSim.datasources.PedRouteData</sourceType>
+  <inclTick>true</inclTick>
+  <inclBatchRun>true</inclBatchRun>
+  <inclRandomSeed>true</inclRandomSeed>
+  <scheduleParams>
+    <start>Infinity</start>
+    <interval>0.0</interval>
+    <priority>Infinity</priority>
+    <pType>FIRST</pType>
+    <duration>-1.0</duration>
+    <frequency>ONE_TIME</frequency>
+    <hashCode>-1943717331</hashCode>
+  </scheduleParams>
+  <atEnd>false</atEnd>
+  <methodDataSources class="linked-hash-map">
+    <entry>
+      <string>ID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>ID</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>StartPavementJunctionID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>StartPavementJunctionID</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getStartPavementJunctionID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>DestPavementJunctionID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>DestPavementJunctionID</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getDestPavementJunctionID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>FullStrategicPathString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>FullStrategicPathString</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getFullStrategicPathString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>FullTacticalRouteString</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>FullTacticalRouteString</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getFullTacticalRouteString</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+  </methodDataSources>
+  <countSources class="linked-hash-map"/>
+  <customNADataSources class="linked-hash-map"/>
+  <customAggDataSources class="linked-hash-map"/>
+</repast.simphony.data2.engine.DataSetDescriptor>

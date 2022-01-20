@@ -1,39 +1,25 @@
 # Function to create repast simphony batch param xml file
 import copy
+import json
 import numpy as np
 from SALib.sample import saltelli
 from SALib.sample import morris, saltelli
 from xml.etree import ElementTree as et
 
+with open("sample_config.json") as f:
+	sample_config = json.load(f)
 
 # Dictionary of the parameters to feed into the repast simphony model, with the required parameter metadata and value ranges
-params = {	
-			"randomSeed":{			"type":"constant", "data_type":"int", 		"value":"1", "bounds":[1,100], "dist":"unif"},
-			"pedODSeed":{			"type":"constant", "data_type":"int", 		"value":"1", 	"bounds":[1,100], "dist":"unif"},
-			"vehODSeed":{			"type":"constant", "data_type":"int", 		"value":"101", 	"bounds":[101,200], "dist":"unif"},
-			"caSampleSeed":{		"type":"constant", "data_type":"int", 		"value":"201", 	"bounds":[201,300], "dist":"unif"},
-			"pedMassSeed":{			"type":"constant", "data_type":"int", 		"value":"301", 	"bounds":[301,400], "dist":"unif"},
-			"pedSpeedSeed":{		"type":"constant", "data_type":"int", 		"value":"401", 	"bounds":[401,500], "dist":"unif"},
-			"epsilon":{				"type":"list", "data_type":"double", 	"value":"2.5", 	"bounds":[0.1,2], "dist":"unif"},
-			"lambda":{				"type":"list", "data_type":"double", 	"value":"0.8", 	"bounds":[0,1], "dist":"unif"},
-			"addPedTicks":{			"type":"list", "data_type":"int", 		"value":"50", 	"bounds":[10,200], "dist":"unif"},
-			"addVehicleTicks":{		"type":"list", "data_type":"int", 		"value":"60", 	"bounds":[30,300], "dist":"unif"},
-			"gamma":{				"type":"constant", "data_type":"double", 	"value":"0.9", 	"bounds":[0.6,1], "dist":"unif"},
-			"alpha":{				"type":"list", "data_type":"double", 	"value":"0.5", 	"bounds":[0,1], "dist":"unif"},
-			"tacticalPlanHorizon":{	"type":"list", "data_type":"double", 	"value":"20", 	"bounds":[20,360], "dist":"unif"},
-			"minCrossing":{			"type":"list", "data_type":"boolean", 	"value":"1.0", 	"bounds":[0,1], 	"dist":"unif"},
-			"nPeds":{				"type":"constant", "data_type":"int", 	"value":"100", 	"bounds":[10,150], 	"dist":"unif"},
-			"timeThreshold":{       "type":"constant", "data_type":"int",   "value":"120",  "bounds":[60,180],  "dist":"unif"}
-		}
+params = sample_config['params']
 
 
 # Sample values for non-constant parameters
 # From 'Global Sensitivity Analysis' pg 119,  p=4, r=10 produces good results.
-N_samples = 64
-random_seed = 100
-num_levels = 6
-calc_second_order = False
-method = 'saltelli'
+N_samples = sample_config['N_samples']
+random_seed = sample_config['random_seed']
+num_levels = sample_config['num_levels']
+calc_second_order = sample_config['calc_second_order']
+method = sample_config['method']
 
 def run(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels, calc_second_order=calc_second_order):
 	problem = init_problem(params = params)
@@ -81,7 +67,7 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 	if method == 'morris':
 		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
 	elif method == 'saltelli':
-		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = False, skip_values = N_samples)
+		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = calc_second_order, skip_values = N_samples)
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
 	return sampled_values
@@ -103,9 +89,9 @@ def mc_sample(problem, N_samples, seed = random_seed):
 		else:
 			print("Distribution for parameter '{}' not recognised".format(name))
 			raise Exception
-		
+
 		samples[:,i]=sample
-	
+
 	return samples
 
 def export_params(params, path = "batch_params.xml"):

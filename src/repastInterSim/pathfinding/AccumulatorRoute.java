@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
 import com.vividsolutions.jts.geom.Coordinate;
 
 import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.environment.RunState;
 import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -50,6 +52,8 @@ public class AccumulatorRoute {
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
 	
 	private boolean isBlank = false;
+	
+	private CrossEventData ced = null;
 	
 	public AccumulatorRoute() {
 		// Blank constructor allows ped agent to be initialised with an AccumulatorRoute object which returns a null initial coordinate
@@ -307,13 +311,12 @@ public class AccumulatorRoute {
 			List<Double> values =  ttcs.values().stream().filter(x->x!=null).collect(Collectors.toList());
 			if (values.size()>0) {
 				double ttc = values.stream().min(Comparator.comparing(Double::valueOf)).get();
-				ped.setTTC(ttc);
+				this.ced.setTTC(ttc);
 			}
 			else {
-				ped.setTTC(null);
+				this.ced.setTTC(null);
 			}
 		}
-		
 	}
 	
 	public CrossingAlternative getChosenCA() {
@@ -361,17 +364,29 @@ public class AccumulatorRoute {
 	}
 	
 	public void removeCrossingCoordinate() {
-		this.crossingCoordinates.removeLast();
+		// if at the start of crossing, initialised a new CrossEventData object
+		if (this.isCrossing==false) {
+			// Create crossing data collector agent
+			CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
+			RunState.getInstance().getMasterContext().add(ced);
+			this.ced=ced;
+		}
 		
 		// Once crossing coordinates have been updated once, ped has started to cross.
 		this.isCrossing = true;
+		
+		this.crossingCoordinates.removeLast();
 		
 		// if all crossing coordinates have been passed then agent has finished crossing the road and a crossing is no longer required.
 		if(this.crossingCoordinates.size()==0) {
 			this.crossingRequired = false;
 			this.caChosen = false;
 			this.isCrossing = false;
-			this.ped.setTTC(null);
+			
+			// Remove crossing data collector from context and set to null
+			RunState.getInstance().getMasterContext().remove(this.ced);
+			this.ced=null;
+			
 		}
 	}
 	

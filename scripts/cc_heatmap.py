@@ -27,7 +27,7 @@ def heatmap_rgba_data(df_group, row, col, value_col = 'unmarked_pcnt', alpha_col
     norm = plt.Normalize()
     rgba = cmap(norm(colour_data.values))
 
-    # Replace alpha 
+    # Replace alpha
     if alpha_col is not None:
         alpha_data = df_group.reindex(columns = [row, col, alpha_col]).set_index([row, col]).unstack()
         rgba[:,:,3] = alpha_data.values
@@ -81,7 +81,7 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
 
     # Let the horizontal axes labeling appear on top.
     ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
-    ax.xaxis.set_label_position('top') 
+    ax.xaxis.set_label_position('top')
 
     # Rotate the tick labels and set their alignment.
     #plt.setp(ax.get_xticklabels(), rotation=-30, ha="right", rotation_mode="anchor")
@@ -196,7 +196,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 
 
     # Adjust the plot to make space for the colourbar axis
-    plt.subplots_adjust(right=0.8, wspace = 0.1)    
+    plt.subplots_adjust(right=0.8, wspace = 0.1)
 
     # Create new axis at far right of plot - [left, bottom, width, height]
     cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
@@ -211,7 +211,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 
         s = "{}".format(rename_dict[group_key[0]])
         plt.text(-0.4,0.5, s, fontsize = 11, transform = ax.transAxes)
-    
+
 
     for j in range(q):
         ki = key_indices[-1, j]
@@ -247,13 +247,13 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 "gamma":r"$\mathrm{\gamma}$",
                 "between": "Between Configuration",
                 "beyond":"Beyond Configuration",
-                50:"High\nVehicle\nFlow",
-                5:"Low\nVehicle\nFlow"
+                5:"High\nVehicle\nFlow",
+                50:"Low\nVehicle\nFlow"
                 }
 
-configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2021.Nov.05.11_52_07", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2021.Nov.05.12_22_38", "%Y.%b.%d.%H_%M_%S")
+configuration_datetime_strings = {
+                                    "between":  dt.strptime(config['al_sweep_between'], "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime(config['al_sweep_beyond'], "%Y.%b.%d.%H_%M_%S")
                                 }
 
 with open(".//config.json") as f:
@@ -276,7 +276,7 @@ df_cc_count_al = pd.concat([btwn_ped_cc, bynd_ped_cc])
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
-fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$") 
+fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$")
 fig_path = os.path.join(img_dir, "al_crossing_heatmap_{}.png".format(configuration_datetime_strings['between'].strftime("%Y.%b.%d.%H_%M_%S")))
 
 f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
@@ -290,9 +290,9 @@ f.show()
 #
 #
 #####################################
-configuration_datetime_strings = { 
-                                    "between":  dt.strptime("2021.Nov.05.15_01_54", "%Y.%b.%d.%H_%M_%S"),
-                                    "beyond":   dt.strptime("2021.Nov.05.13_37_55", "%Y.%b.%d.%H_%M_%S")
+configuration_datetime_strings = {
+                                    "between":  dt.strptime(config['eg_sweep_between'], "%Y.%b.%d.%H_%M_%S"),
+                                    "beyond":   dt.strptime(config['eg_sweep_beyond'], "%Y.%b.%d.%H_%M_%S")
                                 }
 
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])

@@ -1,7 +1,7 @@
-<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.6.0">
-  <name>Pedestrian Locations</name>
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
+  <name>Cross Events</name>
   <type>NON_AGGREGATE</type>
-  <sourceType>repastInterSim.agent.Ped</sourceType>
+  <sourceType>repastInterSim.datasources.CrossEventData</sourceType>
   <inclTick>true</inclTick>
   <inclBatchRun>true</inclBatchRun>
   <inclRandomSeed>true</inclRandomSeed>
@@ -12,7 +12,7 @@
     <pType>LAST</pType>
     <duration>-1.0</duration>
     <frequency>REPEAT</frequency>
-    <hashCode>-183461191</hashCode>
+    <hashCode>212890158</hashCode>
   </scheduleParams>
   <atEnd>false</atEnd>
   <methodDataSources class="linked-hash-map">
@@ -20,48 +20,40 @@
       <string>ID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>ID</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getID</methodName>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getPedID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocXString</string>
+      <string>TacticalEdgeID</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocXString</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocXString</methodName>
+        <id>TacticalEdgeID</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getTacticalEdgeID</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>LocYString</string>
+      <string>CrossingType</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>LocYString</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getLocYString</methodName>
+        <id>CrossingType</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getCrossingType</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>CrossingChoice</string>
+      <string>CrossingCoordinatesString</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>CrossingChoice</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getChosenCrossingType</methodName>
+        <id>CrossingCoordinatesString</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getCrossingCoordinatesString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>OriginID</string>
+      <string>TTC</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>OriginID</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getOriginID</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>DestinationID</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>DestinationID</id>
-        <className>repastInterSim.agent.Ped</className>
-        <methodName>getDestinationID</methodName>
+        <id>TTC</id>
+        <className>repastInterSim.datasources.CrossEventData</className>
+        <methodName>getTTCString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
   </methodDataSources>

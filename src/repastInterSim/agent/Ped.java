@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 
@@ -25,6 +23,7 @@ import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repastInterSim.environment.OD;
+import repastInterSim.datasources.PedRouteData;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -37,6 +36,8 @@ import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 
 public class Ped extends MobileAgent {
+	private static int uniqueID = 1;
+	
 	//private static Logger LOGGER = Logger.getLogger(Ped.class.getName());
 
     private PedPathFinder pathFinder;
@@ -75,8 +76,6 @@ public class Ped extends MobileAgent {
     
     private String currentCrossingType = "none";
 	private String currentPavementLinkID = "";
-	private Double ttc = null;
-
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     
@@ -100,7 +99,9 @@ public class Ped extends MobileAgent {
     }
     
     private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
-        this.v0  = s;
+        this.id = Ped.uniqueID++;
+    	
+    	this.v0  = s;
         this.m  = m;
         this.rad = m / 320; // As per Moussaid 2011
         
@@ -171,7 +172,9 @@ public class Ped extends MobileAgent {
     	// Remove stuck agents from the simulation
     	if (this.stepsSinceReachedTarget>GlobalVars.stuckPedNSteps) {
     		String msg = "Removed stuck ped. Origin ID: " + this.origin.getFID() + " Dest ID: " + this.destination.getFID();
-    		SpaceBuilder.removeMobileAgent(this, msg);
+    		//SpaceBuilder.removeMobileAgent(this, msg);
+    		this.snapToNearestTacticalLinkCoordinate();
+    		this.stepsSinceReachedTarget=0;
     	}
     }
     
@@ -189,7 +192,14 @@ public class Ped extends MobileAgent {
         maLoc.x += this.v[0]*this.tau;
         maLoc.y += this.v[1]*this.tau;
         
-        // Now create new geometry at the location of the new centroid
+        // Now create new geometry at new maLoc and move agent to this geometry
+        setGeom();
+        
+        // Set the direction the pedestrian faces to be the direction of its velocity vector
+        setPedestrianBearingFromVelocity(this.v);
+    }
+    
+    public void setGeom() {
         Point pt = GISFunctions.pointGeometryFromCoordinate(maLoc);
 		Geometry pGeomNew = pt.buffer(this.rad);
         
@@ -201,9 +211,6 @@ public class Ped extends MobileAgent {
         
         // Update the coordinate after moving the pedestrian
         setLoc();
-        
-        // Set the direction the pedestrian faces to be the direction of its velocity vector
-        setPedestrianBearingFromVelocity(this.v);
     }
    
     /*
@@ -375,9 +382,20 @@ public class Ped extends MobileAgent {
     		}
     	}
     	
+    	// Exception handling put in place to try an avoid bug where null pointer exception thrown by output.put("angle", sampledAngles.get(lowi)); when performing batch runs
+    	Double ang = null;
+    	Double d = null;
+    	try {
+    		ang = sampledAngles.get(lowi);
+    		d = distances[lowi];
+    	} catch (NullPointerException e) {
+    		ang = this.bearing;
+    		d = 0.0;
+    	}
+    	
     	Map<String, Double> output = new HashMap<String, Double>();
-    	output.put("angle", sampledAngles.get(lowi));
-    	output.put("collision_distance", distances[lowi]);
+    	output.put("angle", ang);
+    	output.put("collision_distance", d);
     	
     	return output;    	
     }
@@ -619,6 +637,43 @@ public class Ped extends MobileAgent {
         return input;
     }
     
+    /*
+     * Method to move pedestrian agent to the nearest coordinate of its pavement link (if attempting to cross) or to its next target junction (otherwise). 
+     * Used when ped agents get stuck behind walls
+     */
+    public void snapToNearestTacticalLinkCoordinate() {
+    	// Get agent geometry
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+    	Geometry agentG = GISFunctions.getAgentGeometry(geography, this);
+    	
+    	
+    	Coordinate snapLoc= null;
+    	
+    	if (this.pathFinder.getTacticalPath().getAccumulatorRoute().isBlank()) {
+    		// Move to target coordinate
+    		snapLoc = this.pathFinder.getTacticalPath().getTargetCoordinate();
+    		
+    	}
+    	else {
+    		// Find nearest coordinate
+        	NetworkEdge<Junction> tacticalEdge = (NetworkEdge<Junction>) this.pathFinder.getTacticalPath().getCurrentEdge();
+        	Geometry tacticalEdgeGeom = tacticalEdge.getRoadLink().getGeom();
+        	
+        	// Find nearest coordinate
+        	DistanceOp dist = new DistanceOp(agentG, tacticalEdgeGeom);
+        	snapLoc = dist.nearestPoints()[1];
+    	}
+    	// Slightly vary coord to avoid placing right on top of target coordiante
+    	this.maLoc = new Coordinate(snapLoc.x+0.01, snapLoc.y+0.01);;
+    	
+    	setGeom();
+    	
+    	// Set velocity to zero so ped start walking from standing
+    	this.v[0] = 0.0;
+    	this.v[1] = 0.0;
+    }
+    
     /**
      * Determines whether the agents is close to a crossing point by comparing grid coverage values,
      * used for routing, at the current location and estimates near future location.
@@ -683,6 +738,13 @@ public class Ped extends MobileAgent {
      * Method to be run when agent is removed from the context.
      */
     public void tidyForRemoval() {
+    	// Add the final tactical link to the reord
+    	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
+    	
+    	// Record the ped's route for data collection
+    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString());
+    	RunState.getInstance().getMasterContext().add(pd);
+    	
     	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
     	this.pathFinder.clear();
     	this.pathFinder=null;
@@ -694,7 +756,6 @@ public class Ped extends MobileAgent {
         this.col=null;
         this.currentCrossingType=null;
     	this.currentPavementLinkID = null;
-    	this.ttc = null;
     }
     
     public Color getColor() {
@@ -882,28 +943,29 @@ public class Ped extends MobileAgent {
 		return alpha;
 	}
 
-
 	public double getGamma() {
 		return gamma;
 	}
 
-
 	public double getEpsilon() {
 		return epsilon;
-	}
-
-
-	public String getChosenCrossingType() {
-		return currentCrossingType;
-	}
-
-	public void setChosenCrossingType(String chosenCrossingType) {
-		this.currentCrossingType = chosenCrossingType;
 	}
 	
 	public void setCurrentPavementLinkID(String paveLinkID) {
 		this.currentPavementLinkID = paveLinkID;
 	}
+	
+    public String getCurrentPavementLinkID() { 
+    	return this.currentPavementLinkID;
+    }
+    
+    public String getOriginID() {
+    	return this.origin.getFID();
+    }
+    
+    public String getDestinationID() {
+    	return this.destination.getFID();
+    }
 	
 	/*
 	 * Flag that indicates whether this pedestrian has chosen a crossing and is therefore attempting to cross the road
@@ -925,52 +987,6 @@ public class Ped extends MobileAgent {
     	this.v = v;
     }
     
-    public String getCurrentPavementLinkID() { 
-    	return this.currentPavementLinkID;
-    }
-    
-    public String getStartPavementJunctionID() {
-    	return this.pathFinder.getStartPavementJunction().getFID();
-    }
-    
-    public String getDestPavementJunctionID() {
-    	return this.pathFinder.getDestPavementJunction().getFID();
-    }
-    
-    public String getCrossingCoordsString() {
-    	String ccString = "";
-    	for (Coordinate c: this.pathFinder.getTacticalPath().getAccumulatorRoute().getCrossingCoordinates()) {
-    		ccString += c.toString();
-    		ccString += ",";
-    	}
-    	return ccString;
-    }
-    
-    public String getFullStrategicPathString() {
-    	return this.pathFinder.getFullStrategicPathString();
-    }
-    
-    public String getOriginID() {
-    	return this.origin.getFID();
-    }
-    
-    public String getDestinationID() {
-    	return this.destination.getFID();
-    }
-    
-    public String getTTCString() {
-    	if (this.ttc==null) {
-    		return "";
-    	}
-    	else {
-    		return this.ttc.toString();
-    	}
-    }
-    
-    public void setTTC(Double ttc) {
-    	this.ttc = ttc;
-    }
-    
     public String AccumulatorData() {
     	String output = "";
     	
@@ -984,5 +1000,9 @@ public class Ped extends MobileAgent {
 
 	public void setYield(boolean y) {
 		this.yieldAtCrossing=y;
+	}
+	
+	static public void resetID() {
+		Ped.uniqueID=1;
 	}
 }
