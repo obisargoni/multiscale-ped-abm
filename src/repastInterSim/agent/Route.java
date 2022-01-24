@@ -112,6 +112,8 @@ public class Route implements Cacheable {
 	// Record which function has added each coord, useful for debugging
 	protected List<String> routeDescriptionX;
 	
+	protected String fullStrategicPathString = "";
+	
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -353,6 +355,11 @@ public class Route implements Cacheable {
 
 			// Check lists are still the same size.
 			checkListSizes();
+			
+			// record the IDs of the roads in the route in a single string variable
+			for (RoadLink rl: this.roadsX) {
+				this.fullStrategicPathString = this.fullStrategicPathString + ":" + rl.getFID();
+			}
 
 		} catch (RoutingException e) {
 			/*
@@ -1186,6 +1193,10 @@ public class Route implements Cacheable {
 	
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
+	}
+	
+	public String getFullStrategicPathString() {
+		return this.fullStrategicPathString;
 	}
 	
 	public void clear() {

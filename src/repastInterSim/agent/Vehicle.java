@@ -15,6 +15,8 @@ import repast.simphony.engine.environment.RunState;
 import repast.simphony.engine.schedule.ScheduledMethod;
 import repast.simphony.space.gis.Geography;
 import repastInterSim.environment.OD;
+import repastInterSim.datasources.PedRouteData;
+import repastInterSim.datasources.VehicleRouteData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
@@ -33,6 +35,9 @@ public class Vehicle extends MobileAgent {
 	private RoadLink currentRoadLink; // Used for identifying when the vehicle moves from one road link to another
 	private Integer queuePos;
 	private Route route;
+	
+	private double journeyDistance=0.0;
+	private int journeyDuration=0;
 
 
 	public Vehicle(int mS, double a, double s, OD o, OD d) {
@@ -59,6 +64,8 @@ public class Vehicle extends MobileAgent {
 	 */
 	@ScheduledMethod(start = 1, interval = 1, shuffle = false)
 	public void step() throws Exception {
+		
+		this.journeyDuration++;
 		
     	// Check that a route has been generated
     	if (this.route.getRouteX() == null) {
@@ -176,6 +183,8 @@ public class Vehicle extends MobileAgent {
 			}
 			
 		}
+		
+		this.journeyDistance+=distanceTraveled;
 		
 		Polygon vehicleGeom = vehicleRectangePolygon(vehicleLoc, this.bearing);
 		GISFunctions.moveAgentToGeometry(geography, vehicleGeom, this);
@@ -408,6 +417,10 @@ public class Vehicle extends MobileAgent {
 	@Override
 	public void tidyForRemoval() {
 		this.currentRoadLink.removeVehicleFromQueue();
+		
+    	// Record the vehicle's route for data collection
+    	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
+    	RunState.getInstance().getMasterContext().add(vd);
 		
 		this.currentRoadLink=null;
 		this.queuePos=null;
