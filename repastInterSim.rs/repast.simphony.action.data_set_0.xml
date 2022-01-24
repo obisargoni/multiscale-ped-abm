@@ -56,6 +56,22 @@
         <methodName>getFullTacticalRouteString</methodName>
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
+    <entry>
+      <string>JourneyDistance</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>JourneyDistance</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getJourneyDistance</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>JourneyDuration</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>JourneyDuration</id>
+        <className>repastInterSim.datasources.PedRouteData</className>
+        <methodName>getJourneyDuration</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
   </methodDataSources>
   <countSources class="linked-hash-map"/>
   <customNADataSources class="linked-hash-map"/>

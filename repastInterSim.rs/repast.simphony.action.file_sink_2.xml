@@ -12,6 +12,8 @@
     <string>DestPavementJunctionID</string>
     <string>FullStrategicPathString</string>
     <string>FullTacticalRouteString</string>
+    <string>JourneyDistance</string>
+    <string>JourneyDuration</string>
   </sourceIds>
   <fileName>.\batch\model_run_data\pedestrian_routes.csv</fileName>
   <addTimeStamp>true</addTimeStamp>

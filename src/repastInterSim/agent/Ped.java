@@ -79,6 +79,9 @@ public class Ped extends MobileAgent {
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     
+    private double journeyDistance = 0.0;
+    private int journeyDuration = 0;
+    
     /*
      * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
      */
@@ -134,6 +137,7 @@ public class Ped extends MobileAgent {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {        
     	
+    	this.journeyDuration++;
     	this.stepsSinceReachedTarget++;
     	int nUpdates = 0;
     	
@@ -191,6 +195,10 @@ public class Ped extends MobileAgent {
 
         maLoc.x += this.v[0]*this.tau;
         maLoc.y += this.v[1]*this.tau;
+        
+        // Add distance travelled this step to the ped's journey distance
+        double[] dD = {this.v[0]*this.tau, this.v[1]*this.tau};
+        this.journeyDistance+=Vector.mag(dD);
         
         // Now create new geometry at new maLoc and move agent to this geometry
         setGeom();
@@ -743,7 +751,7 @@ public class Ped extends MobileAgent {
     	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
     	
     	// Record the ped's route for data collection
-    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString());
+    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration);
     	RunState.getInstance().getMasterContext().add(pd);
     	
     	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
