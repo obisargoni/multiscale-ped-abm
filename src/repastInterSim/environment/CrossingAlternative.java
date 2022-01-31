@@ -24,6 +24,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	private Geometry geom = null;
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
+	private Double crossingBearing = null;
 	
 	private String type;
 	
@@ -101,30 +102,25 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		}
 	}
 	
-	public HashMap<Vehicle, Double> vehicleTTCs(Ped p) {
-		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
-		return vehicleTTCs(p, itnLinks);
+	public HashMap<Vehicle, Double> vehicleTTCs(double[] pLoc, double[] pV) {
+		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks();
+		return vehicleTTCs(pLoc, pV, itnLinks);
 	}
 	
 	/*
 	 * Get the time to collision between the vehicles travelling on this road link and and a pedestrian agent.
 	 * 
-	 * @param Ped p
-	 * 		The pedestrian agent to calculate time-to-collision for
+	 * @param double[] pLoc
+	 * 		the position of pedestrian agent to calculate ttc to
+	 * @param double[] pV
+	 * 		The velocity of the pedestrian agent 
 	 * @param List<RoadLink> itnLinks
 	 * 		The ITN Road Links to look for vehicles on.
 	 */
-	public HashMap<Vehicle, Double> vehicleTTCs(Ped p, List<RoadLink> itnLinks) {
+	public HashMap<Vehicle, Double> vehicleTTCs(double[] pLoc, double[] pV, List<RoadLink> itnLinks) {
 		
 		HashMap<Vehicle, Double> vehicleTTCs = new HashMap<Vehicle, Double>();
-		
-		// Initialise the pedestrian position and velocity to use for the ttc calculation
-		double[] pLoc = new double[2];
-		double[] pV = new double[2];
-		pLoc[0] = p.getLoc().x;
-		pLoc[1] = p.getLoc().y;
-		pV = p.getV();
-		
+
 		// Loop through all vehicles on road links assocated with this crossing and calculate time to collision to pedestrian, either using peds current location and velocaity,
 		// or assuming ped walks from start to end coordinate on crossing.
 		for (int i=0; i<itnLinks.size(); i++){
@@ -287,5 +283,15 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 		this.type=null;
 		this.roadLinkID=null;
 		this.orRoadLink=null;
+	}
+	
+	/*
+	 * Calculates and retreives the bearing between C1 and C2
+	 */
+	public double getCrossingBearing() {
+		if (this.crossingBearing==null) {
+			this.crossingBearing = GISFunctions.bearingBetweenCoordinates(this.getC1(), this.getC2());
+		}
+		return this.crossingBearing;
 	}
 }

@@ -305,7 +305,8 @@ public class AccumulatorRoute {
 		
 		// Update peds ttc to vehicles when ped is crossing. Once ped stops crossing TTC is set back to null
 		if (isCrossing) {
-			HashMap<Vehicle, Double> ttcs = this.chosenCA.vehicleTTCs(ped);
+			double[] pLoc= {ped.getLoc().x, ped.getLoc().y};
+			HashMap<Vehicle, Double> ttcs = this.chosenCA.vehicleTTCs(pLoc, ped.getV());
 			List<Double> values =  ttcs.values().stream().filter(x->x!=null).collect(Collectors.toList());
 			if (values.size()>0) {
 				double ttc = values.stream().min(Comparator.comparing(Double::valueOf)).get();

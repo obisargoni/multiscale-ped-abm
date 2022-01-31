@@ -516,7 +516,8 @@ class CrossingAlternativeTest {
 		v.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(vectorToMidPoint)));
 		
 		// Get TTC for this ped and this vehicle when ped is stationary
-		HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(ped);
+		double[] pLoc = {ped.getLoc().x, ped.getLoc().y};
+		HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		
 		// Because ped is stationary expect null ttc value
 		assert Math.abs(0.0-ped.getSpeed())<0.0000001;
@@ -532,7 +533,7 @@ class CrossingAlternativeTest {
 		double[] pV = {pedSpeed*Math.sin(ped.getBearing()), pedSpeed*Math.cos(ped.getBearing())}; 
 		ped.setV(pV);
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size() == 1;
 		assert ttcs.values().stream().allMatch(ttc -> ttc!=null);
 		assert Math.abs(ttcs.get(v) - tVeh) < 0.0000001; 
@@ -544,13 +545,13 @@ class CrossingAlternativeTest {
 		v.setBearing(ped.getBearing()+Math.PI/2);
 		tVeh = (pDist - GlobalVars.vehicleWidth/2) / ped.getSpeed();
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert Math.abs(ttcs.get(v) - tVeh) < 0.0000001;
 		
 		// Test that if vehicle just moves out of the way ttc is null again
 		double vehSpeed = GlobalVars.vehicleLength/2 / tVeh + 0.000001;
 		v.setSpeed(vehSpeed);
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.values().stream().allMatch(ttc -> ttc==null);
 		
 		// Add another vehicle to the road and check that two ttc values are returned
@@ -563,7 +564,7 @@ class CrossingAlternativeTest {
 		}
 		v2.setCurrentRoadLinkAndQueuePos(v2.getRoute().getRoadsX().get(0)); //  Add vehicle to first road link in its route.
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size()==2;
 		assert ttcs.values().stream().allMatch(ttc -> ttc==null);
 		
@@ -587,7 +588,9 @@ class CrossingAlternativeTest {
 		double[] pV2 = {pedSpeed*Math.sin(ped.getBearing()), pedSpeed*Math.cos(ped.getBearing())}; 
 		ped.setV(pV2);
 		
-		ttcs = uca.vehicleTTCs(ped);
+		pLoc[0] = ped.getLoc().x;
+		pLoc[1] = ped.getLoc().y;
+		ttcs = uca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size()==2;
 		assert ttcs.get(v) == null;
 		assert Math.abs(ttcs.get(v2)-tVeh)<0.00000001;
