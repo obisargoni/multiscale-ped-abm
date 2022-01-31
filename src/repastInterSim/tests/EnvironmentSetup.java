@@ -19,6 +19,7 @@ import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
+import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.environment.RunState;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
@@ -41,7 +42,6 @@ import repastInterSim.environment.contexts.CAContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedObstructionPointsContext;
-import repastInterSim.environment.contexts.PedestrianDestinationContext;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.RoadLinkContext;
 import repastInterSim.main.GlobalVars;
@@ -51,7 +51,7 @@ import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class EnvironmentSetup {
 	
-	public static Context<Object> context = new DefaultContext<Object>();
+	public static Context<Object> context;
 	public static Geography<Object> geography; 
 	
 	public static Context<Road> roadContext;
@@ -105,6 +105,7 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpProperties() throws IOException {
+		context = new DefaultContext<Object>();
 		IO.readProperties();
 		EnvironmentSetup.clearCaches();
 		GeometryFactory fac = new GeometryFactory();
@@ -263,7 +264,7 @@ public class EnvironmentSetup {
 		// Ped Obstruction context stores GIS linestrings representing barriers to pedestrian movement
 		Context<CrossingAlternative> caContext = new CAContext();
 		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
-		EnvironmentSetup.caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
+		EnvironmentSetup.caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY, caContext, GeoParams);
 		EnvironmentSetup.caGeography.setCRS(GlobalVars.geographyCRSString);
 		context.addSubContext(caContext);
 		
@@ -332,19 +333,6 @@ public class EnvironmentSetup {
 		SpatialIndexManager.createIndex(EnvironmentSetup.pavementJunctionGeography, Junction.class);
 	}
 	
-	static void populatePedJunctiontoORJunctionLookup() {
-		for (Junction orJ : orJunctionGeography.getAllObjects()) {
-			if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
-				SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
-			}
-			for (Junction paveJ : pavementJunctionGeography.getAllObjects()) {
-				if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
-					SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
-				}
-			}
-		}	
-	}
-	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
 		
 		// Plan the strategic path
@@ -398,11 +386,11 @@ public class EnvironmentSetup {
 			
 			for(RoadLink itnLink: EnvironmentSetup.roadLinkGeography.getAllObjects()) {
 				if (itnLink.getPedRLID().contentEquals(orRL.getFID())) {
-					EnvironmentSetup.itnToOR.put(itnLink, orRL);
+					SpaceBuilder.itnToOR.put(itnLink, orRL);
 					itnLinks.add(itnLink);
 				}
 			}
-			EnvironmentSetup.orToITN.put(orRL, itnLinks);
+			SpaceBuilder.orToITN.put(orRL, itnLinks);
 			
 			// Also assign Road objects to OR road links, so pedestrians can identify pavement polygons nearby.
 			for (Road r: EnvironmentSetup.roadGeography.getAllObjects()) {
@@ -414,12 +402,12 @@ public class EnvironmentSetup {
 		
 		// Create lookup from OR road junctions to pavement junctions
 		for (Junction orJ : EnvironmentSetup.orJunctionGeography.getAllObjects()) {
-			if (!EnvironmentSetup.orJuncToPaveJunc.containsKey(orJ)) {
-				EnvironmentSetup.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
+			if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
+				SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
 			}
 			for (Junction paveJ : EnvironmentSetup.pavementJunctionGeography.getAllObjects()) {
 				if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
-					EnvironmentSetup.orJuncToPaveJunc.get(orJ).add(paveJ);
+					SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
 				}
 			}
 		}
