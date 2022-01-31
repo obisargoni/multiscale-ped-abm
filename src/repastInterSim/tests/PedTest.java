@@ -856,6 +856,18 @@ class PedTest {
 		assert ttcs.get(v)!=null;
 		assert ped.getYield()==true;
 		assert ped.isCrossing()==true;
+		
+		// If vehicle comes to a stop, ttcs become null and ped should stop yielding
+		v.setSpeed(0.0);
+		try {
+			ped.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		ttcs = umCA.vehicleTTCs(pLoc, pV);
+		assert ttcs.get(v)==null;
+		assert ped.getYield()==false;
+		assert ped.isCrossing()==true;
 	}
-
 }
