@@ -756,5 +756,89 @@ class PedTest {
 		assert ped.isCrossing()==true;
 	}
 	
+	/*
+	 * Test that pedestrian agent initially yields when reaching the start of an unmarked crossing and will continue to yield until a sufficient gap in vehicle traffic appears.
+	 */
+	@Test
+	void testPedestrianYieldUnMarkedCrossing1() {
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
+		ped.getPathFinder().updateTacticalPath(); // initialise peds route
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
+		try {
+			v.getRoute().setRoute();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0)); //  Add vehicle to first road link in its route.
+				
+		// Identify crossing alternatives
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(EnvironmentSetup.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
+		
+		// Identify marked crossing
+		CrossingAlternative umCA = cas.stream().filter(ca -> ca.getType().contentEquals("unmarked")).collect(Collectors.toList()).get(0);
+		
+		ped.getPathFinder().getTacticalPath().getAccumulatorRoute().setChosenCA(umCA);
+		ped.getPathFinder().step(); // Updates the tactical route to incorporate the crossing
+		
+		// Initially ped is set to not yield
+		assert ped.getYield()==false;
+		
+		// Step ped until it reaches it's crossing
+		while (ped.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()==2) {
+			try {
+				ped.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Now that ped has reached crossing ped yields
+		assert ped.getYield() == true;
+		assert ped.isCrossing()==false;
+		
+		// after an addition step ped still yields due to non null ttc with vehicle
+		try {
+			ped.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		HashMap<Vehicle, Double> ttcs = umCA.vehicleTTCs(ped);
+		assert ttcs.get(v)==null;
+		assert ped.getYield()==true;
+		assert ped.isCrossing()==false;
+	}
 
 }
