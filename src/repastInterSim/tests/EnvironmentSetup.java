@@ -323,7 +323,7 @@ public class EnvironmentSetup {
 		String pedJPath = testGISDir + IO.getProperty("PavementJunctionsShapefile");
 		
 		// Initialise test road link geography and context
-		EnvironmentSetup.pavementJunctionContext = new JunctionContext();
+		EnvironmentSetup.pavementJunctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_CONTEXT);
 		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
 		EnvironmentSetup.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY, EnvironmentSetup.pavementJunctionContext, GeoParams);
 		EnvironmentSetup.pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
