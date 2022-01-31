@@ -729,6 +729,7 @@ class PedTest {
 		ped.getPathFinder().getTacticalPath().getAccumulatorRoute().setChosenCA(mCA);
 		ped.getPathFinder().step(); // Updates the tactical route to incorporate the crossing
 		
+		// ped initially isn't set to yield
 		assert ped.getYield()==false;
 		
 		// Step ped until it reaches it's crossing
@@ -740,8 +741,19 @@ class PedTest {
 			}
 		}
 		
-		assert ped.getYield() == true;
-		assert ped.isCrossing()==true; // indicates ped has started to cross and will trigger vehicles to yield.
+		// ped should initially yield
+		assert ped.getYield()==true;
+		assert ped.isCrossing()==false;
+		
+		// but after an additional step should continue to cross
+		try {
+			ped.step();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		assert ped.getYield()==false;
+		assert ped.isCrossing()==true;
 	}
 	
 
