@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,9 +25,12 @@ import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
+import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
+import repastInterSim.pathfinding.TacticalRoute;
 
 class PedTest {
 	
@@ -665,5 +669,80 @@ class PedTest {
 			assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA()!=null;
 		}
 	}
+	
+	/*
+	 * Test that pedestrian agent initially yields when reaching the start of a marked crossing be crosses at the next tick since peds have right on way at marked crossings.
+	 */
+	@Test
+	void testPedestrianYieldMarkedCrossing1() {
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped ped = EnvironmentSetup.createPedestrian(3,4, null, null, false);
+		ped.getPathFinder().updateTacticalPath(); // initialise peds route
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
+		try {
+			v.getRoute().setRoute();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		v.setCurrentRoadLinkAndQueuePos(v.getRoute().getRoadsX().get(0)); //  Add vehicle to first road link in its route.
+				
+		// Identify crossing alternatives
+		List<CrossingAlternative> cas = TacticalRoute.getCrossingAlternatives(EnvironmentSetup.caGeography, ped.getPathFinder().getStrategicPath().subList(0, 1), ped, EnvironmentSetup.roadGeography);
+		
+		// Identify marked crossing
+		CrossingAlternative mCA = cas.stream().filter(ca -> ca.getType().contentEquals("unsignalised")).collect(Collectors.toList()).get(0);
+		
+		ped.getPathFinder().getTacticalPath().getAccumulatorRoute().setChosenCA(mCA);
+		ped.getPathFinder().step(); // Updates the tactical route to incorporate the crossing
+		
+		assert ped.getYield()==false;
+		
+		// Step ped until it reaches it's crossing
+		while (ped.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()==2) {
+			try {
+				ped.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert ped.getYield() == true;
+		assert ped.isCrossing()==true; // indicates ped has started to cross and will trigger vehicles to yield.
+	}
+	
 
 }
