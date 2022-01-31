@@ -849,8 +849,11 @@ class PedTest {
 			e.printStackTrace();
 		}
 		
-		HashMap<Vehicle, Double> ttcs = umCA.vehicleTTCs(ped);
-		assert ttcs.get(v)==null;
+		// since vehicle ttc currently not null ped will continue to yield
+		double[] pLoc = {ped.getLoc().x, ped.getLoc().y};
+    	double[] pV = {ped.getV0()*Math.sin(umCA.getCrossingBearing()), ped.getV0()*Math.cos(umCA.getCrossingBearing())}; 
+		HashMap<Vehicle, Double> ttcs = umCA.vehicleTTCs(pLoc, pV);
+		assert ttcs.get(v)!=null;
 		assert ped.getYield()==true;
 		assert ped.isCrossing()==true;
 	}
