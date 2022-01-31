@@ -18,15 +18,13 @@ import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.RoadLink;
+import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.PedPathFinder;
 import repastInterSim.pathfinding.TacticalRoute;
 
 class TacticalRouteTest {
-
-	Context<Object> context = new DefaultContext<Object>();;
-	
 	String testGISDir = ".//data//test_gis_data//";
 	String pedestrianRoadsPath = null;
 	String vehicleRoadsPath = null;
@@ -48,7 +46,6 @@ class TacticalRouteTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -57,7 +54,7 @@ class TacticalRouteTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 			
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
@@ -85,9 +82,9 @@ class TacticalRouteTest {
 		
 		// Set up ped path finder
 		boolean minimiseCrossings = false;		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
-        context.add(p);        
+        EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
@@ -136,7 +133,6 @@ class TacticalRouteTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRandomDistributions();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -145,7 +141,7 @@ class TacticalRouteTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 			EnvironmentSetup.setUpPedObstructions();
 			
@@ -174,9 +170,9 @@ class TacticalRouteTest {
 		// Set up ped path finder
 		boolean minimiseCrossings = false;
 		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
-        context.add(p);        
+        EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
@@ -206,7 +202,6 @@ class TacticalRouteTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -215,7 +210,7 @@ class TacticalRouteTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 			
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
@@ -240,7 +235,7 @@ class TacticalRouteTest {
 			}
 		}
         boolean minimiseCrossings = false;
-        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
         
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
