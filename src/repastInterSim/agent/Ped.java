@@ -1017,6 +1017,10 @@ public class Ped extends MobileAgent {
 		this.yieldAtCrossing=y;
 	}
 	
+	public boolean getYield() {
+		return this.yieldAtCrossing;
+	}
+	
 	static public void resetID() {
 		Ped.uniqueID=1;
 	}
