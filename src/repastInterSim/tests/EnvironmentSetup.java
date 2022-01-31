@@ -19,6 +19,7 @@ import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.context.space.gis.GeographyFactoryFinder;
 import repast.simphony.context.space.graph.NetworkBuilder;
+import repast.simphony.engine.environment.RunState;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
@@ -108,10 +109,7 @@ public class EnvironmentSetup {
 		EnvironmentSetup.clearCaches();
 		GeometryFactory fac = new GeometryFactory();
 		
-		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
-		geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
-		geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(geography);
+		setUpObjectGeography();
 	}
 	
 	static void setUpRandomDistributions() {
@@ -138,7 +136,9 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpObjectGeography() {
-		EnvironmentSetup.context = new DefaultContext<Object>();
+		RunState.init();
+		RunState.getInstance().setMasterContext(context);
+		
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		EnvironmentSetup.geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, EnvironmentSetup.context, geoParams);
 		EnvironmentSetup.geography.setCRS(GlobalVars.geographyCRSString);
@@ -149,7 +149,7 @@ public class EnvironmentSetup {
 		// Get road geography
 		Context<Road> testRoadContext = new RoadContext();
 		GeographyParameters<Road> GeoParamsRoad = new GeographyParameters<Road>();
-		EnvironmentSetup.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("testRoadGeography", testRoadContext, GeoParamsRoad);
+		EnvironmentSetup.roadGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY, testRoadContext, GeoParamsRoad);
 		EnvironmentSetup.roadGeography.setCRS(GlobalVars.geographyCRSString);
 		
 		String pedestrianRoadsPath = testGISDir + "topographicAreaPedestrian.shp";
@@ -164,42 +164,48 @@ public class EnvironmentSetup {
 			e.printStackTrace();
 		}
 		SpatialIndexManager.createIndex(EnvironmentSetup.roadGeography, Road.class);
+		
+		context.addSubContext(testRoadContext);
 	}
 	
-	static Geography<RoadLink> setUpRoadLinks(String roadLinkFile) throws MalformedURLException, FileNotFoundException {
+	static Geography<RoadLink> setUpRoadLinks(String roadLinkFile, String contextName, String geogName) throws MalformedURLException, FileNotFoundException {
 		String roadLinkPath = testGISDir + roadLinkFile;
 		
 		// Initialise test road link geography and context
-		Context<RoadLink> roadLinkContext = new RoadLinkContext();
+		Context<RoadLink> roadLinkContext = new RoadLinkContext(contextName);
 		GeographyParameters<RoadLink> GeoParams = new GeographyParameters<RoadLink>();
-		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography("orRoadLinkGeography", roadLinkContext, GeoParams);
+		Geography<RoadLink> rlG = GeographyFactoryFinder.createGeographyFactory(null).createGeography(geogName, roadLinkContext, GeoParams);
 		rlG.setCRS(GlobalVars.geographyCRSString);
 				
 		GISFunctions.readShapefile(RoadLink.class, roadLinkPath, rlG, roadLinkContext);
 		SpatialIndexManager.createIndex(rlG, RoadLink.class);
 		
+		context.addSubContext(roadLinkContext);
+		
 		return rlG;
 	}
 	
 	static void setUpORRoadLinks() throws Exception {
-		EnvironmentSetup.orRoadLinkGeography = setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+		EnvironmentSetup.orRoadLinkGeography = setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp", GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
 	}
 	
 	static void setUpITNRoadLinks() throws Exception {
-		EnvironmentSetup.roadLinkGeography = setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp");
+		EnvironmentSetup.roadLinkGeography = setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp", GlobalVars.CONTEXT_NAMES.ROAD_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 	}
 	
-	static void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
-		EnvironmentSetup.pavementLinkGeography = setUpRoadLinks(linkFile);
+	static void setUpPavementLinks(String linkFile, String contextName, String geogName) throws MalformedURLException, FileNotFoundException {
+		EnvironmentSetup.pavementLinkGeography = setUpRoadLinks(linkFile, contextName, geogName);
 	}
 		
-	static Geography<OD> setUpODs(String odFile, String geogName) throws MalformedURLException, FileNotFoundException {
+	static Geography<OD> setUpODs(String odFile, String geogName, String contextName) throws MalformedURLException, FileNotFoundException {
 		
 		// Initialise OD context and geography
-		Context<OD> ODContext = new PedestrianDestinationContext();
+		Context<OD> ODContext = new DefaultContext<OD>(contextName);
 		GeographyParameters<OD> GeoParamsOD = new GeographyParameters<OD>();
 		Geography<OD> odG = GeographyFactoryFinder.createGeographyFactory(null).createGeography(geogName, ODContext, GeoParamsOD);
 		odG.setCRS(GlobalVars.geographyCRSString);
+		
+		context.addSubContext(ODContext);
 		
 		// Load vehicle origins and destinations
 		String testODFile = testGISDir + odFile;
@@ -209,7 +215,7 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpPedODs(String odFileName) throws MalformedURLException, FileNotFoundException {
-		EnvironmentSetup.pedestrianDestinationGeography = setUpODs(odFileName, "pedODGeography");
+		EnvironmentSetup.pedestrianDestinationGeography = setUpODs(odFileName, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY, GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_CONTEXT);
 	}
 	
 	static void setUpPedODs() throws MalformedURLException, FileNotFoundException {
@@ -217,11 +223,11 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpVehicleODs() throws MalformedURLException, FileNotFoundException {
-		EnvironmentSetup.vehicleDestinationGeography = setUpODs("OD_vehicle_nodes_intersect_within.shp", "vehicleODGeography");		
+		EnvironmentSetup.vehicleDestinationGeography = setUpODs("OD_vehicle_nodes_intersect_within.shp", "vehicleODGeography", GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_CONTEXT);		
 	}
 	
 	static void setUpVehicleODs(String file) throws MalformedURLException, FileNotFoundException {
-		EnvironmentSetup.vehicleDestinationGeography = setUpODs(file, "vehicleODGeography");		
+		EnvironmentSetup.vehicleDestinationGeography = setUpODs(file, "vehicleODGeography", GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_CONTEXT);		
 	}
 	
 	static void setUpPedObstructions() throws MalformedURLException, FileNotFoundException {
@@ -230,7 +236,7 @@ public class EnvironmentSetup {
 		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
 		EnvironmentSetup.pedObstructGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructGeography", pedObstructContext, GeoParams);
 		EnvironmentSetup.pedObstructGeography.setCRS(GlobalVars.geographyCRSString);
-		
+		context.addSubContext(pedObstructContext);
 		
 		// Load ped obstructions data
 		String testPedObstructFile = testGISDir + IO.getProperty("PedestrianObstructionShapefile");
@@ -244,6 +250,7 @@ public class EnvironmentSetup {
 		GeographyParameters<PedObstruction> GeoParams = new GeographyParameters<PedObstruction>();
 		EnvironmentSetup.pedObstructionPointsGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pedObstructionPointsGeography", pedObstructionPointsContext, GeoParams);
 		EnvironmentSetup.pedObstructionPointsGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(pedObstructionPointsContext);
 		
 		
 		// Load ped obstructions data
@@ -258,6 +265,7 @@ public class EnvironmentSetup {
 		GeographyParameters<CrossingAlternative> GeoParams = new GeographyParameters<CrossingAlternative>();
 		EnvironmentSetup.caGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("caGeography", caContext, GeoParams);
 		EnvironmentSetup.caGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(caContext);
 		
 		
 		// Load ped obstructions data
@@ -269,8 +277,9 @@ public class EnvironmentSetup {
 	static Network<Junction> setUpRoadNetwork(boolean isDirected, Geography<RoadLink> rlG, String name) {
 		Context<Junction> junctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
-		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("junctionGeography", junctionContext, GeoParamsJunc);
+		Geography<Junction> junctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.JUNCTION_GEOGRAPHY, junctionContext, GeoParamsJunc);
 		junctionGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(junctionContext);
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(name,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
@@ -282,11 +291,12 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpORRoadNetwork(boolean isDirected) {
-		
-		Context<Junction> junctionContext = new JunctionContext();
+		// Shouldnt use new context - use existing context
+		Context<Junction> junctionContext = new JunctionContext(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_CONTEXT);
 		GeographyParameters<Junction> GeoParamsJunc = new GeographyParameters<Junction>();
 		EnvironmentSetup.orJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY, junctionContext, GeoParamsJunc);
 		EnvironmentSetup.orJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(junctionContext);
 		
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
@@ -300,9 +310,10 @@ public class EnvironmentSetup {
 	}
 	
 	static void setUpPavementNetwork() {
-		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>("PAVEMENT_NETWORK", EnvironmentSetup.pavementJunctionContext, false);
+		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK, EnvironmentSetup.pavementJunctionContext, false);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.pavementNetwork = builder.buildNetwork();
+		context.addSubContext(pavementJunctionContext);
 		
 		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.pavementLinkGeography, EnvironmentSetup.pavementJunctionContext, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 	}
@@ -313,11 +324,25 @@ public class EnvironmentSetup {
 		// Initialise test road link geography and context
 		EnvironmentSetup.pavementJunctionContext = new JunctionContext();
 		GeographyParameters<Junction> GeoParams = new GeographyParameters<Junction>();
-		EnvironmentSetup.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography("pavementJunctionGeography", EnvironmentSetup.pavementJunctionContext, GeoParams);
+		EnvironmentSetup.pavementJunctionGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY, EnvironmentSetup.pavementJunctionContext, GeoParams);
 		EnvironmentSetup.pavementJunctionGeography.setCRS(GlobalVars.geographyCRSString);
+		context.addSubContext(pavementJunctionContext);
 				
 		GISFunctions.readShapefile(Junction.class, pedJPath, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementJunctionContext);
 		SpatialIndexManager.createIndex(EnvironmentSetup.pavementJunctionGeography, Junction.class);
+	}
+	
+	static void populatePedJunctiontoORJunctionLookup() {
+		for (Junction orJ : orJunctionGeography.getAllObjects()) {
+			if (!SpaceBuilder.orJuncToPaveJunc.containsKey(orJ)) {
+				SpaceBuilder.orJuncToPaveJunc.put(orJ, new ArrayList<Junction>());
+			}
+			for (Junction paveJ : pavementJunctionGeography.getAllObjects()) {
+				if(paveJ.getjuncNodeID().contentEquals(orJ.getFID())) {
+					SpaceBuilder.orJuncToPaveJunc.get(orJ).add(paveJ);
+				}
+			}
+		}	
 	}
 	
 	List<RoadLink> planStrategicPath(Coordinate o, Coordinate d, String j1ID, String j2ID){
