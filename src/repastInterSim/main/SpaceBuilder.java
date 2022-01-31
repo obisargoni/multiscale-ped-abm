@@ -662,7 +662,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
 		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
-    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), pavementJunctionGeography, pavementNetwork);
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getInteger("timeThreshold"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), pavementJunctionGeography, pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.

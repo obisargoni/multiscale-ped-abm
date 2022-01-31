@@ -458,18 +458,19 @@ public class EnvironmentSetup {
 		double lambda = 1.0;
 		double gamma = 0.9;
 		double epsilon = 3.0;
+		int tt = 30;
 		double pH = 20.0;
 		
 		if ( (oFID==null) | (dFID==null) ) {
-			return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+			return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, tt, minimisesCrossing, pH);
 		}
 		else {
-			return createPedestrian(oFID, dFID, s, m, alpha, lambda, gamma, epsilon, minimisesCrossing, pH);
+			return createPedestrian(oFID, dFID, s, m, alpha, lambda, gamma, epsilon, tt, minimisesCrossing, pH);
 		}
 		
 	}
 	
-	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Double pH) {
 		
 		OD o = null;
 		OD d = null;
@@ -483,11 +484,11 @@ public class EnvironmentSetup {
 			}
 		}
 		
-		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH);
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, minimiseCrossings, pH);
 		return p;
 	}
 	
-	static Ped createPedestrian(String oFID, String dFID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(String oFID, String dFID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Double pH) {
 		
 		OD o = null;
 		OD d = null;
@@ -501,13 +502,13 @@ public class EnvironmentSetup {
 			}
 		}
 		
-		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH);
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, minimiseCrossings, pH);
 		return p;
 	}
 	
-	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Double pH) {
 
-		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, tt, minimiseCrossings, pH, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 
         EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();

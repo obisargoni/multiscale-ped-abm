@@ -59,6 +59,7 @@ public class Ped extends MobileAgent {
 	private double alpha; // Controls sensitivity to traffic exposure
 	private double gamma; // Controls the rate at which historic activations decay
 	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
+	private int tt; // Time threshold at which point a choice is triggered
 
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<GridCoordinates2D> nextPathSection;
@@ -85,9 +86,9 @@ public class Ped extends MobileAgent {
     /*
      * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
      */
-    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o,d);
-    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
+    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, tt, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
     }
     
     /*
@@ -96,12 +97,12 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o, d);
-    	init(s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, paveG, paveNetwork);
+    	init(s, m, alpha, lambda, gamma, epsilon, tt, minimiseCrossings, pH, paveG, paveNetwork);
     }
     
-    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
         this.id = Ped.uniqueID++;
     	
     	this.v0  = s;
@@ -126,6 +127,7 @@ public class Ped extends MobileAgent {
 		this.lambda = lambda;
 		this.gamma = gamma;
 		this.epsilon = epsilon;
+		this.tt = tt;
 		
 		this.pathFinder = new PedPathFinder(this, paveG, paveNetwork, minimiseCrossings);
     }
@@ -958,6 +960,10 @@ public class Ped extends MobileAgent {
 
 	public double getEpsilon() {
 		return epsilon;
+	}
+	
+	public int getTimeThreshold() {
+		return tt;
 	}
 	
 	public void setCurrentPavementLinkID(String paveLinkID) {

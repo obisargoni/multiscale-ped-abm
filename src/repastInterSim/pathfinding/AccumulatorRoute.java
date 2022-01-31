@@ -264,9 +264,7 @@ public class AccumulatorRoute {
 		// Compare the largest activation to the second largest
 		double maxActivation = sortedActivations[nCAs-1];
 		
-		Parameters  params = RunEnvironment.getInstance().getParameters();
-		int accumulatorTimeThreshold = params.getInteger("timeThreshold");
-		if ((this.directCrossing | this.endOfRoute) & (this.nAccumulations>accumulatorTimeThreshold)) {
+		if ((this.directCrossing | this.endOfRoute) & (this.nAccumulations>ped.getTimeThreshold())) {
 			// Force choice of CA with highest activation
 			chooseCA=true;
 		}
