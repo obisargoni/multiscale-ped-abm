@@ -741,9 +741,9 @@ class PedTest {
 			}
 		}
 		
-		// ped should initially yield
+		// ped should initially yield. isCrossing is et to true currently when ped reaches start of crossing
 		assert ped.getYield()==true;
-		assert ped.isCrossing()==false;
+		assert ped.isCrossing()==true;
 		
 		// but after an additional step should continue to cross
 		try {
@@ -824,9 +824,9 @@ class PedTest {
 			}
 		}
 		
-		// Now that ped has reached crossing ped yields
+		// Now that ped has reached crossing (therefore is crossing is true) ped yields
 		assert ped.getYield() == true;
-		assert ped.isCrossing()==false;
+		assert ped.isCrossing()==true;
 		
 		// after an addition step ped still yields due to non null ttc with vehicle
 		try {
@@ -838,7 +838,7 @@ class PedTest {
 		HashMap<Vehicle, Double> ttcs = umCA.vehicleTTCs(ped);
 		assert ttcs.get(v)==null;
 		assert ped.getYield()==true;
-		assert ped.isCrossing()==false;
+		assert ped.isCrossing()==true;
 	}
 
 }
