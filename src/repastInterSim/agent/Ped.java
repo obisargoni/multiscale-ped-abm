@@ -24,6 +24,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repastInterSim.environment.OD;
 import repastInterSim.datasources.PedRouteData;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -143,11 +144,11 @@ public class Ped extends MobileAgent {
     	this.stepsSinceReachedTarget++;
     	int nUpdates = 0;
     	
-    	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
-    	// its route coordinate because this involves removing coordinates from the route.
-   		//decideYield();
-
     	
+    	if (this.isCrossing()) {
+    		decideYield();
+    	}
+
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
    		if (!this.yieldAtCrossing) {
    			
@@ -686,33 +687,25 @@ public class Ped extends MobileAgent {
     }
     
     /**
-     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
-     * used for routing, at the current location and estimates near future location.
      * 
-     * If grid cell values are expected to increase the agent is heading towards a lower priority area
-     * and is considered to be approaching a crossing point.
      */
     public void decideYield() {
     	
-    	checkIfEnteringCrossing();
+    	// Get chosen crossing alternative
+    	CrossingAlternative ca = this.pathFinder.getTacticalPath().getAccumulatorRoute().getChosenCA();
     	
-    	if (this.enteringCrossing) {
-    		
-    		// Decide whether to yield or not. For now yield for fixed amount of time by default
-    		if (this.yieldTime < 10) {
-            	this.yieldAtCrossing = true;
-            	this.yieldTime++;
-        	}
-        	
-    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
-	    	else {
-	    		this.yieldAtCrossing = false;
-	    		this.yieldTime = 0;
-				this.enteringCrossing = false;
-				
-				// Set crossing coord to null because agent has stopped yielding so this crossing can be considered to be passed
-				pathFinder.setNextCrossingCoord(null);
-	    	}
+    	// Get vehicle TTCs based on velocity of ped if it were to cross the road at desired speed
+    	double[] pLoc = {this.maLoc.x, this.maLoc.y};
+    	double[] pV = {this.v0*Math.sin(ca.getCrossingBearing()), this.v0*Math.cos(ca.getCrossingBearing())}; 
+    	HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(pLoc, pV);
+    	
+    	// Decide whether to yield or not based on ttcs
+    	// - yield if there is a non null ttc
+    	this.yieldAtCrossing=false;
+    	for(Entry<Vehicle, Double> e : ttcs.entrySet()) {
+    		if (e.getValue()!=null) {
+    			this.yieldAtCrossing=true;
+    		}
     	}
     }
     
@@ -1023,5 +1016,9 @@ public class Ped extends MobileAgent {
 	
 	static public void resetID() {
 		Ped.uniqueID=1;
+	}
+	
+	public double getV0() {
+		return this.v0;
 	}
 }

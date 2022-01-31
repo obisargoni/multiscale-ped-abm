@@ -369,6 +369,9 @@ public class AccumulatorRoute {
 			CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
 			RunState.getInstance().getMasterContext().add(ced);
 			this.ced=ced;
+			
+			// Initially make pedestrian yield at the edge of the crossing
+			ped.setYield(true);
 		}
 		
 		// Once crossing coordinates have been updated once, ped has started to cross.
