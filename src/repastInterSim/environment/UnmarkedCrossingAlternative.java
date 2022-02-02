@@ -225,7 +225,16 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 */
 	public void setGeom(Geometry c) {
 		// TODO Auto-generated method stub
-		
+	}
+	
+	@Override
+	public double getCrossingBearing() {
+		return GISFunctions.bearingBetweenCoordinates(this.getC1(), this.getC2());
+	}
+	
+	@Override
+	public double getCrossingDistance() {
+		return this.getC1().distance(this.getC2());
 	}
 
 }

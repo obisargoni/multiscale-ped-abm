@@ -25,6 +25,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	private Coordinate c1 = null;
 	private Coordinate c2 = null;
 	private Double crossingBearing = null;
+	private Double crossingDistance = null;
 	
 	private String type;
 	
@@ -293,5 +294,15 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 			this.crossingBearing = GISFunctions.bearingBetweenCoordinates(this.getC1(), this.getC2());
 		}
 		return this.crossingBearing;
+	}
+	
+	/*
+	 * Calculates and retrieves the distance between C1 and C2
+	 */
+	public double getCrossingDistance() {
+		if (this.crossingDistance==null) {
+			this.crossingDistance = this.getC1().distance(this.getC2());
+		}
+		return this.crossingDistance;
 	}
 }
