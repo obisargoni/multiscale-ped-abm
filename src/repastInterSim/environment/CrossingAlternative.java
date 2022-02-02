@@ -286,7 +286,7 @@ public class CrossingAlternative extends Signal implements FixedGeography  {
 	}
 	
 	/*
-	 * Calculates and retreives the bearing between C1 and C2
+	 * Calculates and retrieves the bearing between C1 and C2
 	 */
 	public double getCrossingBearing() {
 		if (this.crossingBearing==null) {
