@@ -113,25 +113,25 @@ public class EnvironmentSetup {
 		setUpObjectGeography();
 	}
 	
-	static void setUpRandomDistributions() {
+	static void setUpRandomDistributions(int baseSeed) {
 		// Correct way to register multiple random number streams
-		RandomEngine eng = RandomHelper.registerGenerator("maODThresholds", RandomHelper.getSeed()+1);
+		RandomEngine eng = RandomHelper.registerGenerator("maODThresholds", baseSeed+1);
 		Uniform maODUniform = new Uniform(0, 1, eng);
 		RandomHelper.registerDistribution("maODThresholds", maODUniform);
 		
-		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", RandomHelper.getSeed()+2);
+		RandomEngine engPedMinCross = RandomHelper.registerGenerator("pedMinCrossThresholds", baseSeed+2);
 		Uniform pedMinCrossUniform = new Uniform(0, 1, engPedMinCross);
 		RandomHelper.registerDistribution("pedMinCrossThresholds", pedMinCrossUniform);
    
-		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", RandomHelper.getSeed()+3);
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", baseSeed+3);
 		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
 		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
 		
-		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", RandomHelper.getSeed()+4);
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", baseSeed+4);
 		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
 		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
 		
-		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", RandomHelper.getSeed()+5);
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", baseSeed+5);
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 	}
