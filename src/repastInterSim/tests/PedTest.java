@@ -745,7 +745,20 @@ class PedTest {
 		assert ped.getYield()==true;
 		assert ped.isCrossing()==true;
 		
-		// but after an additional step should continue to cross
+		// Now set ped speed such that vehicle and ped should collide at the middle of the crossing
+		Coordinate crossingMid = GISFunctions.midwayBetweenTwoCoordinates(mCA.getC1(), mCA.getC2());
+		double b = GISFunctions.bearingBetweenCoordinates(v.getLoc(), crossingMid);
+		v.setBearing(b);
+		
+		// Set vehicle velocity to ensure a conflict with ped if ped were to cross
+		double vDist = v.getLoc().distance(crossingMid)- GlobalVars.vehicleLength/2;
+		double pDist = ped.getLoc().distance(crossingMid);
+		double pedSpeed = ped.getV0(); // Ped's desired walking speed
+		double tPed = pDist / pedSpeed;
+		double vSpeed = vDist / tPed ;
+		v.setSpeed(vSpeed);
+		
+		// but after an additional step should continue to cross bc at marked crossing peds trusts vehicle will yield
 		try {
 			ped.step();
 		}
