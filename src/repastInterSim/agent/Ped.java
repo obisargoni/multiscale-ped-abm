@@ -65,8 +65,8 @@ public class Ped extends MobileAgent {
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<GridCoordinates2D> nextPathSection;
     
-    private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
+	private double ga; // Gap acceptance factor
     
     private String roadLinkFID = null;
     
@@ -127,6 +127,9 @@ public class Ped extends MobileAgent {
 		this.epsilon = epsilon;
 		this.tt = tt;
 		
+		// Parameters for controlling yielding to vehicles
+		this.ga = 1.0; // factor that sets proportion of time required to cross the road that ped accepts as a gap
+		
 		this.pathFinder = new PedPathFinder(this, paveG, paveNetwork, minimiseCrossings);
     }
 
@@ -141,8 +144,8 @@ public class Ped extends MobileAgent {
     	this.stepsSinceReachedTarget++;
     	int nUpdates = 0;
     	
-    	
-    	if (this.isCrossing()) {
+    	// Only decide whether to continue yielding or not. If no longer yielding then decision isn't reverted
+    	if (this.isCrossing() & this.yieldAtCrossing) {
     		decideYield();
     	}
 
@@ -686,52 +689,45 @@ public class Ped extends MobileAgent {
     /**
      * 
      */
-    public void decideYield() {
-    	
+    public void decideYield() {    	
     	// Get chosen crossing alternative
     	CrossingAlternative ca = this.pathFinder.getTacticalPath().getAccumulatorRoute().getChosenCA();
     	
-    	// Get vehicle TTCs based on velocity of ped if it were to cross the road at desired speed
-    	double[] pLoc = {this.maLoc.x, this.maLoc.y};
-    	double[] pV = {this.v0*Math.sin(ca.getCrossingBearing()), this.v0*Math.cos(ca.getCrossingBearing())}; 
-    	HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(pLoc, pV);
-    	
-    	// Decide whether to yield or not based on ttcs
-    	// - yield if there is a non null ttc
-    	this.yieldAtCrossing=false;
-    	for(Entry<Vehicle, Double> e : ttcs.entrySet()) {
-    		if (e.getValue()!=null) {
-    			this.yieldAtCrossing=true;
-    		}
-    	}
-    }
-    
-    /*
-     * Use ray that extends ahead of pedestrian to check whether pedestrian is about to enter the carriageway.
-     * 
-     * The method not needed because AccumulatorRoute records when pedestrian is entering the carriadgeway using the route crossing coordinates.
-     */
-    public void checkIfEnteringCrossing() {    	
-    	// Crossing coord could be null if there isn't a crossing coming up on the route
-    	if (pathFinder.getNextCrossingCoord() != null) {
-        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(pathFinder.getNextCrossingCoord());
+    	if (ca.getType().contentEquals("unmarked")) {
+    		// Decide to yield based on time gap
+    		
+        	// Get vehicle TGs based on velocity of ped if it were to cross the road at desired speed
+        	double[] pLoc = {this.maLoc.x, this.maLoc.y};
+        	double[] pV = {this.v0*Math.sin(ca.getCrossingBearing()), this.v0*Math.cos(ca.getCrossingBearing())};
+        	HashMap<Vehicle, Double> tgs = ca.vehicleTGs(pLoc, pV);
         	
-        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
-        	Coordinate[] lookAheadLineCoords = {this.maLoc, lookAhead};
-        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
+        	// Calculate crossing time based on peds desired velocity
+        	double crossingTime = ca.getCrossingDistance() / this.v0;
         	
-        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
-        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
-        	// Also the buffer distance also needs considering
-        	if (lookAheadLine.intersects(nextCrossing)) {
-        		this.enteringCrossing = true;
-        	}
-        	else {
-        		this.enteringCrossing = false;
+        	// Decide whether to yield or not based on ttcs
+        	// - yield if there is a non null ttc
+        	this.yieldAtCrossing=false;
+        	for(Entry<Vehicle, Double> e : tgs.entrySet()) {
+        		if (e.getValue()!=null) {
+        			// Calculate ratio of time gap to crossing time
+        			double r = e.getValue() / crossingTime;
+        			
+        			// yielding rule:
+        			// - if tg is +ve, ped arrives first. yield if ratio is smaller than threshold since small values imply risk of conflict as ped crosses
+        			// - if tg is -ve ped arrives second. Yield if magnitude smaller than fixed value, meaning that all peds will cross behind passing vehicle if gap is sufficiently large to avoid conflict
+        			if ( (r>0) & (r<this.ga) ) {
+        				this.yieldAtCrossing=true;
+        				break;
+        			}
+        			else if ( (r<0) & (r>-0.5) ) {
+        				this.yieldAtCrossing=true;
+        				break;
+        			}
+        		}
         	}
     	}
     	else {
-    		this.enteringCrossing = false;
+    		this.yieldAtCrossing=false;
     	}
     }	
     
@@ -953,6 +949,14 @@ public class Ped extends MobileAgent {
 	
 	public int getTimeThreshold() {
 		return tt;
+	}
+	
+	public double getGA() {
+		return this.ga;
+	}
+	
+	public void setGA(double ga) {
+		this.ga=ga;
 	}
 	
 	public void setCurrentPavementLinkID(String paveLinkID) {
