@@ -73,7 +73,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -114,7 +113,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -174,7 +172,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -271,7 +268,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -387,8 +383,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -399,7 +394,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -511,8 +506,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -523,7 +517,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -612,7 +606,6 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -623,7 +616,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
