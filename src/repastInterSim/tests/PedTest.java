@@ -75,7 +75,7 @@ class PedTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -477,7 +477,7 @@ class PedTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
@@ -491,7 +491,7 @@ class PedTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -508,7 +508,7 @@ class PedTest {
 			e.printStackTrace();
 		}
 		
-		Ped p17 = EnvironmentSetup.createPedestrian(1, 3, 0.8098254410639371, 56.15750059331304, 0.5, 0.1, 0.9, 4.0, true, 20.0);
+		Ped p17 = EnvironmentSetup.createPedestrian(1, 3, 0.8098254410639371, 56.15750059331304, 0.5, 0.1, 0.9, 4.0, 30, true, 20.0);
 		assert (p17.getRad() - 0.17549218935410324) < 0.00001;
 		// Step to initialise
 		try {
@@ -539,7 +539,7 @@ class PedTest {
 		
 		
 		// Live OD data id 6 is test OD data id 13
-		Ped p33 = EnvironmentSetup.createPedestrian(3,13, 0.698355745646177, 61.108214657651644, 0.5, 0.1, 0.9, 4.0, true, 20.0);
+		Ped p33 = EnvironmentSetup.createPedestrian(3,13, 0.698355745646177, 61.108214657651644, 0.5, 0.1, 0.9, 4.0, 30, true, 20.0);
 		assert (p33.getRad() - 0.1909631708051614) < 0.00001;
 		try {
 			p33.step();
@@ -578,7 +578,7 @@ class PedTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
@@ -590,7 +590,7 @@ class PedTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
