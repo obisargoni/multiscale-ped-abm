@@ -14,9 +14,7 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import repast.simphony.engine.environment.RunEnvironment;
 import repast.simphony.engine.environment.RunState;
-import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
@@ -152,15 +150,6 @@ public class AccumulatorRoute {
 		return sampledi;
 	}
 	
-	/*
-	 * Binary indicator of whether or not crossing at this crossing alternative now will result in a vehicle conflict if
-	 * if pedestrian agent and vehicle agents do not alter course. Returns 1 if no conflicts would occur, 0 otherwise.
-	 * 
-	 * @param CrossingAlternative ca
-	 */
-	public int isCAConfictsFree(CrossingAlternative ca) {
-		return 1 - ca.wouldConflictOccur(this.ped);
-	}
 	
 	/*
 	 * Get the crossing exposure indicator value for the input crossing alternative

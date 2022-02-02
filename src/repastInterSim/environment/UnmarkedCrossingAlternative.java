@@ -100,53 +100,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
-	 * Returns 1 if a conflict would occur between the input pedestrian and vehicles if the pedestrian were 
-	 * to cross at this crossing alternative.
-	 * 
-	 * @param Ped p
-	 */
-	@Override
-	public int wouldConflictOccur(Ped p) {
-		Coordinate c1 = getC1();
-		Coordinate c2 = getC2();
-		
-		double crossingTime = c1.distance(c2) / p.getDesiredSpeed();
-
-		// Initialise the pedestrian position and velocity to use for the ttc calculation
-		double[] pLoc = new double[2];
-		pLoc[0] = p.getLoc().x;
-		pLoc[1] = p.getLoc().y;
-		
-		// For pedestrian velocity, assume pedestrian walks from start to end crossing coordinate as it's desired speed
-		double bearing = GISFunctions.bearingBetweenCoordinates(c1, c2);
-		double[] pV = {p.getDesiredSpeed()*Math.sin(bearing), p.getDesiredSpeed()*Math.cos(bearing)};
-		
-		// Loop through vehicles on the road links this crossing covers
-		// Calculate TTC for each vehicle
-		// If TTC < time 
-		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
-		for (int i=0; i<itnLinks.size(); i++){
-			RoadLink rl = itnLinks.get(i);
-			for(int j = 0; j<rl.getQueue().count(); j++){
-				int vi = rl.getQueue().readPos() + j;
-				if (vi>=rl.getQueue().capacity()) {
-					vi = vi-rl.getQueue().capacity();
-				}
-				Vehicle v = rl.getQueue().elements[vi];
-				
-				Double ttc = v.TTC(pLoc, pV);
-				
-				if (ttc!=null) {
-					if (ttc<crossingTime) {
-						return 1;
-					}
-				}
-			}
-		}
-		return 0;
-	}
-	
-	/*
 	 * Find the coordiante on the opposite side of the road to the pedestrians current position.
 	 * 
 	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
