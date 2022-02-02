@@ -648,6 +648,25 @@ public class Vehicle extends MobileAgent {
     	return minTTC;
     }
     
+    /*
+     * Calculate the time gap between the vehicle ad a ped agent
+     */
+    public Double TG(double[] pLoc, double[] pV) {
+    	// Get coordinates of the edges of the vehicle geometry
+    	Coordinate[] recCorners = vehicleRectangleCoordiantes(this.maLoc, this.bearing);
+    	double[] v = {this.speed*Math.sin(this.bearing), this.speed*Math.cos(this.bearing)}; 
+    	
+    	// Get the coordinates of edges parallel to the direction of movement
+    	double[] e10 = {recCorners[1].x, recCorners[1].y};
+    	double[] e11 = {recCorners[2].x, recCorners[2].y};
+    	double[] e20 = {recCorners[0].x, recCorners[0].y};
+    	double[] e21 = {recCorners[3].x, recCorners[3].y};
+    	
+    	// Calculate time gap
+    	Double tg = Vector.edgeTG(e10, e11, e20, e21, pLoc, pV, v);
+    	return tg;
+    }
+    
 	static public void resetID() {
 		Vehicle.uniqueID=1;
 	}
