@@ -687,5 +687,118 @@ class VehicleTest {
 		caSpd = v.crossingAlternativeSafeSpeed(cas); 
 		assert caSpd == Double.MAX_VALUE;
 	}
+	
+	/*
+	 * Test that time gap between a pedestrian and vehicle are calculated as expected
+	 */
+	@Test
+	void testVehiclePedestrianTG1() {
+		// Setup the environment
+		try {			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.setUpRandomDistributions(4); // Need to use 4 as base seed to ensure that ped chooses the unmarked crossing option when makes it easier to test that TG is being calculated correctly.
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3, 4, 1.5, 40.0, 0.0, 2.0, 0.9, 2.5, 30, false, 100.0);						
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
+		
+		// Step the vehicle and pedestrian once to initialise them
+		try {
+			v.step();
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Step ped along until it reaches it's crossing location
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA().getType().contentEquals("unmarked");
+		
+		// Calculate TG between ped and vehicle
+		double[] pLoc = {pedMinDist.getLoc().x, pedMinDist.getLoc().y};
+		Double tg = v.TG(pLoc, pedMinDist.getV());
+		assert tg>0; // expect ped to pass conflict point before vehicle
+		
+		// Move vehicle along 2 steps, check that time gap decreases
+		for (int i=0;i<2;i++) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		Double tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert tgNew<tg;
+		tg = tgNew;
+		
+		// More vehicle along until it just passes ped, check that time gap has decreased in magnitude but that ped is now passing second.
+		// Now step vehicle along until it passes the pedestrian
+		double prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		double distDiff = 0.0; 
+		while (distDiff != 1.0) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			distDiff = Math.signum(v.getLoc().distance(pedMinDist.getLoc()) - prevDist);
+			prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		}
+		
+		tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert tgNew<0;
+		assert tgNew < tg;
+		assert Math.abs(tgNew)<Math.abs(tg);
+		tg=tgNew;
+		
+		// Step vehicle along a bit more and check that time gap increases in magnitude
+		for (int i=0;i<2;i++) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert Math.abs(tgNew)>Math.abs(tg);		
+	}
 
 }
