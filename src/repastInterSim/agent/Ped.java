@@ -71,12 +71,9 @@ public class Ped extends MobileAgent {
     private String roadLinkFID = null;
     
     private Double pHorizon; // Tactical planning horizon of ped agent in degrees
-        
-    private int yieldTime = 0;
     
     private Color col; // Colour of the pedestrian
     
-    private String currentCrossingType = "none";
 	private String currentPavementLinkID = "";
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
@@ -758,7 +755,6 @@ public class Ped extends MobileAgent {
         this.roadLinkFID = null;
         this.pHorizon=null;
         this.col=null;
-        this.currentCrossingType=null;
     	this.currentPavementLinkID = null;
     }
     
