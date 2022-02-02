@@ -855,32 +855,58 @@ class PedTest {
 		double vSpeed = vDist / tPed ;
 		v.setSpeed(vSpeed);
 		
-		// after an addition step ped still yields due to non null ttc with vehicle
+		// after an additional step ped still yields due to sufficiently low time gap between ped and vehicle
 		try {
 			ped.step();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		// since vehicle ttc currently not null ped will continue to yield
+		// since vehicle tg sufficiently low
+		double pedCrossingTime = umCA.getCrossingDistance() / ped.getV0();
 		double[] pLoc = {ped.getLoc().x, ped.getLoc().y};
     	double[] pV = {ped.getV0()*Math.sin(umCA.getCrossingBearing()), ped.getV0()*Math.cos(umCA.getCrossingBearing())}; 
-		HashMap<Vehicle, Double> ttcs = umCA.vehicleTTCs(pLoc, pV);
-		assert ttcs.get(v)!=null;
+		HashMap<Vehicle, Double> tgs = umCA.vehicleTGs(pLoc, pV);
+		assert tgs.get(v) / pedCrossingTime < ped.getGA();
 		assert ped.getYield()==true;
 		assert ped.isCrossing()==true;
 		
-		// If vehicle comes to a stop, ttcs become null and ped should stop yielding
-		v.setSpeed(0.0);
+		// If vehicle slows down tg increases and ped should stop yielding
+		v.setSpeed(10.0);
 		try {
 			ped.step();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		ttcs = umCA.vehicleTTCs(pLoc, pV);
-		assert ttcs.get(v)==null;
+		tgs = umCA.vehicleTGs(pLoc, pV);
+		assert tgs.get(v) / pedCrossingTime > ped.getGA();
 		assert ped.getYield()==false;
+		assert ped.isCrossing()==true;
+		
+		// Check that now ped has decided to cross will no longer yield even if vehicle speed increases
+		v.setSpeed(25.0);
+		try {
+			ped.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		tgs = umCA.vehicleTGs(pLoc, pV);
+		assert tgs.get(v) / pedCrossingTime < ped.getGA();
+		assert ped.getYield()==false;
+		assert ped.isCrossing()==true;
+		
+		// Check that if ped has a more restrictive ga parameter then ped chooses to yield
+		v.setSpeed(10.0);
+		ped.setGA(1.5);
+		ped.setYield(true);
+		try {
+			ped.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		tgs = umCA.vehicleTGs(pLoc, pV);
+		assert tgs.get(v) / pedCrossingTime < ped.getGA();
+		assert ped.getYield()==true;
 		assert ped.isCrossing()==true;
 	}
 }
