@@ -74,6 +74,12 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
+								<parameter name="ga" displayName="Gap acceptance parameter" type="double" 
+						defaultValue="1.0" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+									
+		/>
 								<parameter name="minCrossing" displayName="Whether pedestrian agents minimising no. crossings" type="boolean" 
 						defaultValue="true" 
 						isReadOnly="false" 
