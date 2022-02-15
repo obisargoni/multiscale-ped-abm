@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-public class CrossEventData {
+public class CrossEventData extends DefaultDataRecorder {
 	
 	private int pedID;
 	private String tacticalEdgeID;
@@ -13,6 +13,7 @@ public class CrossEventData {
 	private Double ttc;
 
 	public CrossEventData(int pID, String tEID, String cT, List<Coordinate> cCs) {
+		super();
 		this.pedID=pID;
 		this.tacticalEdgeID=tEID;
 		this.crossingType=cT;

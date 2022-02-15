@@ -1,6 +1,6 @@
 package repastInterSim.datasources;
 
-public class PedRouteData {
+public class PedRouteData extends DefaultDataRecorder {
 	
 	private int id;
 	private String startPavementJunctionID;
@@ -12,7 +12,7 @@ public class PedRouteData {
 	
 
 	public PedRouteData(int pID, String spjID, String dpjID, String fsp, String ftp, double jD, int jDr) {
-		// TODO Auto-generated constructor stub
+		super();
 		this.id = pID;
 		this.startPavementJunctionID = spjID;
 		this.destPavementJunctionID = dpjID;

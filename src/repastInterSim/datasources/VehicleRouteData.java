@@ -1,6 +1,6 @@
 package repastInterSim.datasources;
 
-public class VehicleRouteData {
+public class VehicleRouteData extends DefaultDataRecorder {
 	
 	private int id;
 	private String startJunctionID;
@@ -11,7 +11,7 @@ public class VehicleRouteData {
 	
 
 	public VehicleRouteData(int vID, String sjID, String djID, String fsp, double jD, int jDr) {
-		// TODO Auto-generated constructor stub
+		super();
 		this.id = vID;
 		this.startJunctionID = sjID;
 		this.destJunctionID = djID;
