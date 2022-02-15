@@ -1,8 +1,4 @@
 
 <context id="repastInterSim" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://repast.org/scenario/context">
   	<projection type="geography" id="Geography"></projection>
-  	<projection type="coverage layer" id="intersection"></projection>
-  	<context id="JunctionContext">
-		<projection type="geography" id="JunctionGeography"></projection>
-		<projection type="network" id="RoadNetwork"></projection></context>
 </context>
