@@ -420,7 +420,10 @@ public class Vehicle extends MobileAgent {
 		
     	// Record the vehicle's route for data collection
     	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
-    	RunState.getInstance().getMasterContext().add(vd);
+		Context<Object> mc = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		mc.add(vd);
+		g.move(vd, vd.getGeom());
 		
 		this.currentRoadLink=null;
 		this.queuePos=null;

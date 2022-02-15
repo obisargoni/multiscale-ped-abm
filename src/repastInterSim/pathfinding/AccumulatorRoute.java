@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunState;
 import repast.simphony.random.RandomHelper;
+import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
@@ -23,6 +25,7 @@ import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.main.GlobalVars;
 
 public class AccumulatorRoute {
 	
@@ -356,7 +359,10 @@ public class AccumulatorRoute {
 		if (this.isCrossing==false) {
 			// Create crossing data collector agent
 			CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
-			RunState.getInstance().getMasterContext().add(ced);
+			Context<Object> mc = RunState.getInstance().getMasterContext();
+			Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+			mc.add(ced);
+			g.move(ced, ced.getGeom());
 			this.ced=ced;
 			
 			// Initially make pedestrian yield at the edge of the crossing
