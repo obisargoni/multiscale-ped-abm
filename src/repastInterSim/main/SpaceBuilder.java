@@ -146,7 +146,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		Geography geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(geography);
 		
 		// Road Geography stores polygons representing road and pavement surfaces
 		RoadContext roadContext = new RoadContext();
