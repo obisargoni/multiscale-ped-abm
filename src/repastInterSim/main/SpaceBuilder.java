@@ -717,12 +717,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         		AgentsToRemove.add(mA);
         		continue;
         	}
-        	
-        	// Also check whether the mobile agent has reached its default destination
-        	if (mA.getDestination().getGeom().getCoordinate().distance(mAGeom.getCoordinate()) < GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance) {
-        		AgentsToRemove.add(mA);
-        		continue;
-        	}
         }
         // Now iterate over all of the peds to remove and remove them from the context
         // Need to do this separately from iterating over the peds in the context since altering the context whilst iterating over it throws and exception
