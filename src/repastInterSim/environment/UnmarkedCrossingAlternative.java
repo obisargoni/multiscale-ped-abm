@@ -149,6 +149,28 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * 		Coordinate
 	 */
 	public Coordinate oppositeSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG) {
+		Coordinate nearestOpCoord = xSideOfRoadCoord(c, poG, "opposite");
+		return nearestOpCoord;
+	}
+	
+	/*
+	 * Method for finding nearest coordinate to the road edge on either the same or opposite side of the road to the input coordinate c (typically the pedestrians current position)
+	 * 
+	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
+	 * and at the far edge of the carriageway from the pedestrian. Same side defined in the same way but near side of the carriageway instead.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * @param String side
+	 * 		Indicates whether to return nearest coord on same of opposite side of the road to input coordinate c.
+	 * 
+	 * @returns
+	 * 		Coordinate
+	 */
+	public Coordinate xSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG, String side) {
+		
 		Coordinate rlCent = this.getORRoadLink().getGeom().getCentroid().getCoordinate();
 		double oppRoadAngle = oppositeSideOfRoadAngle(c, rlCent);
 		
@@ -164,6 +186,7 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 		for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
 			roadEdgeGeoms.add(g);
 		}
+		
 				
 		// Loop through ped roads and find nearest coordinate on each
 		Double minDist = Double.MAX_VALUE;
@@ -179,22 +202,26 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 			double angToC = GISFunctions.bearingBetweenCoordinates(rlCent, nearC);
 			double angRange = Vector.nonReflexAngleBetweenBearings(angToC, oppRoadAngle);
 			
-			// If angle between bearing from centre of road link and coord and direction perpendicular to road link towards opposite side of the road
-			// is greater than 90 degs this coordinate is not on the other side of the road
-			if (angRange>Math.PI/2) {
+			// Set whether to identify the same side of the road coordinate or opposite side of the road coordinate
+			int comp;
+			if (side.contentEquals("opposite")) {
+				comp = 1; // will cause loop to continue when bearing to the coordinate points to same side of the road, therefore identifying coordinate that is on opposite side
+			}
+			else {
+				comp = -1; // visa versa
+			}
+			
+			// Compare angle between bearing that points to opposite side of the road and bearing that points to coordinate to pi/2
+			if ( Math.signum(Double.compare(angRange, Math.PI/2))==comp) {
 				continue;
 			}
 			
-			// Check if this coordinate is the nearest on the other side of the raod, if so update the chosen coord
+			// Check if this coordinate is the nearest on the other side of the road, if so update the chosen coord
 			double d = c.distance(nearC);
 			if (d < minDist) {
 				minDist = d;
 				nearestOpCoord = nearC;
 			}
-		}
-		
-		return nearestOpCoord;
-	}
 		}		
 		return nearestOpCoord;
 	}
