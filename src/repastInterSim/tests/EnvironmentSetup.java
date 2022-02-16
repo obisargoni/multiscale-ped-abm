@@ -464,7 +464,9 @@ public class EnvironmentSetup {
 		OD o = null;
 		OD d = null;
 		
-		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
+		Geography<OD> odGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PEDESTRIAN_DESTINATION_GEOGRAPHY);
+		
+		for (OD i : odGeography.getAllObjects()) {
 			if (i.getId() == oID) {
 				o = i;
 			}
@@ -496,14 +498,18 @@ public class EnvironmentSetup {
 	}
 	
 	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Double ga, boolean minimiseCrossings, Double pH) {
-
-		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimiseCrossings, pH, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
-
-        EnvironmentSetup.context.add(p);        
+		
+		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimiseCrossings, pH, pavementJunctionGeography, pavementNetwork);
+		
+		Context<Object> c = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) c.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+        c.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
 		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, p);
+		GISFunctions.moveAgentToGeometry(g, circle, p);
 		p.setLoc();
 		return p;
 	}
@@ -520,7 +526,10 @@ public class EnvironmentSetup {
 		// Move ped to position and bearing that has caused an error in the simulation
         Point pt = GISFunctions.pointGeometryFromCoordinate(c);
 		Geometry pGeomNew = pt.buffer(ped.getRad());
-        GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, pGeomNew, ped);
+		
+		Context<Object> context = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+        GISFunctions.moveAgentToGeometry(g, pGeomNew, ped);
 		ped.setLoc();
 		ped.setBearing(b);
 		return ped;

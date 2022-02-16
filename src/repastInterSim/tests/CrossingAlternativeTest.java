@@ -31,6 +31,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testLoadCrossingAlternatives1() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -84,6 +86,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testSignalPhaseChange() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -176,6 +180,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testUnsignalisedCrossings() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -216,7 +222,6 @@ class CrossingAlternativeTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -227,7 +232,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -263,7 +268,6 @@ class CrossingAlternativeTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -274,7 +278,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -312,7 +316,6 @@ class CrossingAlternativeTest {
 			
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -323,7 +326,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
@@ -345,7 +348,7 @@ class CrossingAlternativeTest {
 		Ped p = EnvironmentSetup.createPedAtLocation(null, null, "od_263", "od_0", false, pedLoc, bearing);
 		
 		// Update current road link
-		String rlID = "or_link_194";		
+		String rlID = "or_link_183";		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setRoadLinkID(rlID);
 		caU.setPed(p);
@@ -360,8 +363,8 @@ class CrossingAlternativeTest {
 	void testUnmarkedCrossingVehicleFlow() {
 		// Setup the environment
 		try {
-			IO.readProperties();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -372,7 +375,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -381,6 +384,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.setUpRandomDistributions(0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -457,8 +461,8 @@ class CrossingAlternativeTest {
 	void testCATTC() {
 		// Setup the environment
 		try {
-			IO.readProperties();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -469,7 +473,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
