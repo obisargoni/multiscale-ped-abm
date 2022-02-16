@@ -100,6 +100,35 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
+	 * Find the bearing that points to the opposite side of the road from the input coordinate.
+	 * 
+	 */
+	public double oppositeSideOfRoadAngle(Coordinate c, Coordinate rlCent) {
+		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
+		Coordinate[] rlCoords = this.getORRoadLink().getGeom().getCoordinates(); 
+		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
+		double perp1 = rlBearing - Math.PI / 2;
+		double perp2 = rlBearing + Math.PI / 2;
+		
+		// Find which of these bearings points to opp side of road to ped
+		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
+		
+		double range1 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp1);
+		
+		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
+		// Use this to identify if a coordinate is on the opposite side of the road
+		double oppRoadAngle;
+		if (range1>Math.PI/2) {
+			oppRoadAngle = perp1;
+		} 
+		else {
+			oppRoadAngle = perp2;
+		}
+		
+		return oppRoadAngle;
+	}
+	
+	/*
 	 * Find the coordiante on the opposite side of the road to the pedestrians current position.
 	 * 
 	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
@@ -120,30 +149,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 * 		Coordinate
 	 */
 	public Coordinate oppositeSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG) {
-		
-		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
-		Coordinate[] rlCoords = this.getORRoadLink().getGeom().getCoordinates(); 
-		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
-		double perp1 = rlBearing - Math.PI / 2;
-		double perp2 = rlBearing + Math.PI / 2;
-		
-		// Find which of these bearings points to opp side of road to ped
 		Coordinate rlCent = this.getORRoadLink().getGeom().getCentroid().getCoordinate();
-		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
-		
-		double range1 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp1);
-		double range2 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp2);
-		
-		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
-		// Use this to identify if a coordinate is on the opposite side of the road
-		double oppRoadAngle;
-		if (range1>Math.PI/2) {
-			oppRoadAngle = perp1;
-		} 
-		else {
-			oppRoadAngle = perp2;
-		}
-		
+		double oppRoadAngle = oppositeSideOfRoadAngle(c, rlCent);
 		
 		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
 		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
@@ -184,6 +191,10 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 				minDist = d;
 				nearestOpCoord = nearC;
 			}
+		}
+		
+		return nearestOpCoord;
+	}
 		}		
 		return nearestOpCoord;
 	}
