@@ -257,12 +257,14 @@ class CrossingAlternativeTest {
 		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
-		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c1.equals2D(new Coordinate(530419.7874896282,180822.65873331344));
 		assert c2.equals2D(new Coordinate(530416.1087234715,180827.5097640739));
-		
 	}
 	
 	@Test
+	/*
+	 * Tests case where no pavement on opposite side of the road
+	 */
 	void testUnmarkedCrossingAlternativeCoordinates2() {
 		// Setup environment
 		try {
@@ -303,13 +305,62 @@ class CrossingAlternativeTest {
 		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
-		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c1.equals2D(new Coordinate(530668.4612521614,180776.53718510273));
 		assert c2.equals2D(new Coordinate(530661.25, 180772.85));
 		
 	}
 	
 	@Test
+	/*
+	 * Tests case where no pavement on same side of the road
+	 */
 	void testUnmarkedCrossingAlternativeCoordinates3() {
+		// Setup environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530663.87, 180769.13);
+		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, null, null, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
+		caU.setPed(p);
+		
+		Coordinate c1 = caU.getC1();
+		Coordinate c2 = caU.getC2();
+		
+		assert ( Math.abs(c1.x - pedLoc.x)<0.00001) & ( Math.abs(c1.y - pedLoc.y)<0.00001); 
+		assert c2.equals2D(new Coordinate(530670.4989232853, 180772.3763921303));
+		
+	}
+	
+	@Test
+	void testUnmarkedCrossingAlternativeCoordinates4() {
 		// Setup environment
 		try {
 			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\clapham_common\\";
@@ -353,8 +404,10 @@ class CrossingAlternativeTest {
 		caU.setRoadLinkID(rlID);
 		caU.setPed(p);
 		
+		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
+		assert ( Math.abs(c1.x - 529471.79)<0.00001) & ( Math.abs(c1.y - 175332.15)<0.00001);
 		assert c2 != null;
 		assert ( Math.abs(c2.x - 529466.19)<0.00001) & ( Math.abs(c2.y - 175329.47)<0.00001); 
 	}
