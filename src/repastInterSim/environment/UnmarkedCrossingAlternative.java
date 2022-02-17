@@ -148,6 +148,25 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
+	 * Find the nearest carriageway coordinate on the same side of the road to the pedestrians current position.
+	 * 
+	 * Same side of the road defined as being in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
+	 * and at the near edge of the carriadgeway from the pedestrian.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * 
+	 * @returns
+	 * 		Coordinate
+	 */
+	public Coordinate sameSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG) {
+		Coordinate nearestSameCoord = xSideOfRoadCoord(c, poG, "same");
+		return nearestSameCoord;
+	}
+	
+	/*
 	 * Method for finding nearest coordinate to the road edge on either the same or opposite side of the road to the input coordinate c (typically the pedestrians current position)
 	 * 
 	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
@@ -165,23 +184,41 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 */
 	public Coordinate xSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG, String side) {
 		
+		// Set whether to identify the same side of the road coordinate or opposite side of the road coordinate
+		int comp;
+		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
+		if (side.contentEquals("opposite")) {
+			comp = 1; // will cause loop to continue when bearing to the coordinate points to same side of the road, therefore identifying coordinate that is on opposite side
+			
+			List<Road> caRoads = this.getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+			for (Road rd: caRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+			
+			// Also consider ped obstruction geoms when finding opposite side of the road coordinate, in case there is no pavement directly opposite
+			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
+			for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
+				roadEdgeGeoms.add(g);
+			}
+		}
+		else {
+			comp = -1; // visa versa
+			
+			List<Road> caRoads = this.getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("vehicle")).collect(Collectors.toList());
+			for (Road rd: caRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+			
+			// If finding near side crossing coordinate and there are no geometries, return input coordinate which is expected to be the pedestrians current location
+			// In practice this should never happen because there should always be a carriageway beside the pedestrian.
+			if (roadEdgeGeoms.size()==0) {
+				return c;
+			}
+		}
+		
 		Coordinate rlCent = this.getORRoadLink().getGeom().getCentroid().getCoordinate();
 		double oppRoadAngle = oppositeSideOfRoadAngle(c, rlCent);
 		
-		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
-		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
-		for (Road rd: caPedRoads) {
-			roadEdgeGeoms.add(rd.getGeom());
-		}
-		
-		// Add in ped obstruction geoms
-		Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
-		for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
-			roadEdgeGeoms.add(g);
-		}
-		
-				
 		// Loop through ped roads and find nearest coordinate on each
 		Double minDist = Double.MAX_VALUE;
 		Coordinate nearestOpCoord = null;
@@ -195,15 +232,6 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 			// Check if this coordinate is on the opposite side of the road
 			double angToC = GISFunctions.bearingBetweenCoordinates(rlCent, nearC);
 			double angRange = Vector.nonReflexAngleBetweenBearings(angToC, oppRoadAngle);
-			
-			// Set whether to identify the same side of the road coordinate or opposite side of the road coordinate
-			int comp;
-			if (side.contentEquals("opposite")) {
-				comp = 1; // will cause loop to continue when bearing to the coordinate points to same side of the road, therefore identifying coordinate that is on opposite side
-			}
-			else {
-				comp = -1; // visa versa
-			}
 			
 			// Compare angle between bearing that points to opposite side of the road and bearing that points to coordinate to pi/2
 			if ( Math.signum(Double.compare(angRange, Math.PI/2))==comp) {
@@ -221,7 +249,8 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	public Coordinate getC1() {
-		return this.ped.getLoc();
+		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
+		return sameSideOfRoadCoord(this.ped.getLoc(), pedObstructGeography);
 	}
 
 	public Coordinate getC2() {
