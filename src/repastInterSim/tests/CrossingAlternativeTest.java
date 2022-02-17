@@ -413,6 +413,59 @@ class CrossingAlternativeTest {
 	}
 	
 	@Test
+	/*
+	 * Checks that implementing a cache for crossing coordinates speeds up repeat requests for crossing coordinates when input coordinate is unchanged.
+	 */
+	void testUnmarkedCrossingAlternativesCoordiantesCache() {
+		// Setup environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530420.5, 180821.69);
+		double bearing = 2*Math.PI * (55.0/360); // 55 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, null, null, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
+		caU.setPed(p);
+		
+		double start = System.nanoTime();
+		Coordinate c1 = caU.getC1();
+		double dur1 = System.nanoTime() - start;
+		
+		double start2 = System.nanoTime();
+		Coordinate c1_ = caU.getC1();
+		double dur2 = System.nanoTime() - start2;
+		
+		// Expect second request to take much less time - seems to fail when run with other tests but not when only this test is run
+		assert dur2 < dur1 / 50.0;
+	}
+	
+	@Test
 	void testUnmarkedCrossingVehicleFlow() {
 		// Setup the environment
 		try {
