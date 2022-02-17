@@ -129,21 +129,15 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
-	 * Find the coordiante on the opposite side of the road to the pedestrians current position.
+	 * Find the nearest coordinate on the opposite side of the road to the pedestrians current position.
 	 * 
 	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
 	 * and at the far edge of the carriadgeway from the pedestrian.
 	 * 
 	 * @param Coordinate c
 	 * 		The location of the pedestrian agent
-	 * @param RoadLink roadLink
-	 * 		The road link the pedestrian agent is currently walking beside
-	 * @param Geography<Road> rG
-	 * 		The Road geography. Contains pavement and carriageway polygons objects
 	 * @param Geography<PedObstruction> poG
 	 * 		Geography containing the ped obstructions.
-	 * @param List<RoadLink> fsp
-	 * 		The strategic path road links. Contains all strategic path links, even those the pedestrian agent has passed.
 	 * 
 	 * @returns
 	 * 		Coordinate
