@@ -683,8 +683,11 @@ class CrossingAlternativeTest {
 		
 		ped.setLoc(new Coordinate(530451, 180855));
 		double[] vCross2 = {uca.getC2().x-uca.getC1().x, uca.getC2().y-uca.getC1().y};
-		ped.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(vCross2)));
 		crossingMid = GISFunctions.midwayBetweenTwoCoordinates(uca.getC1(), uca.getC2());
+		
+		// Point pedestrian towards the mid point of the crossing
+		double[] pedToMidPoint = {crossingMid.x-ped.getLoc().x, crossingMid.y-ped.getLoc().y};
+		ped.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(pedToMidPoint)));
 		
 		// Point vehicle towards crossing midpoint
 		double[] vectorToMidPoint2 = {crossingMid.x-v2.getLoc().x, crossingMid.y-v2.getLoc().y};
