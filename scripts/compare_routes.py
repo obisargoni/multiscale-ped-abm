@@ -548,6 +548,20 @@ def sobol_si_bar_figure(dfsi, fig_title, xticklabels):
     f.suptitle(fig_title)
     return f
 
+def sobol_second_order_si_bar_figure(dfsi, fig_title, rename_dict):
+
+    xticklabels = dfsi['j'].replace(rename_dict) + " - " + dfsi['i'].replace(rename_dict)
+
+    f, ax = plt.subplots(1,1, figsize = (10,10))
+    #bar_width=0.4
+    x_pos = np.arange(dfsi.shape[0])
+    ax.bar(x_pos, dfsi['S2'], width=bar_width, yerr = dfsi['S2_conf'], align='center', label="S1")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(xticklabels, rotation=45)
+
+    f.suptitle(fig_title)
+    return f
+
 def batch_run_scatter(df_data, groupby_columns, parameter_sweep_columns, value_col, rename_dict, cmap, title = None, cbarlabel = None, output_path = None):
 
     grouped = df_data.groupby(groupby_columns)
@@ -1096,7 +1110,11 @@ if setting == 'sobol_si':
                 f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
                 f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T.{}.png".format(metric, cat, file_datetime_string)))
                 f_si.clear()
-                save_second_order_sobol_indices(xlWriter, "{}_{}_sobol2T".format(metric, cat), Sis, problem)
+                dfsi_second_order = save_second_order_sobol_indices(xlWriter, "{}_{}_sobol2T".format(metric, cat), Sis, problem)
+
+                f_si = sobol_second_order_si_bar_figure(dfsi_second_order,  "{} Second Order Sobol Indices - {} crossings".format(title_dict[metric], cat), rename_dict)
+                f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T_bar.{}.png".format(metric, cat, file_datetime_string)))
+
 
     print("Calculating Sobol Indices - Shortest Path Comparison")
 
@@ -1125,7 +1143,10 @@ if setting == 'sobol_si':
             f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.001, rename_dict = rename_dict)
             f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_2ndorder_{}.{}.png".format(k, file_datetime_string)))
             f_si.clear()
-            save_second_order_sobol_indices(xlWriter, "sp_similarity_sobol_2ndorder_{}".format(k), Sis, problem)
+            dfsi_second_order = save_second_order_sobol_indices(xlWriter, "sp_similarity_sobol_2ndorder_{}".format(k), Sis, problem)
+
+            f_si = sobol_second_order_si_bar_figure(dfsi_second_order,  "Shortest Path Similarity Second Order Sobol Indices", rename_dict)
+            f_si.savefig(os.path.join(img_dir, "sp_similarity_sobol_2ndorder_bar_{}.{}.png".format(k, file_datetime_string)))
 
     print("Calculating Sobol indices - Total route length")
 
@@ -1154,7 +1175,10 @@ if setting == 'sobol_si':
         f_si = plot_sobol_indices(Sis, problem, criterion='ST', threshold=0.01, rename_dict = rename_dict)
         f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol_2ndorder.{}.png".format(file_datetime_string)))
         f_si.clear()
-        save_second_order_sobol_indices(xlWriter, "route_length_pp_sobol_2ndorder", Sis, problem)
+        dfsi_second_order = save_second_order_sobol_indices(xlWriter, "route_length_pp_sobol_2ndorder", Sis, problem)
+
+        f_si = sobol_second_order_si_bar_figure(dfsi_second_order,  "Mean Path Length Second Order Sensitivity", rename_dict)
+        f_si.savefig(os.path.join(img_dir, "route_length_pp_sobol_2ndorder_bar.{}.png".format(file_datetime_string)))
 
 
 #########################################
