@@ -45,6 +45,7 @@ public class AccumulatorRoute {
 	private boolean directCrossing;
 	private boolean caChosen;
 	private boolean crossingRequired;
+	private boolean reachedCrossing;
 	private boolean isCrossing = false;
 	private CrossingAlternative sampledCA = null;
 	private double sampledCAve;
@@ -319,7 +320,13 @@ public class AccumulatorRoute {
 		this.caChosen = true;
 		this.crossingCoordinates.push(this.chosenCA.nearestCoord(this.ped.getLoc()));
 		this.crossingCoordinates.push(this.chosenCA.farthestCoord(this.ped.getLoc()));
-		this.ped.setYield(false);
+		this.ped.setWaitAtJunction(false);
+		
+		// Record the link corresponding to this crossing now, before ped actually starts crossing, so that cases where ped tries to cross but changes mind are identifiable
+		// Update the pedestrians current pavement link so that this is recorded in its route
+		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge; 
+		this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
+	}
 	}
 	
 	public Junction getTargetJunction() {
@@ -355,22 +362,13 @@ public class AccumulatorRoute {
 	}
 	
 	public void removeCrossingCoordinate() {
-		// if at the start of crossing, initialised a new CrossEventData object
-		if (this.isCrossing==false) {
-			// Create crossing data collector agent
-			CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
-			Context<Object> mc = RunState.getInstance().getMasterContext();
-			Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
-			mc.add(ced);
-			g.move(ced, ced.getGeom());
-			this.ced=ced;
-			
+		if (this.reachedCrossing==false) {
 			// Initially make pedestrian yield at the edge of the crossing
 			ped.setYield(true);
 		}
 		
-		// Once crossing coordinates have been updated once, ped has started to cross.
-		this.isCrossing = true;
+		// Once crossing coordinates have been updated once, ped has reached the crossing
+		this.reachedCrossing = true;
 		
 		this.crossingCoordinates.removeLast();
 		
@@ -378,13 +376,30 @@ public class AccumulatorRoute {
 		if(this.crossingCoordinates.size()==0) {
 			this.crossingRequired = false;
 			this.caChosen = false;
+			this.reachedCrossing=false;
 			this.isCrossing = false;
 			
 			// Remove crossing data collector from context and set to null
 			RunState.getInstance().getMasterContext().remove(this.ced);
 			this.ced=null;
-			
 		}
+	}
+	
+	public void startCrossing() {
+		
+		this.isCrossing=true;
+		
+		// Created data recorder to record ttc as ped crosses
+		CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
+		Context<Object> mc = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		mc.add(ced);
+		g.move(ced, ced.getGeom());
+		this.ced=ced;
+	}
+	
+	public boolean reachedCrossing() {
+		return this.reachedCrossing;
 	}
 	
 	public boolean isCrossing() {
@@ -435,6 +450,18 @@ public class AccumulatorRoute {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge;
 			return ne.getRoadLink().getFID();
 		}
+	}
+	
+	public boolean progressAtNextJunction() {
+		
+		boolean dontProgress;
+		if (this.isBlank) {
+			dontProgress=false;
+		}
+		else {
+			dontProgress = this.crossingRequired & (this.caChosen == false) & ( (this.ped.getPathFinder().getStrategicPath().size()==1) | this.directCrossing);
+		}
+		return !dontProgress;
 	}
 	
 	public void clear() {
