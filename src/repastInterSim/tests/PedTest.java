@@ -63,7 +63,6 @@ class PedTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 			EnvironmentSetup.setUpPedObstructionPoints();
@@ -478,8 +477,7 @@ class PedTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRandomDistributions(1);
-			
-			EnvironmentSetup.setUpObjectGeography();
+		
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 			EnvironmentSetup.setUpPedObstructionPoints();
@@ -508,7 +506,7 @@ class PedTest {
 			e.printStackTrace();
 		}
 		
-		Ped p17 = EnvironmentSetup.createPedestrian(1, 3, 0.8098254410639371, 56.15750059331304, 0.5, 0.1, 0.9, 4.0, 30, 1.0, true, 20.0);
+		Ped p17 = EnvironmentSetup.createPedestrian(1, 3, 0.8098254410639371, 56.15750059331304, 0.5, 0.1, 0.9, 4.0, 30, 60, 1.0, true, 20.0);
 		assert (p17.getRad() - 0.17549218935410324) < 0.00001;
 		// Step to initialise
 		try {
@@ -539,7 +537,7 @@ class PedTest {
 		
 		
 		// Live OD data id 6 is test OD data id 13
-		Ped p33 = EnvironmentSetup.createPedestrian(3,13, 0.698355745646177, 61.108214657651644, 0.5, 0.1, 0.9, 4.0, 30, 1.0, true, 20.0);
+		Ped p33 = EnvironmentSetup.createPedestrian(3,13, 0.698355745646177, 61.108214657651644, 0.5, 0.1, 0.9, 4.0, 30, 60, 1.0, true, 20.0);
 		assert (p33.getRad() - 0.1909631708051614) < 0.00001;
 		try {
 			p33.step();
@@ -579,7 +577,6 @@ class PedTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRandomDistributions(1);
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -729,8 +726,9 @@ class PedTest {
 		ped.getPathFinder().getTacticalPath().getAccumulatorRoute().setChosenCA(mCA);
 		ped.getPathFinder().step(); // Updates the tactical route to incorporate the crossing
 		
-		// ped initially isn't set to yield
+		// ped initially hasn't reached crossing or is yielding
 		assert ped.getYield()==false;
+		assert ped.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false;
 		
 		// Step ped until it reaches it's crossing
 		while (ped.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()==2) {
@@ -741,9 +739,10 @@ class PedTest {
 			}
 		}
 		
-		// ped should initially yield. isCrossing is et to true currently when ped reaches start of crossing
+		// ped should now have reached the crossing and should initially yield. isCrossing is false though until ped stopsyielding
+		assert ped.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==true;
 		assert ped.getYield()==true;
-		assert ped.isCrossing()==true;
+		assert ped.isCrossing()==false;
 		
 		// Now set ped speed such that vehicle and ped should collide at the middle of the crossing
 		Coordinate crossingMid = GISFunctions.midwayBetweenTwoCoordinates(mCA.getC1(), mCA.getC2());
@@ -827,6 +826,7 @@ class PedTest {
 		
 		// Initially ped is set to not yield
 		assert ped.getYield()==false;
+		assert ped.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false;
 		
 		// Step ped until it reaches it's crossing
 		while (ped.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()==2) {
@@ -838,8 +838,9 @@ class PedTest {
 		}
 		
 		// Now that ped has reached crossing (therefore is crossing is true) ped yields
+		assert ped.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==true;
 		assert ped.getYield() == true;
-		assert ped.isCrossing()==true;
+		assert ped.isCrossing()==false;
 		
 		
 		// Now set ped speed such that vehicle and ped should collide at the middle of the crossing
@@ -869,7 +870,7 @@ class PedTest {
 		HashMap<Vehicle, Double> tgs = umCA.vehicleTGs(pLoc, pV);
 		assert tgs.get(v) / pedCrossingTime < ped.getGA();
 		assert ped.getYield()==true;
-		assert ped.isCrossing()==true;
+		assert ped.isCrossing()==false;
 		
 		// If vehicle slows down tg increases and ped should stop yielding
 		v.setSpeed(10.0);
@@ -896,7 +897,7 @@ class PedTest {
 		assert ped.isCrossing()==true;
 		
 		// Check that if ped has a more restrictive ga parameter then ped chooses to yield
-		v.setSpeed(10.0);
+		v.setSpeed(15.0);
 		ped.setGA(1.5);
 		ped.setYield(true);
 		try {
@@ -907,6 +908,6 @@ class PedTest {
 		tgs = umCA.vehicleTGs(pLoc, pV);
 		assert tgs.get(v) / pedCrossingTime < ped.getGA();
 		assert ped.getYield()==true;
-		assert ped.isCrossing()==true;
+		assert ped.isCrossing()==true; // this should really be false now but there isn't a method to reset the isCrossing params  
 	}
 }
