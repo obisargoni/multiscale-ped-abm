@@ -1188,12 +1188,6 @@ public class GISFunctions {
 			for (Road rd: caRoads) {
 				roadEdgeGeoms.add(rd.getGeom());
 			}
-			
-			// If finding near side crossing coordinate and there are no geometries, return input coordinate which is expected to be the pedestrians current location
-			// In practice this should never happen because there should always be a carriageway beside the pedestrian.
-			if (roadEdgeGeoms.size()==0) {
-				return c;
-			}
 		}
 		
 		// Loop through ped roads and find nearest coordinate on each
@@ -1221,8 +1215,16 @@ public class GISFunctions {
 				minDist = d;
 				nearestOpCoord = nearC;
 			}
-		}		
-		return nearestOpCoord;
+		}
+		
+		// If finding near side crossing coordinate and a coordinate has not been found (either due to not finding suiatable geometries or because of unusual placement of the 
+		// pedestrian) return input coordinate which is expected to be the pedestrians current location
+		if (nearestOpCoord==null) {
+			return c;
+		}
+		else {
+			return nearestOpCoord;
+		}
 	}
 
 }
