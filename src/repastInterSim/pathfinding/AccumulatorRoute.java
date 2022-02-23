@@ -327,6 +327,18 @@ public class AccumulatorRoute {
 		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge; 
 		this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 	}
+	
+	public void reset() {
+		this.chosenCA = null;
+		this.caChosen = false;
+		this.reachedCrossing = false;
+		
+		this.caActivations = new double[this.cas.size()];
+		for (int i=0;i<this.caActivations.length; i++) {
+			this.caActivations[i]=0;
+		}
+		
+		this.crossingCoordinates = new LinkedList<Coordinate>();
 	}
 	
 	public Junction getTargetJunction() {
