@@ -58,6 +58,7 @@ public class Ped extends MobileAgent {
     // Variables used in accumulator model of crossing choice
 	private double lambda; // Used to control effect of salience distance on contribution of option utility to activation
 	private double alpha; // Controls sensitivity to traffic exposure
+	private double alpha_factor = 1.0; // Use to update ped's alpha value
 	private double gamma; // Controls the rate at which historic activations decay
 	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
 	private int tt; // Time threshold at which point a choice is triggered
@@ -69,6 +70,9 @@ public class Ped extends MobileAgent {
     private boolean waitAtJunction = false; // Controls whether ped should not progress passed it's next junction. Used to make ped wait while it chooses a crossing location.
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
 	private double ga; // Gap acceptance factor
+	private double ga_factor=1.0; // Used to update ga parameter to make ped accept smaller gaps
+	
+	private double reset_factor = 0.75;
     
     private String roadLinkFID = null;
     
@@ -162,8 +166,9 @@ public class Ped extends MobileAgent {
     		this.yieldAtCrossing=false;
     		this.stepsYielding=0;
     		
-    		// Consider updating other params, ie lowering ga param.
-    		
+    		// Make ped less likely to cross informally and accept smaller gaps in traffic
+    		this.alpha_factor = this.alpha_factor*this.reset_factor;
+    		this.ga_factor = this.ga_factor*this.reset_factor;
     	}
 
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
@@ -259,17 +264,17 @@ public class Ped extends MobileAgent {
         
         // Get obstruction geometries and ped that are within the field of vision. Use these to calculate motive acceleration
 		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
-        List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, fieldOfVisionApprox);
+        //List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, fieldOfVisionApprox);
         HashMap<Ped, Geometry> fovPedsWithGeoms = getPedsAndGeomsWithinGeometry(fieldOfVisionApprox);
-        fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
+        fovA = motiveAcceleration(new ArrayList<Geometry>(), fovPedsWithGeoms.keySet());
         
         // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
 		Context context = RunState.getInstance().getMasterContext();
 		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
         Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
-        List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
+        //List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
         HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
-        contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
+        contA = totalContactAcceleration(thisGeom, new ArrayList<Geometry>(), contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
@@ -731,7 +736,7 @@ public class Ped extends MobileAgent {
         			// yielding rule:
         			// - if tg is +ve, ped arrives first. yield if ratio is smaller than threshold since small values imply risk of conflict as ped crosses
         			// - if tg is -ve ped arrives second. Yield if magnitude smaller than fixed value, meaning that all peds will cross behind passing vehicle if gap is sufficiently large to avoid conflict
-        			if ( (r>0) & (r<this.ga) ) {
+        			if ( (r>0) & (r<this.getGA()) ) {
         				this.yieldAtCrossing=true;
         				this.stepsYielding++;
         				return;
@@ -966,9 +971,8 @@ public class Ped extends MobileAgent {
 		return lambda;
 	}
 
-
 	public double getAlpha() {
-		return alpha;
+		return alpha*this.alpha_factor;
 	}
 
 	public double getGamma() {
@@ -984,7 +988,7 @@ public class Ped extends MobileAgent {
 	}
 	
 	public double getGA() {
-		return this.ga;
+		return this.ga*this.ga_factor;
 	}
 	
 	public void setGA(double ga) {
@@ -1060,5 +1064,10 @@ public class Ped extends MobileAgent {
 	
 	public double getV0() {
 		return this.v0;
+	}
+	
+	public void resetAlphaGAFactors() {
+		this.alpha_factor=1.0;
+		this.ga_factor=1.0;
 	}
 }

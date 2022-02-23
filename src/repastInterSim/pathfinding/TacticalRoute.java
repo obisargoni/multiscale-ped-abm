@@ -114,6 +114,8 @@ public class TacticalRoute {
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
 				}
 				updated=true;
+				
+				this.ped.resetAlphaGAFactors(); // If ped progresses to another junction undone the modifications to road crossing parameters that may have occured.
 			}
 			else {
 				// Set's ped to yield while choosing a crossing when not able to postpone crossing (eg either a direct crossing or at the end of the route)
