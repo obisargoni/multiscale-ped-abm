@@ -194,6 +194,10 @@ public class EnvironmentSetup {
 		EnvironmentSetup.roadLinkGeography = setUpRoadLinks("mastermap-itn RoadLink Intersect Within with orientation.shp", GlobalVars.CONTEXT_NAMES.ROAD_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
 	}
 	
+	static void setUpPavementLinks(String linkFile) throws MalformedURLException, FileNotFoundException {
+		EnvironmentSetup.pavementLinkGeography = setUpRoadLinks(linkFile, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+	}
+	
 	static void setUpPavementLinks(String linkFile, String contextName, String geogName) throws MalformedURLException, FileNotFoundException {
 		EnvironmentSetup.pavementLinkGeography = setUpRoadLinks(linkFile, contextName, geogName);
 	}
@@ -447,19 +451,20 @@ public class EnvironmentSetup {
 		double gamma = 0.9;
 		double epsilon = 3.0;
 		int tt = 30;
+		int yt = 60;
 		double ga = 1.0;
 		double pH = 20.0;
 		
 		if ( (oFID==null) | (dFID==null) ) {
-			return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimisesCrossing, pH);
+			return createPedestrian(oID, dID, s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimisesCrossing, pH);
 		}
 		else {
-			return createPedestrian(oFID, dFID, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimisesCrossing, pH);
+			return createPedestrian(oFID, dFID, s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimisesCrossing, pH);
 		}
 		
 	}
 	
-	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Double ga, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(int oID, int dID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Double pH) {
 		
 		OD o = null;
 		OD d = null;
@@ -475,11 +480,11 @@ public class EnvironmentSetup {
 			}
 		}
 		
-		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimiseCrossings, pH);
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimiseCrossings, pH);
 		return p;
 	}
 	
-	static Ped createPedestrian(String oFID, String dFID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Double ga, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(String oFID, String dFID, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Double pH) {
 		
 		OD o = null;
 		OD d = null;
@@ -493,15 +498,15 @@ public class EnvironmentSetup {
 			}
 		}
 		
-		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimiseCrossings, pH);
+		Ped p = createPedestrian(o, d, s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimiseCrossings, pH);
 		return p;
 	}
 	
-	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Double ga, boolean minimiseCrossings, Double pH) {
+	static Ped createPedestrian(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Double pH) {
 		
 		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
 		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
-		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, tt, ga, minimiseCrossings, pH, pavementJunctionGeography, pavementNetwork);
+		Ped p = new Ped(o, d, s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimiseCrossings, pH, pavementJunctionGeography, pavementNetwork);
 		
 		Context<Object> c = RunState.getInstance().getMasterContext();
 		Geography<Object> g = (Geography<Object>) c.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
