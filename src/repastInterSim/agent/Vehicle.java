@@ -627,27 +627,30 @@ public class Vehicle extends MobileAgent {
     	
     	// Get TTC value for ped and each edge of vehicle, find lowest TTC
     	Double minTTC = null;
-    	for (int i=0; i<recCorners.length-1;i++) {
-    		double[] e1 = {recCorners[i].x, recCorners[i].y};
-    		double[] e2 = {recCorners[i+1].x, recCorners[i+1].y};
-    		
-    		Double ttc = Vector.edgeTTC(pLoc, pV, e1, e2, v);
-    		
-    		if (ttc==null) {
-    			continue;
-    		}
-    		else if (ttc<0) {
-    			// Only care about conflicts that occur in the future
-    			continue;
-    		}
-    		else if (minTTC==null) {
-    			minTTC = ttc;
-    		}
-    		else if (minTTC>ttc) {
-    			minTTC = ttc;
-    		}
-    	}
     	
+    	// Only calculate ttc if vehicle is moving, otherwise assume ped will not collide with vehicle.
+    	if (this.speed>0.1) {
+        	for (int i=0; i<recCorners.length-1;i++) {
+        		double[] e1 = {recCorners[i].x, recCorners[i].y};
+        		double[] e2 = {recCorners[i+1].x, recCorners[i+1].y};
+        		
+        		Double ttc = Vector.edgeTTC(pLoc, pV, e1, e2, v);
+        		
+        		if (ttc==null) {
+        			continue;
+        		}
+        		else if (ttc<0) {
+        			// Only care about conflicts that occur in the future
+        			continue;
+        		}
+        		else if (minTTC==null) {
+        			minTTC = ttc;
+        		}
+        		else if (minTTC>ttc) {
+        			minTTC = ttc;
+        		}
+        	}
+    	}
     	return minTTC;
     }
     
@@ -655,18 +658,23 @@ public class Vehicle extends MobileAgent {
      * Calculate the time gap between the vehicle ad a ped agent
      */
     public Double TG(double[] pLoc, double[] pV) {
-    	// Get coordinates of the edges of the vehicle geometry
-    	Coordinate[] recCorners = vehicleRectangleCoordiantes(this.maLoc, this.bearing);
-    	double[] v = {this.speed*Math.sin(this.bearing), this.speed*Math.cos(this.bearing)}; 
+    	Double tg = null;
     	
-    	// Get the coordinates of edges parallel to the direction of movement
-    	double[] e10 = {recCorners[1].x, recCorners[1].y};
-    	double[] e11 = {recCorners[2].x, recCorners[2].y};
-    	double[] e20 = {recCorners[0].x, recCorners[0].y};
-    	double[] e21 = {recCorners[3].x, recCorners[3].y};
-    	
-    	// Calculate time gap
-    	Double tg = Vector.edgeTG(e10, e11, e20, e21, pLoc, pV, v);
+    	// Only go through calculation is vehicle is moving, otherwise assume that ped will not collide with vehicle
+    	if (this.speed>0.1) {
+    		// Get coordinates of the edges of the vehicle geometry
+        	Coordinate[] recCorners = vehicleRectangleCoordiantes(this.maLoc, this.bearing);
+        	double[] v = {this.speed*Math.sin(this.bearing), this.speed*Math.cos(this.bearing)}; 
+        	
+        	// Get the coordinates of edges parallel to the direction of movement
+        	double[] e10 = {recCorners[1].x, recCorners[1].y};
+        	double[] e11 = {recCorners[2].x, recCorners[2].y};
+        	double[] e20 = {recCorners[0].x, recCorners[0].y};
+        	double[] e21 = {recCorners[3].x, recCorners[3].y};
+        	
+        	// Calculate time gap
+        	tg = Vector.edgeTG(e10, e11, e20, e21, pLoc, pV, v);	
+    	}
     	return tg;
     }
     
