@@ -275,11 +275,11 @@ class CrossingCoordsCache {
 	
 	private boolean decidePopulate(Coordinate c, RoadLink orRoadLink, boolean caChosen) {
 		boolean populate;
-		if (caChosen==true) {
-			populate = false;
+		if ( this.cacheCoord==null ) {
+			populate=true;
 		}
-		else if(this.cacheCoord==null) {
-			populate = true;
+		else if (caChosen==true) {
+			populate = false;
 		}
 		else if(c.equals2D(this.cacheCoord)) {
 			populate = false;
