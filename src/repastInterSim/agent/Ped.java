@@ -58,7 +58,7 @@ public class Ped extends MobileAgent {
     // Variables used in accumulator model of crossing choice
 	private double lambda; // Used to control effect of salience distance on contribution of option utility to activation
 	private double alpha; // Controls sensitivity to traffic exposure
-	private double alpha_factor = 1.0; // Use to update ped's alpha value
+	private double alphaFactor = 1.0; // Use to update ped's alpha value
 	private double gamma; // Controls the rate at which historic activations decay
 	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
 	private int tt; // Time threshold at which point a choice is triggered
@@ -70,9 +70,9 @@ public class Ped extends MobileAgent {
     private boolean waitAtJunction = false; // Controls whether ped should not progress passed it's next junction. Used to make ped wait while it chooses a crossing location.
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
 	private double ga; // Gap acceptance factor
-	private double ga_factor=1.0; // Used to update ga parameter to make ped accept smaller gaps
+	private double gaFactor=1.0; // Used to update ga parameter to make ped accept smaller gaps
 	
-	private double reset_factor = 0.75;
+	private double updateFactor = 0.75;
     
     private String roadLinkFID = null;
     
@@ -167,8 +167,8 @@ public class Ped extends MobileAgent {
     		this.stepsYielding=0;
     		
     		// Make ped less likely to cross informally and accept smaller gaps in traffic
-    		this.alpha_factor = this.alpha_factor*this.reset_factor;
-    		this.ga_factor = this.ga_factor*this.reset_factor;
+    		this.alphaFactor = this.alphaFactor*this.updateFactor;
+    		this.gaFactor = this.gaFactor*this.updateFactor;
     	}
 
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
@@ -972,7 +972,7 @@ public class Ped extends MobileAgent {
 	}
 
 	public double getAlpha() {
-		return alpha*this.alpha_factor;
+		return alpha*this.alphaFactor;
 	}
 
 	public double getGamma() {
@@ -988,7 +988,7 @@ public class Ped extends MobileAgent {
 	}
 	
 	public double getGA() {
-		return this.ga*this.ga_factor;
+		return this.ga*this.gaFactor;
 	}
 	
 	public void setGA(double ga) {
@@ -1067,7 +1067,7 @@ public class Ped extends MobileAgent {
 	}
 	
 	public void resetAlphaGAFactors() {
-		this.alpha_factor=1.0;
-		this.ga_factor=1.0;
+		this.alphaFactor=1.0;
+		this.gaFactor=1.0;
 	}
 }
