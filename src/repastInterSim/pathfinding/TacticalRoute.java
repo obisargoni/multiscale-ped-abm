@@ -98,8 +98,8 @@ public class TacticalRoute {
 			updated=true;
 		}
 		else {
-			boolean dontUpdate = this.accumulator.crossingRequired() & (this.accumulator.caChosen() == false) & ( (this.strategicPath.size()==1) | this.accumulator.isDirectCrossing() ); 
-			if ( dontUpdate==false ) {
+			boolean progress = this.accumulator.progressAtNextJunction();
+			if ( progress ) {
 				// do not update the current junction if crossing is required but crossing location is not chosen and:
 				// - ped is at the end of their route OR
 				// - ped is at a direct crossing
@@ -108,6 +108,7 @@ public class TacticalRoute {
 				
 				// Update ped attributes that are recorded for analysis
 				// If current edge is null, tactical path needs updating so do not update ped attributes yet.
+				// Why does this happen here, shouldn't this be recorded after the link has been traversed, ie record before the update?
 				if (this.currentEdge != null) {
 					NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
 					this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
@@ -115,7 +116,8 @@ public class TacticalRoute {
 				updated=true;
 			}
 			else {
-				this.ped.setYield(true);
+				// Set's ped to yield while choosing a crossing when not able to postpone crossing (eg either a direct crossing or at the end of the route)
+				this.ped.setWaitAtJunction(true);
 			}
 		}
 		return updated;
@@ -131,7 +133,7 @@ public class TacticalRoute {
 		// Update the current edge			
 		this.currentEdge = this.routePath.poll();
 		
-		// initialise black accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
+		// initialise blank accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
 		this.accumulator.clear();
 		this.accumulator = new AccumulatorRoute();
 		
@@ -152,7 +154,7 @@ public class TacticalRoute {
 				
 				// AccumulatorRoute requires a default edge and default junction the ped walks towards or stays at whilst choosing a crossing
 				
-				// For a diagonally crossing, the default jucntion is the junction on the same side of the road, at the otehr end of the road link
+				// For a diagonally crossing, the default junction is the junction on the same side of the road, at the other end of the road link
 				// For a direct crossing it is the pedestrians current junction
 				Junction defaultJunction = this.noCrossTargetJunction(this.currentJunction, nextJunction);
 				
@@ -160,7 +162,7 @@ public class TacticalRoute {
 				// For direct crossing this will be null since current and default junctions are the same, in which case don't change current edge
 				RepastEdge<Junction> defaultEdge = this.nP.getNet().getEdge(this.currentJunction, defaultJunction);
 				RepastEdge<Junction> targetRouteEdge = this.currentEdge;
-				boolean directCrossing; // Used to flag and AccumulatorRoute as choosing a crossing lcoation for a direct rather than diagonal crossing tactical link 
+				boolean directCrossing; // Used to flag and AccumulatorRoute as choosing a crossing location for a direct rather than diagonal crossing tactical link 
 				if (defaultEdge!=null) {
 					this.currentEdge = defaultEdge;
 					directCrossing=false;						
@@ -201,8 +203,8 @@ public class TacticalRoute {
 		this.currentJunction = nextJunction;
 	}
 	
-	public void caChosenUpdateCurrentJunction() {
-		// Set the current junction to be the target junction - this
+	public void crossingStartedUpdateCurrentJunction() {
+		// Set the current junction to be the target junction
 		this.currentJunction = this.accumulator.getTargetJunction();
 		this.currentEdge = this.accumulator.getTargetRouteEdge();
 	}
@@ -317,15 +319,6 @@ public class TacticalRoute {
 	
 	public void step() {
 		this.accumulator.step();
-		
-		// If a crossing has been chosen, update the tactical path to reflect this
-		if (this.accumulator.getChosenCA() != null) {
-			caChosenUpdateCurrentJunction();
-			
-			// Update the ped attributes that are collected for data analysis
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.currentEdge; 
-			this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
-		}
 	}
 	
 	public boolean isBlank() {
