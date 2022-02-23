@@ -72,7 +72,7 @@ public class Ped extends MobileAgent {
 	private double ga; // Gap acceptance factor
 	private double gaFactor=1.0; // Used to update ga parameter to make ped accept smaller gaps
 	
-	private double updateFactor = 0.75;
+	private double updateFactor;
     
     private String roadLinkFID = null;
     
@@ -91,9 +91,9 @@ public class Ped extends MobileAgent {
     /*
      * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
      */
-    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o,d);
-    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, tt, yt, ga, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
+    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, tt, yt, ga, uf, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
     }
     
     /*
@@ -102,12 +102,12 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o, d);
-    	init(s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, minimiseCrossings, pH, paveG, paveNetwork);
+    	init(s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, uf, minimiseCrossings, pH, paveG, paveNetwork);
     }
     
-    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
         this.id = Ped.uniqueID++;
     	
     	this.v0  = s;
@@ -137,6 +137,8 @@ public class Ped extends MobileAgent {
 		
 		// Parameters for controlling yielding to vehicles
 		this.ga = ga; // factor that sets proportion of time required to cross the road that ped accepts as a gap
+		
+		this.updateFactor=uf;
 		
 		this.pathFinder = new PedPathFinder(this, paveG, paveNetwork, minimiseCrossings);
     }
