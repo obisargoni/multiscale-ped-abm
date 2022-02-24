@@ -13,6 +13,8 @@ import com.vividsolutions.jts.geom.Point;
 
 import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
+import repast.simphony.engine.environment.RunState;
+import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
@@ -40,11 +42,13 @@ class PedPathFinderTest {
 
 	
 	public void addPedToWorld(Ped p, OD o) {
-        EnvironmentSetup.context.add(p);        
+		Context<Object> c = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) c.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
 		Point pt = GISFunctions.pointGeometryFromCoordinate(oCoord);
-		Geometry circle = pt.buffer(p.getRad());		
-		GISFunctions.moveAgentToGeometry(EnvironmentSetup.geography, circle, p);
+		Geometry circle = pt.buffer(p.getRad());
+		
+		GISFunctions.moveAgentToGeometry(g, circle, p);
 		p.setLoc();
 	}
 	
@@ -1509,8 +1513,22 @@ class PedPathFinderTest {
 		// Once target coordinate is updated, that means ped has started crossing since next target coordinate is the crossing
 		assert pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate().equals2D(pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast());
 		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
-		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == true;
+		
+		// Ped should now be flagged as reaching crossing but will default to yielding and so will not start crossing
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing() == true;
+		assert pedMinDist.getYield() == true;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == true;
+		
+		// step the ped along it should stop yielding, update it's position and be classed as starting to yield
+		Coordinate prevLoc = pedMinDist.getLoc();
+		try {
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		assert pedMinDist.getYield()==false;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==true;
 		
 		// Update target coordinate again and check that ped is no longer crossing
 		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
