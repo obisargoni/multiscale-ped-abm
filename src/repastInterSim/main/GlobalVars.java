@@ -129,6 +129,9 @@ public abstract class GlobalVars {
 		public static final String MAIN_CONTEXT = "repastInterSim";
 		public static final String MAIN_GEOGRAPHY = "Geography";
 		
+		public static final String DATA_RECORDER_CONTEXT = "DataRecorderContext";
+		public static final String DATA_RECORDER_GEOGRAPHY = "DataRecorderGrid";
+		
 		public static final String ROAD_CONTEXT = "roadContext";
 		public static final String ROAD_GEOGRAPHY = "roadGeography";
 		
@@ -164,7 +167,7 @@ public abstract class GlobalVars {
 		
 		public static final String CA_CONTEXT = "CAContext";
 		public static final String CA_GEOGRAPHY = "CAGeography";
-		
+				
 		public static final String ROAD_NETWORK = "RoadNetwork";
 		public static final String OR_ROAD_NETWORK = "ORRoadNetwork";
 		public static final String GRID_NETWORK = "GridNetwork";

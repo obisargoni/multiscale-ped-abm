@@ -477,6 +477,22 @@ public class GISFunctions {
 		
 	}
 	
+	/*
+	 * Creates polygon geometry that matches extent of reference envelope
+	 */
+	public static Polygon getBoundingBoxPolygonFromReferenceEnvelope(ReferencedEnvelope re) {
+		Coordinate[] bbox = {	new Coordinate(re.getMinX(), re.getMinY()), 
+								new Coordinate(re.getMaxX(), re.getMinY()),
+								new Coordinate(re.getMaxX(), re.getMaxY()),
+								new Coordinate(re.getMinX(), re.getMaxY()),
+								new Coordinate(re.getMinX(), re.getMinY())
+							};
+		
+		GeometryFactory geometryFactory = new GeometryFactory();
+		Polygon p = geometryFactory.createPolygon(bbox);
+		return p;
+	}
+	
 	/**
 	 * Sets the values of grid coverage cells according to an attribute of objects contained within a geography. Grid cells that
 	 * intersect with a geography object have their value set according to the objects attribute, the name of which is given as an input to 

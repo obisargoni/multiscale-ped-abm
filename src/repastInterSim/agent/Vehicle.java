@@ -21,6 +21,7 @@ import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
+import repastInterSim.environment.contexts.DataRecorderContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 
@@ -420,8 +421,8 @@ public class Vehicle extends MobileAgent {
 		
     	// Record the vehicle's route for data collection
     	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
-		Context<Object> mc = RunState.getInstance().getMasterContext();
-		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+    	DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
+		c.add(vd);
 		mc.add(vd);
 		g.move(vd, vd.getGeom());
 		

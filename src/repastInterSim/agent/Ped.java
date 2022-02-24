@@ -31,6 +31,7 @@ import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.SpatialIndexManager;
 import repastInterSim.environment.Vector;
+import repastInterSim.environment.contexts.DataRecorderContext;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
@@ -776,8 +777,8 @@ public class Ped extends MobileAgent {
     	
     	// Record the ped's route for data collection
     	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration);
-		Context<Object> mc = RunState.getInstance().getMasterContext();
-		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+    	DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
+    	c.add(pd);
 		mc.add(pd);
 		g.move(pd, pd.getGeom());
     	

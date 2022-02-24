@@ -25,7 +25,9 @@ import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.contexts.DataRecorderContext;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
 public class AccumulatorRoute {
 	
@@ -375,6 +377,7 @@ public class AccumulatorRoute {
 	
 	public void removeCrossingCoordinate() {
 		if (this.reachedCrossing==false) {
+			c.add(ced);		
 			// Initially make pedestrian yield at the edge of the crossing
 			ped.setYield(true);
 		}

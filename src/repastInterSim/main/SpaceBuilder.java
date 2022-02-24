@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.geometry.MismatchedDimensionException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -36,13 +37,14 @@ import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
+import repast.simphony.space.gis.RandomGISAdder;
 import repast.simphony.space.graph.Network;
 import repast.simphony.space.projection.Projection;
-import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.datasources.AbstractDataRecorder;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
@@ -57,6 +59,7 @@ import repastInterSim.environment.contexts.VehicleDestinationContext;
 import repastInterSim.pathfinding.RoadNetworkRoute;
 import repastInterSim.environment.contexts.RoadContext;
 import repastInterSim.environment.contexts.CAContext;
+import repastInterSim.environment.contexts.DataRecorderContext;
 import repastInterSim.environment.contexts.JunctionContext;
 import repastInterSim.environment.contexts.PedObstructionContext;
 import repastInterSim.environment.contexts.PedestrianDestinationContext;
@@ -312,6 +315,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		
+		// Now create Data Recorder Context and use extent of gis environment as boundary for random GIS adder
+		Context<AbstractDataRecorder> dataRecorderContext = new DataRecorderContext();
+		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
+		Geometry p = GISFunctions.getBoundingBoxPolygonFromReferenceEnvelope(fixedGeographyEnvelope);
+		GeographyParameters<AbstractDataRecorder> gParams = new GeographyParameters<AbstractDataRecorder>(new RandomGISAdder<AbstractDataRecorder>(p));
+		Geography<AbstractDataRecorder> dataRecorderGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_GEOGRAPHY, dataRecorderContext, gParams);
+		context.addSubContext(dataRecorderContext);
+		
 		
 		// Read in OD matrix data for vehicles from CSV
 		List<String[]> vehicleFlows = IO.readCSV(GISDataDir + IO.getProperty("vehicleODFlowsFile"));
