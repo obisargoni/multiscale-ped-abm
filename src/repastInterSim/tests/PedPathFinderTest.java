@@ -677,7 +677,6 @@ class PedPathFinderTest {
 	public void testSetupTacticalRoute1() {
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -771,7 +770,6 @@ class PedPathFinderTest {
 	public void testSetupTacticalRoute2() {
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -877,7 +875,6 @@ class PedPathFinderTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -963,7 +960,6 @@ class PedPathFinderTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -1033,7 +1029,6 @@ class PedPathFinderTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -1146,7 +1141,6 @@ class PedPathFinderTest {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -1268,7 +1262,6 @@ class PedPathFinderTest {
 		
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpRoads();
 			
@@ -1346,7 +1339,6 @@ class PedPathFinderTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpPedObstructions();
 			
@@ -1439,7 +1431,6 @@ class PedPathFinderTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRandomDistributions(1);
-			EnvironmentSetup.setUpObjectGeography();
 			
 			EnvironmentSetup.setUpPedObstructions();
 			
