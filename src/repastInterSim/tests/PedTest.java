@@ -648,8 +648,34 @@ class PedTest {
 		
 		// Check crossing type is now not none
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA()!=null;
-				
-		// Now currentJunction should be the targetJunction 
+		
+		// Now step ped until it reaches the start of the crossing
+		// step ped until crossing chosen
+		while( pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size()==2) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		// Now that ped has reach crossing, it should initially yield
+		assert pedMinDist.getYield()==true;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false;
+		
+		// Target junction should not yet be updated
+		assert targetJ.getGeom().equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getGeom())==false;
+		
+		// Now step once mode and crossing should start and target coordinate should be updated.
+		try {
+			pedMinDist.step();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		assert pedMinDist.getYield()==false;
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==true;
 		assert targetJ.getGeom().equals(pedMinDist.getPathFinder().getTacticalPath().getCurrentJunction().getGeom());
 		
 		// the accumulator route should have coordinates to go to
