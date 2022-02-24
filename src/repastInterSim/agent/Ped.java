@@ -266,17 +266,17 @@ public class Ped extends MobileAgent {
         
         // Get obstruction geometries and ped that are within the field of vision. Use these to calculate motive acceleration
 		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
-        //List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, fieldOfVisionApprox);
+        List<Geometry> fovObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, fieldOfVisionApprox);
         HashMap<Ped, Geometry> fovPedsWithGeoms = getPedsAndGeomsWithinGeometry(fieldOfVisionApprox);
-        fovA = motiveAcceleration(new ArrayList<Geometry>(), fovPedsWithGeoms.keySet());
+        fovA = motiveAcceleration(fovObstructionGeoms, fovPedsWithGeoms.keySet());
         
         // Get obstruction geometries and ped within this peds geometry and use to calculate contact acceleration
 		Context context = RunState.getInstance().getMasterContext();
 		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
         Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
-        //List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
+        List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
         HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
-        contA = totalContactAcceleration(thisGeom, new ArrayList<Geometry>(), contactPedsWithGeoms);
+        contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
