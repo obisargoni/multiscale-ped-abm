@@ -423,8 +423,6 @@ public class Vehicle extends MobileAgent {
     	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
     	DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
 		c.add(vd);
-		mc.add(vd);
-		g.move(vd, vd.getGeom());
 		
 		this.currentRoadLink=null;
 		this.queuePos=null;

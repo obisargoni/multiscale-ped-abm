@@ -44,7 +44,7 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
-import repastInterSim.datasources.AbstractDataRecorder;
+import repastInterSim.datasources.DefaultDataRecorder;;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
@@ -317,11 +317,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		// Now create Data Recorder Context and use extent of gis environment as boundary for random GIS adder
-		Context<AbstractDataRecorder> dataRecorderContext = new DataRecorderContext();
+		Context<DefaultDataRecorder> dataRecorderContext = new DataRecorderContext();
 		ReferencedEnvelope fixedGeographyEnvelope = GISFunctions.getMultipleGeographiesEnvelope(fixedGeographies);
 		Geometry p = GISFunctions.getBoundingBoxPolygonFromReferenceEnvelope(fixedGeographyEnvelope);
-		GeographyParameters<AbstractDataRecorder> gParams = new GeographyParameters<AbstractDataRecorder>(new RandomGISAdder<AbstractDataRecorder>(p));
-		Geography<AbstractDataRecorder> dataRecorderGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_GEOGRAPHY, dataRecorderContext, gParams);
+		GeographyParameters<DefaultDataRecorder> gParams = new GeographyParameters<DefaultDataRecorder>(new RandomGISAdder<DefaultDataRecorder>(p));
+		Geography<DefaultDataRecorder> dataRecorderGeography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_GEOGRAPHY, dataRecorderContext, gParams);
 		context.addSubContext(dataRecorderContext);
 		
 		

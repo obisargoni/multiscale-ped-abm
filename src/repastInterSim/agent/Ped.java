@@ -779,8 +779,6 @@ public class Ped extends MobileAgent {
     	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration);
     	DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
     	c.add(pd);
-		mc.add(pd);
-		g.move(pd, pd.getGeom());
     	
     	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
     	this.pathFinder.clear();

@@ -377,7 +377,6 @@ public class AccumulatorRoute {
 	
 	public void removeCrossingCoordinate() {
 		if (this.reachedCrossing==false) {
-			c.add(ced);		
 			// Initially make pedestrian yield at the edge of the crossing
 			ped.setYield(true);
 		}
@@ -395,7 +394,8 @@ public class AccumulatorRoute {
 			this.isCrossing = false;
 			
 			// Remove crossing data collector from context and set to null
-			RunState.getInstance().getMasterContext().remove(this.ced);
+			DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
+			c.remove(ced);
 			this.ced=null;
 		}
 	}
@@ -406,10 +406,8 @@ public class AccumulatorRoute {
 		
 		// Created data recorder to record ttc as ped crosses
 		CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
-		Context<Object> mc = RunState.getInstance().getMasterContext();
-		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
-		mc.add(ced);
-		g.move(ced, ced.getGeom());
+		DataRecorderContext c = (DataRecorderContext) SpaceBuilder.getContext(GlobalVars.CONTEXT_NAMES.DATA_RECORDER_CONTEXT);
+		c.add(ced);
 		this.ced=ced;
 	}
 	
