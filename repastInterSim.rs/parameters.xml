@@ -113,7 +113,7 @@
 								<parameter name="updateFactor" displayName="Factor by which to update alpha dn gap acceptance parameters when ped has failed to cross" type="double" 
 						defaultValue="0.75" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 		</parameters>

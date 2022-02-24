@@ -725,7 +725,7 @@ class VehicleTest {
 		}
 		
 		// Create pedestrian that will cross first road link
-		Ped pedMinDist = EnvironmentSetup.createPedestrian(3, 4, 1.5, 40.0, 0.0, 2.0, 0.9, 2.5, 30, 1.0, false, 100.0);						
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3, 4, 1.5, 40.0, 0.0, 2.0, 0.9, 2.5, 30, 60, 1.0, 0.75, false, 100.0);						
 		
 		// Create a vehicle that moves along same link as pedestrian
 		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");

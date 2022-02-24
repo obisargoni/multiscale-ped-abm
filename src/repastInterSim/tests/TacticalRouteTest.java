@@ -82,7 +82,7 @@ class TacticalRouteTest {
 		
 		// Set up ped path finder
 		boolean minimiseCrossings = false;		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, 0.75, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
         EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -170,7 +170,7 @@ class TacticalRouteTest {
 		// Set up ped path finder
 		boolean minimiseCrossings = false;
 		
-		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		Ped p = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, 0.75, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
 		
         EnvironmentSetup.context.add(p);        
         Coordinate oCoord = o.getGeom().getCentroid().getCoordinate();
@@ -235,7 +235,7 @@ class TacticalRouteTest {
 			}
 		}
         boolean minimiseCrossings = false;
-        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+        Ped ped = new Ped(o, d, 0.5, 1.0, 0.9, 3.0, 30, 60, 1.0, 0.75, minimiseCrossings, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
         
 		// Select which set of road links to get crossing alternatives for
 		List<RoadLink> rls = new ArrayList<RoadLink>();
