@@ -341,6 +341,13 @@ public class Ped extends MobileAgent {
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
     	double d_ij = maLoc.distance(agentCoord);
     	
+    	// Need to control for rare cases where peds are at same location
+    	if (Double.compare(d_ij, 0.0)==0) {
+    		maLoc.x+=0.1;
+    		maLoc.y+=0.1;
+    		d_ij = maLoc.distance(agentCoord);
+    	}
+    	
     	// Get the vector that points from centorid of other agent to the ego agent,
     	// this is the direction that the force acts in
     	double[] n = {maLoc.x - agentCoord.x, maLoc.y - agentCoord.y};
