@@ -764,6 +764,8 @@ public class Ped extends MobileAgent {
         	
         	this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
         	this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
+        	
+			this.resetAlphaGAFactors(); // If ped progresses to another junction undone the modifications to road crossing parameters that may have occured.
     	}
     	else {
     		// if reach here no longer required to yield. reset counter. Start crossing.
@@ -1073,6 +1075,14 @@ public class Ped extends MobileAgent {
 	
 	public double getV0() {
 		return this.v0;
+	}
+	
+	public int getYieldThreshold() {
+		return this.yt;
+	}
+	
+	public double getUpdateFactor() {
+		return this.updateFactor;
 	}
 	
 	public void resetAlphaGAFactors() {
