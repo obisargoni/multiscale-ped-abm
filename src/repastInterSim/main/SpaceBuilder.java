@@ -135,6 +135,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		
+		RandomEngine tacticalRouteChoice = RandomHelper.registerGenerator("tacticalRouteChoice", params.getInteger("randomSeed"));
+		Uniform tacticalRCUnif = new Uniform(tacticalRouteChoice);
+		RandomHelper.registerDistribution("tacticalRouteChoice", tacticalRCUnif);
+		
 		// Read in the model properties
 		try {
 			IO.readProperties();

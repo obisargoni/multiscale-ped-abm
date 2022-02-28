@@ -12,6 +12,7 @@ import org.apache.commons.collections15.Transformer;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 
+import cern.jet.random.Uniform;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
@@ -245,7 +246,8 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
+		Uniform tacticalRCUnif = (Uniform) RandomHelper.getDistribution("tacticalRouteChoice"); 
+		int pathIndex = tacticalRCUnif.nextIntFromTo(0, candidatePaths.size()-1);
 	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
 	    return chosenPath;
 	}
