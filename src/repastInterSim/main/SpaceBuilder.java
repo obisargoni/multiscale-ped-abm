@@ -37,8 +37,8 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.projection.Projection;
-import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
@@ -48,6 +48,7 @@ import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
@@ -814,5 +815,40 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			}
 		}
 		return null;
+	}
+	
+	/*
+	 * Used to implement a policy of no informal crossing. Removes road crossing links from the pavement network if there
+	 * is no crossing alternative crossing that link of the road network.
+	 */
+	public static void removeCrossingLinksFromPavementNetwork(Network<Junction> paveNetwork, Geography<CrossingAlternative> caG) {
+		
+		// Find road links that have crossings
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		
+		// Loop through entwork links and find those that cross road links that do not have crossing infrastructure. 
+		// These are the links to remove
+		List<RepastEdge<Junction>> edgesToRemove = new ArrayList<RepastEdge<Junction>>();
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			String rlID = ne.getRoadLink().getPedRLID();
+			if ( (rlID.contentEquals("")==false) ) {
+				// Check if id is in list of road links with crossings
+				boolean keep = roadLinksWithCrossings.stream().anyMatch(s -> s.contentEquals(rlID));
+				
+				if (keep==false) {
+					edgesToRemove.add(re);
+				}
+			}
+		}
+		
+		// remove these edges
+		for (int i=0; i<edgesToRemove.size(); i++) {
+			RepastEdge<Junction> e = edgesToRemove.get(i);
+			paveNetwork.removeEdge(e);
+		}
 	}
 }
