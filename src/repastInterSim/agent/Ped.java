@@ -182,15 +182,10 @@ public class Ped extends MobileAgent {
         		nUpdates++;
         	}
         	walk(pathFinder.getTacticalPath().getTargetCoordinate());
-        	pathFinder.step();
     	}
    		
-   		// Yielding set to true when agent is not able to update its target coordiante because it is still choosing
-   		// a crossing alternative.
-   		// Whilst yielding continue to step() path finder so that crossing alternative is chosen.
-    	else {
-        	pathFinder.step();
-    	}
+   		// Regardless of whether ped is yielding or waiting, continue to step the path finder, which models choice of crossing location
+   		pathFinder.step();
    		
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
