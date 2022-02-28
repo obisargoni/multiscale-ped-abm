@@ -10,19 +10,20 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
+import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
-import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.TacticalRoute;
 
@@ -708,5 +709,87 @@ class CrossingAlternativeTest {
 		assert ttcs.get(v) == null;
 		assert Math.abs(ttcs.get(v2)-tVeh)<0.00000001;
 		
+	}
+	
+	@Test
+	public void testpavementNetowrkCrossingLinksRemoved1() {
+		// Setup the environment
+		try {
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Network<Junction> paveNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		int originalNCrossingEdges = 0;
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			if (ne.getRoadLink().getPedRLID().contentEquals("")==false) {
+				originalNCrossingEdges++;
+			}
+		}
+		
+		// Edit the network
+		int origNEdges = paveNetwork.numEdges();
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		int editedNEdges = paveNetwork.numEdges();
+		
+		assert origNEdges>editedNEdges;
+		
+		// All but 8 crossing edges should have been removed since in this data there are crossing on two road links
+		assert origNEdges-editedNEdges == originalNCrossingEdges-8;
+	}
+	
+	@Test
+	public void testpavementNetowrkCrossingLinksRemoved2() {
+		// Setup the environment
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir = EnvironmentSetup.testGISDir + "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Network<Junction> paveNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		// Edit the network
+		int origNEdges = paveNetwork.numEdges();
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		int editedNEdges = paveNetwork.numEdges();
+		
+		assert origNEdges>editedNEdges;
+		assert editedNEdges==1154;
 	}
 }
