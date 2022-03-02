@@ -161,7 +161,7 @@ public class PedPathFinder {
 	/*
 	 * Plan a tactical level path using the accumulator crossing choice path finding model.
 	 */
-	public static TacticalRoute planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, int nTL, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public TacticalRoute planTacticalPath(Network<Junction> pavementNetwork, Geography<CrossingAlternative> caG, Geography<Road> rG, int nTL, Ped p, List<RoadLink> sP, Junction currentJ, Junction destJ, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 		
 		// NetworkPath object is used to find paths on the pavement network
 		NetworkPathFinder<Junction> nP = new NetworkPathFinder<Junction>(pavementNetwork);
