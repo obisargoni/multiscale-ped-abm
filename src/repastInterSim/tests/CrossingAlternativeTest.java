@@ -786,10 +786,28 @@ class CrossingAlternativeTest {
 		
 		// Edit the network
 		int origNEdges = paveNetwork.numEdges();
+		int origNNodes = paveNetwork.size();
 		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
 		int editedNEdges = paveNetwork.numEdges();
+		int editedNNodes = paveNetwork.size();
 		
+		assert origNNodes==editedNNodes;
 		assert origNEdges>editedNEdges;
 		assert editedNEdges==1154;
+		
+		String plID1 = "pave_link_126_641";
+		String plID2 = "pave_link_124_641";
+		boolean innet1=false;
+		boolean innet2=false;
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			if (ne.getRoadLink().getFID().contentEquals(plID1)) {
+				innet1=true;
+			}
+			if (ne.getRoadLink().getFID().contentEquals(plID2)) {
+				innet2=true;
+			}
+		}
+		assert innet1==innet2==true;
 	}
 }
