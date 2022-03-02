@@ -20,7 +20,6 @@ import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
@@ -31,7 +30,7 @@ import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
 public class PedPathFinder {
-	
+		
 	private Ped ped;
     private Transformer<RepastEdge<Junction>,Integer> primaryCostHeuristic;
     private Transformer<RepastEdge<Junction>,Integer> secondaryCostHeuristic;
@@ -61,6 +60,7 @@ public class PedPathFinder {
 	}
 	
 	private void init(OD o, OD d, Geography<Junction> paveG, Network<Junction> paveNetwork, boolean minimiseCrossings) {
+		
 		this.origin = o;
 		this.destination = d;
 				
@@ -241,6 +241,13 @@ public class PedPathFinder {
 	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<RepastEdge<Junction>> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, filter, heuristic1);
+		
+		// Due to removing crossing links from network can be unable to plan path using only planning horizon links.
+		// In this case do not enforce planning horizon by not filtering any links
+		if (candidatePaths.size()==0) {
+			Predicate<RepastEdge<Junction>> noFilter = e -> true;
+			candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, noFilter, heuristic1);
+		}
 
 		// If multiple paths have same length by this heuristic filter again using second heuristic
 		if (candidatePaths.size()>1) {
@@ -272,9 +279,17 @@ public class PedPathFinder {
 		Integer indexEndFirstLinkPath = null;
 		if (sP.size()>this.nLinksPerTacticalUpdate) {
 			while (indexEndFirstLinkPath==null) {
-				endFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(),  sP.get(this.nLinksPerTacticalUpdate-1), sP.get(this.nLinksPerTacticalUpdate)).get("end");
+				HashMap<String, List<Junction>> tacticalHorzJuncs = tacticalHorizonJunctions(nP.getNet(),  sP.get(this.nLinksPerTacticalUpdate-1), sP.get(this.nLinksPerTacticalUpdate));
+				endFirstLinkJunctions = tacticalHorzJuncs.get("end");
 				indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
 				
+				// If end juncs don't match up with tacticalPath, try outside junctions
+				if(indexEndFirstLinkPath==null) {
+					endFirstLinkJunctions = tacticalHorzJuncs.get("outside");
+					indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
+				}
+				
+				// If still no match move onto next road link.
 				if (indexEndFirstLinkPath==null) {
 					this.nLinksPerTacticalUpdate++;
 				}
