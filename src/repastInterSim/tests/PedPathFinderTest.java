@@ -15,11 +15,13 @@ import repast.simphony.context.Context;
 import repast.simphony.context.DefaultContext;
 import repast.simphony.engine.environment.RunState;
 import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.main.GlobalVars;
@@ -1535,4 +1537,160 @@ class PedPathFinderTest {
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing() == false;
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired() == false;
 	}
+	
+	/*
+	 * Test tactical path finding for a specific case where informal crossing is allowed. This test complements the test testOD60NoInformalCrossingPathTacticalPath
+	 * which considers the case where informal crossing is not allowed.
+	 */
+	@Test
+	public void testOD162InformalCrossingPathTacticalPath() {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Ped p = EnvironmentSetup.createPedestrian(null, null, "od_162", "od_0", true);
+		
+		PedPathFinder ppf = p.getPathFinder();
+		
+		// Check the road network route
+		String[] rnrIDs = {"or_link_313", "or_link_314", "or_link_266", "or_link_265", "or_link_233", "or_link_229", "or_link_205", "or_link_204", "or_link_191", "or_link_180", "or_link_179", "or_link_186"};
+		for (int i=0; i<rnrIDs.length; i++) {
+			assert rnrIDs[i].contentEquals(ppf.getStrategicPath().get(i).getFID());
+		}
+		
+		// Two updates to get to point where tactical path is different under no informal crossing scenario
+		ppf.updateTacticalPath();
+		
+		// Check tactical path is as expected
+		// - since expect only one link in tacgtical path initially, after update tactical path should be empty and current link should match the expected first link in tactical path
+		String expectedCurrentLink = "pave_link_595_597";
+		assert ppf.getTacticalPath().getRoutePath().size()==0;
+		assert ( (NetworkEdge<Junction>)ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentLink);
+		
+		/// The reminder path should go up to the end of the planning horizon
+		String[] expectedRemainderPath = {"pave_link_588_596", "pave_link_515_588", "pave_link_515_516","pave_link_451_516","pave_link_440_451","pave_link_393_440"};
+		assert ppf.getTacticalPath().getRemainderPath().size() == expectedRemainderPath.length;
+		for (int i=0; i<Math.max(expectedRemainderPath.length, ppf.getTacticalPath().getRemainderPath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRemainderPath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedRemainderPath[i]);
+		}
+	}
+	
+	/*
+	 * Test tactical path finding in cases where pedestrian is prevented from making informal crossings.
+	 * 
+	 * Specifically check that when a detour is required, the initial tactical path and path to end of ph are correctly identified and the road 
+	 * network route is correctly updated.
+	 */
+	@Test
+	public void testOD162NoInformalCrossingPathTacticalPath() {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
+		SpaceBuilder.setInformalCrossingStatus(false);
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		
+		Ped p = EnvironmentSetup.createPedestrian(null, null, "od_162", "od_0", true);
+		
+		PedPathFinder ppf = p.getPathFinder();
+		
+		// Check the road network route
+		String[] rnrIDs = {"or_link_313", "or_link_314", "or_link_266", "or_link_265", "or_link_233", "or_link_229", "or_link_205", "or_link_204", "or_link_191", "or_link_180", "or_link_179", "or_link_186"};
+		for (int i=0; i<rnrIDs.length; i++) {
+			assert rnrIDs[i].contentEquals(ppf.getStrategicPath().get(i).getFID());
+		}
+		
+		ppf.updateTacticalPath();
+		
+		// Check tactical path is as expected
+		String expectedCurrentEdge = "pave_link_597_606";
+		assert ( (NetworkEdge<Junction>) ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentEdge);
+		
+		String[] expectedTacticalPath = {"pave_link_606_608","pave_link_608_629","pave_link_623_629","pave_link_623_664","pave_link_627_664","pave_link_620_627","pave_link_617_620","pave_link_615_617","pave_link_516_615"};
+		assert ppf.getTacticalPath().getRoutePath().size() == expectedTacticalPath.length;
+		for (int i=0; i<Math.max(expectedTacticalPath.length, ppf.getTacticalPath().getRoutePath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRoutePath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedTacticalPath[i]);
+		}		
+		
+		String[] expectedRemainderPath = {"pave_link_451_516", "pave_link_440_451","pave_link_393_440"};
+		assert ppf.getTacticalPath().getRemainderPath().size() == expectedRemainderPath.length;
+		for (int i=0; i<Math.max(expectedRemainderPath.length, ppf.getTacticalPath().getRemainderPath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRemainderPath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedRemainderPath[i]);
+		}
+		
+		// This route path meets back up with the strategic path 3 links in, therefore expect strategic path to be reduced by 3 after next update
+		while (ppf.getTacticalPath().getCurrentEdge()!=null) {
+			ppf.getTacticalPath().updateCurrentJunction();
+		}
+		ppf.updateTacticalPath();
+		assert ppf.getStrategicPath().size() == rnrIDs.length - 3;
+	}
+
 }
