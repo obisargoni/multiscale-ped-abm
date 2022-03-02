@@ -1565,7 +1565,7 @@ class PedPathFinderTest {
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
 			EnvironmentSetup.setUpPavementNetwork();
 			
-			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesTollerance03.shp");
 			
 			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
 			
@@ -1635,7 +1635,7 @@ class PedPathFinderTest {
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
 			EnvironmentSetup.setUpPavementNetwork();
 			
-			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesTollerance03.shp");
 			
 			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
 			
@@ -1692,5 +1692,14 @@ class PedPathFinderTest {
 		ppf.updateTacticalPath();
 		assert ppf.getStrategicPath().size() == rnrIDs.length - 3;
 	}
+	
+	// Also write a test starting forom node pave_node_641 - od_186, od_0
+	/*
+	 * produces this path to end junction
+	 * 
+	 * 'pave_link_126_641', 'pave_link_126_136', 'pave_link_136_150','pave_link_150_152'
+	 * 
+	 * Path causes issue bc it is all classified as an initial path, rather than init + path to end.
+	 */
 
 }
