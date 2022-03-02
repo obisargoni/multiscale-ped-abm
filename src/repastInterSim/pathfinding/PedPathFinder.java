@@ -41,12 +41,13 @@ public class PedPathFinder {
 	
 	private String fullStrategicPathString = ""; // Used to analyse crossings locations in relation to a pedestrian's route
 	private List<RoadLink> strategicPath;
-	private static int nLinksPerTacticalUpdate = 1;
+	private static int defaultLinksPerTacticalUpdate = 1;
 	private boolean firstUpdateDone = false;
 	private Junction startPavementJunction;
 	private Junction destPavementJunction;
 	private TacticalRoute tacticalPath = new TacticalRoute();
 	private String fullTacticalPathString = "";
+	private int nLinksPerTacticalUpdate;
 	
 	private Coordinate nextCrossingCoord;	
 
@@ -73,6 +74,8 @@ public class PedPathFinder {
 			this.primaryCostHeuristic = new EdgeWeightTransformer<Junction>();
 			this.secondaryCostHeuristic = new EdgeRoadLinkIDTransformer<Junction>();
 		}
+		
+		this.nLinksPerTacticalUpdate = PedPathFinder.defaultLinksPerTacticalUpdate;
 	}
 	
 	public void step() {
@@ -126,10 +129,11 @@ public class PedPathFinder {
 			firstUpdateDone = true;
 		}
 		else {
-			for (int i = 0; i < PedPathFinder.nLinksPerTacticalUpdate; i++) {
+			for (int i = 0; i < this.nLinksPerTacticalUpdate; i++) {
 				this.strategicPath.get(0).getPeds().remove(this.ped);
 				this.strategicPath.remove(0);
 			}
+			this.nLinksPerTacticalUpdate = PedPathFinder.defaultLinksPerTacticalUpdate;
 		}
 		
 		// Add ped to next road link it is walking along
@@ -255,37 +259,36 @@ public class PedPathFinder {
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
 	 * crossing locations at those points
 	 */
-	public static TacticalRoute setupChosenTacticalAlternative(NetworkPathFinder<Junction> nP, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
+	public TacticalRoute setupChosenTacticalAlternative(NetworkPathFinder<Junction> nP, List<RoadLink> sP, int tacticalNLinks, List<RepastEdge<Junction>> tacticalPath, Junction currentJ, Junction destJ, Geography<CrossingAlternative> caG, Geography<Road> rG, Ped p) {
 				
 		// Need to split the chosen tactical path into three section sections
 		List<RepastEdge<Junction>> initTacticalPath = new ArrayList<RepastEdge<Junction>>(); 
 		List<RepastEdge<Junction>> firstLinkTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		List<RepastEdge<Junction>> remainderTacticalPath = new ArrayList<RepastEdge<Junction>>();
 		
-		// Get the road junctions at the start of the first link of the strategic path
-		// use this to identify the initial section of the tactical path that gets agent to the next strategic link
-		String startRoadNodeID = currentJ.getjuncNodeID();
-		List<Junction> startFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(), sP.get(0), startRoadNodeID).get("end");
-		
-		
 		// Need to get the junctions at the end of the first link in strategic path
+		// It is possible that tactical path bypasses first n links of strategic path (occurs when planning horizon filter is removed) in which case find junctions of tactical path that first meet up with strategic path
 		List<Junction> endFirstLinkJunctions = null;
-		if (sP.size()>PedPathFinder.nLinksPerTacticalUpdate) {
-			endFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(),  sP.get(PedPathFinder.nLinksPerTacticalUpdate-1), sP.get(PedPathFinder.nLinksPerTacticalUpdate)).get("end");
+		Integer indexEndFirstLinkPath = null;
+		if (sP.size()>this.nLinksPerTacticalUpdate) {
+			while (indexEndFirstLinkPath==null) {
+				endFirstLinkJunctions = tacticalHorizonJunctions(nP.getNet(),  sP.get(this.nLinksPerTacticalUpdate-1), sP.get(this.nLinksPerTacticalUpdate)).get("end");
+				indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
+				
+				if (indexEndFirstLinkPath==null) {
+					this.nLinksPerTacticalUpdate++;
+				}
+			}
+			
 		}
 		else {
 			endFirstLinkJunctions = new ArrayList<Junction>();
 			endFirstLinkJunctions.add(destJ);
+			indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
 		}
 		
-		int indexEndInitPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, startFirstLinkJunctions);
-		int indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
-		
 		for (int i=0;i<tacticalPath.size();i++) {
-			if (i<indexEndInitPath) {
-				initTacticalPath.add(tacticalPath.get(i));
-			}
-			else if (i<indexEndFirstLinkPath) {
+			if (i<indexEndFirstLinkPath) {
 				firstLinkTacticalPath.add(tacticalPath.get(i));
 			}
 			else {
@@ -300,11 +303,18 @@ public class PedPathFinder {
 		
 	}
 	
-	public static int getIndexOfEdgeThatReachesTargetJunctions(List<RepastEdge<Junction>> path, Junction startJunction, List<Junction> targetJunctions) {
+	public static Integer getIndexOfEdgeThatReachesTargetJunctions(List<RepastEdge<Junction>> path, Junction startJunction, List<Junction> targetJunctions) {
 		Junction prev = startJunction;
 		boolean reachedEndJunction = false;
-		int i = 0;
+		Integer i = 0;
 		while ( (reachedEndJunction == false) & (path.size()>0) ) {
+			
+			// It is possible that the target junction can't be found, in which case return null
+			if (i>=path.size()) {
+				i = null;
+				break;
+			}
+			
 			RepastEdge<Junction> e = path.get(i);
 			
 			Junction next = null;
