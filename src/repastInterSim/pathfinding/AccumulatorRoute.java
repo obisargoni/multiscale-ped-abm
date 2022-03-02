@@ -25,6 +25,7 @@ import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.main.GlobalVars;
 
 public class AccumulatorRoute {
@@ -52,6 +53,8 @@ public class AccumulatorRoute {
 	private double sampledCAwt;
 	private CrossingAlternative chosenCA = null;
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
+	
+	private UnmarkedCrossingAlternative umCAForDetourDist=null; // Unmarked crossing alternative object that is used for comparison to other crossing alternatives to calculate detour distance. May or may not be in choice set. 
 	
 	private boolean isBlank = false;
 	
@@ -191,17 +194,25 @@ public class AccumulatorRoute {
 		Double dFromCAToDest = ca.distanceTo(this.targetCoordinate);
 				
 		// Get the unmarked crossing alternative and calculate the distance to dest using it
-		CrossingAlternative umCA = null;
-		for (CrossingAlternative ca_: this.cas) {
-			if (ca_.getType().contentEquals("unmarked")) {
-				umCA = ca_;
+		if (this.umCAForDetourDist==null) {
+			
+			// First try to use umCA from choice set
+			for (CrossingAlternative ca_: this.cas) {
+				if (ca_.getType().contentEquals("unmarked")) {
+					this.umCAForDetourDist = (UnmarkedCrossingAlternative) ca_;
+				}
+			}
+			
+			// Otherwise create new umCA to use for calculating detour distances
+			if (this.umCAForDetourDist==null) {
+				this.umCAForDetourDist = new UnmarkedCrossingAlternative();
+				this.umCAForDetourDist.setPed(ped);
 			}
 		}
-		
-		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
-		Double umDFromCAToDest = umCA.distanceTo(this.targetCoordinate);
-		
-		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));
+
+		Double umDToCA = this.umCAForDetourDist.distanceTo(this.ped.getLoc());
+		Double umDFromCAToDest = this.umCAForDetourDist.distanceTo(this.targetCoordinate);
+		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));	
 				
 		// Need characteristic walk time to compare this to - use the length of the roads in planning horizon
 		double charDist = this.roadLength;
