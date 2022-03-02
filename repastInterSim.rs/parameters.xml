@@ -116,6 +116,12 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
+								<parameter name="informalCrossing" displayName="Control whether to allow informal crossing or not" type="boolean" 
+						defaultValue="true" 
+						isReadOnly="false" 
+						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
+									
+		/>
 		</parameters>
 
 

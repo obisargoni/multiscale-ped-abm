@@ -67,6 +67,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
+	private static Boolean informalCrossing=true; // Controls whether informal crossing is permitted.
+	
 	private Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. s
 	private ArrayList<Geography> fixedGeographies;
 	
@@ -98,6 +100,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		//RepastInterSimLogging.init();
 		Parameters params = RunEnvironment.getInstance ().getParameters();
+		
+		SpaceBuilder.informalCrossing=params.getBoolean("informalCrossing");
 		
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
@@ -308,6 +312,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
 			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
 			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
+			
+			// Finally edit the pavement network as required by the policy (either keep all road crossing links or remove those that don't have assocaiated crossing infrastructure)
+			if (SpaceBuilder.informalCrossing==false) {
+				// Removes crossing links from pedestrian network where no crossing infrastructure is available
+				SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caGeography);
+			}
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
@@ -850,5 +860,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			RepastEdge<Junction> e = edgesToRemove.get(i);
 			paveNetwork.removeEdge(e);
 		}
+	}
+	
+	public static boolean getInformalCrossingStatus() {
+		return SpaceBuilder.informalCrossing;
+	}
+	
+	public static void setInformalCrossingStatus(boolean infX) {
+		SpaceBuilder.informalCrossing=infX;
 	}
 }

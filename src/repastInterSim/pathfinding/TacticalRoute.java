@@ -9,6 +9,8 @@ import java.util.stream.Stream;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.parameter.Parameters;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
@@ -264,12 +266,14 @@ public class TacticalRoute {
 			}
 		}
 		
-		// Add unmarked crossing alternative to list
+		// Add unmarked crossing alternative to list if permitted by parameters
 		// Don't set road for unmarked crossings
-		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
-		caU.setRoadLinkID(rls.get(0).getFID());
-		caU.setPed(p);
-		cas.add(caU);
+		if (SpaceBuilder.getInformalCrossingStatus()) {
+			UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+			caU.setRoadLinkID(rls.get(0).getFID());
+			caU.setPed(p);
+			cas.add(caU);
+		}
 		
 		return cas;		
 	}
