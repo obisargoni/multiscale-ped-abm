@@ -166,6 +166,16 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			// Find shortest path length to each of the target nodes. Then for all those of shortest length, find all shortest paths
 			org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>> dsp = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>>(wjgt);
 			
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			
+			// it is possible that after filtering the network the starting or ending nodes are not present. In this case return the empty list of paths
+			if (wjgt.containsVertex(node)==false) {
+				return output;
+			}
+			else if ( targetNodes.stream().anyMatch(n -> wjgt.containsVertex(n))==false) {
+				return output;
+			}
+			
 			List<Double> distances = new ArrayList<Double>();
 			List<T> targets = new ArrayList<T>(targetNodes);
 			for (T target: targets) {
@@ -182,10 +192,15 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			}
 			
 			// Now for each of the target nodes that can be reached in within min distance, find all shortest paths to target from source
-			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
 			for (T t: shortestDistReachable) {
 				YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(wjgt, node, t);
-				List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator);
+				
+				// Due to removing crossing links there are cases where no paths can be found. Control for this
+				List<Stack<RepastEdge<T>>> paths = new ArrayList<Stack<RepastEdge<T>>>();
+				if (iterator.hasNext()) {
+					paths = allshortestPathsFromYenIterator(iterator); 
+				}
+				 
 				for (Stack<RepastEdge<T>> p:paths) {
 					output.add(p);
 				}
