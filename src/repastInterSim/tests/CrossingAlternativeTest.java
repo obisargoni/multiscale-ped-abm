@@ -770,7 +770,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 			
-			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
 			
 			EnvironmentSetup.testGISDir = origTestDir;
 		} catch (IOException e) {
