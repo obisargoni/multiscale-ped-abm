@@ -2,8 +2,7 @@
 import copy
 import json
 import numpy as np
-from SALib.sample import saltelli
-from SALib.sample import morris, saltelli
+from SALib.sample import morris, saltelli, latin
 from xml.etree import ElementTree as et
 
 with open("sample_config.json") as f:
@@ -68,6 +67,17 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
 	elif method == 'saltelli':
 		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = calc_second_order, skip_values = N_samples)
+	elif method == 'latin':
+
+		# In LH design number of samples determines how finely the pararameter space is divided. 
+		# Still only one value for each param in each of the divisions.
+		# To improve of this produce multiple LH designs and concatenate them together
+		
+		N_mirrors=sample_config['N_designs']
+		sampled_values = np.empty([N_samples*N_mirrors, problem['num_vars']])
+		for i in range(N_mirrors):
+			svs = latin.sample(problem, N_samples, seed=random_seed)
+			sampled_values[i*N_samples:(i+1)*N_samples, :] = svs
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
 	return sampled_values
