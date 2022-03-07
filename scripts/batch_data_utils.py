@@ -88,6 +88,9 @@ def get_data_paths(file_datetime_string, data_dir):
     file_re = get_file_regex("pedestrian_routes", file_datetime = file_datetime)
     ped_routes_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
+    file_re = get_file_regex("vehicle_routes", file_datetime = file_datetime)
+    veh_routes_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
     file_re = get_file_regex("cross_events", file_datetime = file_datetime)
     cross_events_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
@@ -103,6 +106,7 @@ def get_data_paths(file_datetime_string, data_dir):
     output = {}
     output["pedestrian_pave_link_crossings"]=ped_crossings_file
     output["pedestrian_routes"]=ped_routes_file
+    output["pedestrian_routes"]=veh_routes_file
     output["cross_events"]=cross_events_file
     output["pedestrian_locations"]=ped_locations_file
     output["vehicle_road_links"]=vehicle_rls_file
@@ -122,6 +126,8 @@ def get_ouput_paths(file_datetime_string, data_dir):
     paths["output_cross_events_path"] = os.path.join(data_dir, "cross_events.{}.csv".format(file_datetime_string))
     paths["output_ks_factormap"] = os.path.join(data_dir , "ks_factor_map.{}.csv".format (file_datetime_string))
     paths["output_corr_factormap"] = os.path.join(data_dir , "corr_factor_map.{}.csv".format (file_datetime_string))
+    paths["output_ped_distdurs_file"] = os.path.join(data_dir, "ped_durdists.{}.csv".format(file_datetime_string))
+    paths["output_veh_distdurs_file"] = os.path.join(data_dir, "veh_durdists.{}.csv".format(file_datetime_string))
 
     return paths
 
@@ -631,3 +637,36 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
         dfCrossEvents = pd.read_csv(output_path)
 
     return dfCrossEvents
+
+def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, output_path):
+    '''Loads the raw routes data, cleans the data and aggregates trip distances and durations
+    '''
+
+    if os.path.exists(output_path)==False:
+        # Load the data
+        dfRoutes = pd.read_csv(routes_path)
+
+        # Keep only the columns of interest
+        dfRoutes = dfRoutes.reindex(columns = ["run", "ID", "JourneyDistance", "JourneyDuration"])
+
+        # Remove ids, typically these are agents that get stuck along their journey
+        if agent_ids_to_exclude is not None:
+            drop_indices = dfRoutes.loc[ dfRoutes['ID'].isin(agent_ids_to_exclude)]
+            dfRoutes.drop(drop_indices, inplace=True)
+
+        assert dfRoutes.duplicated().any()==False
+
+        # Aggregate trip distance and duration to the run level
+        dfDursDists = dfRoutes.groupby("run").agg(  distance=pd.NamedAgg(column="JourneyDistance", aggfunc=lambda s: s.dropna().sum()),
+                                                    duration=pd.NamedAgg(column="JourneyDuration", aggfunc=lambda s: s.dropna().sum()),
+                                                ).reset_index()
+
+        # Merge in parameter values
+        dfDursDists = pd.merge(dfRun, dfDursDists, on = 'run')
+
+        # Save date for future use
+        dfDursDists.to_csv(output_path, index=False)
+    else:
+        dfDursDists = pd.read_csv(output_path)
+
+    return dfDursDists
