@@ -104,6 +104,24 @@ def mc_sample(problem, N_samples, seed = random_seed):
 
 	return samples
 
+def add_sampled_values_to_parameters_dictionary(problem, params, sampled_values):
+	repast_params = copy.deepcopy(params)
+
+	# Add sampled values into the params dictionary as the values these parameters should take
+	for i, name in enumerate(problem['names']):
+		param_values = sampled_values[:, i]
+		del repast_params[name]['value']
+
+		# convert to int if param data type is int
+		if repast_params[name]['data_type']=='int':
+			param_values = param_values.astype(int)
+		elif repast_params[name]['data_type']=='boolean':
+			param_values = np.round(param_values).astype(bool)
+
+		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
+
+	return repast_params
+
 def export_params(params, path = "batch_params.xml"):
 	# Export param values to batch params file
 	sweep = et.Element('sweep')
