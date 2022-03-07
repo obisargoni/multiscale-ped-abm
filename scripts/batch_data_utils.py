@@ -80,6 +80,50 @@ def get_peds_crossing_choice(series_choices):
     
     return series_choices.values[0]
 
+def get_data_paths(file_datetime_string, data_dir):
+    file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
+    file_re = get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
+    ped_crossings_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
+    file_re = get_file_regex("pedestrian_routes", file_datetime = file_datetime)
+    ped_routes_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
+    file_re = get_file_regex("cross_events", file_datetime = file_datetime)
+    cross_events_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
+    file_re = get_file_regex("pedestrian_locations", file_datetime = file_datetime)
+    ped_locations_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
+    file_re = get_file_regex("vehicle_road_links", file_datetime = file_datetime)
+    vehicle_rls_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
+    file_re = get_file_regex("pedestrian_routes", file_datetime = file_datetime, suffix = 'batch_param_map')
+    batch_file = most_recent_directory_file(data_dir, file_re)
+
+    output = {}
+    output["pedestrian_pave_link_crossings"]=ped_crossings_file
+    output["pedestrian_routes"]=ped_routes_file
+    output["cross_events"]=cross_events_file
+    output["pedestrian_locations"]=ped_locations_file
+    output["vehicle_road_links"]=vehicle_rls_file
+    output["batch_file"]=batch_file
+
+    return batch_file
+
+def get_ouput_paths(file_datetime_string, data_dir):
+    # output paths for processed data
+    paths = {}
+    paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
+    paths["output_vehicle_density_file"] = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
+    paths["output_route_length_file"] = os.path.join(data_dir, "run_route_length.{}.csv".format(file_datetime_string))
+    paths["output_sp_similarity_path"] = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
+    paths["output_sp_similarity_length_path"] = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
+    paths["output_route_completion_path"] = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
+    paths["output_cross_events_path"] = os.path.join(data_dir, "cross_events.{}.csv".format(file_datetime_string))
+    paths["output_ks_factormap"] = os.path.join(data_dir , "ks_factor_map.{}.csv".format (file_datetime_string))
+    paths["output_corr_factormap"] = os.path.join(data_dir , "corr_factor_map.{}.csv".format (file_datetime_string))
+
+    return paths
 
 def crossing_percentages(row, c1 = 'unmarked', c2 = 'unsignalised', scale = 100):
     '''Calculates percentages that cross at either crossing as proportion of those that do crossing the road, not those that are undecided.
