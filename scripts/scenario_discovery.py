@@ -144,7 +144,7 @@ policy_values = policies[policy_param]
 scenario_param_cols =  [i for i in params['names'] if i!=policy_param]
 
 # Merge pedestrian and vehicle distances and durations together
-dfDD = pd.merge(dfPedTripDD, dfVehTripDD.reindex(columns = ['run','JourneyDistance','JourneyDuration']), on='run', indicator=True, how = 'outer', suffixes = ("Ped", "Veh"))
+dfDD = pd.merge(dfPedTripDD, dfVehTripDD.reindex(columns = ['run','DistPA','DurPA']), on='run', indicator=True, how = 'outer', suffixes = ("Ped", "Veh"))
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
@@ -152,10 +152,10 @@ dfDD.drop('_merge', axis=1, inplace=True)
 for c in scenario_param_cols:
 	dfDD[c] = dfDD[c].astype(str) # Helps with grouping, makes matching doubles easier
 
-dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg(column = "JourneyDistancePed", aggfunc=lambda s: s[0] - s[1]),
-														VehDistDiff = pd.NamedAgg(column = "JourneyDistanceVeh", aggfunc=lambda s: s[0] - s[1]),
-														PedDurDiff = pd.NamedAgg(column = "JourneyDurationPed", aggfunc=lambda s: s[0] - s[1]),
-														VehDurDiff = pd.NamedAgg(column = "JourneyDurationVeh", aggfunc=lambda s: s[0] - s[1]),
+dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: s[0] - s[1]),
+														VehDistDiff = pd.NamedAgg(column = "DistPAPedVeh", aggfunc=lambda s: s[0] - s[1]),
+														PedDurDiff = pd.NamedAgg(column = "DurPAPed", aggfunc=lambda s: s[0] - s[1]),
+														VehDurDiff = pd.NamedAgg(column = "DurPAVeh", aggfunc=lambda s: s[0] - s[1]),
 														CountRuns = pd.NamedAgg(column = "run", aggfunc=lambda s: s.shape[0]),
 														RunsStr = pd.NamedAgg(column = "run", aggfunct=lambda s: ":".join(s.tolist())),
 													)
