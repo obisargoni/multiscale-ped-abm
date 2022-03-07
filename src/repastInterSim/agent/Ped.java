@@ -238,9 +238,8 @@ public class Ped extends MobileAgent {
 		Context context = RunState.getInstance().getMasterContext();
 		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
         Geometry thisGeom = GISFunctions.getAgentGeometry(geography, this);
-        List<Geometry> contactObstructionGeoms = SpatialIndexManager.searchGeoms(pedObstructGeography, thisGeom);
         HashMap<Ped, Geometry> contactPedsWithGeoms = getPedsAndGeomsWithinGeometry(thisGeom);
-        contA = totalContactAcceleration(thisGeom, contactObstructionGeoms, contactPedsWithGeoms);
+        contA = totalContactAcceleration(thisGeom, new ArrayList<Geometry>(), contactPedsWithGeoms);
         
         totA = Vector.sumV(fovA, contA);
         
