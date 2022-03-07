@@ -364,35 +364,26 @@ crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alterna
 
 
 # Model output data
-file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
-file_re = bd_utils.get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
-ped_crossings_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
-
-file_re = bd_utils.get_file_regex("pedestrian_routes", file_datetime = file_datetime)
-ped_routes_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
-
-file_re = bd_utils.get_file_regex("cross_events", file_datetime = file_datetime)
-cross_events_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
-
-file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
-ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
-
-file_re = bd_utils.get_file_regex("vehicle_road_links", file_datetime = file_datetime)
-vehicle_rls_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
-
-file_re = bd_utils.get_file_regex("pedestrian_routes", file_datetime = file_datetime, suffix = 'batch_param_map')
-batch_file = bd_utils.most_recent_directory_file(data_dir, file_re)
+data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
+ped_crossings_file = data_paths["ped_crossings_file"]
+ped_routes_file = data_paths["ped_routes_file"]
+cross_events_file = data_paths["cross_events_file"]
+ped_locations_file = data_paths["ped_locations_file"]
+vehicle_rls_file = data_paths["vehicle_rls_file"]
+batch_file = data_paths["batch_file"]
 
 # output paths for processed data
-output_ped_routes_file = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
-output_vehicle_density_file = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
-output_route_length_file = os.path.join(data_dir, "run_route_length.{}.csv".format(file_datetime_string))
-output_sp_similarity_path = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
-output_sp_similarity_length_path = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))
-output_route_completion_path = os.path.join(data_dir, "route_completions.{}.csv".format(file_datetime_string))
-output_cross_events_path = os.path.join(data_dir, "cross_events.{}.csv".format(file_datetime_string))
-output_ks_factormap = os.path.join(data_dir , "ks_factor_map.{}.csv".format (file_datetime_string))
-output_corr_factormap = os.path.join(data_dir , "corr_factor_map.{}.csv".format (file_datetime_string))
+output_paths = get_ouput_paths(file_datetime_string, data_dir)
+output_ped_routes_file=             output_paths["output_ped_routes_file"]
+output_vehicle_density_file=        output_paths["output_vehicle_density_file"]
+output_route_length_file=           output_paths["output_route_length_file"]
+output_sp_similarity_path=          output_paths["output_sp_similarity_path"]
+output_sp_similarity_length_path=   output_paths["output_sp_similarity_length_path"]
+output_route_completion_path=       output_paths["output_route_completion_path"]
+output_cross_events_path=           output_paths["output_cross_events_path"]
+output_ks_factormap=                output_paths["output_ks_factormap"]
+output_corr_factormap=              output_paths["output_corr_factormap"]
+
 
 #####################################
 #
