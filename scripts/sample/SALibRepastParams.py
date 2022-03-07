@@ -73,9 +73,9 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 		# Still only one value for each param in each of the divisions.
 		# To improve of this produce multiple LH designs and concatenate them together
 		
-		N_mirrors=sample_config['N_designs']
-		sampled_values = np.empty([N_samples*N_mirrors, problem['num_vars']])
-		for i in range(N_mirrors):
+		N_designs=sample_config['N_designs']
+		sampled_values = np.empty([N_samples*N_designs, problem['num_vars']])
+		for i in range(N_designs):
 			svs = latin.sample(problem, N_samples, seed=random_seed)
 			sampled_values[i*N_samples:(i+1)*N_samples, :] = svs
 	else:
