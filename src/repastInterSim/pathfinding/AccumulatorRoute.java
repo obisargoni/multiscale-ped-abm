@@ -207,6 +207,7 @@ public class AccumulatorRoute {
 			if (this.umCAForDetourDist==null) {
 				this.umCAForDetourDist = new UnmarkedCrossingAlternative();
 				this.umCAForDetourDist.setPed(ped);
+				this.umCAForDetourDist.setRoadLinkID(ca.getRoadLinkID());
 			}
 		}
 
