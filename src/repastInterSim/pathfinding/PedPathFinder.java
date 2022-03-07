@@ -21,7 +21,6 @@ import repastInterSim.agent.Ped;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
-import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
 import repastInterSim.environment.RoadLink;
@@ -246,9 +245,17 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-		Uniform tacticalRCUnif = (Uniform) RandomHelper.getDistribution("tacticalRouteChoice"); 
-		int pathIndex = tacticalRCUnif.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
+		Uniform tacticalRCUnif = (Uniform) RandomHelper.getDistribution("tacticalRouteChoice");
+		double rand = tacticalRCUnif.nextDouble();
+		int nCandidates = candidatePaths.size();
+		List<RepastEdge<Junction>> chosenPath=null;
+		for (int i=1; i<=nCandidates; i++) {
+			double threshold = 1/i; 
+			if(Math.signum(Double.compare(rand, threshold)) == -1) {
+				chosenPath = candidatePaths.get(i-1);
+				break;
+			}
+		}
 	    return chosenPath;
 	}
 	
