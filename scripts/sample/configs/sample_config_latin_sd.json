@@ -27,5 +27,6 @@
       "random_seed":100,
       "num_levels":6,
       "calc_second_order":false,
-      "method":"latin"
+      "method":"latin",
+      "policies":{"informalCrossing":[0,1]}
 }
