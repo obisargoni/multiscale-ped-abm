@@ -28,6 +28,7 @@ import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
+import repastInterSim.environment.NetworkEdge;
 
 public class PedPathFinder {
 		
@@ -277,29 +278,29 @@ public class PedPathFinder {
 		// It is possible that tactical path bypasses first n links of strategic path (occurs when planning horizon filter is removed) in which case find junctions of tactical path that first meet up with strategic path
 		List<Junction> endFirstLinkJunctions = null;
 		Integer indexEndFirstLinkPath = null;
-		if (sP.size()>this.nLinksPerTacticalUpdate) {
-			while (indexEndFirstLinkPath==null) {
-				HashMap<String, List<Junction>> tacticalHorzJuncs = tacticalHorizonJunctions(nP.getNet(),  sP.get(this.nLinksPerTacticalUpdate-1), sP.get(this.nLinksPerTacticalUpdate));
-				endFirstLinkJunctions = tacticalHorzJuncs.get("end");
+		while ( (sP.size()>this.nLinksPerTacticalUpdate) & (indexEndFirstLinkPath==null) ) {
+			HashMap<String, List<Junction>> tacticalHorzJuncs = tacticalHorizonJunctions(nP.getNet(),  sP.get(this.nLinksPerTacticalUpdate-1), sP.get(this.nLinksPerTacticalUpdate));
+			endFirstLinkJunctions = tacticalHorzJuncs.get("end");
+			indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
+			
+			// If end juncs don't match up with tacticalPath, try outside junctions
+			if(indexEndFirstLinkPath==null) {
+				endFirstLinkJunctions = tacticalHorzJuncs.get("outside");
 				indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
-				
-				// If end juncs don't match up with tacticalPath, try outside junctions
-				if(indexEndFirstLinkPath==null) {
-					endFirstLinkJunctions = tacticalHorzJuncs.get("outside");
-					indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
-				}
-				
-				// If still no match move onto next road link.
-				if (indexEndFirstLinkPath==null) {
-					this.nLinksPerTacticalUpdate++;
-				}
 			}
 			
+			// If still no match move onto next road link.
+			if (indexEndFirstLinkPath==null) {
+				this.nLinksPerTacticalUpdate++;
+			}
 		}
-		else {
+		
+		// if index still null means that tactical path extends to the destination junction
+		if (indexEndFirstLinkPath==null) {
 			endFirstLinkJunctions = new ArrayList<Junction>();
 			endFirstLinkJunctions.add(destJ);
 			indexEndFirstLinkPath = getIndexOfEdgeThatReachesTargetJunctions(tacticalPath, currentJ, endFirstLinkJunctions);
+			this.nLinksPerTacticalUpdate=sP.size()-1;
 		}
 		
 		for (int i=0;i<tacticalPath.size();i++) {
