@@ -1692,14 +1692,85 @@ class PedPathFinderTest {
 		ppf.updateTacticalPath();
 		assert ppf.getStrategicPath().size() == rnrIDs.length - 3;
 	}
+
 	
-	// Also write a test starting forom node pave_node_641 - od_186, od_0
 	/*
-	 * produces this path to end junction
-	 * 
-	 * 'pave_link_126_641', 'pave_link_126_136', 'pave_link_136_150','pave_link_150_152'
-	 * 
-	 * Path causes issue bc it is all classified as an initial path, rather than init + path to end.
+	 * Test No Informal crossing path finding from origin od_78. The tactical path extends all the way to the 
+	 * destination junction without meeting back up with the strategic path.
 	 */
+	@Test
+	public void testOD78NoInformalCrossingPathTacticalPath() {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesTollerance05.shp");
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
+		SpaceBuilder.setInformalCrossingStatus(false);
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		
+		Ped p = EnvironmentSetup.createPedestrian("od_78", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 276.37);;
+		
+		PedPathFinder ppf = p.getPathFinder();
+		
+		// Check the road network route
+		String[] rnrIDs = {"or_link_58","or_link_57","or_link_295","or_link_293","or_link_290","or_link_289","or_link_212","or_link_197","or_link_194","or_link_187","or_link_186"};
+		for (int i=0; i<rnrIDs.length; i++) {
+			assert rnrIDs[i].contentEquals(ppf.getStrategicPath().get(i).getFID());
+		}
+		
+		ppf.updateTacticalPath();
+		
+		// Check tactical path is as expected
+		String expectedCurrentEdge = "pave_link_113_566";
+		assert ( (NetworkEdge<Junction>) ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentEdge);
+		
+		String[] expectedTacticalPath = {"pave_link_566_578","pave_link_578_580","pave_link_521_580","pave_link_501_521","pave_link_501_504","pave_link_498_504","pave_link_498_500","pave_link_492_500","pave_link_488_492","pave_link_488_490","pave_link_398_490","pave_link_398_654","pave_link_395_654","pave_link_370_395","pave_link_370_373","pave_link_346_373","pave_link_346_363"};
+		assert ppf.getTacticalPath().getRoutePath().size() == expectedTacticalPath.length;
+		for (int i=0; i<Math.max(expectedTacticalPath.length, ppf.getTacticalPath().getRoutePath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRoutePath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedTacticalPath[i]);
+		}		
+		
+		String[] expectedRemainderPath = {};
+		assert ppf.getTacticalPath().getRemainderPath().size() == expectedRemainderPath.length;
+		for (int i=0; i<Math.max(expectedRemainderPath.length, ppf.getTacticalPath().getRemainderPath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRemainderPath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedRemainderPath[i]);
+		}
+	}
+	
 
 }
