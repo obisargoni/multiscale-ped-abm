@@ -316,9 +316,9 @@ public class PedPathFinder {
 		List<RoadLink> rp = new ArrayList<RoadLink>();
 		
 		// Loop over pavement network links, get the road network junctions they correspond to and from these get the road network links they travel along
-		for (RepastEdge<Junction> re: pavementPath) {
-			String orJ1 = re.getSource().getjuncNodeID();
-			String orJ2 = re.getTarget().getjuncNodeID();
+		for (RepastEdge<Junction> paveEdge: pavementPath) {
+			String orJ1 = paveEdge.getSource().getjuncNodeID();
+			String orJ2 = paveEdge.getTarget().getjuncNodeID();
 			
 			Junction j1=null;
 			Junction j2=null;
@@ -331,16 +331,27 @@ public class PedPathFinder {
 				}
 			}
 			
-			RoadLink rl = ( (NetworkEdge<Junction>) orNetwork.getEdge(j1, j2)).getRoadLink();
+			RepastEdge<Junction> e = orNetwork.getEdge(j1, j2);
+			if (e==null) {
+
+				continue;
+			}
 			
-			// if road link is not null then this pavement edge goes from one end of a road to another
-			// add it to the lit if it is different to the last item added
-			if (rp.size()==0) {
-				rp.add(rl);
+			RoadLink rl = ( (NetworkEdge<Junction>) e).getRoadLink();
+			rp.add(rl);
+		}
+		
+		// Now remove duplicates so that road link route doesn't involve doubling back
+		int i=0;
+		while(i<rp.size()-1) {
+			RoadLink rl1 = rp.get(i);
+			RoadLink rl2 = rp.get(i+1);
+			if (rl1.getFID().contentEquals(rl2.getFID())) {
+				rp.remove(rl1);
+				rp.remove(rl2);
+				i=0; // Start searching from beginning again
 			}
-			else if ( rl.getFID().contentEquals(rp.get(rp.size()-1).getFID())==false ) {
-				rp.add(rl);
-			}
+			i++;
 		}
 		
 		return rp;
