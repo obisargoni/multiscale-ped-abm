@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections15.Predicate;
 import org.apache.commons.collections15.Transformer;
@@ -210,7 +212,17 @@ public class PedPathFinder {
 		Predicate<RepastEdge<Junction>> tacticalEdgeFilter = e -> horizonTacticalEdges.stream().anyMatch( n -> n.equals(e));
 						
 		// Choose path to end of tactical horizon
-		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPath(nP, tacticalEdgeFilter, currentJ, endJunctions, heuristic1, heuristic2);
+		List<RepastEdge<Junction>> tacticalPath = chooseTacticalPathWithHorizon(nP, tacticalEdgeFilter, currentJ, endJunctions, heuristic1, heuristic2);
+		
+		// In cases where informal crossing is restricted it can be impossible to find a pavement network route within the planning horizon
+		// In this case do not enforce planning horizon by not filtering any links 
+	    if (tacticalPath==null) {
+	    	tacticalPath = chooseTacticalPathNoHorizon(nP, currentJ, endJunctions, heuristic1, heuristic2);
+			
+	    	// Update strategic path here so that it matches tactical path. Only required where tactical path is planned without planning horizon filter
+	    	updateStrategicPath(tacticalPath, nTL);
+	    	sP = this.strategicPath;
+	    }
 		
 		// Create tactical alternative from this path
 		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
@@ -239,15 +251,14 @@ public class PedPathFinder {
 	 * 
 	 * @returns List<RepastEdge<Junction>>
 	 */
-	public static List<RepastEdge<Junction>> chooseTacticalPath(NetworkPathFinder<Junction> nP, Predicate<RepastEdge<Junction>> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+	public List<RepastEdge<Junction>> chooseTacticalPathWithHorizon(NetworkPathFinder<Junction> nP, Predicate<RepastEdge<Junction>> filter, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 
 		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, filter, heuristic1);
 		
 		// Due to removing crossing links from network can be unable to plan path using only planning horizon links.
 		// In this case do not enforce planning horizon by not filtering any links
 		if (candidatePaths.size()==0) {
-			Predicate<RepastEdge<Junction>> noFilter = e -> true;
-			candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, noFilter, heuristic1);
+			return null;
 		}
 
 		// If multiple paths have same length by this heuristic filter again using second heuristic
@@ -257,11 +268,84 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
+	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+	    
 	    return chosenPath;
 	}
 	
+	public List<RepastEdge<Junction>> chooseTacticalPathNoHorizon(NetworkPathFinder<Junction> nP, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
+		
+		Predicate<RepastEdge<Junction>> noFilter = e -> true;
+		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, noFilter, heuristic1);
+
+		// If multiple paths have same length by this heuristic filter again using second heuristic
+		if (candidatePaths.size()>1) {
+			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic2);
+		}
+			
+		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
+		// To choose between these we choose at random
+	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+	    
+	    return chosenPath;
+	}
+	
+	/*
+	 * Sets the strategic path road links to match with the road links the tactical path traverses
+	 */
+	public void updateStrategicPath(List<RepastEdge<Junction>> chosenPath, int nTL) {
+		
+		List<RoadLink> sP = roadPathFromPavementPath(chosenPath);
+		
+		this.strategicPath.get(0).getPeds().remove(this.ped);
+		// remove previous strategic links that lead up to tactical horizon
+		for (int i=0; i<nTL; i++) {
+			this.strategicPath.remove(0);
+		}
+		
+		// Now prepend strategic path with new set of links that lead up to tactical horizon
+		this.strategicPath = Stream.of(sP, this.strategicPath).flatMap(Collection::stream).collect(Collectors.toList());
+		this.strategicPath.get(0).getPeds().add(this.ped);
+	}
+	
+	private static List<RoadLink> roadPathFromPavementPath(List<RepastEdge<Junction>> pavementPath){
+		Geography<Junction> orJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_JUNCTION_GEOGRAPHY);
+		Network<Junction> orNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK);
+		List<RoadLink> rp = new ArrayList<RoadLink>();
+		
+		// Loop over pavement network links, get the road network junctions they correspond to and from these get the road network links they travel along
+		for (RepastEdge<Junction> re: pavementPath) {
+			String orJ1 = re.getSource().getjuncNodeID();
+			String orJ2 = re.getTarget().getjuncNodeID();
+			
+			Junction j1=null;
+			Junction j2=null;
+			for(Junction j: orJunctionGeography.getAllObjects()) {
+				if (j.getFID().contentEquals(orJ1)) {
+					j1=j;
+				}
+				if (j.getFID().contentEquals(orJ2)) {
+					j2=j;
+				}
+			}
+			
+			RoadLink rl = ( (NetworkEdge<Junction>) orNetwork.getEdge(j1, j2)).getRoadLink();
+			
+			// if road link is not null then this pavement edge goes from one end of a road to another
+			// add it to the lit if it is different to the last item added
+			if (rp.size()==0) {
+				rp.add(rl);
+			}
+			else if ( rl.getFID().contentEquals(rp.get(rp.size()-1).getFID())==false ) {
+				rp.add(rl);
+			}
+		}
+		
+		return rp;
+	}
+
 	/*
 	 * New method for setting up a tactical alternative. The method takes the chosen tactical path along with the strategic path and uses this to 
 	 * set up the tactical alternative, which requires identifying at which points in the tactical path crossing locations need to be chosen and how to choose 
