@@ -1667,18 +1667,20 @@ class PedPathFinderTest {
 		
 		ppf.updateTacticalPath();
 		
+		// Road network route should be different now that ped has to travel a different way to reach their destination
+		String[] rnrIDsUpdated = {"or_link_319","or_link_321","or_link_323","or_link_332","or_link_330","or_link_331","or_link_328","or_link_327","or_link_326","or_link_267","or_link_265","or_link_233","or_link_229","or_link_205","or_link_204","or_link_191","or_link_180","or_link_179","or_link_186"};
+		for (int i=0; i<rnrIDsUpdated.length; i++) {
+			assert rnrIDsUpdated[i].contentEquals(ppf.getStrategicPath().get(i).getFID());
+		}
+		
 		// Check tactical path is as expected
 		String expectedCurrentEdge = "pave_link_597_606";
 		assert ( (NetworkEdge<Junction>) ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentEdge);
 		
-		String[] expectedTacticalPath = {"pave_link_606_608","pave_link_608_629","pave_link_623_629","pave_link_623_664","pave_link_627_664","pave_link_620_627","pave_link_617_620","pave_link_615_617","pave_link_516_615"};
-		assert ppf.getTacticalPath().getRoutePath().size() == expectedTacticalPath.length;
-		for (int i=0; i<Math.max(expectedTacticalPath.length, ppf.getTacticalPath().getRoutePath().size()); i++) {
-			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRoutePath().get(i);
-			assert ne.getRoadLink().getFID().contentEquals(expectedTacticalPath[i]);
-		}		
+		String[] expectedTacticalPath = {};
+		assert ppf.getTacticalPath().getRoutePath().size() == expectedTacticalPath.length;	
 		
-		String[] expectedRemainderPath = {"pave_link_451_516", "pave_link_440_451","pave_link_393_440"};
+		String[] expectedRemainderPath = {"pave_link_606_608","pave_link_608_629","pave_link_623_629","pave_link_623_664","pave_link_627_664","pave_link_620_627","pave_link_617_620","pave_link_615_617","pave_link_516_615", "pave_link_451_516", "pave_link_440_451","pave_link_393_440"};
 		assert ppf.getTacticalPath().getRemainderPath().size() == expectedRemainderPath.length;
 		for (int i=0; i<Math.max(expectedRemainderPath.length, ppf.getTacticalPath().getRemainderPath().size()); i++) {
 			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRemainderPath().get(i);
@@ -1690,7 +1692,7 @@ class PedPathFinderTest {
 			ppf.getTacticalPath().updateCurrentJunction();
 		}
 		ppf.updateTacticalPath();
-		assert ppf.getStrategicPath().size() == rnrIDs.length - 3;
+		assert ppf.getStrategicPath().size() == rnrIDsUpdated.length - 1;
 	}
 
 	
