@@ -276,12 +276,18 @@ public class PedPathFinder {
 	
 	public List<RepastEdge<Junction>> chooseTacticalPathNoHorizon(NetworkPathFinder<Junction> nP, Junction currentJ, Collection<Junction> targetJunctions, Transformer<RepastEdge<Junction>,Integer> heuristic1, Transformer<RepastEdge<Junction>,Integer> heuristic2) {
 		
-		Predicate<RepastEdge<Junction>> noFilter = e -> true;
-		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getAllShortestPaths(currentJ, targetJunctions, noFilter, heuristic1);
+		// Getting all shortest paths without a filter can take a long time when using the number of crossings transformer
+		// To reduce computation identify an initial set of candidate paths based on link length, from which to filter based on heuristics. k=3 will return 3 shortest paths to each target node.
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		List<Stack<RepastEdge<Junction>>> candidatePaths = nP.getKShortestPaths(currentJ, targetJunctions, null, distanceTransformer, 3);
 
 		// If multiple paths have same length by this heuristic filter again using second heuristic
 		if (candidatePaths.size()>1) {
-			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic2);
+			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);
+		}
+		
+		if (candidatePaths.size()>1) {
+			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);
 		}
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
