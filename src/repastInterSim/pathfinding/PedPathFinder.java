@@ -357,7 +357,9 @@ public class PedPathFinder {
 				rp.remove(rl2);
 				i=0; // Start searching from beginning again
 			}
-			i++;
+			else {
+				i++;
+			}
 		}
 		
 		return rp;
