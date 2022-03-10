@@ -1755,6 +1755,84 @@ class PedPathFinderTest {
 		
 		ppf.updateTacticalPath();
 		
+		// Expect strategic path to have changed now
+		String[] rnrIDs2 = {"or_link_297","or_link_299","or_link_305","or_link_270","or_link_259","or_link_257","or_link_258","or_link_255","or_link_253","or_link_254","or_link_206","or_link_204","or_link_191","or_link_180","or_link_179"};
+		for (int i=0; i<rnrIDs2.length; i++) {
+			assert rnrIDs2[i].contentEquals(ppf.getStrategicPath().get(i).getFID());
+		}
+		
+		// Check tactical path is as expected
+		String expectedCurrentEdge = "pave_link_113_566";
+		assert ( (NetworkEdge<Junction>) ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentEdge);
+		
+		String[] expectedTacticalPath = {};
+		assert ppf.getTacticalPath().getRoutePath().size() == expectedTacticalPath.length;
+		for (int i=0; i<Math.max(expectedTacticalPath.length, ppf.getTacticalPath().getRoutePath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRoutePath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedTacticalPath[i]);
+		}		
+		
+		String[] expectedRemainderPath = {"pave_link_566_578","pave_link_578_580","pave_link_521_580","pave_link_501_521","pave_link_501_504","pave_link_498_504","pave_link_498_500","pave_link_492_500","pave_link_488_492","pave_link_488_490","pave_link_398_490","pave_link_398_654","pave_link_395_654","pave_link_371_395","pave_link_371_372","pave_link_346_372","pave_link_346_363"};
+		assert ppf.getTacticalPath().getRemainderPath().size() == expectedRemainderPath.length;
+		for (int i=0; i<Math.max(expectedRemainderPath.length, ppf.getTacticalPath().getRemainderPath().size()); i++) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) ppf.getTacticalPath().getRemainderPath().get(i);
+			assert ne.getRoadLink().getFID().contentEquals(expectedRemainderPath[i]);
+		}
+	}
+	
+	/*
+	 * Test No Informal crossing path finding from origin od_78. The tactical path extends all the way to the 
+	 * destination junction without meeting back up with the strategic path.
+	 */
+	//@Test
+	public void testOD133NoInformalCrossingPathTacticalPath() {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesTollerance05.shp");
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
+		SpaceBuilder.setInformalCrossingStatus(false);
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		
+		Ped p = EnvironmentSetup.createPedestrian("od_133", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 276.37);;
+		
+		PedPathFinder ppf = p.getPathFinder();
+		
+		ppf.updateTacticalPath();
+		
 		// Check tactical path is as expected
 		String expectedCurrentEdge = "pave_link_113_566";
 		assert ( (NetworkEdge<Junction>) ppf.getTacticalPath().getCurrentEdge()).getRoadLink().getFID().contentEquals(expectedCurrentEdge);
