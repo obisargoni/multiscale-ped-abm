@@ -33,6 +33,7 @@ import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.NetworkPathFinder;
 import repastInterSim.pathfinding.RoadNetworkRoute;
+import repastInterSim.pathfinding.transformers.EdgeCountTransformer;
 import repastInterSim.pathfinding.transformers.EdgeRoadLinkIDTransformer;
 import repastInterSim.pathfinding.transformers.EdgeWeightTransformer;
 
@@ -817,10 +818,10 @@ class NetworkPathFinderTest {
 		
 		Predicate<Junction> filter = j -> sPNodes.stream().anyMatch( n -> n.getFID().contentEquals(j.getjuncNodeID()));
 		
-		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeCountTransformer<Junction>();
 		
 		// First get the two shortest paths and compare their lengths
-		int k = 2;
+		int k = 4;
 		List<Stack<RepastEdge<Junction>>> kShortest = np.getKShortestPaths(source, target, k, filter, distanceTransformer);
 		double[] pathLengths = new double[kShortest.size()];
 		for(int i =0; i<kShortest.size(); i++) {
@@ -833,7 +834,9 @@ class NetworkPathFinderTest {
 		}
 		
 		// Expect these two shortest paths to have the same length
-		assert pathLengths[0] == pathLengths[1];
+		for (int i=0; i<k-1; i++) {
+			assert pathLengths[i] == pathLengths[i+1];
+		}
 		
 		// Now check that requesting the shortest paths also returns these two paths
 		double start = System.currentTimeMillis();
@@ -842,6 +845,81 @@ class NetworkPathFinderTest {
 		System.out.print(duration);
 		
 		assert shortestDistancePaths.size() == k;
+		
+	}
+	
+	
+	/*
+	 * Test getting shortest paths using the Yens K shortest method. Tests whether method is able to return paths longer thatn the shortest path if
+	 * k is high enough
+	 */
+	@Test
+	public void testShortestPathsYens4() {
+		// setup road network and pavement network
+		try {
+			// Use live data for clapham common in test
+			this.testGISDir = this.testGISDir + "/clapham_common/";
+			
+			setUpRoadLinks("open-roads RoadLink Intersect Within simplify angles.shp");
+			setUpRoadNetwork(false);
+			
+			setUpPavementJunctions();
+			setUpPavementLinks("pedNetworkLinks.shp");
+			setUpPavementNetwork();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_148";
+		String targetID = "pave_node_348";
+		Junction source = null;
+		Junction target = null;
+		for (Junction j : EnvironmentSetup.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID)) {
+				target = j;
+			}
+		}
+		
+		String startJunctionID = source.getjuncNodeID();
+		String endJunctionID = target.getjuncNodeID();
+		Coordinate o = null;
+		Coordinate d = null;
+		
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(EnvironmentSetup.pavementNetwork);
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		
+		// First get the two shortest paths and compare their lengths
+		int k = 5;
+		List<Junction> targets = new ArrayList<Junction>();
+		targets.add(target);
+		List<Stack<RepastEdge<Junction>>> kShortest = np.getKShortestPaths(source, targets, null, distanceTransformer, k);
+		double[] pathLengths = new double[kShortest.size()];
+		for(int i =0; i<kShortest.size(); i++) {
+			Stack<RepastEdge<Junction>> path = kShortest.get(i);
+			Double pathLength = 0.0;
+			for(int j=0; j<path.size(); j++) {
+				pathLength += distanceTransformer.transform(path.get(j));
+			}
+			pathLengths[i] = pathLength;
+		}
+		
+		assert pathLengths[0] < pathLengths[1];
+		assert pathLengths[1] == pathLengths[2];
+		assert pathLengths[2] == pathLengths[3];
+		assert pathLengths[3] < pathLengths[4];
+		
+		// Now check that requesting the shortest paths also returns these two paths
+		double start = System.currentTimeMillis();
+		List<Stack<RepastEdge<Junction>>> shortestDistancePaths = np.getAllShortestPaths(source, target, null, distanceTransformer);
+		double duration = System.currentTimeMillis() - start;
+		System.out.print(duration);
+		
+		assert shortestDistancePaths.size() == 1;
 		
 	}
 	
