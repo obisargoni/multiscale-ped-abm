@@ -538,23 +538,38 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 	    }
 		
 		public void filterGraph(Collection<T> vertices) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			this.graph = FilterUtils.createInducedSubgraph(vertices, g);
-			calc = true;
+			if (vertices != null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				this.graph = FilterUtils.createInducedSubgraph(vertices, g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void filterGraph(Predicate<T> verticesFilter) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
-			this.graph = filter.transform(g);
-			calc = true;
+			if (verticesFilter!=null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
+				this.graph = filter.transform(g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void filterGraphByEdges(Predicate<RepastEdge<T>> edgesFilter) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			EdgePredicateFilter<T,RepastEdge<T>> filter = new EdgePredicateFilter<T,RepastEdge<T>>(edgesFilter);
-			this.graph = filter.transform(g);
-			calc = true;
+			if (edgesFilter!=null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				EdgePredicateFilter<T,RepastEdge<T>> filter = new EdgePredicateFilter<T,RepastEdge<T>>(edgesFilter);
+				this.graph = filter.transform(g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void resetgraph() {
