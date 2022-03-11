@@ -694,7 +694,7 @@ class VehicleTest {
 		
 		// Step vehicle ahead some more to check that it eventually slows down
 		// Steping vehicle along brings it closer to the pedestrian
-		while (v.getLoc().distance(pedMinDist.getLoc()) > 5) {
+		while (v.getLoc().distance(pedMinDist.getLoc()) > 8) {
 			try {
 				v.step();
 			} catch (Exception e) {
