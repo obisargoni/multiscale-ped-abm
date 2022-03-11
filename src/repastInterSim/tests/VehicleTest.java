@@ -449,14 +449,14 @@ class VehicleTest {
     	}
 		
 		// Now move ped along until it starts crossing
-    	Coordinate firstCrossCoord = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast(); 
-		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false) {
+		while ( pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false ) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}		
+		}
+		
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 1;
 		assert v.getCrossingPedestrians().size() == 1;
 		
