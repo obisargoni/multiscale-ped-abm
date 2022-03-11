@@ -25,8 +25,10 @@ import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
 public class AccumulatorRoute {
 	
@@ -338,9 +340,15 @@ public class AccumulatorRoute {
 		// Update the pedestrians current pavement link so that this is recorded in its route
 		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge; 
 		this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
+		
+		// Add ped to road link here
+		addPedToORLinkBeingCrossed();
 	}
 	
 	public void reset() {
+		
+		removePedFromORLinkBeingCrossed();
+		
 		this.chosenCA = null;
 		this.caChosen = false;
 		this.reachedCrossing = false;
@@ -406,6 +414,8 @@ public class AccumulatorRoute {
 			// Remove crossing data collector from context and set to null
 			RunState.getInstance().getMasterContext().remove(this.ced);
 			this.ced=null;
+			
+			removePedFromORLinkBeingCrossed();
 		}
 	}
 	
@@ -487,6 +497,29 @@ public class AccumulatorRoute {
 		}
 		return !dontProgress;
 	}
+	
+	private RoadLink getORLinkBeingCrossed() {
+		Geography<RoadLink> orRLGeog = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		RoadLink rlBeingCrossed=null;
+		for (RoadLink rl: orRLGeog.getAllObjects()) {
+			if (rl.getFID().contentEquals(this.getChosenCA().getRoadLinkID())) {
+				rlBeingCrossed=rl;
+				break;
+			}
+		}
+		return rlBeingCrossed;
+	}
+	
+	private void removePedFromORLinkBeingCrossed() {
+		RoadLink rlBeingCrossed = getORLinkBeingCrossed();
+		rlBeingCrossed.getPeds().remove(this.ped);
+	}
+	
+	private void addPedToORLinkBeingCrossed() {
+		RoadLink rlBeingCrossed = getORLinkBeingCrossed();
+		rlBeingCrossed.getPeds().add(this.ped);
+	}
+	
 	
 	public void clear() {
 		this.ped=null;
