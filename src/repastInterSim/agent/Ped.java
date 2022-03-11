@@ -785,7 +785,6 @@ public class Ped extends MobileAgent {
 		mc.add(pd);
 		g.move(pd, pd.getGeom());
     	
-    	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
     	this.pathFinder.clear();
     	this.pathFinder=null;
     	

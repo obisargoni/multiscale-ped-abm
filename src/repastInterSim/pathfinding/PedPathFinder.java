@@ -133,14 +133,10 @@ public class PedPathFinder {
 		}
 		else {
 			for (int i = 0; i < this.nLinksPerTacticalUpdate; i++) {
-				this.strategicPath.get(0).getPeds().remove(this.ped);
 				this.strategicPath.remove(0);
 			}
 			this.nLinksPerTacticalUpdate = PedPathFinder.defaultLinksPerTacticalUpdate;
 		}
-		
-		// Add ped to next road link it is walking along
-		this.strategicPath.get(0).getPeds().add(this.ped);
 		
 		// If no tactical path has been set use the strategic path start junction, otherwise set the start junction as the end junction of previous tactical path
 		Junction startJunction = null;
@@ -305,7 +301,6 @@ public class PedPathFinder {
 		
 		List<RoadLink> sP = roadPathFromPavementPath(chosenPath);
 		
-		this.strategicPath.get(0).getPeds().remove(this.ped);
 		// remove previous strategic links that lead up to tactical horizon
 		for (int i=0; i<nTL; i++) {
 			this.strategicPath.remove(0);
@@ -313,7 +308,6 @@ public class PedPathFinder {
 		
 		// Now prepend strategic path with new set of links that lead up to tactical horizon
 		this.strategicPath = Stream.of(sP, this.strategicPath).flatMap(Collection::stream).collect(Collectors.toList());
-		this.strategicPath.get(0).getPeds().add(this.ped);
 	}
 	
 	private static List<RoadLink> roadPathFromPavementPath(List<RepastEdge<Junction>> pavementPath){
