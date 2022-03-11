@@ -598,6 +598,115 @@ class VehicleTest {
 		assert pedSpd == Double.MAX_VALUE;		
 	}
 	
+	
+	/*
+	 * Test that a vehicle agents identifies a crossing pedestrian when pedestrian crosses at a 
+	 */
+	@Test
+	void testVehicleYieldsDirectCrossingPedestrian1() {
+		
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(1,4, null, null, false);
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970448", "osgb4000000029970447");
+		
+		// Step the vehicle and pedestrian once to initialise them
+		try {
+			v.step();
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Check that the vehicle doesn't yet perceive any peds crossing
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
+		// so while loop won't be entered.
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Vehicle still shouldn't perceive any crossing pedestrians
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Set ped to start crossing and to not yeild, this stops ped yielding which it does by default when reching a crossing
+		pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().startCrossing();
+		pedMinDist.setYield(false);
+		assert v.getCrossingPedestrians().size() == 1;
+		
+		// Vehicle not yet close enough to pedestrian to yield, so safe ped speed  is set to max value
+		double pedSpd = v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+		assert pedSpd == Double.MAX_VALUE;
+		
+		// Steping vehicle along brings it closer to the pedestrian
+		while (v.getLoc().distance(pedMinDist.getLoc()) > v.getDMax()) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
+		
+		// Now safe following speed should be lower
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < pedSpd;
+		
+		// How ever safe following speed still not low enough to make vehicle slow down so remains at current (max) speed
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.getSpeed();		
+		
+		// Step vehicle ahead some more to check that it eventually slows down
+		// Steping vehicle along brings it closer to the pedestrian
+		while (v.getLoc().distance(pedMinDist.getLoc()) > 5) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Desired speed should now be lower than accelerated speed safe following speed still not low enough to prevent vehicle from accelerating
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < v.getSpeed();
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+	}
+	
 	/*
 	 * Test that a vehicle agent identifies and yields to a crossing alternative when the crossing signals red.
 	 */

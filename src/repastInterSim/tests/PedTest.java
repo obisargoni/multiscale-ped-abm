@@ -23,8 +23,10 @@ import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.Road;
+import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
@@ -636,6 +638,18 @@ class PedTest {
 		
 		assert defaultJ.getGeom().equals(currentJ.getGeom());
 		
+		// Check ped not yet added to road link
+		Geography<RoadLink> orRoadLinkGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		RoadLink rl = null;
+		String orLinkBeingCrossed = ( (NetworkEdge<Junction>) pedMinDist.getPathFinder().getTacticalPath().getCurrentEdge()).getRoadLink().getPedRLID();
+		for (RoadLink i: orRoadLinkGeography.getAllObjects()) {
+			if (i.getFID().contentEquals(orLinkBeingCrossed)) {
+				rl=i;
+				break;
+			}
+		}
+		assert rl.getPeds().size()==0;
+		
 		// step ped until crossing chosen
 		while( (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen()==false) & (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().crossingRequired()) ) {
 			try {
@@ -648,6 +662,9 @@ class PedTest {
 		
 		// Check crossing type is now not none
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA()!=null;
+		
+		// Check ped has now been added to road link
+		assert rl.getPeds().size()==1;
 		
 		// Now step ped until it reaches the start of the crossing
 		// step ped until crossing chosen
@@ -691,6 +708,9 @@ class PedTest {
 			}
 			assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA()!=null;
 		}
+		
+		// Check ped has now been removed from road link
+		assert rl.getPeds().size()==0;
 	}
 	
 	/*
