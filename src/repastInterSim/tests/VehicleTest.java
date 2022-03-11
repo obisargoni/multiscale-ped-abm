@@ -448,9 +448,9 @@ class VehicleTest {
     		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
     	}
 		
-		// Now move ped along until it reaches its first crossing point, as indicated by it's distance from the second crossing point
+		// Now move ped along until it starts crossing
     	Coordinate firstCrossCoord = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast(); 
-		while (pedMinDist.getLoc().distance(firstCrossCoord)>6.0) {
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
@@ -562,7 +562,7 @@ class VehicleTest {
 		
 		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
 		// so while loop won't be entered.
-		while (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) > 2.5) {
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
@@ -587,8 +587,9 @@ class VehicleTest {
 			prevDist = v.getLoc().distance(pedMinDist.getLoc());
 		}
 		
-		// Now update ped's current coordinate, which means that ped has reached first crossing coordinate and therefore has started crossing
-		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		// Set ped to start crossing and to not yeild, this stops ped yielding which it does by default when reching a crossing
+		pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().startCrossing();
+		pedMinDist.setYield(false);
 		assert v.getCrossingPedestrians().size() == 1;
 		
 		// Now vehicle should not yield to ped despite being close enough to detect ped
@@ -739,13 +740,16 @@ class VehicleTest {
 		}
 		
 		// Step ped along until it reaches it's crossing location
-		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false) {
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
+		
+		// Need to ensure that ped hasn't actually started crossing yet otherwise vehicle will yield to ped
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false;
 		
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA().getType().contentEquals("unmarked");
 		
