@@ -1359,11 +1359,13 @@ class PedPathFinderTest {
 			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
 			EnvironmentSetup.setUpPavementNetwork();
 			
-			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			
 			EnvironmentSetup.setUpPedODs();
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.setUpRandomDistributions(0);
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -1376,10 +1378,10 @@ class PedPathFinderTest {
 		OD d = null;
 		
 		for (OD i : EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
-			if (i.getId() == 3) {
+			if (i.getId() == 1) {
 				o = i;
 			}
-			else if (i.getId() == 2) {
+			else if (i.getId() == 3) {
 				d = i;
 			}
 		}
@@ -1400,11 +1402,21 @@ class PedPathFinderTest {
 		// Before peds first step there should be no peds assigns to first road link in route
 		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==0;
 		
-		// Then after steeping the ped the ped should be added to the road link
+		// After steeping the ped the ped won't be added to road link because it has not started crossing.
 		try {
 			pedMinDist.step();
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==0;
+		
+		// If ped is stepped until it starts crossing it will be added to the road link
+		while (pedMinDist.isCrossing()==false) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==1;
 		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().get(0) == pedMinDist;
@@ -1420,8 +1432,6 @@ class PedPathFinderTest {
 		}
 		
 		assert firstRL.getPeds().size()==0;
-		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().size()==1;
-		assert pedMinDist.getPathFinder().getStrategicPath().get(0).getPeds().get(0) == pedMinDist;
 	}
 	
 	
