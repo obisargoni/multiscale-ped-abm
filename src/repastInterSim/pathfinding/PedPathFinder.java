@@ -307,7 +307,8 @@ public class PedPathFinder {
 		}
 		
 		// Now prepend strategic path with new set of links that lead up to tactical horizon
-		this.strategicPath = Stream.of(sP, this.strategicPath).flatMap(Collection::stream).collect(Collectors.toList());
+		sP = Stream.of(sP, this.strategicPath).flatMap(Collection::stream).collect(Collectors.toList());
+		this.strategicPath = pruneDuplicatesFromStrategicPath(sP);
 	}
 	
 	private static List<RoadLink> roadPathFromPavementPath(List<RepastEdge<Junction>> pavementPath){
@@ -341,22 +342,34 @@ public class PedPathFinder {
 			rp.add(rl);
 		}
 		
+		return rp;
+	}
+	
+	/*
+	 * Prune based on finding link that book ends loop and remove all links between and the bookending links.
+	 */
+	private List<RoadLink> pruneDuplicatesFromStrategicPath(List<RoadLink> sP) {
 		// Now remove duplicates so that road link route doesn't involve doubling back
 		int i=0;
-		while(i<rp.size()-1) {
-			RoadLink rl1 = rp.get(i);
-			RoadLink rl2 = rp.get(i+1);
-			if (rl1.getFID().contentEquals(rl2.getFID())) {
-				rp.remove(rl1);
-				rp.remove(rl2);
-				i=0; // Start searching from beginning again
+		while(i<sP.size()-1) {
+			List<RoadLink> toRemove = new ArrayList<RoadLink>();
+			RoadLink rl1 = sP.get(i);
+			toRemove.add(rl1);
+			for (int j=i+1; j<sP.size();j++) {
+				RoadLink rl2 = sP.get(j);
+				toRemove.add(rl2);
+				if (rl1.getFID().contentEquals(rl2.getFID())) {
+					// Remove the road links identified as being par of the loop
+					for(int k=0; k<toRemove.size();k++) {
+						sP.remove(toRemove.get(k));
+						i=0; // Start searching from beginning again
+						toRemove = new ArrayList<RoadLink>();
+					}
+				}
 			}
-			else {
-				i++;
-			}
+			i++;
 		}
-		
-		return rp;
+		return sP;
 	}
 
 	/*
