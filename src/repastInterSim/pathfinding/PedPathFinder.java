@@ -362,9 +362,8 @@ public class PedPathFinder {
 					// Remove the road links identified as being par of the loop
 					for(int k=0; k<toRemove.size();k++) {
 						sP.remove(toRemove.get(k));
-						i=0; // Start searching from beginning again
-						toRemove = new ArrayList<RoadLink>();
 					}
+					i=0; // Start searching from beginning again
 				}
 			}
 			i++;
