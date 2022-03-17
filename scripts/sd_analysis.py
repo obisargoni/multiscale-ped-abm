@@ -180,15 +180,11 @@ dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg
 														RunsStr = pd.NamedAgg(column = "run", aggfunc=lambda s: ":".join(str(i) for i in s.tolist())),
 													).reset_index()
 
+for c in scenario_param_cols:
+	dfPolicyDiff[c] = dfPolicyDiff[c].to_numeric()
+
 # Check that there are expected number of runs per scenario
 assert (dfPolicyDiff['CountRuns']==2).all()
-
-# Identify successfull scenarios, categorise into two groups
-#dfPolicyDiff['success'] = dfPolicyDiff.apply(policy_evaluation)
-dfPolicyDiff['success'] = (dfPolicyDiff['PedDurDiff'] < 0.3) & (dfPolicyDiff['VehDurDiff']<0) # vehicle wait times reduced and pedestrian wait times not significantly worse
-print(dfPolicyDiff['success'].value_counts())
-
-
 
 ##############################
 #
@@ -200,11 +196,45 @@ print(dfPolicyDiff['success'].value_counts())
 
 import matplotlib.pyplot as plt
 from ema_workbench.analysis import prim
+import seaborn as sns
 
 assert config['setting'] == 'latin' # expect LH desig to be used when doing SD
 
+
+#
+# Initial exploratory analysis of multiple outcomes
+#
+
+experiments = dfDD.loc[:, params]
+
+outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh']
+outcomes = {k:dfDD[k].values for k in outcome_vars}
+
+# Create pairs plot
+data = dfDD.loc[:, outcome_vars]
+data['informalCrossing'] = experiments['informalCrossing']
+sns.pairplot(data, hue='informalCrossing', vars=outcome_vars)
+plt.show()
+
+
+#
+# PRIM analysis requires a boolean outcome variable
+#
+
+# Identify successfull scenarios, categorise into two groups
+dfPolicyDiff['success'] = (dfPolicyDiff['PedDurDiff'] < 0.3) & (dfPolicyDiff['VehDurDiff']<0) # vehicle wait times reduced and pedestrian wait times not significantly worse
+
+# select parameters that actually varied
+varied_scenario_param_cols = [i for i in scenario_param_cols if params[i]['type']=='list']
+
+
 # Now use PRIM to identify what determines policy success/failure most
-x = dfPolicyDiff.loc[:, scenario_param_cols]
+x = dfPolicyDiff.loc[:, varied_scenario_param_cols].copy()
 y = dfPolicyDiff['success'].values
+
+# Round values to make visualisations clearer
+for c in ['epsilon','lambda','alpha', 'tacticalPlanHorizon', 'ga']:
+	x[c] = x[c].map(lambda x: np.round(x, 4))
+
 prim_alg = prim.Prim(x, y, threshold=0.8)
 box1 = prim_alg.find_box()
