@@ -67,7 +67,7 @@ output_veh_distdurs_file = output_paths["output_veh_distdurs_file"]
 output_sp_similarity_length_path = output_paths["output_sp_similarity_length_path"]
 output_cross_events_path = output_paths["output_cross_events_path"]
 
-outout_sd_data = output_paths["output_sd_data"]
+output_sd_data = output_paths["output_sd_data"]
 
 
 #####################################
@@ -146,4 +146,65 @@ dfDD = pd.merge(dfPedTripDD, dfVehTripDD.reindex(columns = ['run','DistPA','DurP
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
-dfDD.to_csv(outout_sd_data, index=False)
+dfDD.to_csv(output_sd_data, index=False)
+
+
+
+
+########################################
+#
+#
+# Processing data to compare runs under different policies
+#
+# This involves matching up runs with the same parameter settings but under different policy conditions
+#
+#######################################
+print("\nRunning Scenario Discovery Analysis")
+
+dfDD = pd.read_csv(output_sd_data)
+
+# get policy parameter and split the data into groups for different policies
+policy_param = list(policies.keys())[0]
+policy_values = policies[policy_param]
+scenario_param_cols =  [i for i in params if i!=policy_param]
+
+# Now group by scenario and aggregate to find difference in outputs between policy conditions
+for c in scenario_param_cols:
+	dfDD[c] = dfDD[c].astype(str) # Helps with grouping, makes matching doubles easier
+
+dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
+														VehDistDiff = pd.NamedAgg(column = "DistPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
+														PedDurDiff = pd.NamedAgg(column = "DurPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
+														VehDurDiff = pd.NamedAgg(column = "DurPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
+														CountRuns = pd.NamedAgg(column = "run", aggfunc=lambda s: s.shape[0]),
+														RunsStr = pd.NamedAgg(column = "run", aggfunc=lambda s: ":".join(str(i) for i in s.tolist())),
+													).reset_index()
+
+# Check that there are expected number of runs per scenario
+assert (dfPolicyDiff['CountRuns']==2).all()
+
+# Identify successfull scenarios, categorise into two groups
+#dfPolicyDiff['success'] = dfPolicyDiff.apply(policy_evaluation)
+dfPolicyDiff['success'] = (dfPolicyDiff['PedDurDiff'] < 0.3) & (dfPolicyDiff['VehDurDiff']<0) # vehicle wait times reduced and pedestrian wait times not significantly worse
+print(dfPolicyDiff['success'].value_counts())
+
+
+
+##############################
+#
+#
+# Data mining techniques applied to results to distinguish scenarios
+#
+#
+##############################
+
+import matplotlib.pyplot as plt
+from ema_workbench.analysis import prim
+
+assert config['setting'] == 'latin' # expect LH desig to be used when doing SD
+
+# Now use PRIM to identify what determines policy success/failure most
+x = dfPolicyDiff.loc[:, scenario_param_cols]
+y = dfPolicyDiff['success'].values
+prim_alg = prim.Prim(x, y, threshold=0.8)
+box1 = prim_alg.find_box()
