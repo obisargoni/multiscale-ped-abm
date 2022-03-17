@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import numpy as np
 import geopandas as gpd
+import networkx as nx
+import itertools
 import re
 from shapely.geometry import LineString
 from shapely.geometry import Point
@@ -106,15 +108,15 @@ def get_data_paths(file_datetime_string, data_dir):
     output = {}
     output["pedestrian_pave_link_crossings"]=ped_crossings_file
     output["pedestrian_routes"]=ped_routes_file
-    output["pedestrian_routes"]=veh_routes_file
+    output["vehicle_routes"]=veh_routes_file
     output["cross_events"]=cross_events_file
     output["pedestrian_locations"]=ped_locations_file
     output["vehicle_road_links"]=vehicle_rls_file
     output["batch_file"]=batch_file
 
-    return batch_file
+    return output
 
-def get_ouput_paths(file_datetime_string, data_dir):
+def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     # output paths for processed data
     paths = {}
     paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
@@ -223,7 +225,7 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
 
     return node_path[::-1]
 
-def get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes):
+def get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph):
     filter_pavement_edges = []
     for or_link in strategic_path:
         or_nodes = gdfORLinks.loc[ gdfORLinks['fid'] == or_link, ['MNodeFID', 'PNodeFID']].values[0]
@@ -241,7 +243,7 @@ def get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes):
 
 def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = 'length'):
 
-    filter_pavement_edges = get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes)
+    filter_pavement_edges = get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph)
 
     sub_pavement_graph = nx.edge_subgraph(pavement_graph, filter_pavement_edges)
 
@@ -529,7 +531,7 @@ def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output
 
     return VehCountAv
 
-def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv"):
+def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
 
     d,f = os.path.split(ped_routes_path)
     output_path = os.path.join(d, 'processed_'+f)
@@ -591,8 +593,10 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
             weight_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
             nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
 
-            dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
-
+            if strategic_path_filter:
+                dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+            else:
+                dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
 
         dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
 
@@ -651,7 +655,7 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
         # Remove ids, typically these are agents that get stuck along their journey
         if agent_ids_to_exclude is not None:
-            drop_indices = dfRoutes.loc[ dfRoutes['ID'].isin(agent_ids_to_exclude)]
+            drop_indices = dfRoutes.loc[ dfRoutes['ID'].isin(agent_ids_to_exclude)].index
             dfRoutes.drop(drop_indices, inplace=True)
 
         assert dfRoutes.duplicated().any()==False
@@ -663,8 +667,8 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
                                                 ).reset_index()
 
         # Calculate per agent values
-        dfDursDists['DistPA'] = dfDursDists['JourneyDistance'] / dfDursDists['nagents']
-        dfDursDists['DurPA'] = dfDursDists['JourneyDuration'] / dfDursDists['nagents']
+        dfDursDists['DistPA'] = dfDursDists['distance'] / dfDursDists['nagents']
+        dfDursDists['DurPA'] = dfDursDists['duration'] / dfDursDists['nagents']
 
         # Merge in parameter values
         dfDursDists = pd.merge(dfRun, dfDursDists, on = 'run')

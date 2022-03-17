@@ -6,6 +6,7 @@ import itertools
 import pandas as pd
 import numpy as np
 import geopandas as gpd
+import networkx as nx
 import re
 from datetime import datetime as dt
 
@@ -41,16 +42,24 @@ gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 
+pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
+pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
+or_links_file = os.path.join(gis_data_dir, config['openroads_link_processed_file'])
+or_nodes_file = os.path.join(gis_data_dir, config['openroads_node_processed_file'])
+itn_links_file = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
+itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_file'])
+crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
+
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
-ped_crossings_file = data_paths["ped_crossings_file"]
-ped_routes_file = data_paths["ped_routes_file"]
-veh_routes_file = data_paths["veh_routes_file"]
-cross_events_file = data_paths["cross_events_file"]
-ped_locations_file = data_paths["ped_locations_file"]
-vehicle_rls_file = data_paths["vehicle_rls_file"]
+ped_crossings_file = data_paths["pedestrian_pave_link_crossings"]
+ped_routes_file = data_paths["pedestrian_routes"]
+veh_routes_file = data_paths["vehicle_routes"]
+cross_events_file = data_paths["cross_events"]
+ped_locations_file = data_paths["pedestrian_locations"]
+vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"] 
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir)
 output_ped_routes_file = output_paths["output_ped_routes_file"]
 output_route_length_file = output_paths["output_route_length_file"]
 output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
@@ -104,7 +113,7 @@ dict_node_pos = dict(zip(points_pos.index, node_posistions))
 gdfPaveLinks['AvVehDen'] = 0.0
 weight_params = range(0, 100, 100)
 
-dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
+dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file, strategic_path_filter=False)
 #dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 #dfRouteCompletion = bd_utils.agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
 
@@ -121,6 +130,8 @@ print("\nCalculating/Loading Output Metrics")
 
 dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutesConsistentPeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
+
+
 
 #dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
 #dfConflictsUnmarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
