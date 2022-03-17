@@ -131,6 +131,8 @@ def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     paths["output_ped_distdurs_file"] = os.path.join(data_dir, "ped_durdists.{}.csv".format(file_datetime_string))
     paths["output_veh_distdurs_file"] = os.path.join(data_dir, "veh_durdists.{}.csv".format(file_datetime_string))
 
+    paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
+
     return paths
 
 def crossing_percentages(row, c1 = 'unmarked', c2 = 'unsignalised', scale = 100):
