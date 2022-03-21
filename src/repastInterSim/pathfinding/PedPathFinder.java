@@ -348,7 +348,7 @@ public class PedPathFinder {
 	/*
 	 * Prune based on finding link that book ends loop and remove all links between and the bookending links.
 	 */
-	private List<RoadLink> pruneDuplicatesFromStrategicPath(List<RoadLink> sP) {
+	public static List<RoadLink> pruneDuplicatesFromStrategicPath(List<RoadLink> sP) {
 		// Now remove duplicates so that road link route doesn't involve doubling back
 		int i=0;
 		while(i<sP.size()-1) {
@@ -363,7 +363,8 @@ public class PedPathFinder {
 					for(int k=0; k<toRemove.size();k++) {
 						sP.remove(toRemove.get(k));
 					}
-					i=0; // Start searching from beginning again
+					i=-1; // Start searching from beginning again, after break i gets increased by 1 so set to -1 to ensure i=0 at start of main loop
+					break; 
 				}
 			}
 			i++;
