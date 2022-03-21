@@ -535,6 +535,10 @@ public class PedPathFinder {
 			}
 		}
 		
+		// Sort lists of junctions to ensure tactical paths are ordered consistently
+		tacticalEndJunctions.get("outside").sort((j1, j2) -> j1.getFID().compareTo(j2.getFID()));
+		tacticalEndJunctions.get("end").sort((j1, j2) -> j1.getFID().compareTo(j2.getFID()));
+		
 		return tacticalEndJunctions;
 	}
 	
