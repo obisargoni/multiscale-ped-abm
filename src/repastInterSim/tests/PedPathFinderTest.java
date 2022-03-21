@@ -1948,5 +1948,64 @@ class PedPathFinderTest {
 		}
 	}
 	
-
+	@Test
+	public void testPruneStrategicPath1() {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesTollerance05.shp");
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		String[] spIDs = {"or_link_45","or_link_302","or_link_219","or_link_217","or_link_217","or_link_218","or_link_218","or_link_217","or_link_215"};
+		List<RoadLink> sP = new ArrayList<RoadLink>();
+		Geography<RoadLink> rlG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		for (int i=0; i< spIDs.length; i++) {
+			for (RoadLink rl: rlG.getAllObjects()) {
+				if (rl.getFID().contentEquals(spIDs[i])) {
+					sP.add(rl);
+					break;
+				}
+			}
+		}
+		
+		Ped p = EnvironmentSetup.createPedestrian("od_129", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 25.0);
+		
+		List<RoadLink> spPruned = PedPathFinder.pruneDuplicatesFromStrategicPath(sP);
+		
+		String[] expectedIDs = {"or_link_45","or_link_302","or_link_219","or_link_217","or_link_215"};
+		
+		assert spPruned.size() == expectedIDs.length;
+		for (int i=0; i<expectedIDs.length; i++) {
+			assert spPruned.get(i).getFID().contentEquals(expectedIDs[i]);
+		}		
+	}
+	
 }
