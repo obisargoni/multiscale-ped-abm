@@ -283,7 +283,7 @@ public class PedPathFinder {
 		}
 		
 		if (candidatePaths.size()>1) {
-			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic1);
+			candidatePaths = nP.getShortestOfMultiplePaths(candidatePaths, heuristic2);
 		}
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
