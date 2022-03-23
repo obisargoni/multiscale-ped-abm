@@ -156,7 +156,8 @@ public class Ped extends MobileAgent {
     	
     	// Only decide whether to continue yielding or not. If no longer yielding then decision isn't reverted
     	if (this.pathFinder.getTacticalPath().getAccumulatorRoute().reachedCrossing() & this.yieldAtCrossing) {
-    		decideYield();
+    		//decideYield();
+    		stopYielding();
     	}
     	
     	// If ped has been yielding more thatn the threshold number of steps, re-set accumulator to allow ped to choose different crossing location
