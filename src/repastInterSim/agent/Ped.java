@@ -754,22 +754,22 @@ public class Ped extends MobileAgent {
         	}
         	
         	// if reach here no longer required to yield. reset counter. Start crossing.
-        	this.yieldAtCrossing=false;
-        	this.stepsYielding=0;
-        	
-        	this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
-        	this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
+        	stopYielding();
         	
 			this.resetAlphaGAFactors(); // If ped progresses to another junction undone the modifications to road crossing parameters that may have occured.
     	}
     	else {
     		// if reach here no longer required to yield. reset counter. Start crossing.
-    		this.yieldAtCrossing=false;
-    		this.stepsYielding=0;
-    		this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
-    		this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
+    		stopYielding();
     	}
-    }	
+    }
+    
+    private void stopYielding() {
+		this.yieldAtCrossing=false;
+		this.stepsYielding=0;
+		this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
+		this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
+    }
     
     /**
      * Method to be run when agent is removed from the context.
