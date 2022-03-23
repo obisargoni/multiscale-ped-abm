@@ -365,15 +365,13 @@ crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alterna
 
 # Model output data
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
-ped_crossings_file = data_paths["ped_crossings_file"]
-ped_routes_file = data_paths["ped_routes_file"]
-cross_events_file = data_paths["cross_events_file"]
-ped_locations_file = data_paths["ped_locations_file"]
-vehicle_rls_file = data_paths["vehicle_rls_file"]
-batch_file = data_paths["batch_file"]
+ped_routes_file = data_paths["pedestrian_routes"]
+veh_routes_file = data_paths["vehicle_routes"]
+cross_events_file = data_paths["cross_events"]
+batch_file = data_paths["batch_file"] 
 
 # output paths for processed data
-output_paths = get_ouput_paths(file_datetime_string, data_dir)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir)
 output_ped_routes_file=             output_paths["output_ped_routes_file"]
 output_vehicle_density_file=        output_paths["output_vehicle_density_file"]
 output_route_length_file=           output_paths["output_route_length_file"]
