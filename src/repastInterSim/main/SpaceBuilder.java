@@ -37,8 +37,8 @@ import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repast.simphony.space.projection.Projection;
-import repast.simphony.util.collections.IndexedIterable;
 import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
@@ -48,6 +48,7 @@ import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
+import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.NetworkEdgeCreator;
 import repastInterSim.environment.PedObstruction;
 import repastInterSim.environment.Road;
@@ -65,6 +66,8 @@ import repastInterSim.environment.contexts.RoadLinkContext;
 public class SpaceBuilder extends DefaultContext<Object> implements ContextBuilder<Object> {
 	
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
+	
+	private static Boolean informalCrossing=true; // Controls whether informal crossing is permitted.
 	
 	private Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. s
 	private ArrayList<Geography> fixedGeographies;
@@ -97,6 +100,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		//RepastInterSimLogging.init();
 		Parameters params = RunEnvironment.getInstance ().getParameters();
+		
+		SpaceBuilder.informalCrossing=params.getBoolean("informalCrossing");
 		
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
@@ -146,7 +151,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		GeographyParameters<Object> geoParams = new GeographyParameters<Object>();
 		Geography geography = GeographyFactoryFinder.createGeographyFactory(null).createGeography(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY, context, geoParams);
 		geography.setCRS(GlobalVars.geographyCRSString);
-		context.add(geography);
 		
 		// Road Geography stores polygons representing road and pavement surfaces
 		RoadContext roadContext = new RoadContext();
@@ -308,6 +312,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String caFile = GISDataDir + IO.getProperty("CAShapefile");
 			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
 			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
+			
+			// Finally edit the pavement network as required by the policy (either keep all road crossing links or remove those that don't have assocaiated crossing infrastructure)
+			if (SpaceBuilder.informalCrossing==false) {
+				// Removes crossing links from pedestrian network where no crossing infrastructure is available
+				SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caGeography);
+			}
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
 			// TODO Auto-generated catch block
@@ -662,7 +672,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
 		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
-    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), pavementJunctionGeography, pavementNetwork);
+    	Ped newPed = new Ped(o, d, v, m, params.getDouble("alpha"), params.getDouble("lambda"), params.getDouble("gamma"), params.getDouble("epsilon"), params.getInteger("timeThreshold"), params.getInteger("yieldThreshold"), params.getDouble("ga"), params.getDouble("updateFactor"), params.getBoolean("minCrossing"), params.getDouble("tacticalPlanHorizon"), pavementJunctionGeography, pavementNetwork);
         context.add(newPed);
         
         // Create a new point geometry.
@@ -715,12 +725,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         	
         	// If the pedestrian agent in within the bounds of the destination then remove it from the context as it has reached its destination
         	if (dGeom.isWithinDistance(mAGeom, GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance)) {
-        		AgentsToRemove.add(mA);
-        		continue;
-        	}
-        	
-        	// Also check whether the mobile agent has reached its default destination
-        	if (mA.getDestination().getGeom().getCoordinate().distance(mAGeom.getCoordinate()) < GlobalVars.MOBILE_AGENT_PARAMS.destinationArrivalDistance) {
         		AgentsToRemove.add(mA);
         		continue;
         	}
@@ -821,5 +825,48 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			}
 		}
 		return null;
+	}
+	
+	/*
+	 * Used to implement a policy of no informal crossing. Removes road crossing links from the pavement network if there
+	 * is no crossing alternative crossing that link of the road network.
+	 */
+	public static void removeCrossingLinksFromPavementNetwork(Network<Junction> paveNetwork, Geography<CrossingAlternative> caG) {
+		
+		// Find road links that have crossings
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		
+		// Loop through entwork links and find those that cross road links that do not have crossing infrastructure. 
+		// These are the links to remove
+		List<RepastEdge<Junction>> edgesToRemove = new ArrayList<RepastEdge<Junction>>();
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			String rlID = ne.getRoadLink().getPedRLID();
+			if ( (rlID.contentEquals("")==false) ) {
+				// Check if id is in list of road links with crossings
+				boolean keep = roadLinksWithCrossings.stream().anyMatch(s -> s.contentEquals(rlID));
+				
+				if (keep==false) {
+					edgesToRemove.add(re);
+				}
+			}
+		}
+		
+		// remove these edges
+		for (int i=0; i<edgesToRemove.size(); i++) {
+			RepastEdge<Junction> e = edgesToRemove.get(i);
+			paveNetwork.removeEdge(e);
+		}
+	}
+	
+	public static boolean getInformalCrossingStatus() {
+		return SpaceBuilder.informalCrossing;
+	}
+	
+	public static void setInformalCrossingStatus(boolean infX) {
+		SpaceBuilder.informalCrossing=infX;
 	}
 }

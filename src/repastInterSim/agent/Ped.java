@@ -24,6 +24,7 @@ import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
 import repastInterSim.environment.OD;
 import repastInterSim.datasources.PedRouteData;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -57,34 +58,42 @@ public class Ped extends MobileAgent {
     // Variables used in accumulator model of crossing choice
 	private double lambda; // Used to control effect of salience distance on contribution of option utility to activation
 	private double alpha; // Controls sensitivity to traffic exposure
+	private double alphaFactor = 1.0; // Use to update ped's alpha value
 	private double gamma; // Controls the rate at which historic activations decay
 	private double epsilon; // Proportion of median activation that ca activation must be to be considered dominant
+	private int tt; // Time threshold at which point a choice is triggered
+	private int yt; // Yield threshold, max time ped is willing to wait to cross before attempting a different crossing location.
 
     private List<Coordinate> pedPrimaryRoute; // The primary route are the coordinates the pedestrian commits to the route when first added to the model
     private List<GridCoordinates2D> nextPathSection;
     
-    private boolean enteringCrossing = false; // Indicates whether the pedestrian agent should interact with vehicle agents to determine whether to proceed
+    private boolean waitAtJunction = false; // Controls whether ped should not progress passed it's next junction. Used to make ped wait while it chooses a crossing location.
     private boolean yieldAtCrossing = false; // Indicates whether the pedestrian agent is in a yield state or not, which determines how they move
+	private double ga; // Gap acceptance factor
+	private double gaFactor=1.0; // Used to update ga parameter to make ped accept smaller gaps
+	
+	private double updateFactor;
     
     private String roadLinkFID = null;
     
     private Double pHorizon; // Tactical planning horizon of ped agent in degrees
-        
-    private int yieldTime = 0;
     
     private Color col; // Colour of the pedestrian
     
-    private String currentCrossingType = "none";
 	private String currentPavementLinkID = "";
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
+    private int stepsYielding = 0;
+    
+    private double journeyDistance = 0.0;
+    private int journeyDuration = 0;
     
     /*
      * Instance method for the ped class that sets the ped speed and mass to be the default (average) values
      */
-    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o,d);
-    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
+    	init(GlobalVars.pedVavg, GlobalVars.pedMassAv, alpha, lambda, gamma, epsilon, tt, yt, ga, uf, minimiseCrossings, GlobalVars.deafultTacticalPlanningHorizon, paveG, paveNetwork);
     }
     
     /*
@@ -93,12 +102,12 @@ public class Ped extends MobileAgent {
      * @param space the continuous space the Ped exists in
      * @param direction the pedestrian's direction
      */
-    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    public Ped(OD o, OD d, Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
     	super(o, d);
-    	init(s, m, alpha, lambda, gamma, epsilon, minimiseCrossings, pH, paveG, paveNetwork);
+    	init(s, m, alpha, lambda, gamma, epsilon, tt, yt, ga, uf, minimiseCrossings, pH, paveG, paveNetwork);
     }
     
-    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
+    private void init(Double s, Double m, Double alpha, Double lambda, Double gamma, Double epsilon, Integer tt, Integer yt, Double ga, Double uf, boolean minimiseCrossings, Double pH, Geography<Junction> paveG, Network<Junction> paveNetwork) {
         this.id = Ped.uniqueID++;
     	
     	this.v0  = s;
@@ -123,6 +132,13 @@ public class Ped extends MobileAgent {
 		this.lambda = lambda;
 		this.gamma = gamma;
 		this.epsilon = epsilon;
+		this.tt = tt;
+		this.yt = yt;
+		
+		// Parameters for controlling yielding to vehicles
+		this.ga = ga; // factor that sets proportion of time required to cross the road that ped accepts as a gap
+		
+		this.updateFactor=uf;
 		
 		this.pathFinder = new PedPathFinder(this, paveG, paveNetwork, minimiseCrossings);
     }
@@ -134,16 +150,31 @@ public class Ped extends MobileAgent {
     @ScheduledMethod(start = 1, interval = 1, priority = 2)
     public void step() throws Exception {        
     	
+    	this.journeyDuration++;
     	this.stepsSinceReachedTarget++;
     	int nUpdates = 0;
     	
-    	// Decide yield process involves checking route for road crossing coordinates. Needs to happen before agents updates
-    	// its route coordinate because this involves removing coordinates from the route.
-   		//decideYield();
-
+    	// Only decide whether to continue yielding or not. If no longer yielding then decision isn't reverted
+    	if (this.pathFinder.getTacticalPath().getAccumulatorRoute().reachedCrossing() & this.yieldAtCrossing) {
+    		decideYield();
+    	}
     	
+    	// If ped has been yielding more thatn the threshold number of steps, re-set accumulator to allow ped to choose different crossing location
+    	if (this.stepsYielding>this.yt) {
+    		// Reset accumulator
+    		this.pathFinder.getTacticalPath().getAccumulatorRoute().reset();
+    		
+    		// Ped no longer needs to yeild at crossing
+    		this.yieldAtCrossing=false;
+    		this.stepsYielding=0;
+    		
+    		// Make ped less likely to cross informally and accept smaller gaps in traffic
+    		this.alphaFactor = this.alphaFactor*this.updateFactor;
+    		this.gaFactor = this.gaFactor*this.updateFactor;
+    	}
+
    		// If agent does not intend to yield, agent walks and, if a route coordinate is reached, updates list of route coordinates
-   		if (!this.yieldAtCrossing) {
+   		if (!this.yieldAtCrossing & !this.waitAtJunction) {
    			
    			// If the current junction is null, tactical path needs to be updated. Using while enables handling empty tactical paths caused by issues with pavement network data
         	while ( (this.pathFinder.getTacticalPath().getCurrentJunction()==null) & (nUpdates<2) ) {
@@ -151,15 +182,10 @@ public class Ped extends MobileAgent {
         		nUpdates++;
         	}
         	walk(pathFinder.getTacticalPath().getTargetCoordinate());
-        	pathFinder.step();
     	}
    		
-   		// Yielding set to true when agent is not able to update its target coordiante because it is still choosing
-   		// a crossing alternative.
-   		// Whilst yielding continue to step() path finder so that crossing alternative is chosen.
-    	else {
-        	pathFinder.step();
-    	}
+   		// Regardless of whether ped is yielding or waiting, continue to step the path finder, which models choice of crossing location
+   		pathFinder.step();
    		
     	// Finally update the target coordinate if current target coordinate has been reached
     	if (this.maLoc.distance(this.pathFinder.getTacticalPath().getTargetCoordinate()) < 0.5) {
@@ -191,6 +217,10 @@ public class Ped extends MobileAgent {
 
         maLoc.x += this.v[0]*this.tau;
         maLoc.y += this.v[1]*this.tau;
+        
+        // Add distance travelled this step to the ped's journey distance
+        double[] dD = {this.v[0]*this.tau, this.v[1]*this.tau};
+        this.journeyDistance+=Vector.mag(dD);
         
         // Now create new geometry at new maLoc and move agent to this geometry
         setGeom();
@@ -305,6 +335,13 @@ public class Ped extends MobileAgent {
     	
     	Coordinate agentCoord = agentGeom.getCentroid().getCoordinate();
     	double d_ij = maLoc.distance(agentCoord);
+    	
+    	// Need to control for rare cases where peds are at same location
+    	if (Double.compare(d_ij, 0.0)==0) {
+    		maLoc.x+=0.1;
+    		maLoc.y+=0.1;
+    		d_ij = maLoc.distance(agentCoord);
+    	}
     	
     	// Get the vector that points from centorid of other agent to the ego agent,
     	// this is the direction that the force acts in
@@ -676,62 +713,61 @@ public class Ped extends MobileAgent {
     }
     
     /**
-     * Determines whether the agents is close to a crossing point by comparing grid coverage values,
-     * used for routing, at the current location and estimates near future location.
      * 
-     * If grid cell values are expected to increase the agent is heading towards a lower priority area
-     * and is considered to be approaching a crossing point.
      */
-    public void decideYield() {
+    public void decideYield() {    	
+    	// Get chosen crossing alternative
+    	CrossingAlternative ca = this.pathFinder.getTacticalPath().getAccumulatorRoute().getChosenCA();
     	
-    	checkIfEnteringCrossing();
-    	
-    	if (this.enteringCrossing) {
+    	if (ca.getType().contentEquals("unmarked")) {
+    		// Decide to yield based on time gap
     		
-    		// Decide whether to yield or not. For now yield for fixed amount of time by default
-    		if (this.yieldTime < 10) {
-            	this.yieldAtCrossing = true;
-            	this.yieldTime++;
+        	// Get vehicle TGs based on velocity of ped if it were to cross the road at desired speed
+        	double[] pLoc = {this.maLoc.x, this.maLoc.y};
+        	double[] pV = {this.v0*Math.sin(ca.getCrossingBearing()), this.v0*Math.cos(ca.getCrossingBearing())};
+        	HashMap<Vehicle, Double> tgs = ca.vehicleTGs(pLoc, pV);
+        	
+        	// Calculate crossing time based on peds desired velocity
+        	double crossingTime = ca.getCrossingDistance() / this.v0;
+        	
+        	// Decide whether to yield or not based on ttcs
+        	// - yield if there is a non null ttc
+        	for(Entry<Vehicle, Double> e : tgs.entrySet()) {
+        		if (e.getValue()!=null) {
+        			// Calculate ratio of time gap to crossing time
+        			double r = e.getValue() / crossingTime;
+        			
+        			// yielding rule:
+        			// - if tg is +ve, ped arrives first. yield if ratio is smaller than threshold since small values imply risk of conflict as ped crosses
+        			// - if tg is -ve ped arrives second. Yield if magnitude smaller than fixed value, meaning that all peds will cross behind passing vehicle if gap is sufficiently large to avoid conflict
+        			if ( (r>0) & (r<this.getGA()) ) {
+        				this.yieldAtCrossing=true;
+        				this.stepsYielding++;
+        				return;
+        			}
+        			else if ( (r<0) & (r>-0.5) ) {
+        				this.yieldAtCrossing=true;
+        				this.stepsYielding++;
+        				return;
+        			}
+        		}
         	}
         	
-    		// If not yielding allow agent to progress by setting enteringCrossing state to false and removing the crossing coord from list of crossing coords
-	    	else {
-	    		this.yieldAtCrossing = false;
-	    		this.yieldTime = 0;
-				this.enteringCrossing = false;
-				
-				// Set crossing coord to null because agent has stopped yielding so this crossing can be considered to be passed
-				pathFinder.setNextCrossingCoord(null);
-	    	}
-    	}
-    }
-    
-    /*
-     * Use ray that extends ahead of pedestrian to check whether pedestrian is about to enter the carriageway.
-     * 
-     * The method not needed because AccumulatorRoute records when pedestrian is entering the carriadgeway using the route crossing coordinates.
-     */
-    public void checkIfEnteringCrossing() {    	
-    	// Crossing coord could be null if there isn't a crossing coming up on the route
-    	if (pathFinder.getNextCrossingCoord() != null) {
-        	Point nextCrossing = GISFunctions.pointGeometryFromCoordinate(pathFinder.getNextCrossingCoord());
+        	// if reach here no longer required to yield. reset counter. Start crossing.
+        	this.yieldAtCrossing=false;
+        	this.stepsYielding=0;
         	
-        	Coordinate lookAhead  = getPedestrianLookAheadCoord(GlobalVars.lookAheadTimeSteps);
-        	Coordinate[] lookAheadLineCoords = {this.maLoc, lookAhead};
-        	Geometry lookAheadLine = new GeometryFactory().createLineString(lookAheadLineCoords).buffer(GlobalVars.GEOGRAPHY_PARAMS.BUFFER_DISTANCE.SMALLPLUS.dist);
+        	this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
+        	this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
         	
-        	// Ped agent considered to be about to enter crossing if crossing point is close to expected future location 
-        	// Expected future location is only about 1m ahead, may need to rethink how its calculated
-        	// Also the buffer distance also needs considering
-        	if (lookAheadLine.intersects(nextCrossing)) {
-        		this.enteringCrossing = true;
-        	}
-        	else {
-        		this.enteringCrossing = false;
-        	}
+			this.resetAlphaGAFactors(); // If ped progresses to another junction undone the modifications to road crossing parameters that may have occured.
     	}
     	else {
-    		this.enteringCrossing = false;
+    		// if reach here no longer required to yield. reset counter. Start crossing.
+    		this.yieldAtCrossing=false;
+    		this.stepsYielding=0;
+    		this.pathFinder.getTacticalPath().crossingStartedUpdateCurrentJunction();
+    		this.pathFinder.getTacticalPath().getAccumulatorRoute().startCrossing();
     	}
     }	
     
@@ -743,10 +779,12 @@ public class Ped extends MobileAgent {
     	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
     	
     	// Record the ped's route for data collection
-    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString());
-    	RunState.getInstance().getMasterContext().add(pd);
+    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration);
+		Context<Object> mc = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		mc.add(pd);
+		g.move(pd, pd.getGeom());
     	
-    	this.pathFinder.getStrategicPath().get(0).getPeds().remove(this);
     	this.pathFinder.clear();
     	this.pathFinder=null;
     	
@@ -755,7 +793,6 @@ public class Ped extends MobileAgent {
         this.roadLinkFID = null;
         this.pHorizon=null;
         this.col=null;
-        this.currentCrossingType=null;
     	this.currentPavementLinkID = null;
     }
     
@@ -939,9 +976,8 @@ public class Ped extends MobileAgent {
 		return lambda;
 	}
 
-
 	public double getAlpha() {
-		return alpha;
+		return alpha*this.alphaFactor;
 	}
 
 	public double getGamma() {
@@ -950,6 +986,18 @@ public class Ped extends MobileAgent {
 
 	public double getEpsilon() {
 		return epsilon;
+	}
+	
+	public int getTimeThreshold() {
+		return tt;
+	}
+	
+	public double getGA() {
+		return this.ga*this.gaFactor;
+	}
+	
+	public void setGA(double ga) {
+		this.ga=ga;
 	}
 	
 	public void setCurrentPavementLinkID(String paveLinkID) {
@@ -1003,7 +1051,36 @@ public class Ped extends MobileAgent {
 		this.yieldAtCrossing=y;
 	}
 	
+	public boolean getYield() {
+		return this.yieldAtCrossing;
+	}
+	
+	public void setWaitAtJunction(boolean w) {
+		this.waitAtJunction = w;
+	}
+	
+	public boolean getWaitAtNextJunction() {
+		return this.waitAtJunction;
+	}
+	
 	static public void resetID() {
 		Ped.uniqueID=1;
+	}
+	
+	public double getV0() {
+		return this.v0;
+	}
+	
+	public int getYieldThreshold() {
+		return this.yt;
+	}
+	
+	public double getUpdateFactor() {
+		return this.updateFactor;
+	}
+	
+	public void resetAlphaGAFactors() {
+		this.alphaFactor=1.0;
+		this.gaFactor=1.0;
 	}
 }

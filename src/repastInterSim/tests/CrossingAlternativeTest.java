@@ -10,19 +10,20 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
+import repast.simphony.space.gis.Geography;
+import repast.simphony.space.graph.Network;
+import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
+import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
 import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.UnmarkedCrossingAlternative;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
-import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
 import repastInterSim.pathfinding.TacticalRoute;
 
@@ -31,6 +32,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testLoadCrossingAlternatives1() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -84,6 +87,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testSignalPhaseChange() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -176,6 +181,8 @@ class CrossingAlternativeTest {
 	@Test
 	void testUnsignalisedCrossings() {
 		try {
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpORRoadLinks();
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 		} catch (MalformedURLException | FileNotFoundException e) {
@@ -216,7 +223,6 @@ class CrossingAlternativeTest {
 		try {
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -227,7 +233,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -252,18 +258,19 @@ class CrossingAlternativeTest {
 		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
-		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c1.equals2D(new Coordinate(530419.7874896282,180822.65873331344));
 		assert c2.equals2D(new Coordinate(530416.1087234715,180827.5097640739));
-		
 	}
 	
 	@Test
+	/*
+	 * Tests case where no pavement on opposite side of the road
+	 */
 	void testUnmarkedCrossingAlternativeCoordinates2() {
 		// Setup environment
 		try {
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -274,7 +281,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -299,20 +306,20 @@ class CrossingAlternativeTest {
 		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
-		assert (Math.abs(c1.x-pedLoc.x) < 0.000001) & (Math.abs(c1.y - pedLoc.y) < 0.0000001 );
+		assert c1.equals2D(new Coordinate(530668.4612521614,180776.53718510273));
 		assert c2.equals2D(new Coordinate(530661.25, 180772.85));
 		
 	}
 	
 	@Test
+	/*
+	 * Tests case where no pavement on same side of the road
+	 */
 	void testUnmarkedCrossingAlternativeCoordinates3() {
 		// Setup environment
 		try {
-			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\clapham_common\\";
-			
 			EnvironmentSetup.setUpProperties();
 			
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -323,7 +330,55 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530663.87, 180769.13);
+		double bearing = 2*Math.PI * (294.0/360); // 294 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(14, 13, null, null, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
+		caU.setPed(p);
+		
+		Coordinate c1 = caU.getC1();
+		Coordinate c2 = caU.getC2();
+		
+		assert ( Math.abs(c1.x - pedLoc.x)<0.00001) & ( Math.abs(c1.y - pedLoc.y)<0.00001); 
+		assert c2.equals2D(new Coordinate(530670.4989232853, 180772.3763921303));
+		
+	}
+	
+	@Test
+	void testUnmarkedCrossingAlternativeCoordinates4() {
+		// Setup environment
+		try {
+			EnvironmentSetup.testGISDir = ".\\data\\test_gis_data\\clapham_common\\";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
@@ -345,23 +400,28 @@ class CrossingAlternativeTest {
 		Ped p = EnvironmentSetup.createPedAtLocation(null, null, "od_263", "od_0", false, pedLoc, bearing);
 		
 		// Update current road link
-		String rlID = "or_link_194";		
+		String rlID = "or_link_183";		
 		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 		caU.setRoadLinkID(rlID);
 		caU.setPed(p);
 		
+		Coordinate c1 = caU.getC1();
 		Coordinate c2 = caU.getC2();
 		
+		assert ( Math.abs(c1.x - 529471.79)<0.00001) & ( Math.abs(c1.y - 175332.15)<0.00001);
 		assert c2 != null;
 		assert ( Math.abs(c2.x - 529466.19)<0.00001) & ( Math.abs(c2.y - 175329.47)<0.00001); 
 	}
 	
 	@Test
-	void testUnmarkedCrossingVehicleFlow() {
-		// Setup the environment
+	/*
+	 * Checks that implementing a cache for crossing coordinates speeds up repeat requests for crossing coordinates when input coordinate is unchanged.
+	 */
+	void testUnmarkedCrossingAlternativesCoordiantesCache() {
+		// Setup environment
 		try {
-			IO.readProperties();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -372,7 +432,57 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Coordinate pedLoc = new Coordinate(530420.5, 180821.69);
+		double bearing = 2*Math.PI * (55.0/360); // 55 degrees
+		Ped p = EnvironmentSetup.createPedAtLocation(4, 2, null, null, false, pedLoc, bearing);
+		
+		UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+		caU.setRoadLinkID(p.getPathFinder().getStrategicPath().get(0).getFID());
+		caU.setPed(p);
+		
+		double start = System.nanoTime();
+		Coordinate c1 = caU.getC1();
+		double dur1 = System.nanoTime() - start;
+		
+		double start2 = System.nanoTime();
+		Coordinate c1_ = caU.getC1();
+		double dur2 = System.nanoTime() - start2;
+		
+		// Expect second request to take much less time - seems to fail when run with other tests but not when only this test is run
+		assert dur2 < dur1 / 50.0;
+	}
+	
+	@Test
+	void testUnmarkedCrossingVehicleFlow() {
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -381,6 +491,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
 			
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.setUpRandomDistributions(0);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -457,8 +568,8 @@ class CrossingAlternativeTest {
 	void testCATTC() {
 		// Setup the environment
 		try {
-			IO.readProperties();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpProperties();
+			
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -469,7 +580,7 @@ class CrossingAlternativeTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -516,7 +627,8 @@ class CrossingAlternativeTest {
 		v.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(vectorToMidPoint)));
 		
 		// Get TTC for this ped and this vehicle when ped is stationary
-		HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(ped);
+		double[] pLoc = {ped.getLoc().x, ped.getLoc().y};
+		HashMap<Vehicle, Double> ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		
 		// Because ped is stationary expect null ttc value
 		assert Math.abs(0.0-ped.getSpeed())<0.0000001;
@@ -532,7 +644,7 @@ class CrossingAlternativeTest {
 		double[] pV = {pedSpeed*Math.sin(ped.getBearing()), pedSpeed*Math.cos(ped.getBearing())}; 
 		ped.setV(pV);
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size() == 1;
 		assert ttcs.values().stream().allMatch(ttc -> ttc!=null);
 		assert Math.abs(ttcs.get(v) - tVeh) < 0.0000001; 
@@ -544,13 +656,13 @@ class CrossingAlternativeTest {
 		v.setBearing(ped.getBearing()+Math.PI/2);
 		tVeh = (pDist - GlobalVars.vehicleWidth/2) / ped.getSpeed();
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert Math.abs(ttcs.get(v) - tVeh) < 0.0000001;
 		
 		// Test that if vehicle just moves out of the way ttc is null again
 		double vehSpeed = GlobalVars.vehicleLength/2 / tVeh + 0.000001;
 		v.setSpeed(vehSpeed);
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.values().stream().allMatch(ttc -> ttc==null);
 		
 		// Add another vehicle to the road and check that two ttc values are returned
@@ -563,7 +675,7 @@ class CrossingAlternativeTest {
 		}
 		v2.setCurrentRoadLinkAndQueuePos(v2.getRoute().getRoadsX().get(0)); //  Add vehicle to first road link in its route.
 		
-		ttcs = ca.vehicleTTCs(ped);
+		ttcs = ca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size()==2;
 		assert ttcs.values().stream().allMatch(ttc -> ttc==null);
 		
@@ -572,8 +684,11 @@ class CrossingAlternativeTest {
 		
 		ped.setLoc(new Coordinate(530451, 180855));
 		double[] vCross2 = {uca.getC2().x-uca.getC1().x, uca.getC2().y-uca.getC1().y};
-		ped.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(vCross2)));
 		crossingMid = GISFunctions.midwayBetweenTwoCoordinates(uca.getC1(), uca.getC2());
+		
+		// Point pedestrian towards the mid point of the crossing
+		double[] pedToMidPoint = {crossingMid.x-ped.getLoc().x, crossingMid.y-ped.getLoc().y};
+		ped.setBearing(Vector.angleBetweenNorthAndUnitVector(Vector.unitV(pedToMidPoint)));
 		
 		// Point vehicle towards crossing midpoint
 		double[] vectorToMidPoint2 = {crossingMid.x-v2.getLoc().x, crossingMid.y-v2.getLoc().y};
@@ -587,10 +702,112 @@ class CrossingAlternativeTest {
 		double[] pV2 = {pedSpeed*Math.sin(ped.getBearing()), pedSpeed*Math.cos(ped.getBearing())}; 
 		ped.setV(pV2);
 		
-		ttcs = uca.vehicleTTCs(ped);
+		pLoc[0] = ped.getLoc().x;
+		pLoc[1] = ped.getLoc().y;
+		ttcs = uca.vehicleTTCs(pLoc, ped.getV());
 		assert ttcs.size()==2;
 		assert ttcs.get(v) == null;
 		assert Math.abs(ttcs.get(v2)-tVeh)<0.00000001;
 		
+	}
+	
+	@Test
+	public void testpavementNetowrkCrossingLinksRemoved1() {
+		// Setup the environment
+		try {
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Network<Junction> paveNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		int originalNCrossingEdges = 0;
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			if (ne.getRoadLink().getPedRLID().contentEquals("")==false) {
+				originalNCrossingEdges++;
+			}
+		}
+		
+		// Edit the network
+		int origNEdges = paveNetwork.numEdges();
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		int editedNEdges = paveNetwork.numEdges();
+		
+		assert origNEdges>editedNEdges;
+		
+		// All but 8 crossing edges should have been removed since in this data there are crossing on two road links
+		assert origNEdges-editedNEdges == originalNCrossingEdges-8;
+	}
+	
+	@Test
+	public void testpavementNetowrkCrossingLinksRemoved2() {
+		// Setup the environment
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir = EnvironmentSetup.testGISDir + "/clapham_common/";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternativesLowTolerance.shp");
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Network<Junction> paveNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
+		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
+		
+		// Edit the network
+		int origNEdges = paveNetwork.numEdges();
+		int origNNodes = paveNetwork.size();
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		int editedNEdges = paveNetwork.numEdges();
+		int editedNNodes = paveNetwork.size();
+		
+		assert origNNodes==editedNNodes;
+		assert origNEdges>editedNEdges;
+		assert editedNEdges==1154;
+		
+		String plID1 = "pave_link_126_641";
+		String plID2 = "pave_link_124_641";
+		boolean innet1=false;
+		boolean innet2=false;
+		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			if (ne.getRoadLink().getFID().contentEquals(plID1)) {
+				innet1=true;
+			}
+			if (ne.getRoadLink().getFID().contentEquals(plID2)) {
+				innet2=true;
+			}
+		}
+		assert innet1==innet2==true;
 	}
 }

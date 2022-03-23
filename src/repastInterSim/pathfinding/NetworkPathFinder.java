@@ -154,6 +154,33 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			return stackPaths;
 		}
 		
+		/*
+		 * gets k shortest paths to each target node. Returns k*n_target_nodes number of paths. Paths will not necessarily be the same length.
+		 */
+		public List<Stack<RepastEdge<T>>> getKShortestPaths(T node, Collection<T> targetNodes, Predicate<RepastEdge<T>> edgeFilter, Transformer<RepastEdge<T>, Integer> transformer, int k){
+			// Filter graph and convert to JgraphT graph
+			this.filterGraphByEdges(edgeFilter);
+			DefaultUndirectedGraph<T, RepastEdge<T>> jgt = this.getJGraphTGraph();
+			
+			// convert to weighted graph with the weights given by the transformer
+			Function<RepastEdge<T>, Double> weightFunction = (RepastEdge<T> e)-> {return (double) transformer.transform(e); };
+			AsWeightedGraph<T, RepastEdge<T>> wjgt = new AsWeightedGraph<T, RepastEdge<T>>(jgt, weightFunction, false, false);
+			
+			// Use Yen's K Shortest paths algorithm to get all paths of equally shortest length between node and targetNode
+			YenKShortestPath<T, RepastEdge<T>> ksp = new YenKShortestPath<T, RepastEdge<T>>(wjgt);
+			
+			// get k shortest paths to each target node
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			for (T target: targetNodes) {
+				List<Stack<RepastEdge<T>>> paths = KShortestPaths(ksp, node, target, k);
+				for (int i=0;i<paths.size();i++) {
+					output.add(paths.get(i));
+				}
+			}
+			
+			return output;
+		}
+		
 		public List<Stack<RepastEdge<T>>> getAllShortestPaths(T node, Collection<T> targetNodes, Predicate<RepastEdge<T>> edgeFilter, Transformer<RepastEdge<T>, Integer> transformer) {
 			// Filter graph and convert to JgraphT graph
 			this.filterGraphByEdges(edgeFilter);
@@ -165,6 +192,16 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			
 			// Find shortest path length to each of the target nodes. Then for all those of shortest length, find all shortest paths
 			org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>> dsp = new org.jgrapht.alg.shortestpath.DijkstraShortestPath<T, RepastEdge<T>>(wjgt);
+			
+			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
+			
+			// it is possible that after filtering the network the starting or ending nodes are not present. In this case return the empty list of paths
+			if (wjgt.containsVertex(node)==false) {
+				return output;
+			}
+			else if ( targetNodes.stream().anyMatch(n -> wjgt.containsVertex(n))==false) {
+				return output;
+			}
 			
 			List<Double> distances = new ArrayList<Double>();
 			List<T> targets = new ArrayList<T>(targetNodes);
@@ -182,10 +219,15 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 			}
 			
 			// Now for each of the target nodes that can be reached in within min distance, find all shortest paths to target from source
-			List<Stack<RepastEdge<T>>> output = new ArrayList<Stack<RepastEdge<T>>>();
 			for (T t: shortestDistReachable) {
 				YenShortestPathIterator<T, RepastEdge<T>> iterator = new YenShortestPathIterator<T, RepastEdge<T>>(wjgt, node, t);
-				List<Stack<RepastEdge<T>>> paths = allshortestPathsFromYenIterator(iterator);
+				
+				// Due to removing crossing links there are cases where no paths can be found. Control for this
+				List<Stack<RepastEdge<T>>> paths = new ArrayList<Stack<RepastEdge<T>>>();
+				if (iterator.hasNext()) {
+					paths = allshortestPathsFromYenIterator(iterator); 
+				}
+				 
 				for (Stack<RepastEdge<T>> p:paths) {
 					output.add(p);
 				}
@@ -523,23 +565,38 @@ public class NetworkPathFinder<T> implements ProjectionListener<T> {
 	    }
 		
 		public void filterGraph(Collection<T> vertices) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			this.graph = FilterUtils.createInducedSubgraph(vertices, g);
-			calc = true;
+			if (vertices != null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				this.graph = FilterUtils.createInducedSubgraph(vertices, g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void filterGraph(Predicate<T> verticesFilter) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
-			this.graph = filter.transform(g);
-			calc = true;
+			if (verticesFilter!=null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				VertexPredicateFilter<T,RepastEdge<T>> filter = new VertexPredicateFilter<T,RepastEdge<T>>(verticesFilter);
+				this.graph = filter.transform(g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void filterGraphByEdges(Predicate<RepastEdge<T>> edgesFilter) {
-			Graph<T, RepastEdge<T>> g = this.netToGraph(net);
-			EdgePredicateFilter<T,RepastEdge<T>> filter = new EdgePredicateFilter<T,RepastEdge<T>>(edgesFilter);
-			this.graph = filter.transform(g);
-			calc = true;
+			if (edgesFilter!=null) {
+				Graph<T, RepastEdge<T>> g = this.netToGraph(net);
+				EdgePredicateFilter<T,RepastEdge<T>> filter = new EdgePredicateFilter<T,RepastEdge<T>>(edgesFilter);
+				this.graph = filter.transform(g);
+				calc = true;
+			}
+			else {
+				this.resetgraph();
+			}
 		}
 		
 		public void resetgraph() {

@@ -25,6 +25,9 @@ hs_err_pid*
 
 *.orig
 
+/icons/*
+/installer/*
+
 /.project
 /.settings/org.eclipse.jdt.groovy.core.prefs
 /batch/model_run_data/*

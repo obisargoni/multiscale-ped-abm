@@ -73,7 +73,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -114,7 +113,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -174,7 +172,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -271,7 +268,6 @@ class VehicleTest {
 		// Set up environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
 			EnvironmentSetup.setUpORRoadLinks();
@@ -387,8 +383,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -399,7 +394,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -453,15 +448,15 @@ class VehicleTest {
     		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
     	}
 		
-		// Now move ped along until it reaches its first crossing point, as indicated by it's distance from the second crossing point
-    	Coordinate firstCrossCoord = pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().getLast(); 
-		while (pedMinDist.getLoc().distance(firstCrossCoord)>6.0) {
+		// Now move ped along until it starts crossing
+		while ( pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false ) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}		
+		}
+		
 		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getCrossingCoordinates().size() == 1;
 		assert v.getCrossingPedestrians().size() == 1;
 		
@@ -511,8 +506,7 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpRandomDistributions();
-			EnvironmentSetup.setUpObjectGeography();
+			EnvironmentSetup.setUpRandomDistributions(1);
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -523,7 +517,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -568,7 +562,7 @@ class VehicleTest {
 		
 		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
 		// so while loop won't be entered.
-		while (pedMinDist.getLoc().distance(pedMinDist.getPathFinder().getTacticalPath().getTargetCoordinate()) > 2.5) {
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
 			try {
 				pedMinDist.step();
 			} catch (Exception e) {
@@ -593,14 +587,124 @@ class VehicleTest {
 			prevDist = v.getLoc().distance(pedMinDist.getLoc());
 		}
 		
-		// Now update ped's current coordinate, which means that ped has reached first crossing coordinate and therefore has started crossing
-		pedMinDist.getPathFinder().getTacticalPath().updateTargetCoordiante();
+		// Set ped to start crossing and to not yeild, this stops ped yielding which it does by default when reching a crossing
+		pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().startCrossing();
+		pedMinDist.setYield(false);
 		assert v.getCrossingPedestrians().size() == 1;
 		
 		// Now vehicle should not yield to ped despite being close enough to detect ped
 		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
 		double pedSpd = v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
 		assert pedSpd == Double.MAX_VALUE;		
+	}
+	
+	
+	/*
+	 * Test that a vehicle agents identifies a crossing pedestrian when pedestrian crosses at a 
+	 */
+	@Test
+	void testVehicleYieldsDirectCrossingPedestrian1() {
+		
+		// Setup the environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRandomDistributions(1);
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("crossing_lines.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(1,4, null, null, false);
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970448", "osgb4000000029970447");
+		
+		// Step the vehicle and pedestrian once to initialise them
+		try {
+			v.step();
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Check that the vehicle doesn't yet perceive any peds crossing
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Now walk pedestrian along until it is about to start crossing. If ped chooses unmarked crossing it will be at the location of first crossing point
+		// so while loop won't be entered.
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Vehicle still shouldn't perceive any crossing pedestrians
+		assert v.getCrossingPedestrians().size() == 0;
+		
+		// Set ped to start crossing and to not yeild, this stops ped yielding which it does by default when reching a crossing
+		pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().startCrossing();
+		pedMinDist.setYield(false);
+		assert v.getCrossingPedestrians().size() == 1;
+		
+		// Vehicle not yet close enough to pedestrian to yield, so safe ped speed  is set to max value
+		double pedSpd = v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
+		assert pedSpd == Double.MAX_VALUE;
+		
+		// Steping vehicle along brings it closer to the pedestrian
+		while (v.getLoc().distance(pedMinDist.getLoc()) > v.getDMax()) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		assert v.getLoc().distance(pedMinDist.getLoc()) < v.getDMax();
+		
+		// Now safe following speed should be lower
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < pedSpd;
+		
+		// How ever safe following speed still not low enough to make vehicle slow down so remains at current (max) speed
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.getSpeed();		
+		
+		// Step vehicle ahead some more to check that it eventually slows down
+		// Steping vehicle along brings it closer to the pedestrian
+		while (v.getLoc().distance(pedMinDist.getLoc()) > 8) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Desired speed should now be lower than accelerated speed safe following speed still not low enough to prevent vehicle from accelerating
+		assert v.pedYieldingSafeSpeed(v.getCrossingPedestrians()) < v.getSpeed();
+		assert v.getDesiredSpeed(null, v.getCrossingPedestrians(), new ArrayList<CrossingAlternative>()) == v.pedYieldingSafeSpeed(v.getCrossingPedestrians());
 	}
 	
 	/*
@@ -612,7 +716,6 @@ class VehicleTest {
 		// Setup the environment
 		try {
 			EnvironmentSetup.setUpProperties();
-			EnvironmentSetup.setUpObjectGeography();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpPedObstructions();
 
@@ -623,7 +726,7 @@ class VehicleTest {
 			EnvironmentSetup.setUpITNRoadNetwork(true);
 			
 			EnvironmentSetup.setUpPedJunctions();
-			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
 			EnvironmentSetup.setUpPavementNetwork();
 						
 			EnvironmentSetup.setUpPedODs();
@@ -693,6 +796,122 @@ class VehicleTest {
 		
 		caSpd = v.crossingAlternativeSafeSpeed(cas); 
 		assert caSpd == Double.MAX_VALUE;
+	}
+	
+	/*
+	 * Test that time gap between a pedestrian and vehicle are calculated as expected
+	 */
+	@Test
+	void testVehiclePedestrianTG1() {
+		// Setup the environment
+		try {			
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpPedObstructions();
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+						
+			EnvironmentSetup.setUpPedODs();
+			EnvironmentSetup.setUpVehicleODs("mastermap-itn RoadNode Intersect Within.shp");
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			EnvironmentSetup.setUpRandomDistributions(4); // Need to use 4 as base seed to ensure that ped chooses the unmarked crossing option when makes it easier to test that TG is being calculated correctly.
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Create pedestrian that will cross first road link
+		Ped pedMinDist = EnvironmentSetup.createPedestrian(3, 4, 1.5, 40.0, 0.0, 2.0, 0.9, 2.5, 30, 60, 1.0, 0.75, false, 100.0);						
+		
+		// Create a vehicle that moves along same link as pedestrian
+		Vehicle v = EnvironmentSetup.createVehicle("osgb4000000029970447", "osgb4000000029970446");
+		
+		// Step the vehicle and pedestrian once to initialise them
+		try {
+			v.step();
+			pedMinDist.step();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		// Step ped along until it reaches it's crossing location
+		while (pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().reachedCrossing()==false) {
+			try {
+				pedMinDist.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Need to ensure that ped hasn't actually started crossing yet otherwise vehicle will yield to ped
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().isCrossing()==false;
+		
+		assert pedMinDist.getPathFinder().getTacticalPath().getAccumulatorRoute().getChosenCA().getType().contentEquals("unmarked");
+		
+		// Calculate TG between ped and vehicle
+		double[] pLoc = {pedMinDist.getLoc().x, pedMinDist.getLoc().y};
+		Double tg = v.TG(pLoc, pedMinDist.getV());
+		assert tg>0; // expect ped to pass conflict point before vehicle
+		
+		// Move vehicle along 2 steps, check that time gap decreases
+		for (int i=0;i<2;i++) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		Double tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert tgNew<tg;
+		tg = tgNew;
+		
+		// More vehicle along until it just passes ped, check that time gap has decreased in magnitude but that ped is now passing second.
+		// Now step vehicle along until it passes the pedestrian
+		double prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		double distDiff = 0.0; 
+		while (distDiff != 1.0) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			distDiff = Math.signum(v.getLoc().distance(pedMinDist.getLoc()) - prevDist);
+			prevDist = v.getLoc().distance(pedMinDist.getLoc());
+		}
+		
+		tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert tgNew<0;
+		assert tgNew < tg;
+		assert Math.abs(tgNew)<Math.abs(tg);
+		tg=tgNew;
+		
+		// Step vehicle along a bit more and check that time gap increases in magnitude
+		for (int i=0;i<2;i++) {
+			try {
+				v.step();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		tgNew = v.TG(pLoc, pedMinDist.getV());
+		assert Math.abs(tgNew)>Math.abs(tg);		
 	}
 
 }

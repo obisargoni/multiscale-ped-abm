@@ -2,8 +2,7 @@
 import copy
 import json
 import numpy as np
-from SALib.sample import saltelli
-from SALib.sample import morris, saltelli
+from SALib.sample import morris, saltelli, latin
 from xml.etree import ElementTree as et
 
 with open("sample_config.json") as f:
@@ -20,26 +19,45 @@ random_seed = sample_config['random_seed']
 num_levels = sample_config['num_levels']
 calc_second_order = sample_config['calc_second_order']
 method = sample_config['method']
+policies = sample_config['policies']
 
-def run(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels, calc_second_order=calc_second_order):
+def create_batch_params_with_policy(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels, calc_second_order=calc_second_order, policies=policies):
+	'''Samples batch parameters as usual but repeat for each policy parameter setting. Allows us to collect data for the same range of scenerios under different policies,
+	which in turn allows us to complate policy impacts.
+	'''
+	total_sampled_values = None
+
+	# Loop through each policy setting and sample values for each of these
+	for policy_param, policy_values in policies.items():
+		
+		# initialise the problem
+		params[policy_param]["type"]="list"
+		problem = init_problem(params = params)
+
+		for pv in policy_values:
+			# sample values
+			sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order)
+
+			# replace the sampled values for the policy with the fixed policy value
+			i = problem['names'].index(policy_param)
+			sampled_values[:, i] = np.array([pv]*sampled_values.shape[0])
+
+			if total_sampled_values is None:
+				total_sampled_values = sampled_values
+			else:
+				total_sampled_values = np.concatenate([total_sampled_values, sampled_values], axis=0)
+
+	repast_params = add_sampled_values_to_parameters_dictionary(problem, params, total_sampled_values)
+
+	export_params(repast_params)
+
+	return total_sampled_values
+
+def create_batch_params(method=method, params=params, N_samples=N_samples, random_seed=random_seed, num_levels=num_levels, calc_second_order=calc_second_order):
 	problem = init_problem(params = params)
 	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order)
 
-	repast_params = copy.deepcopy(params)
-
-	# Add sampled values into the params dictionary as the values these parameters should take
-	for i, name in enumerate(problem['names']):
-		param_values = sampled_values[:, i]
-		del repast_params[name]['value']
-
-		# convert to int if param data type is int
-		if repast_params[name]['data_type']=='int':
-			param_values = param_values.astype(int)
-		elif repast_params[name]['data_type']=='boolean':
-			param_values = np.round(param_values).astype(bool)
-
-		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
-
+	repast_params = add_sampled_values_to_parameters_dictionary(problem, params, sampled_values)
 	export_params(repast_params)
 
 	return sampled_values
@@ -68,6 +86,17 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 		sampled_values = morris.sample(problem, N_samples, num_levels = num_levels, seed = random_seed)
 	elif method == 'saltelli':
 		sampled_values = saltelli.sample(problem, N_samples, calc_second_order = calc_second_order, skip_values = N_samples)
+	elif method == 'latin':
+
+		# In LH design number of samples determines how finely the pararameter space is divided. 
+		# Still only one value for each param in each of the divisions.
+		# To improve of this produce multiple LH designs and concatenate them together
+		
+		N_designs=sample_config['N_designs']
+		sampled_values = np.empty([N_samples*N_designs, problem['num_vars']])
+		for i in range(N_designs):
+			svs = latin.sample(problem, N_samples, seed=random_seed)
+			sampled_values[i*N_samples:(i+1)*N_samples, :] = svs
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
 	return sampled_values
@@ -93,6 +122,24 @@ def mc_sample(problem, N_samples, seed = random_seed):
 		samples[:,i]=sample
 
 	return samples
+
+def add_sampled_values_to_parameters_dictionary(problem, params, sampled_values):
+	repast_params = copy.deepcopy(params)
+
+	# Add sampled values into the params dictionary as the values these parameters should take
+	for i, name in enumerate(problem['names']):
+		param_values = sampled_values[:, i]
+		del repast_params[name]['value']
+
+		# convert to int if param data type is int
+		if repast_params[name]['data_type']=='int':
+			param_values = param_values.astype(int)
+		elif repast_params[name]['data_type']=='boolean':
+			param_values = np.round(param_values).astype(bool)
+
+		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
+
+	return repast_params
 
 def export_params(params, path = "batch_params.xml"):
 	# Export param values to batch params file

@@ -2,6 +2,8 @@ package repastInterSim.environment;
 
 import org.apache.commons.math3.util.FastMath;
 
+import com.vividsolutions.jts.geom.Coordinate;
+
 // Class for sorting functions that do standard vector operations
 public class Vector {
 	
@@ -177,4 +179,138 @@ public class Vector {
 		}
 	}
     
+	/*
+	 * Find the time gap between vehicle edges and pedestrian
+	 * 
+	 * Time gap is the minimum time required for second arriving agent to reach intersection point
+	 * Sign is attached to the value to indicate whether ped or vehicle passes first. If ped passes first then +ve,
+	 * if vehicle passes first then -ve.
+	 */
+	public static Double edgeTG(double[] e10, double[] e11, double[] e20, double[] e21, double[] pLoc, double[] pV, double[] vV) {
+		
+    	// Find gradients of vehicle edges and ped direction
+		// Vehicle edges are parallel so only need to calculate 1 of them
+    	Double k1Denom = e11[0] - e10[0];
+    	Double kpDenom = pV[0];
+    	Double k1Num = e11[1] - e10[1];
+    	Double kpNum = pV[1];
+    	
+    	// Initialise intersection coordinates that we want to find
+    	double[] int1 = new double[2];
+    	double[] int2 = new double[2];
+    	
+    	if ( (k1Denom==0) & (kpDenom==0) ) {
+    		// Don't have a shared point, return null
+    		return null;
+    	}
+    	else if ( (k1Denom==0) & (kpDenom!=0) ) {
+    		// Vehicles x position is constant. Use this to find y pos of intersection
+    		Double kp = kpNum / kpDenom;
+    		Double cp = pLoc[1] - kp*pLoc[0];
+    		
+    		double y1p = kp*e10[0] + cp;
+    		int1[0] = e10[0];
+    		int1[1] = y1p;
+    		
+    		double y2p = kp*e20[0]+cp;
+    		int2[0] = e20[0];
+    		int2[1] = y2p;
+
+    	}
+    	else if ( (k1Denom!=0) & (kpDenom==0) ) {
+    		// Peds x position is constant. Use this to find y pos of intersection
+    		Double k1 = k1Num / k1Denom;
+    		Double c1 = e10[1] - e10[0]*k1;
+    		Double c2 = e20[1] - e20[0]*k1;
+    		
+    		double y1p = k1*pLoc[0] + c1;
+    		int1[0] = pLoc[0];
+    		int1[1] = y1p;
+    		
+    		double y2p = k1*pLoc[0]+c2;
+    		int2[0] = pLoc[0];
+    		int2[1] = y2p;
+    	}
+    	else {
+    		// Neither gradient is infinite, can calculate using gradients
+    		Double k1 = k1Num / k1Denom;
+    		Double kp = kpNum / kpDenom;
+    		if (k1==kp) {
+    			// Moving in same direction assume never going to have shared coordinate, therefore return null
+    			return null;
+    		}
+    		
+    		Double c1 = e10[1] - e10[0]*k1;
+    		Double c2 = e20[1] - e20[0]*k1;
+    		Double cp = pLoc[1] - kp*pLoc[0];
+    		
+        	// Calculate points of intersection between line 1 and ped
+        	double x1p = (c1-cp) / (kp-k1);
+        	double y1p = kp*x1p + cp;
+        	int1[0]=x1p;
+        	int1[1]=y1p;
+        	
+        	// line 2 and ped
+        	double x2p = (c2-cp) / (kp-k1);
+        	double y2p = kp*x2p + cp;
+        	int2[0]=x2p;
+        	int2[1]=y2p;
+    	}    	
+    	
+    	// Now calculate time for ped and vehicle to reach these points
+    	double pS = Vector.mag(pV);
+    	double vS = Vector.mag(vV);
+    	if ( (vS==0) & (pS==0)) {
+    		return null;
+    	}
+    	else if (vS==0) {
+    		double t1p = (int1[0] - pLoc[0]) / pV[0];
+    		double t1p_ = (int1[1] - pLoc[1]) / pV[1];
+    		double t2p = (int2[0] - pLoc[0]) / pV[0];
+    		double t2p_ = (int2[1] - pLoc[1]) / pV[1];
+    		return FastMath.min(t1p, t2p);
+    	}
+    	else if (pS==0) {
+    		double t1v = (int1[0] - e10[0]) / vV[0];
+    		double t1v_ = (int1[1] - e10[1]) / vV[1];
+    		double t2v = (int2[0] - e20[0]) / vV[0];
+    		double t2v_ = (int2[1] - e20[1]) / vV[0];
+    		return -1*FastMath.min(t1v, t2v);
+    	}
+    	else {
+    		double t1p;
+    		double t2p;
+    		if (pV[0]!=0) {
+    			t1p = (int1[0] - pLoc[0]) / pV[0];
+    			t2p = (int2[0] - pLoc[0]) / pV[0];
+    		}
+    		else {
+    			t1p = (int1[1] - pLoc[1]) / pV[1];
+    			t2p = (int2[1] - pLoc[1]) / pV[1];
+    		}
+    		
+    		double t1v;
+    		double t2v;
+    		if (vV[0]!=0) {
+    			t1v = (int1[0] - e10[0]) / vV[0];
+    			t2v = (int2[0] - e20[0]) / vV[0];
+    		}
+    		else {
+    			t1v = (int1[1] - e10[1]) / vV[1];
+    			t2v = (int2[1] - e20[1]) / vV[0];
+    		}
+        	
+        	// Time gap is the minimum time required for second arriving agent to reach intersection point
+        	// Calculated using min-max
+        	double tg = FastMath.min(FastMath.max(t1p,  t1v), FastMath.max(t2p, t2v));
+        	
+        	// Return -1*tg if vehicle arrives first, which occurs if t1p or t2p is greater than the corresponding vehicle times
+        	if ( (Double.compare(tg, t1p)==0) | (Double.compare(tg, t2p)==0) ) {
+        		return -1*tg;
+        	}
+        	else {
+        		return tg;
+        	}
+    	}
+	}
 }

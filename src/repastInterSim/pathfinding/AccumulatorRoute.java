@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.context.Context;
 import repast.simphony.engine.environment.RunState;
-import repast.simphony.parameter.Parameters;
 import repast.simphony.random.RandomHelper;
+import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.RepastEdge;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
@@ -25,6 +25,10 @@ import repastInterSim.datasources.CrossEventData;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
+import repastInterSim.environment.RoadLink;
+import repastInterSim.environment.UnmarkedCrossingAlternative;
+import repastInterSim.main.GlobalVars;
+import repastInterSim.main.SpaceBuilder;
 
 public class AccumulatorRoute {
 	
@@ -44,12 +48,15 @@ public class AccumulatorRoute {
 	private boolean directCrossing;
 	private boolean caChosen;
 	private boolean crossingRequired;
+	private boolean reachedCrossing;
 	private boolean isCrossing = false;
 	private CrossingAlternative sampledCA = null;
 	private double sampledCAve;
 	private double sampledCAwt;
 	private CrossingAlternative chosenCA = null;
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
+	
+	private UnmarkedCrossingAlternative umCAForDetourDist=null; // Unmarked crossing alternative object that is used for comparison to other crossing alternatives to calculate detour distance. May or may not be in choice set. 
 	
 	private boolean isBlank = false;
 	
@@ -152,15 +159,6 @@ public class AccumulatorRoute {
 		return sampledi;
 	}
 	
-	/*
-	 * Binary indicator of whether or not crossing at this crossing alternative now will result in a vehicle conflict if
-	 * if pedestrian agent and vehicle agents do not alter course. Returns 1 if no conflicts would occur, 0 otherwise.
-	 * 
-	 * @param CrossingAlternative ca
-	 */
-	public int isCAConfictsFree(CrossingAlternative ca) {
-		return 1 - ca.wouldConflictOccur(this.ped);
-	}
 	
 	/*
 	 * Get the crossing exposure indicator value for the input crossing alternative
@@ -198,17 +196,26 @@ public class AccumulatorRoute {
 		Double dFromCAToDest = ca.distanceTo(this.targetCoordinate);
 				
 		// Get the unmarked crossing alternative and calculate the distance to dest using it
-		CrossingAlternative umCA = null;
-		for (CrossingAlternative ca_: this.cas) {
-			if (ca_.getType().contentEquals("unmarked")) {
-				umCA = ca_;
+		if (this.umCAForDetourDist==null) {
+			
+			// First try to use umCA from choice set
+			for (CrossingAlternative ca_: this.cas) {
+				if (ca_.getType().contentEquals("unmarked")) {
+					this.umCAForDetourDist = (UnmarkedCrossingAlternative) ca_;
+				}
+			}
+			
+			// Otherwise create new umCA to use for calculating detour distances
+			if (this.umCAForDetourDist==null) {
+				this.umCAForDetourDist = new UnmarkedCrossingAlternative();
+				this.umCAForDetourDist.setPed(ped);
+				this.umCAForDetourDist.setRoadLinkID(ca.getRoadLinkID());
 			}
 		}
-		
-		Double umDToCA = umCA.distanceTo(this.ped.getLoc());
-		Double umDFromCAToDest = umCA.distanceTo(this.targetCoordinate);
-		
-		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));
+
+		Double umDToCA = this.umCAForDetourDist.distanceTo(this.ped.getLoc());
+		Double umDFromCAToDest = this.umCAForDetourDist.distanceTo(this.targetCoordinate);
+		double detourDist = ((dToCA + dFromCAToDest) - (umDToCA + umDFromCAToDest));	
 				
 		// Need characteristic walk time to compare this to - use the length of the roads in planning horizon
 		double charDist = this.roadLength;
@@ -264,9 +271,7 @@ public class AccumulatorRoute {
 		// Compare the largest activation to the second largest
 		double maxActivation = sortedActivations[nCAs-1];
 		
-		Parameters  params = RunEnvironment.getInstance().getParameters();
-		int accumulatorTimeThreshold = params.getInteger("timeThreshold");
-		if ((this.directCrossing | this.endOfRoute) & (this.nAccumulations>accumulatorTimeThreshold)) {
+		if ((this.directCrossing | this.endOfRoute) & (this.nAccumulations>ped.getTimeThreshold())) {
 			// Force choice of CA with highest activation
 			chooseCA=true;
 		}
@@ -307,7 +312,8 @@ public class AccumulatorRoute {
 		
 		// Update peds ttc to vehicles when ped is crossing. Once ped stops crossing TTC is set back to null
 		if (isCrossing) {
-			HashMap<Vehicle, Double> ttcs = this.chosenCA.vehicleTTCs(ped);
+			double[] pLoc= {ped.getLoc().x, ped.getLoc().y};
+			HashMap<Vehicle, Double> ttcs = this.chosenCA.vehicleTTCs(pLoc, ped.getV());
 			List<Double> values =  ttcs.values().stream().filter(x->x!=null).collect(Collectors.toList());
 			if (values.size()>0) {
 				double ttc = values.stream().min(Comparator.comparing(Double::valueOf)).get();
@@ -328,7 +334,31 @@ public class AccumulatorRoute {
 		this.caChosen = true;
 		this.crossingCoordinates.push(this.chosenCA.nearestCoord(this.ped.getLoc()));
 		this.crossingCoordinates.push(this.chosenCA.farthestCoord(this.ped.getLoc()));
-		this.ped.setYield(false);
+		this.ped.setWaitAtJunction(false);
+		
+		// Record the link corresponding to this crossing now, before ped actually starts crossing, so that cases where ped tries to cross but changes mind are identifiable
+		// Update the pedestrians current pavement link so that this is recorded in its route
+		NetworkEdge<Junction> ne = (NetworkEdge<Junction>) this.targetRouteEdge; 
+		this.ped.setCurrentPavementLinkID(ne.getRoadLink().getFID());
+		
+		// Add ped to road link here
+		addPedToORLinkBeingCrossed();
+	}
+	
+	public void reset() {
+		
+		removePedFromORLinkBeingCrossed();
+		
+		this.chosenCA = null;
+		this.caChosen = false;
+		this.reachedCrossing = false;
+		
+		this.caActivations = new double[this.cas.size()];
+		for (int i=0;i<this.caActivations.length; i++) {
+			this.caActivations[i]=0;
+		}
+		
+		this.crossingCoordinates = new LinkedList<Coordinate>();
 	}
 	
 	public Junction getTargetJunction() {
@@ -364,16 +394,13 @@ public class AccumulatorRoute {
 	}
 	
 	public void removeCrossingCoordinate() {
-		// if at the start of crossing, initialised a new CrossEventData object
-		if (this.isCrossing==false) {
-			// Create crossing data collector agent
-			CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
-			RunState.getInstance().getMasterContext().add(ced);
-			this.ced=ced;
+		if (this.reachedCrossing==false) {
+			// Initially make pedestrian yield at the edge of the crossing
+			ped.setYield(true);
 		}
 		
-		// Once crossing coordinates have been updated once, ped has started to cross.
-		this.isCrossing = true;
+		// Once crossing coordinates have been updated once, ped has reached the crossing
+		this.reachedCrossing = true;
 		
 		this.crossingCoordinates.removeLast();
 		
@@ -381,13 +408,32 @@ public class AccumulatorRoute {
 		if(this.crossingCoordinates.size()==0) {
 			this.crossingRequired = false;
 			this.caChosen = false;
+			this.reachedCrossing=false;
 			this.isCrossing = false;
 			
 			// Remove crossing data collector from context and set to null
 			RunState.getInstance().getMasterContext().remove(this.ced);
 			this.ced=null;
 			
+			removePedFromORLinkBeingCrossed();
 		}
+	}
+	
+	public void startCrossing() {
+		
+		this.isCrossing=true;
+		
+		// Created data recorder to record ttc as ped crosses
+		CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
+		Context<Object> mc = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		mc.add(ced);
+		g.move(ced, ced.getGeom());
+		this.ced=ced;
+	}
+	
+	public boolean reachedCrossing() {
+		return this.reachedCrossing;
 	}
 	
 	public boolean isCrossing() {
@@ -439,6 +485,41 @@ public class AccumulatorRoute {
 			return ne.getRoadLink().getFID();
 		}
 	}
+	
+	public boolean progressAtNextJunction() {
+		
+		boolean dontProgress;
+		if (this.isBlank) {
+			dontProgress=false;
+		}
+		else {
+			dontProgress = this.crossingRequired & (this.caChosen == false) & ( (this.ped.getPathFinder().getStrategicPath().size()==1) | this.directCrossing);
+		}
+		return !dontProgress;
+	}
+	
+	private RoadLink getORLinkBeingCrossed() {
+		Geography<RoadLink> orRLGeog = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.OR_ROAD_LINK_GEOGRAPHY);
+		RoadLink rlBeingCrossed=null;
+		for (RoadLink rl: orRLGeog.getAllObjects()) {
+			if (rl.getFID().contentEquals(this.getChosenCA().getRoadLinkID())) {
+				rlBeingCrossed=rl;
+				break;
+			}
+		}
+		return rlBeingCrossed;
+	}
+	
+	private void removePedFromORLinkBeingCrossed() {
+		RoadLink rlBeingCrossed = getORLinkBeingCrossed();
+		rlBeingCrossed.getPeds().remove(this.ped);
+	}
+	
+	private void addPedToORLinkBeingCrossed() {
+		RoadLink rlBeingCrossed = getORLinkBeingCrossed();
+		rlBeingCrossed.getPeds().add(this.ped);
+	}
+	
 	
 	public void clear() {
 		this.ped=null;
