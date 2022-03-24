@@ -82,3 +82,4 @@ hs_err_pid*
 # Compiled python files
 *.pyc
 /scripts/sample/sample_config.json
+/scripts/figure_config.json
