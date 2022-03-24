@@ -319,6 +319,73 @@ def batch_run_tile_plot(df_data, groupby_columns, parameter_sweep_columns, value
 
     return f, axs
 
+def plot_layers(ax, config, pavement = None, carriageway = None, road_link = None, road_node = None, rays = None, pavement_link = None, pavement_node = None):
+    '''Keyword aarguments are geodataframes containing the shapes to be plotted
+    '''
+    for i, (k, v) in enumerate(locals().items()):
+
+        # Skip no keywork arguments
+        if k in ['ax', 'config']:
+            continue
+        if v is not None:
+
+            if k in ['pavement','carriageway']:
+                v.plot(ax=ax, color = config[k]['color'], zorder=i)
+            elif k in ['road_link', 'pavement_link']:
+                v.plot(ax=ax, facecolor=config[k]['color'], edgecolor = config[k]['color'], linewidth=config[k]['linewidth'], zorder=i)
+            elif k in ['road_node', 'pavement_node']:
+                v.plot(ax=ax, facecolor=config[k]['color'], edgecolor = config[k]['color'], linewidth=config[k]['linewidth'], zorder=i)
+            elif k in ['rays']:
+                v.plot(ax=ax, color=config[k]['color'], linewidth=config[k]['linewidth'], zorder=i)
+            else:
+                v.plot(ax=ax)
+
+    return ax
+
+def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNode, gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, edge_cmap, ped_links_exclude, fig_config):
+    '''Function for creating figures illustrating tactical path finding
+    '''
+
+    # Initialise figure
+    f, ax = plt.subplots(1,1, figsize = (10,10))
+
+    # Get study area gdfs
+    gdfORLinkSA = gdfORLink.loc[ gdfORLink['fid'].isin(study_area_rls)]
+    study_area_nodes = np.concatenate( [gdfORLinkSA['MNodeFID'].values, gdfORLinkSA['PNodeFID'].values] )
+    gdfORNodeSA = gdfORNode.loc[ gdfORNode['node_fid'].isin(study_area_nodes)]
+    gdfTopoPedSA = gdfTopoPed.loc[gdfTopoPed['roadLinkID'].isin(study_area_rls)]
+    gdfTopoVehSA = gdfTopoVeh.loc[gdfTopoVeh['roadLinkID'].isin(study_area_rls)]
+    
+    #gdfPedNodesSA = gdfPedNodes.loc[ (gdfPedNodes['v1rlID'].isin(study_area_rls) | gdfPedNodes['v2rlID'].isin(study_area_rls) )]
+    #gdfPedLinksSA = gdfPedLinks.loc[ (gdfPedLinks['MNodeFID'].isin(gdfPedNodesSA['fid']) & gdfPedLinks['PNodeFID'].isin(gdfPedNodesSA['fid']) & ~gdfPedLinks['fid'].isin(ped_links_exclude))]
+
+    # Plot study area layers
+    #ax = plot_layers(ax, fig_config, pavement = gdfTopoPedSA, carriageway = gdfTopoVehSA, road_link = None, road_node = None, pavement_link = None, pavement_node = None)
+
+    # Select route layers
+    gdfsp = gdfORLink.loc[ gdfORLink['fid'].isin( sp )]
+
+    gdfods = gdfPedODs.loc[ gdfPedODs['fid'].isin( [origin_id, dest_id])]
+
+    vmin = min(edgedata)
+    vmax = max(edgedata)
+
+    # plot these additional layers
+    gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7)
+
+    #nx.draw_networkx_nodes(G, dict_node_pos, ax = ax, nodelist=G.nodes(), node_color = 'grey', node_size = 1, alpha = 0.2)
+    nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
+
+    gdfods.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
+
+    # Set limits
+    xmin, ymin, xmax, ymax = gdfsp.total_bounds
+    ax.set_xlim(xmin-3, xmax+3)
+    ax.set_ylim(ymin-7.5, ymax+7.5)
+
+    ax.set_axis_off()
+
+    return f
 
 #####################################
 #
@@ -361,7 +428,9 @@ or_nodes_file = os.path.join(gis_data_dir, config['openroads_node_processed_file
 itn_links_file = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
 itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_file'])
 crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
-
+vehicle_topographic_file = os.path.join(gis_data_dir, config['topo_vehicle_processed_file'])
+pedestrian_topographic_file = os.path.join(gis_data_dir, config['topo_pedestrian_processed_file'])
+ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 
 # Model output data
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
@@ -373,6 +442,7 @@ batch_file = data_paths["batch_file"]
 # output paths for processed data
 output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir)
 output_ped_routes_file=             output_paths["output_ped_routes_file"]
+output_single_ped_links_file=       output_paths["output_single_ped_links_file"]
 output_vehicle_density_file=        output_paths["output_vehicle_density_file"]
 output_route_length_file=           output_paths["output_route_length_file"]
 output_sp_similarity_path=          output_paths["output_sp_similarity_path"]
@@ -430,6 +500,9 @@ weight_params = range(0, 100, 100)
 gdfPaveLinks['AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
+#dfSimplePaths = bd_utils.all_strategic_path_simple_paths(dfPedRoutes.iloc[:10], gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length')
+dfSinglePedPaths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
+
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
 # Data aggregated to run level, used to calculate sensitivity indices
@@ -794,5 +867,47 @@ if setting == "epsilon_gamma_scatter":
     fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
+
+if setting == 'single_ped_paths':
+
+    print("\nProducing single agents paths figure")
+
+    with open("figure_config.json") as f:
+        fig_config = json.load(f)
+
+    gdfTopoVeh = gpd.read_file(vehicle_topographic_file)
+    gdfTopoPed = gpd.read_file(pedestrian_topographic_file)
+    gdfPedODs = gpd.read_file(ped_ods_file)
+
+
+    assert dfSinglePedPaths['start_node'].unique().shape[0]==1
+    assert dfSinglePedPaths['end_node'].unique().shape[0]==1
+
+    start_node = dfSinglePedPaths['start_node'].unique()[0]
+    end_node = dfSinglePedPaths['end_node'].unique()[0]
+
+    study_area_rls = dfSinglePedPaths['FullStrategicPathString'].values[0]
+    origin_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==start_node, 'juncNodeID'].values[0]
+    dest_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==end_node, 'juncNodeID'].values[0]
+
+    sp = study_area_rls
+    tp_links = dfSinglePedPaths['edge_path'].unique()
+
+    edgelist = []
+    for edge_id in tp_links:
+        for e in list(pavement_graph.edges(data=True)):
+            if edge_id == e[-1]['fid']:
+                edgelist.append(e)
+
+    # Now get link counts to colour figure by
+    # Aggregate single ped links to get edge data values
+    edge_traverse_counts = dfSinglePedPaths['edge_path'].value_counts()
+    edgedata = np.array([edge_traverse_counts[i] for i in tp_links])
+
+    f_single_pad_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), [], fig_config)
+    f_single_pad_paths.tight_layout()
+    output_single_pad_paths = os.path.join(img_dir, "single_ped_paths.{}.png".format(file_datetime_string))
+    f_single_pad_paths.savefig(output_single_pad_paths)
+
 
 xlWriter.close()
