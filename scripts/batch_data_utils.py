@@ -272,6 +272,20 @@ def shortest_path_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes
 
     return tuple(dijkstra_path)
 
+def simple_paths_within_strategic_path(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node):
+
+    filter_pavement_edges = get_strategic_path_pavement_edges(strategic_path, gdfORLinks, gdfPaveNodes, pavement_graph)
+
+    sub_pavement_graph = nx.edge_subgraph(pavement_graph, filter_pavement_edges)
+
+    try:
+        simple_paths = nx.all_simple_paths(sub_pavement_graph, start_node, end_node)
+    except nx.exception.NodeNotFound as e:
+        print(start_node, end_node, strategic_path)
+        return None
+
+    return tuple(simple_paths)
+
 def node_path_dice_distance(npa, npb):
     '''Calculates the Sørensen–Dice index of similarity between two discrete sets. Returns 1-similarity score
     '''
@@ -681,6 +695,49 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
         dfCrossEvents = pd.read_csv(output_path)
 
     return dfCrossEvents
+
+def all_strategic_path_simple_paths(dfPedRoutes, gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length'):
+    '''Function returns a dataframe with the IDs of pedestrian agents, their corresponding strategic paths, and all the simple pavement netowkr paths corresponding to each strategic path + start and end pavement node
+    '''
+
+    if os.path.exists(simple_paths_path):
+        # Load existing data
+        print("\nLoading Simple Paths")
+        dfPedRoutes = pd.read_csv(output_path)
+        dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
+
+        # Convert columns to tuples
+        dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfPedRoutes['simple_path'] = dfPedRoutes['edge_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+
+    else:
+        print("\nCalculating Simple Paths")
+
+        # Get unique set of Strategis paths and start and end nodes
+        dfUniqueSP = dfPedRoutes.reindex(columns = ['FullStrategicPathString', 'start_node', 'end_node']).drop_duplicates()
+
+        dfSPSimplePaths = pd.DataFrame()
+        for ir, row in dfUniqueSP.iterrows():
+            sp_simple_paths = simple_paths_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'])
+            n_paths = len(sp_simple_paths)
+            df  = pd.DataFrame({"FullStrategicPathString": [row['FullStrategicPathString']]*n_paths,
+                                "start_node":[row['start_node']]*n_paths,
+                                "end_node":[row['end_node']]*n_paths,
+                                "simple_path":sp_simple_paths})
+            dfSPSimplePaths = pd.concat([dfSPSimplePaths, df])
+
+        # Calculate path lengths
+        dfSPSimplePaths['path_length'] = dfSPSimplePaths['simple_path'].map(lambda p: nx.path_weight(pavement_graph, p, weight))
+
+        # Now merge back into original data to get ID
+        dfSPSimplePaths = pd.merge(dfPedRoutes, dfSPSimplePaths, on = ['FullStrategicPathString', 'start_node', 'end_node'], how = 'outer', indicator=True)
+        #assert dfSPSimplePaths.loc[ dfSPSimplePaths['_merge']!='both'].shape[0]==0
+        print(dfSPSimplePaths.loc[ dfSPSimplePaths['_merge']!='both'].shape[0])
+
+        # Save the data
+        dfSPSimplePaths.to_csv(simple_paths_path)
+
+    return dfSPSimplePaths
 
 def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, output_path):
     '''Loads the raw routes data, cleans the data and aggregates trip distances and durations
