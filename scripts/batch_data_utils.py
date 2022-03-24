@@ -656,7 +656,7 @@ def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links
     # Save this subset and visualise
     dfSinglePedRoutes.to_csv(output_path, index=False)
 
-    return dfSinglePedRoutes
+    return dfSinglePedRoutes, pedID
 
 
 def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.csv"):

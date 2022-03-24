@@ -501,7 +501,7 @@ gdfPaveLinks['AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
 #dfSimplePaths = bd_utils.all_strategic_path_simple_paths(dfPedRoutes.iloc[:10], gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length')
-dfSinglePedPaths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
+dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
