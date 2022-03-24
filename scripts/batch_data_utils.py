@@ -67,6 +67,20 @@ def most_recent_directory_file(directory, file_regex):
 #
 ######################################
 
+def explode_data(df, explode_col = 'edge_path'):
+    dfOut = pd.DataFrame()
+    for i, row in df.iterrows():
+        exploded = row[explode_col]
+        data = {}
+        for c in df.columns:
+            if c==explode_col:
+                continue
+            data[c] = [row[c]]*len(exploded)
+        data[explode_col]=exploded
+        dfTemp = pd.DataFrame(data)
+        dfOut = pd.concat([dfOut, dfTemp])
+    return dfOut
+
 def get_peds_crossing_choice(series_choices):
     series_choices = series_choices.drop_duplicates()
 
@@ -120,6 +134,7 @@ def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     # output paths for processed data
     paths = {}
     paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
+    paths["output_single_ped_links_file"] = os.path.join(data_dir, "single_ped_routes.{}.csv".format(file_datetime_string))
     paths["output_vehicle_density_file"] = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
     paths["output_route_length_file"] = os.path.join(data_dir, "run_route_length.{}.csv".format(file_datetime_string))
     paths["output_sp_similarity_path"] = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
@@ -606,6 +621,29 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
 
     return dfPedRoutes, dfPedRoutes_removedpeds
+
+def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links.csv'):
+    '''Selects all of the tactical paths traverse by one pedestrian agetn across all simulation runs. From this calculates number of times each link is 
+    traversed. Used to visualise path heterogeneity.
+    '''
+
+    # Calculate number of links in each strategic path and choose a pedestrian with a median length path
+    dfPedRoutes['sp_len'] = dfPedRoutes['FullStrategicPathString'].map(lambda x: len(x))
+    pedID = dfPedRoutes.loc[ dfPedRoutes['sp_len'] == dfPedRoutes['sp_len'].median(), 'ID'].values[0]
+    
+    # Now get all ped routes for this ped so they can be visualised
+    dfSinglePedRoutes = dfPedRoutes.loc[ dfPedRoutes['ID'] == pedID]
+    assert dfSinglePedRoutes['run'].unique().shape[0] == dfPedRoutes['run'].unique().shape[0]
+    
+    # Select only columns of interest and explode out the pat links
+    dfSinglePedRoutes = dfSinglePedRoutes.reindex(columns = ['ID','run','FullStrategicPathString','start_node','end_node', 'edge_path'])
+    dfSinglePedRoutes = explode_data(dfSinglePedRoutes, explode_col='edge_path')
+
+    # Save this subset and visualise
+    dfSinglePedRoutes.to_csv(output_path, index=False)
+
+    return dfSinglePedRoutes
+
 
 def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.csv"):
     '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.
