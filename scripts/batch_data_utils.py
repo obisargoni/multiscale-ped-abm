@@ -420,7 +420,7 @@ def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.c
 
     return dfCompletions
 
-def agg_cross_conflicts(dfCrossEvents, dfLinkCrossCounts, ttc_col = 'TTC', ttc_threshold = 3):
+def agg_cross_conflicts(dfCrossEvents, dfRun, dfLinkCrossCounts, ttc_col = 'TTC', ttc_threshold = 3):
     '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the
     mean TTC per run.
     '''
