@@ -435,6 +435,7 @@ ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 # Model output data
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
 ped_routes_file = data_paths["pedestrian_routes"]
+vehicle_rls_file = data_paths["vehicle_road_links"]
 veh_routes_file = data_paths["vehicle_routes"]
 cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
@@ -496,11 +497,13 @@ weight_params = range(0, 100, 100)
 #
 #
 ######################################
-# Not currently using vehicle density in the calculation of route lenght so just set to 0 everywhere
-gdfPaveLinks['AvVehDen'] = 0.0
+dfRunDurations =  bd_utils.get_pedestrian_run_durations(dfPedCrossings)
+VehCountAv = bd_utils.get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, vehicle_rls_file, output_vehicle_density_file)
+gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
+gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0 # what's the idea behind this?
+#gdfPaveLinks['AvVehDen'] = 0.0
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
-#dfSimplePaths = bd_utils.all_strategic_path_simple_paths(dfPedRoutes.iloc[:10], gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length')
 dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
@@ -908,6 +911,33 @@ if setting == 'single_ped_paths':
     f_single_pad_paths.tight_layout()
     output_single_pad_paths = os.path.join(img_dir, "single_ped_paths.{}.png".format(file_datetime_string))
     f_single_pad_paths.savefig(output_single_pad_paths)
+
+    
+    # Not until here that we want to calculate tactical paths using alternative model
+    alt_model_paths = []
+
+    rng=np.random.RandomState(100)
+    eps = rng.normal(0, 0.25, size=100)
+
+    for k in weight_params:
+        weight_name = "weight{}".format(k)
+        gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k # cross cost will be 0 on non-rossing links
+        gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+
+        # Weight pavement network crossing links by average vehicle flow
+        weight_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+        nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+        alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
+        alt_model_paths.append(alt_model_path)
+
+
+    # Now compare path length varaition
+    clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'edge_path']]
+    alt_model_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in alt_model_paths]
+
+    df = pd.DataFrame({'clt_model_lengths':clt_path_lengths, 'alt_model_lengths':alt_model_lengths})
+    print(df.describe())
 
 
 xlWriter.close()
