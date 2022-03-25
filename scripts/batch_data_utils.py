@@ -547,23 +547,19 @@ def get_road_link_vehicle_density_from_vehicle_routes(dfRunDurations, gdfITNLink
         dfVehCounts['AvVehCount'] = dfVehCounts['VehCount'] / dfVehCounts['tick']
 
         # Merge with ITN links to get lookup to ped rl ID
-        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','pedRLID', 'length'])
-
-        # get total lenth of ITN links per each pedRLID
-        AggITNLengths = gdfITNLinks.groupby(['pedRLID'])['length'].sum().reset_index()
+        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length'])
 
         dfVehRoutes = None
-        gdfITNLinks = None
 
-        dfVehCounts = pd.merge(dfVehCounts, AggITNLengths, left_on = 'ITN_fid', right_on = 'pedRLID')
-        dfVehCounts['AvVehDen'] = VehCountAv['AvVehCount'] / VehCountAv['length']
+        dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'ITN_fid', right_on = 'fid', how = 'left')
+        dfVehCounts['AvVehDen'] = dfVehCounts['AvVehCount'] / dfVehCounts['length']
         dfVehCounts.drop('length', axis=1, inplace=True)
 
-        VehCountAv.to_csv(output_path, index=False)
+        dfVehCounts.to_csv(output_path, index=False)
     else:
-        VehCountAv = pd.read_csv(output_path)
+        dfVehCounts = pd.read_csv(output_path)
 
-    return VehCountAv
+    return dfVehCounts
 
 def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
 
