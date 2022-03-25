@@ -628,7 +628,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
                     dfLinkWeights['cross_cost'] = 0
                 else:   
                     dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
-                    dfLinkWeights = pd.merge(dfCrossCounts, dfRunVehCounts, on='pedRLID', how = 'left')
+                    dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
                     dfLinkWeights['cross_cost'] = dfLinkWeights['AvVehDen'].fillna(0) * k
 
                 dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
