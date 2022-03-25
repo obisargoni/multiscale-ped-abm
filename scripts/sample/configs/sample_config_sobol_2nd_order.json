@@ -25,5 +25,6 @@
       "random_seed":100,
       "num_levels":6,
       "calc_second_order":true,
-      "method":"saltelli"
+      "method":"saltelli",
+      "policies":{"informalCrossing":[1]}
 }
