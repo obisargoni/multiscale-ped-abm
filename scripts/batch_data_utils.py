@@ -519,10 +519,10 @@ def get_processed_crossing_locations_data(data_dir, file_prefix, file_datetime =
 
     return df_cc_count
 
-def get_pedestrian_run_durations(dfPedCrossings):
+def get_pedestrian_run_durations(dfCrossEvents):
     # Get duration for each run - defined as total time pedestrians are in the simulation.
-    dfPedStart = dfPedCrossings.groupby('run')['tick'].min().reset_index()
-    dfPedEnd = dfPedCrossings.groupby('run')['tick'].max().reset_index()
+    dfPedStart = dfCrossEvents.groupby('run')['tick'].min().reset_index()
+    dfPedEnd = dfCrossEvents.groupby('run')['tick'].max().reset_index()
     dfDurs = pd.merge(dfPedStart, dfPedEnd, on = 'run', suffixes = ('_start', '_end'))
     dfDurs['duration'] = dfDurs['tick_end'] - dfDurs['tick_start']
     return dfDurs
