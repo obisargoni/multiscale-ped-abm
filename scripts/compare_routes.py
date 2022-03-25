@@ -435,7 +435,6 @@ ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 # Model output data
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
 ped_routes_file = data_paths["pedestrian_routes"]
-vehicle_rls_file = data_paths["vehicle_road_links"]
 veh_routes_file = data_paths["vehicle_routes"]
 cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
@@ -497,8 +496,8 @@ weight_params = range(0, 100, 100)
 #
 #
 ######################################
-dfRunDurations =  bd_utils.get_pedestrian_run_durations(dfPedCrossings)
-VehCountAv = bd_utils.get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, vehicle_rls_file, output_vehicle_density_file)
+#dfRunDurations =  bd_utils.get_pedestrian_run_durations(dfCrossEvents)
+VehCountAv = bd_utils.get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, veh_routes_file, output_vehicle_density_file)
 gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
 gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0 # what's the idea behind this?
 #gdfPaveLinks['AvVehDen'] = 0.0

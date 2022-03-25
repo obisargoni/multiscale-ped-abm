@@ -527,34 +527,37 @@ def get_pedestrian_run_durations(dfCrossEvents):
     dfDurs['duration'] = dfDurs['tick_end'] - dfDurs['tick_start']
     return dfDurs
 
-def get_road_link_vehicle_density(dfRunDurations, gdfITNLinks, data_file, output_path):
+def get_road_link_vehicle_density_from_vehicle_routes(dfRunDurations, gdfITNLinks, data_file, output_path):
 
     if os.path.exists(output_path) == False:
-        # Alternatative method for getting average vehicle counts
-        dfVehRls = pd.read_csv(data_file)
+        
+        dfVehRoutes = pd.read_csv(data_file)
 
-        # Merge with start and end pedestrian times to and remove rows that lie outside these times
-        dfVehRls = pd.merge(dfVehRls, dfRunDurations, on = 'run')
-        dfVehRls = dfVehRls.loc[ (dfVehRls['tick']>=dfVehRls['tick_start']) & (dfVehRls['tick']<=dfVehRls['tick_end'])]
+        # Convert strategic path to list
+        dfVehRoutes['FullStrategicPathString'] = dfVehRoutes['FullStrategicPathString'].map(lambda s: tuple(dict.fromkeys(s.strip(":").split(":"))))
+
+        # Then explode list of road links in order to get total number of vehicle per road link
+        dfRunRLs = explode_data(dfVehRoutes.reindex(columns = ['run','FullStrategicPathString']), explode_col='FullStrategicPathString')
+        dfVehCounts = dfRunRLs.groupby(['run','FullStrategicPathString']).apply(lambda df: df.shape[0]).reset_index()
+        dfVehCounts.rename(columns = {0:'VehCount', 'FullStrategicPathString':'ITN_fid'}, inplace=True)
+
+        # Merge in tick, which is measure of duration of run
+        dfVehCounts = pd.merge(dfVehCounts, dfVehRoutes.reindex(columns=['run','tick']).drop_duplicates(), on='run')
+
+        dfVehCounts['AvVehCount'] = dfVehCounts['VehCount'] / dfVehCounts['tick']
 
         # Merge with ITN links to get lookup to ped rl ID
         gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','pedRLID', 'length'])
-        dfVehRls = dfVehRls.reindex(columns = ['tick','run','ID','duration','CurrentRoadLinkID'])
-        dfVehRls = pd.merge( dfVehRls, gdfITNLinks, left_on = 'CurrentRoadLinkID', right_on = 'fid', how = 'left')
-
-        # get average count of vehicles on each ped road link, by first getting count per tick then summing and averaging this.
-        VehCountTick = dfVehRls.groupby(['run', 'duration', 'pedRLID','tick'])['ID'].apply(lambda ids: ids.unique().shape[0]).reset_index().rename(columns = {'ID':'VehCount'})
 
         # get total lenth of ITN links per each pedRLID
         AggITNLengths = gdfITNLinks.groupby(['pedRLID'])['length'].sum().reset_index()
 
-        dfVehRls = None
+        dfVehRoutes = None
         gdfITNLinks = None
 
-        VehCountAv = VehCountTick.groupby(['run', 'pedRLID']).apply( lambda df: df['VehCount'].sum() / df['duration'].values[0]).reset_index().rename(columns = {0:'AvVehCount'})
-        VehCountAv = pd.merge(VehCountAv, AggITNLengths, on = 'pedRLID')
-        VehCountAv['AvVehDen'] = VehCountAv['AvVehCount'] / VehCountAv['length']
-        VehCountAv.drop('length', axis=1, inplace=True)
+        dfVehCounts = pd.merge(dfVehCounts, AggITNLengths, left_on = 'ITN_fid', right_on = 'pedRLID')
+        dfVehCounts['AvVehDen'] = VehCountAv['AvVehCount'] / VehCountAv['length']
+        dfVehCounts.drop('length', axis=1, inplace=True)
 
         VehCountAv.to_csv(output_path, index=False)
     else:
