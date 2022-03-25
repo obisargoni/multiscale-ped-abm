@@ -497,10 +497,9 @@ weight_params = range(0, 100, 100)
 #
 ######################################
 #dfRunDurations =  bd_utils.get_pedestrian_run_durations(dfCrossEvents)
-VehCountAv = bd_utils.get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, veh_routes_file, output_vehicle_density_file)
-gdfPaveLinks = pd.merge(gdfPaveLinks, VehCountAv, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
-gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0 # what's the idea behind this?
-#gdfPaveLinks['AvVehDen'] = 0.0
+dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, veh_routes_file, output_vehicle_density_file)
+gdfPaveLinks = pd.merge(gdfPaveLinks, dfVehCounts, left_on = 'pedRLID', right_on = 'pedRLID', how = 'left')
+#gdfPaveLinks.loc[ gdfPaveLinks['pedRLID'].isin(gdfCAs['roadLinkID'].unique()), 'AvVehDen'] = 0.0 # Treats crossing links on roads with crossing infrastructure as unaffected by vehicle flow.
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file)
 dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
