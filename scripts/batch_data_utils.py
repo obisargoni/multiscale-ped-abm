@@ -561,7 +561,7 @@ def get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, data_file, ou
 
     return dfVehCounts
 
-def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
+def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, dfVehCounts = None, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
 
     d,f = os.path.split(ped_routes_path)
     output_path = os.path.join(d, 'processed_'+f)
@@ -614,21 +614,37 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
                                                         'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
                                                         'start_node', 'end_node'])
 
-        for k in weight_params:
-            weight_name = "weight{}".format(k)
-            gdfPaveLinks['cross_cost'] = gdfPaveLinks['AvVehDen'].fillna(0) * k
-            gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost']
+        dfAltPaths = pd.DataFrame()
+        for run in dfPedRoutes['run'].unique():
+            dfAltPathsRun = dfUniqueStartEnd.copy()
+            dfAltPathsRun['run'] = run
+            for k in weight_params:
+                weight_name = "weight{}".format(k)
 
-            # Weight pavement network crossing links by average vehicle flow
-            weight_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-            nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+                # Create df of costs to assign to pavement network links based on length and vehicle flow
+                dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
+                
+                if dfVehCounts is None:
+                    dfLinkWeights['cross_cost'] = 0
+                else:   
+                    dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
+                    dfLinkWeights = pd.merge(dfCrossCounts, dfRunVehCounts, on='pedRLID', how = 'left')
+                    dfLinkWeights['cross_cost'] = dfLinkWeights['AvVehDen'].fillna(0) * k
 
-            if strategic_path_filter:
-                dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
-            else:
-                dfUniqueStartEnd['sp_{}'.format(k)] = dfUniqueStartEnd.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
+                dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
 
-        dfPedRoutes = pd.merge(dfPedRoutes, dfUniqueStartEnd, on = ['start_node', 'end_node', 'FullStrategicPathString'])
+                # Weight pavement network crossing links by average vehicle flow
+                weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+                nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+                if strategic_path_filter:
+                    dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+                else:
+                    dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
+
+            dfAltPaths = pd.concat([dfAltPaths, dfAltPathsRun])
+
+        dfPedRoutes = pd.merge(dfPedRoutes, dfAltPaths, on = ['run', 'start_node', 'end_node', 'FullStrategicPathString'])
 
         dfPedRoutes.to_csv(output_path, index=False)
         dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
