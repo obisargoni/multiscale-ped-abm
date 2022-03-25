@@ -923,26 +923,40 @@ if setting == 'variance_comparison':
     gdfPaveLinksCAs = gpd.sjoin(gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross'], gdfCAs, op = 'within')
     direct_crossing_with_marked_cas = gdfPaveLinksCAs['fid'].unique()
 
-    for k in weight_params:
-        for j in weight_params:
-            weight_name = "weight{}_{}".format(k, j)
-            gdfPaveLinks['cross_cost'] = np.nan
+    for run in dfSinglePedPaths['run'].unique():
+        for k in weight_params:
+            for j in weight_params:
+                weight_name = "weight{}_{}".format(k, j)
 
-            # Set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on. Non-crossing pavement links have null in the Av
-            gdfPaveLinks.loc[ gdfPaveLinks['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = gdfPaveLinks.loc[ gdfPaveLinks['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
-            gdfPaveLinks.loc[ ~gdfPaveLinks['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = gdfPaveLinks.loc[ ~gdfPaveLinks['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
-            gdfPaveLinks[weight_name] = gdfPaveLinks['length'] + gdfPaveLinks['cross_cost'].fillna(0) # cross cost will be null on non-rossing links, replace with 0
+                # Calculate pavement link weights based on vehicle density
+                dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
 
-            # sense check the weights by comparing length to cross cost
-            print(weight_name)
-            print( (gdfPaveLinks['cross_cost'] / gdfPaveLinks['length']).describe())
+                if dfVehCounts is None:
+                    dfLinkWeights['cross_cost'] = 0
+                else:
+                    
 
-            # Weight pavement network crossing links by average vehicle flow
-            weight_attributes = gdfPaveLinks.set_index( gdfPaveLinks.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-            nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+                    dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
+                    dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
 
-            alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
-            alt_model_paths.append(alt_model_path)
+                    # Initialise cross cost as zero
+                    dfLinkWeights['cross_cost'] = 0
+
+                    # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
+                    dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
+                    dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
+                    dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
+
+                # sense check the weights by comparing length to cross cost
+                print(weight_name)
+                print( (dfLinkWeights['cross_cost'] / dfLinkWeights['length']).describe())
+
+                # Weight pavement network crossing links by average vehicle flow
+                weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+                nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+                alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
+                alt_model_paths.append(alt_model_path)
 
 
     # Now compare path length varaition
