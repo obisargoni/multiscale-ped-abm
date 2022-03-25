@@ -869,7 +869,7 @@ if setting == "epsilon_gamma_scatter":
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
 
-if setting == 'single_ped_paths':
+if setting == 'variance_comparison':
 
     print("\nProducing single agents paths figure")
 
