@@ -675,7 +675,7 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
         dfCrossEvents = pd.read_csv(cross_events_path)
 
-        dfCrossEvents = dfCrossEvents.reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC'])
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'tick', 'TTC'])
 
         # Group by run, ID and TacticalEdgeID to find min TTC per cross event
         dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['TTC'].transform(lambda s: s.min())
