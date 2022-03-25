@@ -947,11 +947,13 @@ if setting == 'variance_comparison':
 
 
     # Now compare path length varaition
-    clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'edge_path']]
+    clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
     alt_model_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in alt_model_paths]
 
-    df = pd.DataFrame({'clt_model_lengths':clt_path_lengths, 'alt_model_lengths':alt_model_lengths})
-    print(df.describe())
+    s_clt = pd.Series(clt_path_lengths)
+    s_alt = pd.Series(alt_model_lengths)
+    print(s_clt.describe())
+    print(s_alt.describe())
 
 
 xlWriter.close()
