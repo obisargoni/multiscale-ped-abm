@@ -923,7 +923,8 @@ if setting == 'variance_comparison':
     gdfPaveLinksCAs = gpd.sjoin(gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross'], gdfCAs, op = 'within')
     direct_crossing_with_marked_cas = gdfPaveLinksCAs['fid'].unique()
 
-    for run in dfSinglePedPaths['run'].unique():
+    # Create alternative set of paths for each vehicle flow setting
+    for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
         for k in weight_params:
             for j in weight_params:
                 weight_name = "weight{}_{}".format(k, j)
