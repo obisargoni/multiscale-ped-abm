@@ -527,7 +527,7 @@ def get_pedestrian_run_durations(dfCrossEvents):
     dfDurs['duration'] = dfDurs['tick_end'] - dfDurs['tick_start']
     return dfDurs
 
-def get_road_link_vehicle_density_from_vehicle_routes(dfRunDurations, gdfITNLinks, data_file, output_path):
+def get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, data_file, output_path):
 
     if os.path.exists(output_path) == False:
         
@@ -539,7 +539,7 @@ def get_road_link_vehicle_density_from_vehicle_routes(dfRunDurations, gdfITNLink
         # Then explode list of road links in order to get total number of vehicle per road link
         dfRunRLs = explode_data(dfVehRoutes.reindex(columns = ['run','FullStrategicPathString']), explode_col='FullStrategicPathString')
         dfVehCounts = dfRunRLs.groupby(['run','FullStrategicPathString']).apply(lambda df: df.shape[0]).reset_index()
-        dfVehCounts.rename(columns = {0:'VehCount', 'FullStrategicPathString':'ITN_fid'}, inplace=True)
+        dfVehCounts.rename(columns = {0:'VehCount', 'FullStrategicPathString':'fid'}, inplace=True)
 
         # Merge in tick, which is measure of duration of run
         dfVehCounts = pd.merge(dfVehCounts, dfVehRoutes.reindex(columns=['run','tick']).drop_duplicates(), on='run')
@@ -547,11 +547,11 @@ def get_road_link_vehicle_density_from_vehicle_routes(dfRunDurations, gdfITNLink
         dfVehCounts['AvVehCount'] = dfVehCounts['VehCount'] / dfVehCounts['tick']
 
         # Merge with ITN links to get lookup to ped rl ID
-        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length'])
+        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length', 'pedRLID'])
 
         dfVehRoutes = None
 
-        dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'ITN_fid', right_on = 'fid', how = 'left')
+        dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'fid', right_on = 'fid', how = 'left')
         dfVehCounts['AvVehDen'] = dfVehCounts['AvVehCount'] / dfVehCounts['length']
         dfVehCounts.drop('length', axis=1, inplace=True)
 
