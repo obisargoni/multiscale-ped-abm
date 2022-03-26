@@ -959,6 +959,22 @@ if setting == 'variance_comparison':
                 alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
                 alt_model_paths.append(alt_model_path)
 
+    # Create complementary figure
+    edgelist = []
+    for edge_id in tp_links:
+        for e in list(pavement_graph.edges(data=True)):
+            if edge_id == e[-1]['fid']:
+                edgelist.append(e)
+
+    # Now get link counts to colour figure by
+    # Aggregate single ped links to get edge data values
+    edge_traverse_counts = dfSinglePedPaths['edge_path'].value_counts()
+    edgedata = np.array([edge_traverse_counts[i] for i in tp_links])
+
+    f_single_alt_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), [], fig_config)
+    f_single_alt_paths.tight_layout()
+    output_single_pad_paths = os.path.join(img_dir, "single_ped_alt_model_paths.{}.png".format(file_datetime_string))
+    f_single_alt_paths.savefig(output_single_pad_paths)
 
     # Now compare path length varaition
     clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
