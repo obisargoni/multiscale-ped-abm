@@ -570,7 +570,7 @@ xlWriter = pd.ExcelWriter(os.path.join(data_dir, "{}_results.{}.xlsx".format(set
 #
 ######################################
 
-if setting == 'monte_carlo_filtering':
+if 'monte_carlo_filtering' in setting:
     print("\nPerforming Factor Mapping")
     X_rc = dfRouteCompletion.loc[:, problem['names']].values
     Y_rc = dfRouteCompletion.loc[:, 'frac_completed_journeys'].values
@@ -590,7 +590,7 @@ if setting == 'monte_carlo_filtering':
 #
 ######################################
 
-if setting == "morris_factor_fixing":
+if "morris_factor_fixing" in setting:
 
     print("\nCalculating sensitivity indices - Route completions")
 
@@ -699,7 +699,7 @@ if setting == "morris_factor_fixing":
     dfRLSis.to_excel(xlWriter, sheet_name = "route_length_pp_sis_{}".format(k))
 
 
-if setting == 'sobol_si':
+if 'sobol_si' in setting:
 
     print("\nCalculating sobol indices - Conflicts")
     title_dict = config["title_dict"]
@@ -808,7 +808,7 @@ if setting == 'sobol_si':
 #
 #########################################
 
-if setting == "epsilon_gamma_scatter":
+if "epsilon_gamma_scatter" in setting:
 
     fixed_columns = ['random_seed', 'addPedTicks', 'alpha','tacticalPlanHorizon', 'minCrossing']
     variable_columns = ['epsilon', 'gamma', 'lambda', 'addVehicleTicks']
@@ -868,7 +868,7 @@ if setting == "epsilon_gamma_scatter":
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
 
-if setting == 'variance_comparison':
+if 'variance_comparison' in setting:
 
     print("\nProducing single agents paths figure")
 
