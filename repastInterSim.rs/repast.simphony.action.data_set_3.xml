@@ -1,0 +1,39 @@
+<repast.simphony.data2.engine.DataSetDescriptor simphonyVersion="2.7.0">
+  <name>Average Vehicle Counts</name>
+  <type>NON_AGGREGATE</type>
+  <sourceType>repastInterSim.datasources.AvVehicleCountData</sourceType>
+  <inclTick>true</inclTick>
+  <inclBatchRun>true</inclBatchRun>
+  <inclRandomSeed>true</inclRandomSeed>
+  <scheduleParams>
+    <start>Infinity</start>
+    <interval>0.0</interval>
+    <priority>Infinity</priority>
+    <pType>FIRST</pType>
+    <duration>-1.0</duration>
+    <frequency>ONE_TIME</frequency>
+    <hashCode>1610617473</hashCode>
+  </scheduleParams>
+  <atEnd>false</atEnd>
+  <methodDataSources class="linked-hash-map">
+    <entry>
+      <string>FID</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>FID</id>
+        <className>repastInterSim.datasources.AvVehicleCountData</className>
+        <methodName>getFID</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+    <entry>
+      <string>AvVehCount</string>
+      <repast.simphony.data2.engine.MethodDataSourceDefinition>
+        <id>AvVehCount</id>
+        <className>repastInterSim.datasources.AvVehicleCountData</className>
+        <methodName>getAvVehCount</methodName>
+      </repast.simphony.data2.engine.MethodDataSourceDefinition>
+    </entry>
+  </methodDataSources>
+  <countSources class="linked-hash-map"/>
+  <customNADataSources class="linked-hash-map"/>
+  <customAggDataSources class="linked-hash-map"/>
+</repast.simphony.data2.engine.DataSetDescriptor>

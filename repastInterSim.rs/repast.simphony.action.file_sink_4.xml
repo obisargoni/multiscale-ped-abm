@@ -1,6 +1,6 @@
 <repast.simphony.data2.engine.FileSinkDescriptor simphonyVersion="2.7.0">
-  <name>Cross Events</name>
-  <dataSet>Cross Events</dataSet>
+  <name>Pedestrian Routes</name>
+  <dataSet>Pedestrian Routes</dataSet>
   <delimiter>,</delimiter>
   <format>TABULAR</format>
   <sourceIds class="linked-hash-set">
@@ -8,11 +8,13 @@
     <string>run</string>
     <string>tick</string>
     <string>ID</string>
-    <string>TacticalEdgeID</string>
-    <string>CrossingType</string>
-    <string>CrossingCoordinatesString</string>
-    <string>TTC</string>
+    <string>StartPavementJunctionID</string>
+    <string>DestPavementJunctionID</string>
+    <string>FullStrategicPathString</string>
+    <string>FullTacticalRouteString</string>
+    <string>JourneyDistance</string>
+    <string>JourneyDuration</string>
   </sourceIds>
-  <fileName>.\batch\model_run_data\cross_events.csv</fileName>
+  <fileName>.\batch\model_run_data\pedestrian_routes.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
 </repast.simphony.data2.engine.FileSinkDescriptor>
