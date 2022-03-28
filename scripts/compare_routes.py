@@ -13,6 +13,7 @@ from shapely.geometry import Point
 import similaritymeasures as sim
 from scipy import stats
 import matplotlib.pyplot as plt
+import matplotlib.transforms as transforms
 
 import batch_data_utils as bd_utils
 
@@ -342,7 +343,7 @@ def plot_layers(ax, config, pavement = None, carriageway = None, road_link = Non
 
     return ax
 
-def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNode, gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, edge_cmap, ped_links_exclude, fig_config):
+def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNode, gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, edge_cmap, ped_links_exclude, fig_config, rotation=0):
     '''Function for creating figures illustrating tactical path finding
     '''
 
@@ -355,12 +356,6 @@ def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdf
     gdfORNodeSA = gdfORNode.loc[ gdfORNode['node_fid'].isin(study_area_nodes)]
     gdfTopoPedSA = gdfTopoPed.loc[gdfTopoPed['roadLinkID'].isin(study_area_rls)]
     gdfTopoVehSA = gdfTopoVeh.loc[gdfTopoVeh['roadLinkID'].isin(study_area_rls)]
-    
-    #gdfPedNodesSA = gdfPedNodes.loc[ (gdfPedNodes['v1rlID'].isin(study_area_rls) | gdfPedNodes['v2rlID'].isin(study_area_rls) )]
-    #gdfPedLinksSA = gdfPedLinks.loc[ (gdfPedLinks['MNodeFID'].isin(gdfPedNodesSA['fid']) & gdfPedLinks['PNodeFID'].isin(gdfPedNodesSA['fid']) & ~gdfPedLinks['fid'].isin(ped_links_exclude))]
-
-    # Plot study area layers
-    #ax = plot_layers(ax, fig_config, pavement = gdfTopoPedSA, carriageway = gdfTopoVehSA, road_link = None, road_node = None, pavement_link = None, pavement_node = None)
 
     # Select route layers
     gdfsp = gdfORLink.loc[ gdfORLink['fid'].isin( sp )]
@@ -370,13 +365,21 @@ def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdf
     vmin = min(edgedata)
     vmax = max(edgedata)
 
+    base = plt.gca().transData
+    rot = transforms.Affine2D().rotate_deg(rotation)
+
     # plot these additional layers
-    gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7)
+    gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7, transform = rot+base)
 
     #nx.draw_networkx_nodes(G, dict_node_pos, ax = ax, nodelist=G.nodes(), node_color = 'grey', node_size = 1, alpha = 0.2)
-    nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
+    nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax, transform = rot+base)
 
-    gdfods.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
+    gdfods.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9, transform = rot+base)
+
+    # Add colour bar
+    smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    cbar = fig.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.8)
+    cbar.ax.tick_params(labelsize=25)
 
     # Set limits
     xmin, ymin, xmax, ymax = gdfsp.total_bounds
