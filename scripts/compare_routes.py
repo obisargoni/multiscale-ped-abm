@@ -507,7 +507,7 @@ dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, range(0,100,100), dfVehCounts = dfVehCounts, ped_routes_path = ped_routes_file)
 
 # Calculate a corresponding set of routes using an alternative shortest path model
-dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts = dfVehCounts, alt_routes_path = output_alt_routes_file, strategic_path_filter = True)
+dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
 
 dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 

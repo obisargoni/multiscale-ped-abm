@@ -698,7 +698,7 @@ def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links
 
     return dfSinglePedRoutes, pedID
 
-def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts = dfVehCounts, alt_routes_path = alt_routes_file, strategic_path_filter = True):
+def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts, alt_routes_path, strategic_path_filter = True):
     '''
     Method for calculating routes accoring to an alternative shortest path model. Useful for comparing my hierarchical model to
     '''
