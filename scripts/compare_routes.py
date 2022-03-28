@@ -436,6 +436,7 @@ ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
 ped_routes_file = data_paths["pedestrian_routes"]
 veh_routes_file = data_paths["vehicle_routes"]
+av_vehicle_counts_file = data_paths['av_vehicle_counts']
 cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
 
@@ -496,8 +497,7 @@ weight_params = range(0, 100, 100)
 #
 #
 ######################################
-#dfRunDurations =  bd_utils.get_pedestrian_run_durations(dfCrossEvents)
-dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, veh_routes_file, output_vehicle_density_file)
+dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, av_vehicle_counts_file, output_vehicle_density_file)
 dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, range(0,100,100), dfVehCounts = dfVehCounts, ped_routes_path = ped_routes_file)

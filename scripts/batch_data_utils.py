@@ -107,6 +107,9 @@ def get_data_paths(file_datetime_string, data_dir):
     file_re = get_file_regex("vehicle_routes", file_datetime = file_datetime)
     veh_routes_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
+    file_re = get_file_regex("average_vehicle_count", file_datetime = file_datetime)
+    av_vehicle_counts_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
+
     file_re = get_file_regex("cross_events", file_datetime = file_datetime)
     cross_events_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
@@ -123,6 +126,7 @@ def get_data_paths(file_datetime_string, data_dir):
     output["pedestrian_pave_link_crossings"]=ped_crossings_file
     output["pedestrian_routes"]=ped_routes_file
     output["vehicle_routes"]=veh_routes_file
+    output['av_vehicle_counts'] = av_vehicle_counts_file
     output["cross_events"]=cross_events_file
     output["pedestrian_locations"]=ped_locations_file
     output["vehicle_road_links"]=vehicle_rls_file
@@ -550,6 +554,25 @@ def get_road_link_vehicle_density_from_vehicle_routes(gdfITNLinks, data_file, ou
         gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length', 'pedRLID'])
 
         dfVehRoutes = None
+
+        dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'fid', right_on = 'fid', how = 'left')
+        dfVehCounts['AvVehDen'] = dfVehCounts['AvVehCount'] / dfVehCounts['length']
+        dfVehCounts.drop('length', axis=1, inplace=True)
+
+        dfVehCounts.to_csv(output_path, index=False)
+    else:
+        dfVehCounts = pd.read_csv(output_path)
+
+    return dfVehCounts
+
+def get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, data_file, output_path):
+
+    if os.path.exists(output_path) == False:
+        
+        dfVehCounts = pd.read_csv(data_file)
+
+        # Merge with ITN links to get lookup to ped rl ID
+        gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length', 'pedRLID'])
 
         dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'fid', right_on = 'fid', how = 'left')
         dfVehCounts['AvVehDen'] = dfVehCounts['AvVehCount'] / dfVehCounts['length']
