@@ -43,6 +43,8 @@ import repastInterSim.agent.MobileAgent;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
+import repastInterSim.datasources.AvVehicleCountData;
+import repastInterSim.datasources.PedRouteData;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
@@ -443,6 +445,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Then if all agents have completed trips end simulation
 		if (context.getObjects(MobileAgent.class).size() == 0) {
+			recordRoadLinkData();
 			runCleanUP();
 			RunEnvironment.getInstance().endRun();
 		}
@@ -868,5 +871,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public static void setInformalCrossingStatus(boolean infX) {
 		SpaceBuilder.informalCrossing=infX;
+	}
+	
+	public void recordRoadLinkData() {
+    	// Loop through all road links in the ITN Road Link Geography and Record their average vehicel count
+		Context<Object> mc = RunState.getInstance().getMasterContext();
+		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		
+		Geography<RoadLink> itnRoadLinkGeog = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_LINK_GEOGRAPHY);
+		
+		for (RoadLink rl: itnRoadLinkGeog.getAllObjects()) {
+			AvVehicleCountData avcd = new AvVehicleCountData(rl.getFID(), rl.getAverageVehicleCount());
+			mc.add(avcd);
+			g.move(avcd, avcd.getGeom());
+		}
 	}
 }
