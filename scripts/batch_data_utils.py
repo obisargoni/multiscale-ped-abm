@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 import networkx as nx
+from scipy import stats
 import itertools
 import re
 from shapely.geometry import LineString
