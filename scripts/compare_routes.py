@@ -959,19 +959,17 @@ if 'variance_comparison' in setting:
                 alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
                 alt_model_paths.append(alt_model_path)
 
-    # Create complementary figure
-    edgelist = []
-    for edge_id in tp_links:
-        for e in list(pavement_graph.edges(data=True)):
-            if edge_id == e[-1]['fid']:
-                edgelist.append(e)
+    # Create complementary figure for alternative model paths
+    edgelist = [list(zip(i[:-1], i[1:])) for i in alt_model_paths]
+    
+    # Create series of all (u,v) tuple edges
+    all_edges = np.concatenate(edgelist)
+    s_edgelist = pd.Series(tuple(i) for i in all_edges)
 
-    # Now get link counts to colour figure by
-    # Aggregate single ped links to get edge data values
-    edge_traverse_counts = dfSinglePedPaths['edge_path'].value_counts()
-    edgedata = np.array([edge_traverse_counts[i] for i in tp_links])
+    # Count number of times each edge is traversed
+    edge_counts = s_edgelist.value_counts()
 
-    f_single_alt_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), [], fig_config)
+    f_single_alt_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edge_counts.index, edge_counts.values, plt.get_cmap('Reds'), [], fig_config)
     f_single_alt_paths.tight_layout()
     output_single_pad_paths = os.path.join(img_dir, "single_ped_alt_model_paths.{}.png".format(file_datetime_string))
     f_single_alt_paths.savefig(output_single_pad_paths)
