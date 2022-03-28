@@ -150,7 +150,7 @@ def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     paths["output_corr_factormap"] = os.path.join(data_dir , "corr_factor_map.{}.csv".format (file_datetime_string))
     paths["output_ped_distdurs_file"] = os.path.join(data_dir, "ped_durdists.{}.csv".format(file_datetime_string))
     paths["output_veh_distdurs_file"] = os.path.join(data_dir, "veh_durdists.{}.csv".format(file_datetime_string))
-
+    paths['output_alt_routes_file'] = os.path.join(data_dir, "alt_model_paths.{}.csv".format(file_datetime_string))
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
 
     return paths
@@ -698,6 +698,91 @@ def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links
 
     return dfSinglePedRoutes, pedID
 
+def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts = dfVehCounts, alt_routes_path = alt_routes_file, strategic_path_filter = True):
+    '''
+    Method for calculating routes accoring to an alternative shortest path model. Useful for comparing my hierarchical model to
+    '''
+    p, ext = os.path.splitext(alt_routes_path)
+    wmax = max(list(weight_params))
+    wstep = list(weight_params)[1] - list(weight_params)[0]
+    output_path = p.split(".")[0]+"_{}_{}_{}".format(wmax, wstep, strategic_path_filter)+".".join(p.split(".")[1:])+ext
+
+    if os.path.exists(output_path)==True:
+        print("\nLoading existing alternative model paths")
+
+        dfAltPaths = pd.read_csv(output_path)
+
+        # Reformal paths
+        dfAltPaths['sp'] = dfAltPaths['sp'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfAltPaths['alt_path'] = dfAltPaths['edge_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+    else:
+        print("\nCalculating alternative model paths")
+
+        dfUniqueStartEnd = dfPedRoutes.loc[:, ['start_node', 'end_node', 'FullStrategicPathString']].drop_duplicates()
+
+        # To do that ideantify direct crossings that correspond to crossing infrastructure
+        gdfPaveLinksDirectCrossings = gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross']
+        gdfPaveLinksCAs = gpd.sjoin(gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross'], gdfCAs, op = 'within')
+        direct_crossing_with_marked_cas = gdfPaveLinksCAs['fid'].unique()
+
+        # Create alternative set of paths for each vehicle flow setting
+        data = {'run':[], 'start_node':[], 'end_node':[], 'sp':[], 'k':[], 'j':[], 'ratio_min':[], 'ratio_max':[], 'ratio_median':[], 'alt_path':[], 'alt_path_length':[]}
+        for start_node, end_node, sp in dfUniqueStartEnd.values():
+            for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
+                for k in weight_params:
+                    for j in weight_params:
+                        weight_name = "weight{}_{}".format(k, j)
+
+                        # Calculate pavement link weights based on vehicle density
+                        dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
+
+                        if dfVehCounts is None:
+                            dfLinkWeights['cross_cost'] = 0
+                        else:
+                            dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
+                            dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
+
+                            # Initialise cross cost as zero
+                            dfLinkWeights['cross_cost'] = 0
+
+                            # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
+                            dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
+                            dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
+                            dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
+
+                        # sense check the weights be recording the median, min and max vaues of cross cost to length ratio
+                        ratio = (dfLinkWeights['cross_cost'] / dfLinkWeights['length'])
+                        min_ratio = ratio.min()
+                        max_ratio = ratio.max()
+                        median_ratio = ratio.median()
+
+                        # Weight pavement network crossing links by average vehicle flow
+                        weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+                        nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+                        if strategic_path_filter:
+                            alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
+                        else:
+                            alt_model_path = nx.dijkstra_path(pavement_graph, start_node, end_node, weight =  weight_name)
+
+                        alt_path_length = nx.path_weight(pavement_graph, alt_model_path, 'length')
+
+                        data['run'].append(run)
+                        data['start_node'].append(start_node)
+                        data['end_node'].append(end_node)
+                        data['sp'].append(sp)
+                        data['j'].append(j)
+                        data['k'].append(k)
+                        data['ratio_min'].append(min_ratio)
+                        data['ratio_max'].append(max_ratio)
+                        data['ratio_median'].append(median_ratio)
+                        data['alt_path'].append(alt_model_path)
+                        data['alt_path_length'].append(alt_path_length)
+
+        dfAltPaths = pd.DataFrame(data)
+        dfAltPaths.to_csv(output_path, index=False)
+
+    return dfAltPaths
 
 def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.csv"):
     '''Method to aggregate crossing events from the Ped Crossings dataset, to produce dataframe with single row per crossing event.

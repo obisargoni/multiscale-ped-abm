@@ -455,6 +455,7 @@ output_route_completion_path=       output_paths["output_route_completion_path"]
 output_cross_events_path=           output_paths["output_cross_events_path"]
 output_ks_factormap=                output_paths["output_ks_factormap"]
 output_corr_factormap=              output_paths["output_corr_factormap"]
+output_alt_routes_file=             output_paths["output_alt_routes_file"]
 
 
 #####################################
@@ -504,6 +505,10 @@ dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_counts(gdfITNL
 dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, range(0,100,100), dfVehCounts = dfVehCounts, ped_routes_path = ped_routes_file)
+
+# Calculate a corresponding set of routes using an alternative shortest path model
+dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts = dfVehCounts, alt_routes_path = output_alt_routes_file, strategic_path_filter = True)
+
 dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
