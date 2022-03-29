@@ -343,51 +343,50 @@ def plot_layers(ax, config, pavement = None, carriageway = None, road_link = Non
 
     return ax
 
-def figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNode, gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, edge_cmap, ped_links_exclude, fig_config, rotation=0):
+def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, edgelists, edgedatas, edge_cmap, title_font, labelsize, offsets, fig_config):
     '''Function for creating figures illustrating tactical path finding
     '''
 
     # Initialise figure
-    f, ax = plt.subplots(1,1, figsize = (10,10))
+    f, axs = plt.subplots(1,2, figsize = (10,10))
 
     # Get study area gdfs
     gdfORLinkSA = gdfORLink.loc[ gdfORLink['fid'].isin(study_area_rls)]
     study_area_nodes = np.concatenate( [gdfORLinkSA['MNodeFID'].values, gdfORLinkSA['PNodeFID'].values] )
-    gdfORNodeSA = gdfORNode.loc[ gdfORNode['node_fid'].isin(study_area_nodes)]
-    gdfTopoPedSA = gdfTopoPed.loc[gdfTopoPed['roadLinkID'].isin(study_area_rls)]
-    gdfTopoVehSA = gdfTopoVeh.loc[gdfTopoVeh['roadLinkID'].isin(study_area_rls)]
 
     # Select route layers
     gdfsp = gdfORLink.loc[ gdfORLink['fid'].isin( sp )]
 
-    gdfods = gdfPedODs.loc[ gdfPedODs['fid'].isin( [origin_id, dest_id])]
+    gdfo = gdfPedODs.loc[ gdfPedODs['fid']==start_node]
+    gdfd = gdfPedODs.loc[ gdfPedODs['fid']==end_node]
 
     vmin = 0
     vmax = 1
+    xmin, ymin, xmax, ymax = gdfsp.total_bounds
 
-    base = plt.gca().transData
-    rot = transforms.Affine2D().rotate_deg(rotation)
+    for i, ax in enumerate(axs):
+        gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7)
+        nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelists[i], width = 3, edge_color = edgedatas[i], edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
+        gdfo.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
+        gdfd.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
 
-    # plot these additional layers
-    gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7, transform = rot+base)
+        ox, oy = list(gdfo.geometry.values[0].coords[0])
+        dx, dy = list(gdfd.geometry.values[0].coords[0])
+        ax.annotate("O", xy=(ox, oy), xycoords='data', xytext=(ox+offsets[0][0], oy+offsets[0][1]), textcoords='data', fontsize = labelsize)
+        ax.annotate("D", xy=(dx, dy), xycoords='data', xytext=(dx+offsets[1][0], dy+offsets[1][0]), textcoords='data', fontsize = labelsize)
 
-    #nx.draw_networkx_nodes(G, dict_node_pos, ax = ax, nodelist=G.nodes(), node_color = 'grey', node_size = 1, alpha = 0.2)
-    nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
+        ax.set_title(titles[i], fontdict = title_font, y = 1.05)
 
-    gdfods.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9, transform = rot+base)
+        ax.set_xlim(xmin-3, xmax+3)
+        ax.set_ylim(ymin-7.5, ymax+7.5)
+
+        ax.set_axis_off()
 
     # Add colour bar
     smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
-    cbar = f.colorbar(smap, ax=ax, fraction=0.1, shrink = 0.8)
-    cbar.ax.tick_params(labelsize=25)
-
-    # Set limits
-    xmin, ymin, xmax, ymax = gdfsp.total_bounds
-    ax.set_xlim(xmin-3, xmax+3)
-    ax.set_ylim(ymin-7.5, ymax+7.5)
-
-    ax.set_axis_off()
-
+    cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.6)
+    cbar.ax.tick_params(labelsize=labelsize)
+    cbar.ax.set_ylabel("Proportion of paths", rotation=-90, labelpad = 20)
     return f
 
 #####################################
@@ -906,38 +905,33 @@ if 'variance_comparison' in setting:
     study_area_rls=sp
     tp_links = dfSinglePedPaths['edge_path'].unique()
 
-    edgelist = []
+    edgelistCLT = []
     for edge_id in tp_links:
         for e in list(pavement_graph.edges(data=True)):
             if edge_id == e[-1]['fid']:
-                edgelist.append(e)
+                edgelistCLT.append(e)
 
     # Now get link counts to colour figure by
     # Aggregate single ped links to get edge data values
     edge_traverse_counts = dfSinglePedPaths['edge_path'].value_counts()
-    edgedata = np.array([edge_traverse_counts[i] / n_paths for i in tp_links])
-
-    f_single_pad_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), [], fig_config)
-    f_single_pad_paths.tight_layout()
-    output_single_pad_paths = os.path.join(img_dir, "single_ped_paths.{}.png".format(file_datetime_string))
-    f_single_pad_paths.savefig(output_single_pad_paths)
-
+    edgedataCLT = np.array([edge_traverse_counts[i] / n_paths for i in tp_links])
 
     # Create complementary figure for alternative model paths
-    edgelist = [list(zip(i[:-1], i[1:])) for i in dfAltSinglePedPaths['alt_path']]
+    edges_sp = [list(zip(i[:-1], i[1:])) for i in dfAltSinglePedPaths['alt_path']]
     n_paths = len(dfAltSinglePedPaths['alt_path'])
-
-    # Create series of all (u,v) tuple edges
-    all_edges = np.concatenate(edgelist)
+    all_edges = np.concatenate(edges_sp) # Create series of all (u,v) tuple edges
     s_edgelist = pd.Series(tuple(i) for i in all_edges)
 
     # Count number of times each edge is traversed
     edge_counts = s_edgelist.value_counts() / n_paths
+    edgelistSP = edge_counts.index
+    edgedataSP = edge_counts.values
 
-    f_single_alt_paths = figure_single_ped_tactical_paths(study_area_rls, origin_id, dest_id, sp, gdfTopoVeh, gdfTopoPed, gdfORNodes, gdfORLinks, gdfPedODs, pavement_graph, dict_node_pos, edge_counts.index, edge_counts.values, plt.get_cmap('Reds'), [], fig_config)
-    f_single_alt_paths.tight_layout()
-    output_single_pad_paths = os.path.join(img_dir, "single_ped_alt_model_paths.{}.png".format(file_datetime_string))
-    f_single_alt_paths.savefig(output_single_pad_paths)
+    titles = ['Hierarchical CLT Model', 'Shortest Path Model']
+    f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('Reds'), {'fontsize':15}, 12, [[2,2],[2,2]], fig_config)
+    #f_path_comp.tight_layout()
+    output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp.{}.png".format(file_datetime_string))
+    f_path_comp.savefig(output_single_pad_paths)
 
     # Now compare path length varaition
     clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
