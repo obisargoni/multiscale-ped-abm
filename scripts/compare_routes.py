@@ -492,7 +492,7 @@ points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
 node_posistions = list(zip(points_pos['x'], points_pos['y']))
 dict_node_pos = dict(zip(points_pos.index, node_posistions))
 
-weight_params = range(0, 1100, 500)
+weight_params = range(0, 2100, 500)
 
 ######################################
 #
@@ -505,11 +505,6 @@ dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_counts(gdfITNL
 dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, range(0,100,100), dfVehCounts = dfVehCounts, ped_routes_path = ped_routes_file)
-
-# Calculate a corresponding set of routes using an alternative shortest path model
-dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
-
-dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
@@ -877,8 +872,27 @@ if "epsilon_gamma_scatter" in setting:
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
 
 if 'variance_comparison' in setting:
+    print("\nRunning variance comparison")
+
+    # Calculate a corresponding set of routes using an alternative shortest path model, aggregate to get mean trip length per parameter setting (run, k, j)
+    dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
+    dfAltRouteLengthMean = dfAlternativeRoutes.groupby(['run','k','j'])['alt_path_length'].mean().reset_index().rename(columns = {'alt_path_length':'mean_alt_path_length'})
+
+    print("\nComparing mean path length and SD between models:\n")
+    print(dfAltRouteLengthMean['mean_alt_path_length'].describe())
+    print(dfRouteLength['route_length_pp'].describe())
+
 
     print("\nProducing single agents paths figure")
+    dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
+
+    # Get corresponding alternative model paths
+    vs = dfSinglePedPaths.loc[:, ['FullStrategicPathString','start_node','end_node']].drop_duplicates().values
+    assert len(vs)==1
+    sp, start_node, end_node = vs[0]
+    origin_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==start_node, 'juncNodeID'].values[0]
+    dest_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==end_node, 'juncNodeID'].values[0]
+    dfAltSinglePedPaths = dfAlternativeRoutes.loc[ (dfAlternativeRoutes['sp']==sp) & (dfAlternativeRoutes['start_node']==start_node) * (dfAlternativeRoutes['end_node']==end_node) ]
 
     with open("figure_config.json") as f:
         fig_config = json.load(f)
@@ -886,21 +900,10 @@ if 'variance_comparison' in setting:
     gdfTopoVeh = gpd.read_file(vehicle_topographic_file)
     gdfTopoPed = gpd.read_file(pedestrian_topographic_file)
     gdfPedODs = gpd.read_file(ped_ods_file)
-
-
-    assert dfSinglePedPaths['start_node'].unique().shape[0]==1
-    assert dfSinglePedPaths['end_node'].unique().shape[0]==1
-
-    start_node = dfSinglePedPaths['start_node'].unique()[0]
-    end_node = dfSinglePedPaths['end_node'].unique()[0]
-
-    study_area_rls = dfSinglePedPaths['FullStrategicPathString'].values[0]
-    origin_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==start_node, 'juncNodeID'].values[0]
-    dest_id = gdfPaveNodes.loc[ gdfPaveNodes['fid']==end_node, 'juncNodeID'].values[0]
     
     n_paths = dfSinglePedPaths['run'].unique().shape[0]
 
-    sp = study_area_rls
+    study_area_rls=sp
     tp_links = dfSinglePedPaths['edge_path'].unique()
 
     edgelist = []
@@ -919,59 +922,11 @@ if 'variance_comparison' in setting:
     output_single_pad_paths = os.path.join(img_dir, "single_ped_paths.{}.png".format(file_datetime_string))
     f_single_pad_paths.savefig(output_single_pad_paths)
 
-    
-    # Not until here that we want to calculate tactical paths using alternative model
-    alt_model_paths = []
-
-    rng=np.random.RandomState(100)
-    eps = rng.normal(0, 0.25, size=100)
-
-    # Want to vary crossing cost on direct crossings and diagonal crossings separately.
-
-    # To do that ideantify direct crossings that correspond to crossing infrastructure
-    gdfPaveLinksDirectCrossings = gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross']
-    gdfPaveLinksCAs = gpd.sjoin(gdfPaveLinks.loc[ gdfPaveLinks['linkType'] == 'direct_cross'], gdfCAs, op = 'within')
-    direct_crossing_with_marked_cas = gdfPaveLinksCAs['fid'].unique()
-
-    # Create alternative set of paths for each vehicle flow setting
-    for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
-        for k in weight_params:
-            for j in weight_params:
-                weight_name = "weight{}_{}".format(k, j)
-
-                # Calculate pavement link weights based on vehicle density
-                dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
-
-                if dfVehCounts is None:
-                    dfLinkWeights['cross_cost'] = 0
-                else:
-                    
-
-                    dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
-                    dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
-
-                    # Initialise cross cost as zero
-                    dfLinkWeights['cross_cost'] = 0
-
-                    # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
-                    dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
-                    dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
-                    dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
-
-                # sense check the weights by comparing length to cross cost
-                print(weight_name)
-                print( (dfLinkWeights['cross_cost'] / dfLinkWeights['length']).describe())
-
-                # Weight pavement network crossing links by average vehicle flow
-                weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-                nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
-
-                alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
-                alt_model_paths.append(alt_model_path)
 
     # Create complementary figure for alternative model paths
-    edgelist = [list(zip(i[:-1], i[1:])) for i in alt_model_paths]
-    n_paths = len(alt_model_paths)
+    edgelist = [list(zip(i[:-1], i[1:])) for i in dfAltSinglePedPaths['alt_path']]
+    n_paths = len(dfAltSinglePedPaths['alt_path'])
+
     # Create series of all (u,v) tuple edges
     all_edges = np.concatenate(edgelist)
     s_edgelist = pd.Series(tuple(i) for i in all_edges)
@@ -986,12 +941,10 @@ if 'variance_comparison' in setting:
 
     # Now compare path length varaition
     clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
-    alt_model_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in alt_model_paths]
-
     s_clt = pd.Series(clt_path_lengths)
-    s_alt = pd.Series(alt_model_lengths)
+
     print(s_clt.describe())
-    print(s_alt.describe())
+    print(dfAltSinglePedPaths['alt_path_length'].describe())
 
 
 xlWriter.close()
