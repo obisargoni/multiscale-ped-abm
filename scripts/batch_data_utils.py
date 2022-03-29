@@ -743,7 +743,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
                             dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
 
                             # Initialise cross cost as zero
-                            dfLinkWeights['cross_cost'] = 0
+                            dfLinkWeights['AvVehDen'].fillna(0)
 
                             # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
                             dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
