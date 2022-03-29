@@ -742,16 +742,18 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
                             dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
                             dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
 
-                            # Initialise cross cost as zero
+                            # Initialise cross cost as zero. Calculate mean veh den to account for one:many lookup from or to itn links
                             dfLinkWeights['AvVehDen'] = dfLinkWeights['AvVehDen'].fillna(0)
+                            dfLinkWeights = dfLinkWeights.groupby(['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])['AvVehDen'].mean().reset_index()
 
                             # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
+                            dfLinkWeights['cross_cost']=0
                             dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
                             dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
                             dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
 
-                        # sense check the weights be recording the median, min and max vaues of cross cost to length ratio
-                        ratio = (dfLinkWeights['cross_cost'] / dfLinkWeights['length'])
+                        # sense check the weights by recording the median, min and max vaues of cross cost to length ratio for crossing links only
+                        ratio = (dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'cross_cost'] / dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'length'])
                         min_ratio = ratio.min()
                         max_ratio = ratio.max()
                         median_ratio = ratio.median()
