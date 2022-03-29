@@ -698,7 +698,7 @@ def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links
 
     return dfSinglePedRoutes, pedID
 
-def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfCAs, pavement_graph, weight_params, dfVehCounts, alt_routes_path, strategic_path_filter = True):
+def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, alt_routes_path, strategic_path_filter = True):
     '''
     Method for calculating routes accoring to an alternative shortest path model. Useful for comparing my hierarchical model to
     '''
@@ -727,7 +727,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
 
         # Create alternative set of paths for each vehicle flow setting
         data = {'run':[], 'start_node':[], 'end_node':[], 'sp':[], 'k':[], 'j':[], 'ratio_min':[], 'ratio_max':[], 'ratio_median':[], 'alt_path':[], 'alt_path_length':[]}
-        for start_node, end_node, sp in dfUniqueStartEnd.values():
+        for start_node, end_node, sp in dfUniqueStartEnd.values:
             for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
                 for k in weight_params:
                     for j in weight_params:
@@ -759,13 +759,17 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
                         # Weight pavement network crossing links by average vehicle flow
                         weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
                         nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
-
-                        if strategic_path_filter:
-                            alt_model_path = bd_utils.shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
-                        else:
-                            alt_model_path = nx.dijkstra_path(pavement_graph, start_node, end_node, weight =  weight_name)
-
-                        alt_path_length = nx.path_weight(pavement_graph, alt_model_path, 'length')
+                        try:
+                            if strategic_path_filter:
+                               alt_model_path = shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
+                               alt_path_length = nx.path_weight(pavement_graph, alt_model_path, 'length')
+                            else:
+                                alt_model_path = nx.dijkstra_path(pavement_graph, start_node, end_node, weight =  weight_name)
+                                alt_path_length = nx.path_weight(pavement_graph, alt_model_path, 'length')
+                        except Exception as err:
+                            print(start_node, end_node, sp, run, k, j)
+                            alt_model_path = None
+                            alt_path_length = None
 
                         data['run'].append(run)
                         data['start_node'].append(start_node)
