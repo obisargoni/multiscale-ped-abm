@@ -102,7 +102,7 @@ def get_data_paths(file_datetime_string, data_dir):
     file_re = get_file_regex("pedestrian_pave_link_crossings", file_datetime = file_datetime)
     ped_crossings_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
-    file_re = get_file_regex("pedestrian_routes", file_datetime = file_datetime)
+    file_re = get_file_regex(r"^pedestrian_routes", file_datetime = file_datetime)
     ped_routes_file = os.path.join(data_dir, most_recent_directory_file(data_dir, file_re))
 
     file_re = get_file_regex("vehicle_routes", file_datetime = file_datetime)
@@ -714,7 +714,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
 
         # Reformal paths
         dfAltPaths['sp'] = dfAltPaths['sp'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
-        dfAltPaths['alt_path'] = dfAltPaths['edge_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfAltPaths['alt_path'] = dfAltPaths['alt_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")) if pd.isnull(s)==False else s)
     else:
         print("\nCalculating alternative model paths")
 
