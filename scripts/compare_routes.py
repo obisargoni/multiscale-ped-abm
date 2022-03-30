@@ -346,7 +346,7 @@ def plot_layers(ax, config, pavement = None, carriageway = None, road_link = Non
 def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, edgelists, edgedatas, edge_cmap, title_font, labelsize, offsets, fig_config):
     '''Function for creating figures illustrating tactical path finding
     '''
-
+    plt.style.use('dark_background')
     # Initialise figure
     f, axs = plt.subplots(1,2, figsize = (10,10))
 
@@ -365,7 +365,7 @@ def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_
     xmin, ymin, xmax, ymax = gdfsp.total_bounds
 
     for i, ax in enumerate(axs):
-        gdfsp.plot(ax=ax, edgecolor = 'black', linewidth=fig_config['road_link']['linewidth'], linestyle = '-', zorder=7)
+        gdfsp.plot(ax=ax, edgecolor = fig_config['road_link']['color'], linewidth=fig_config['road_link']['linewidth'], linestyle = '-')
         nx.draw_networkx_edges(pavement_graph, dict_node_pos, ax = ax, edgelist=edgelists[i], width = 3, edge_color = edgedatas[i], edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
         gdfo.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
         gdfd.plot(ax=ax, edgecolor = fig_config['od']['color'], facecolor = fig_config['od']['color'], linewidth=fig_config['od']['linewidth'], zorder=9)
@@ -373,9 +373,9 @@ def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_
         ox, oy = list(gdfo.geometry.values[0].coords[0])
         dx, dy = list(gdfd.geometry.values[0].coords[0])
         ax.annotate("O", xy=(ox, oy), xycoords='data', xytext=(ox+offsets[0][0], oy+offsets[0][1]), textcoords='data', fontsize = labelsize)
-        ax.annotate("D", xy=(dx, dy), xycoords='data', xytext=(dx+offsets[1][0], dy+offsets[1][0]), textcoords='data', fontsize = labelsize)
+        ax.annotate("D", xy=(dx, dy), xycoords='data', xytext=(dx+offsets[1][0], dy+offsets[1][1]), textcoords='data', fontsize = labelsize)
 
-        ax.set_title(titles[i], fontdict = title_font, y = 1.05)
+        ax.set_title(titles[i], fontdict = title_font, y = 1.03)
 
         ax.set_xlim(xmin-3, xmax+3)
         ax.set_ylim(ymin-7.5, ymax+7.5)
@@ -387,6 +387,7 @@ def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_
     cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.6)
     cbar.ax.tick_params(labelsize=labelsize)
     cbar.ax.set_ylabel("Proportion of paths", rotation=-90, labelpad = 20)
+    plt.style.use('default')
     return f
 
 #####################################
@@ -927,8 +928,8 @@ if 'variance_comparison' in setting:
     edgelistSP = edge_counts.index
     edgedataSP = edge_counts.values
 
-    titles = ['Hierarchical CLT Model', 'Shortest Path Model']
-    f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('Reds'), {'fontsize':15}, 12, [[2,2],[2,2]], fig_config)
+    titles = ['Hierarchical CLT', 'Constrained Shortest Path']
+    f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('spring'), {'fontsize':15}, 12, [[10,4],[15,-10]], fig_config)
     #f_path_comp.tight_layout()
     output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp_{}_{}.{}.png".format(weight_params.stop, weight_params.step, file_datetime_string))
     f_path_comp.savefig(output_single_pad_paths)
