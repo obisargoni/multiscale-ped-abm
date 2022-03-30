@@ -930,7 +930,7 @@ if 'variance_comparison' in setting:
     titles = ['Hierarchical CLT Model', 'Shortest Path Model']
     f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('Reds'), {'fontsize':15}, 12, [[2,2],[2,2]], fig_config)
     #f_path_comp.tight_layout()
-    output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp.{}.png".format(file_datetime_string))
+    output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp_{}_{}.{}.png".format(weight_params.stop, weight_params.step, file_datetime_string))
     f_path_comp.savefig(output_single_pad_paths)
 
     # Now compare path length varaition
