@@ -432,7 +432,7 @@ def get_run_total_route_length(dfPedRoutes, dfRun, pavement_graph, output_path =
 
         # Merge in parameter values
         dfRouteLength = pd.merge(dfRun, dfRouteLength, on = 'run')
-        dfRouteLength = pd.merge(dfRun, dfRouteLengthPerPed, on = 'run')
+        dfRouteLength = pd.merge(dfRouteLength, dfRouteLengthPerPed, on = 'run')
 
         # Save date for future use
         dfRouteLength.to_csv(output_path, index=False)
