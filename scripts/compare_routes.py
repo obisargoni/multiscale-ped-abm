@@ -881,6 +881,8 @@ if 'variance_comparison' in setting:
     print("\nComparing mean path length and SD between models:\n")
     print(dfAltRouteLengthMean['mean_alt_path_length'].describe())
     print(dfRouteLength['route_length_pp'].describe())
+    print(dfAltRouteLengthMean['mean_alt_path_length'].var())
+    print(dfRouteLength['route_length_pp'].var())
 
 
     print("\nProducing single agents paths figure")
