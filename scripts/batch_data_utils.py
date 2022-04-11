@@ -894,13 +894,15 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
     # Get bin of this position
     dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['fid_pave'], row['node_path'], gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins))
 
-    return dfCrossEvents
 
+    dfCrossEntropy = dfCrossEvents.groupby(['run'])['bin'].value_counts().reset_index()
+    dfCrossEntropy['total'] = dfCrossEntropy.groupby('run')['bin'].transform(lambda s: s.sum())
+    dfCrossEntropy['pi'] = dfCrossEntropy['bin'] / dfCrossEntropy['total']
+    dfCrossEntropy['pi_log_pi'] = dfCrossEntropy['pi']* np.log(dfCrossEntropy['pi'])
 
+    dfCrossRunEntropy = dfCrossEntropy.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
 
-    dfCrossEvents.drop('geometry', axis=1, inplace=True)
-
-    return dfCrossEvents
+    return dfCrossRunEntropy
 
 
 def all_strategic_path_simple_paths(dfPedRoutes, gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length'):
