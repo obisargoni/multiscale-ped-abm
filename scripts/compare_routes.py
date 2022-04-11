@@ -456,6 +456,7 @@ output_cross_events_path=           output_paths["output_cross_events_path"]
 output_ks_factormap=                output_paths["output_ks_factormap"]
 output_corr_factormap=              output_paths["output_corr_factormap"]
 output_alt_routes_file=             output_paths["output_alt_routes_file"]
+output_cross_entropy =              output_paths["output_cross_entropy"]
 
 
 #####################################
@@ -521,6 +522,7 @@ dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEve
 
 print("\nCalculating/Loading Output Metrics")
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 10, output_path = output_cross_entropy)
 dfSPSim = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'dice_dist', output_path = output_sp_similarity_path)
 dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'path_length', output_path = output_sp_similarity_length_path)
 dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
@@ -701,6 +703,22 @@ if "morris_factor_fixing" in setting:
     f_rlsi.clear()
     dfRLSis.to_excel(xlWriter, sheet_name = "route_length_pp_sis_{}".format(k))
 
+
+    print("\nCalculating sensitivity indices - Crossing location entropy")
+    X = dfCrossLocEntropy.loc[: problem['names']].values
+    Y = dfCrossLocEntropy['cross_entropy']
+    try:
+        Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
+    except ValueError as e:
+        print(e)
+        print(k)
+
+    # Gather into a dataframe
+    dfEiSs = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
+    f_rlsi = morris_si_bar_figure(dfRLSis, "Crossing Location Entropy Sensitivity", r"$\mathrm{\mu^*}$", dfEiSs['names'].replace(rename_dict))
+    f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}.png".format(file_datetime_string)))
+    f_rlsi.clear()
+    dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}".format(k))
 
 if 'sobol_si' in setting:
 
