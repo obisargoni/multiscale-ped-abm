@@ -698,7 +698,7 @@ if "morris_factor_fixing" in setting:
 
     # Gather into a dataframe
     dfRLSis = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_rlsi = morris_si_bar_figure(dfRLSis, "Mean Path Length Sensitivity", r"$\mathrm{\mu^*}$", dfRLSis['names'].replace(rename_dict))
+    f_rlsi = morris_si_bar_figure(dfRLSis, r"\bar{L} Sensitivity", r"$\mathrm{\mu^*}$", dfRLSis['names'].replace(rename_dict))
     f_rlsi.savefig(os.path.join(img_dir, "route_length_pp_sis.{}.png".format(file_datetime_string)))
     f_rlsi.clear()
     dfRLSis.to_excel(xlWriter, sheet_name = "route_length_pp_sis_{}".format(k))
