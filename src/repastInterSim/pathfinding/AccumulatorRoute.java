@@ -55,6 +55,7 @@ public class AccumulatorRoute {
 	private double sampledCAwt;
 	private CrossingAlternative chosenCA = null;
 	private LinkedList<Coordinate> crossingCoordinates = new LinkedList<Coordinate>();
+	private LinkedList<Coordinate> crossingCoordsFixed;
 	
 	private UnmarkedCrossingAlternative umCAForDetourDist=null; // Unmarked crossing alternative object that is used for comparison to other crossing alternatives to calculate detour distance. May or may not be in choice set. 
 	
@@ -334,6 +335,8 @@ public class AccumulatorRoute {
 		this.caChosen = true;
 		this.crossingCoordinates.push(this.chosenCA.nearestCoord(this.ped.getLoc()));
 		this.crossingCoordinates.push(this.chosenCA.farthestCoord(this.ped.getLoc()));
+		this.crossingCoordsFixed = (LinkedList<Coordinate>) this.crossingCoordinates.clone();
+		
 		this.ped.setWaitAtJunction(false);
 		
 		// Record the link corresponding to this crossing now, before ped actually starts crossing, so that cases where ped tries to cross but changes mind are identifiable
@@ -424,7 +427,7 @@ public class AccumulatorRoute {
 		this.isCrossing=true;
 		
 		// Created data recorder to record ttc as ped crosses
-		CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordinates);
+		CrossEventData ced = new CrossEventData(this.ped.getID(), this.targetRouteEdgeFID(), this.getChosenCA().getType(), this.crossingCoordsFixed);
 		Context<Object> mc = RunState.getInstance().getMasterContext();
 		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
 		mc.add(ced);
