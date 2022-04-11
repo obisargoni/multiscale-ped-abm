@@ -827,6 +827,82 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
     return dfCrossEvents
 
+def linestring_from_crossing_coord_string(ccs, coord_regex = re.compile(r"(\d{6}.\d+)")):
+    xys = coord_regex.findall(c)
+    p1 = Point(*map(float, xys[:2]))
+    p2 = Point(*map(float, xys[2:]))
+    l = LineString([p1,p2])
+    return l
+
+def crossing_location_bin(cross_point, rl_geom, rl_fid, pave_fid, ped_path gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins):
+
+    # Get the OR junction node of the start and end of roadl link from pedestrian's journey perspective
+    pave_m_node, pave_p_node = gdfPaveLinks.loc[ gdfPaveLinks['fid']==pave_fid, ['MNodeFID','PNodeFID']].values[0]
+    pave_m_node_path_index = ped_path.index(pave_m_node)
+    pave_p_node_path_index = ped_path.index(pave_p_node)
+
+    # Now find which of the rl nodes comes first
+    or_first_node = None
+    if pave_m_node_path_index < pave_p_node_path_index:
+        or_first_node = gdfPaveNodes.loc[ gdfPaveNodes['fid']==pave_m_node, 'juncNodeID'].values[0]
+    else:
+        or_first_node = gdfPaveNodes.loc[ gdfPaveNodes['fid']==pave_p_node, 'juncNodeID'].values[0]
+
+    road_link_start_coord_index = None
+    if or_first_node==gdfORLinks.loc[gdfORLinks['fid']==rl_fid, 'MNodeFID']:
+        road_link_start_coord_index = 0
+    else:
+        road_link_start_coord_index = -1
+
+
+    # Calculate distance of crossing point from start of road link
+    d = cross_point.distance(rl_geom.coords[road_link_start_coord_index])
+
+    # Now bin distance
+    cross_bin = int(np.floor( (d/rl_geom.length) * nbins))
+    if cross_bin>=nbins:
+        cross_bin = nbins-1
+
+    return cross_bin
+
+def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins = 10, output_path = "crossing_location_entropy.csv"):
+    '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
+    and calculating the probability of a crossing occuring in each bin. These probabilities are used to calculate the crossing entropy.
+    '''
+
+    # columns = run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC', 'linkType'
+
+    # Merge in ped paths so that the direction they walk along the road link being crossed can be determined
+    dfCrossEvents = pd.merge(dfCrossEvents, dfPedPaths, on = ['run','ID'], how='left')
+
+    # Merge to Pave Links and to OR links to get length of road being crossed.
+    dfCrossEvents = pd.merge(dfCrossEvents,  gdfPaveLinks.reindex(columns = ['pedRoadID', 'fid']), left_on = 'TacticalEdgeID', right_on = 'fid', how = 'left', indicator=True)
+    assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+    dfCrossEvents.drop('_merge', axis=1, inplace=True)
+
+    # Merge to OR Links to get road length
+    dfCrossEvents = pd.merge(dfCrossEvents,  gdfORLinks.reindex(columns = ['fid', 'geometry']), left_on = 'pedRLID', right_on = 'fid', how = 'left', indicator=True, suffixes = ('_pave', '_or'))
+    assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+    dfCrossEvents.drop('_merge', axis=1, inplace=True)
+
+    # Now bin crossing location
+
+    # Get intersection/nearest point between crossing coord string and road link
+    dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
+    dfCrossEvents['rl_cross_point'] = dfCrossEvents.apply(lambda row: row['cross_linestring'].intersection(row['geometry']))
+
+    # Get bin of this position
+    dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['fid_pave'], row['node_path'], gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins))
+
+    return dfCrossEvents
+
+
+
+    dfCrossEvents.drop('geometry', axis=1, inplace=True)
+
+    return dfCrossEvents
+
+
 def all_strategic_path_simple_paths(dfPedRoutes, gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length'):
     '''Function returns a dataframe with the IDs of pedestrian agents, their corresponding strategic paths, and all the simple pavement netowkr paths corresponding to each strategic path + start and end pavement node
     '''
