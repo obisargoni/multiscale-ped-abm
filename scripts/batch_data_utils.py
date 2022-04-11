@@ -152,6 +152,7 @@ def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     paths["output_veh_distdurs_file"] = os.path.join(data_dir, "veh_durdists.{}.csv".format(file_datetime_string))
     paths['output_alt_routes_file'] = os.path.join(data_dir, "alt_model_paths.{}.csv".format(file_datetime_string))
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
+    paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}.csv".format(file_datetime_string))
 
     return paths
 
@@ -807,6 +808,9 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
         # Group by run, ID and TacticalEdgeID to find min TTC per cross event
         dfCrossEvents['TTC'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['TTC'].transform(lambda s: s.min())
+        dfCrossEvents['tick_start'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['tick'].transform(lambda s: s.min())
+        dfCrossEvents['tick_end'] = dfCrossEvents.groupby(['run', 'ID', 'CrossingType', 'TacticalEdgeID'])['tick'].transform(lambda s: s.max())
+        dfCrossEvents.drop('tick',axis=1, inplace=True)
 
         # Drop duplicates again now that TTC and crossing coord processed
         dfCrossEvents = dfCrossEvents.drop_duplicates()
@@ -828,35 +832,41 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
     return dfCrossEvents
 
 def linestring_from_crossing_coord_string(ccs, coord_regex = re.compile(r"(\d{6}.\d+)")):
-    xys = coord_regex.findall(c)
+    xys = coord_regex.findall(ccs)
     p1 = Point(*map(float, xys[:2]))
     p2 = Point(*map(float, xys[2:]))
     l = LineString([p1,p2])
     return l
 
-def crossing_location_bin(cross_point, rl_geom, rl_fid, pave_fid, ped_path gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins):
+def road_link_crossing_point(cross_line_geom, rl_geom):
 
-    # Get the OR junction node of the start and end of roadl link from pedestrian's journey perspective
-    pave_m_node, pave_p_node = gdfPaveLinks.loc[ gdfPaveLinks['fid']==pave_fid, ['MNodeFID','PNodeFID']].values[0]
-    pave_m_node_path_index = ped_path.index(pave_m_node)
-    pave_p_node_path_index = ped_path.index(pave_p_node)
+    intersection = cross_line_geom.intersection(rl_geom)
 
-    # Now find which of the rl nodes comes first
-    or_first_node = None
-    if pave_m_node_path_index < pave_p_node_path_index:
-        or_first_node = gdfPaveNodes.loc[ gdfPaveNodes['fid']==pave_m_node, 'juncNodeID'].values[0]
+    c_point=None
+    if len(intersection.coords)==1:
+        c_point = intersection.coords[0]
     else:
-        or_first_node = gdfPaveNodes.loc[ gdfPaveNodes['fid']==pave_p_node, 'juncNodeID'].values[0]
+        midpoint = cross_line_geom.centroid
+        d1 = midpoint.distance(Point(rl_geom.coords[0]))
+        d2 = midpoint.distance(Point(rl_geom.coords[-1]))
 
+        if d1<d2:
+            c_point = rl_geom.coords[0]
+        else:
+            c_point = rl_geom.coords[-1]
+
+    return Point(c_point)
+
+def crossing_location_bin(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks, nbins):
     road_link_start_coord_index = None
-    if or_first_node==gdfORLinks.loc[gdfORLinks['fid']==rl_fid, 'MNodeFID']:
+    if or_first_node==gdfORLinks.loc[gdfORLinks['fid']==rl_fid, 'MNodeFID'].values[0]:
         road_link_start_coord_index = 0
     else:
         road_link_start_coord_index = -1
 
 
     # Calculate distance of crossing point from start of road link
-    d = cross_point.distance(rl_geom.coords[road_link_start_coord_index])
+    d = cross_point.distance(Point(rl_geom.coords[road_link_start_coord_index]))
 
     # Now bin distance
     cross_bin = int(np.floor( (d/rl_geom.length) * nbins))
@@ -865,42 +875,56 @@ def crossing_location_bin(cross_point, rl_geom, rl_fid, pave_fid, ped_path gdfPa
 
     return cross_bin
 
-def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins = 10, output_path = "crossing_location_entropy.csv"):
+def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 10, output_path = "crossing_location_entropy.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin. These probabilities are used to calculate the crossing entropy.
     '''
 
-    # columns = run', 'ID', 'FullStrategicPathString', 'CrossingType', 'TacticalEdgeID', 'CrossingCoordinatesString', 'TTC', 'linkType'
+    if os.path.exists(output_path)==False:
+        # Merge in ped paths so that the direction they walk along the road link being crossed can be determined
+        dfCrossEvents = pd.merge(dfCrossEvents, dfPedPaths, on = ['run','ID'], how='left', indicator = True)
+        assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+        dfCrossEvents.drop('_merge', axis=1, inplace=True)
 
-    # Merge in ped paths so that the direction they walk along the road link being crossed can be determined
-    dfCrossEvents = pd.merge(dfCrossEvents, dfPedPaths, on = ['run','ID'], how='left')
+        # Merge to Pave Links and to OR links to get length of road being crossed.
+        dfCrossEvents = pd.merge(dfCrossEvents,  gdfPaveLinks.reindex(columns = ['pedRLID', 'fid', 'MNodeFID','PNodeFID']), left_on = 'TacticalEdgeID', right_on = 'fid', how = 'left', indicator=True)
+        assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+        dfCrossEvents.drop('_merge', axis=1, inplace=True)
 
-    # Merge to Pave Links and to OR links to get length of road being crossed.
-    dfCrossEvents = pd.merge(dfCrossEvents,  gdfPaveLinks.reindex(columns = ['pedRoadID', 'fid']), left_on = 'TacticalEdgeID', right_on = 'fid', how = 'left', indicator=True)
-    assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
-    dfCrossEvents.drop('_merge', axis=1, inplace=True)
+        # Merge to OR Links to get road length
+        dfCrossEvents = pd.merge(dfCrossEvents,  gdfORLinks.reindex(columns = ['fid', 'geometry']), left_on = 'pedRLID', right_on = 'fid', how = 'left', indicator=True, suffixes = ('_pave', '_or'))
+        assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+        dfCrossEvents.drop('_merge', axis=1, inplace=True)
 
-    # Merge to OR Links to get road length
-    dfCrossEvents = pd.merge(dfCrossEvents,  gdfORLinks.reindex(columns = ['fid', 'geometry']), left_on = 'pedRLID', right_on = 'fid', how = 'left', indicator=True, suffixes = ('_pave', '_or'))
-    assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
-    dfCrossEvents.drop('_merge', axis=1, inplace=True)
+        # Now identify which node of the crossing link ped started at
+        dfCrossEvents['start_pave_node'] = dfCrossEvents.apply(lambda row: row['MNodeFID'] if row['node_path'].index(row['MNodeFID']) < row['node_path'].index(row['PNodeFID']) else row['PNodeFID'], axis=1)
 
-    # Now bin crossing location
+        # Join OR junction node to this to find starting road link node
+        dfCrossEvents = pd.merge(dfCrossEvents,  gdfPaveNodes.reindex(columns = ['fid', 'juncNodeID']), left_on = 'start_pave_node', right_on = 'fid', how = 'left', indicator=True)
+        assert dfCrossEvents.loc[ dfCrossEvents['_merge']!='both'].shape[0]==0
+        dfCrossEvents.drop('_merge', axis=1, inplace=True)
 
-    # Get intersection/nearest point between crossing coord string and road link
-    dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
-    dfCrossEvents['rl_cross_point'] = dfCrossEvents.apply(lambda row: row['cross_linestring'].intersection(row['geometry']))
+        # Get intersection/nearest point between crossing coord string and road link
+        dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
+        dfCrossEvents['rl_cross_point'] = dfCrossEvents.apply(lambda row: road_link_crossing_point(row['cross_linestring'], row['geometry']), axis=1)
 
-    # Get bin of this position
-    dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['fid_pave'], row['node_path'], gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins))
+        # Get bin of this position
+        dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['juncNodeID'], gdfORLinks, nbins), axis=1)
 
+        run_bin_counts = dfCrossEvents.groupby(['run'])['bin'].value_counts()
+        run_bin_counts.name = 'bin_count'
+        dfRunBinCounts = run_bin_counts.reset_index()
 
-    dfCrossEntropy = dfCrossEvents.groupby(['run'])['bin'].value_counts().reset_index()
-    dfCrossEntropy['total'] = dfCrossEntropy.groupby('run')['bin'].transform(lambda s: s.sum())
-    dfCrossEntropy['pi'] = dfCrossEntropy['bin'] / dfCrossEntropy['total']
-    dfCrossEntropy['pi_log_pi'] = dfCrossEntropy['pi']* np.log(dfCrossEntropy['pi'])
+        dfRunBinCounts['total'] = dfRunBinCounts.groupby('run')['bin_count'].transform(lambda s: s.sum())
+        dfRunBinCounts['pi'] = dfRunBinCounts['bin_count'] / dfRunBinCounts['total']
+        dfRunBinCounts['pi_log_pi'] = dfRunBinCounts['pi']* np.log(dfRunBinCounts['pi'])
 
-    dfCrossRunEntropy = dfCrossEntropy.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
+        dfCrossRunEntropy = dfRunBinCounts.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
+
+        # Finally merge with run parameters
+        dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
+    else:
+        dfCrossRunEntropy = pd.read_csv(output_path)
 
     return dfCrossRunEntropy
 
