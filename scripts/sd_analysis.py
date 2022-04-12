@@ -66,6 +66,7 @@ output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
 output_veh_distdurs_file = output_paths["output_veh_distdurs_file"]
 output_sp_similarity_length_path = output_paths["output_sp_similarity_length_path"]
 output_cross_events_path = output_paths["output_cross_events_path"]
+output_cross_entropy = output_paths["output_cross_entropy"]
 
 output_sd_data = output_paths["output_sd_data"]
 
