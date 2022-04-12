@@ -587,6 +587,30 @@ def get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, data_file, ou
 
     return dfVehCounts
 
+def edge_path_from_tactical_route_string_old(trs):
+    ep = tuple(dict.fromkeys(trs.strip(":").split(":")))
+    return ep
+
+def edge_path_from_tactical_route_string(trs):
+
+    # Need to loop through the path anre remove duplicated links in a row.
+    # The whole path can have duplicated links but not next to each other
+    ep = []
+    orig_ep = trs.strip(":").split(":")
+    i=0
+    ep.append(orig_ep[i])
+    n=0
+    while (n<len(orig_ep)):
+        # if next link is different, add it to path and set counter to zero
+        if (orig_ep[i]==orig_ep[n]):
+            pass
+        else:
+            i=n
+            ep.append(orig_ep[i])
+        n+=1
+
+    return tuple(ep)
+
 def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, dfVehCounts = None, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
 
     d,f = os.path.split(ped_routes_path)
@@ -620,7 +644,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(dict.fromkeys(s.strip(":").split(":"))))
 
         # Convert string tactical path to list
-        dfPedRoutes['edge_path'] = dfPedRoutes['FullTacticalRouteString'].map(lambda s: tuple(dict.fromkeys(s.strip(":").split(":"))))
+        dfPedRoutes['edge_path'] = dfPedRoutes['FullTacticalRouteString'].map(lambda s: edge_path_from_tactical_route_string(s))
 
         # Convert edge path to node path
         dfPedRoutes['node_path'] = dfPedRoutes.apply(lambda row: node_path_from_edge_path(row['edge_path'], row['StartPavementJunctionID'], row['DestPavementJunctionID'], pavement_graph), axis=1)
@@ -929,7 +953,6 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
         dfCrossRunEntropy = pd.read_csv(output_path)
 
     return dfCrossRunEntropy
-
 
 def all_strategic_path_simple_paths(dfPedRoutes, gdfORLinks, gdfPaveNodes, pavement_graph, simple_paths_path = "simple_paths.csv", weight='length'):
     '''Function returns a dataframe with the IDs of pedestrian agents, their corresponding strategic paths, and all the simple pavement netowkr paths corresponding to each strategic path + start and end pavement node
