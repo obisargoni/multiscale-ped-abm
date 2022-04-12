@@ -705,17 +705,16 @@ if "morris_factor_fixing" in setting:
 
 
     print("\nCalculating sensitivity indices - Crossing location entropy")
-    X = dfCrossLocEntropy.loc[: problem['names']].values
-    Y = dfCrossLocEntropy['cross_entropy']
+    X = dfCrossLocEntropy.loc[:, problem['names']].values
+    Y = dfCrossLocEntropy['cross_entropy'].values
     try:
         Sis = morris.analyze(problem, X, Y, num_resamples = 100, conf_level= 0.95, print_to_console = False, num_levels = num_levels, seed=random_seed)
     except ValueError as e:
         print(e)
-        print(k)
 
     # Gather into a dataframe
     dfEiSs = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
-    f_rlsi = morris_si_bar_figure(dfRLSis, "Crossing Location Entropy Sensitivity", r"$\mathrm{\mu^*}$", dfEiSs['names'].replace(rename_dict))
+    f_rlsi = morris_si_bar_figure(dfEiSs, "Crossing Location Entropy Sensitivity", r"$\mathrm{\mu^*}$", dfEiSs['names'].replace(rename_dict))
     f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}.png".format(file_datetime_string)))
     f_rlsi.clear()
     dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}".format(k))
