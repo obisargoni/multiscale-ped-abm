@@ -923,6 +923,8 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
 
         # Finally merge with run parameters
         dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
+
+        dfCrossRunEntropy.to_csv(output_path, index=False)
     else:
         dfCrossRunEntropy = pd.read_csv(output_path)
 
