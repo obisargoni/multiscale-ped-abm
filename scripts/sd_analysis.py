@@ -116,13 +116,13 @@ gdfPaveLinks['AvVehDen'] = 0.0
 weight_params = range(0, 100, 100)
 
 dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, ped_routes_path = ped_routes_file, strategic_path_filter=False)
-#dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
+dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 #dfRouteCompletion = bd_utils.agg_route_completions(dfPedRoutes, dfRun, output_path = output_route_completion_path)
 
 # Important for sensitivity analysis to compare the same set of trips between runs.
 # To do this need to exclude peds ID that get removed from all other runs
 dfPedRoutesConsistentPeds = dfPedRoutes.loc[ ~dfPedRoutes['ID'].isin(dfPedRoutes_removedpeds['ID'])]
-#dfCrossEventsConsistentPeds = dfCrossEvents.loc[ ~dfCrossEvents['ID'].isin(dfPedRoutes_removedpeds['ID'])]
+dfCrossEventsConsistentPeds = dfCrossEvents.loc[ ~dfCrossEvents['ID'].isin(dfPedRoutes_removedpeds['ID'])]
 
 #dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEventsConsistentPeds, gdfPaveLinks)
 
@@ -132,6 +132,7 @@ print("\nCalculating/Loading Output Metrics")
 
 dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutesConsistentPeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 10, output_path = output_cross_entropy)
 
 #dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
 #dfConflictsUnmarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
@@ -143,6 +144,11 @@ print("\nAggregating Metrics for Policy Analysis")
 
 # Merge pedestrian and vehicle distances and durations together
 dfDD = pd.merge(dfPedTripDD, dfVehTripDD.reindex(columns = ['run','DistPA','DurPA']), on='run', indicator=True, how = 'outer', suffixes = ("Ped", "Veh"))
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+
+# Merge in crossing location entropy data
+dfDD = pd.merge(dfDD, dfCrossLocEntropy.reindex(columns = ['run','cross_entropy']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
@@ -176,6 +182,9 @@ dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg
 														VehDistDiff = pd.NamedAgg(column = "DistPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
 														PedDurDiff = pd.NamedAgg(column = "DurPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
 														VehDurDiff = pd.NamedAgg(column = "DurPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
+														CrossEntDiff = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: s.values[0] - s.values[1]),
+														PedDistDiffFrac = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
+														CrossEntDiffFrac = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
 														CountRuns = pd.NamedAgg(column = "run", aggfunc=lambda s: s.shape[0]),
 														RunsStr = pd.NamedAgg(column = "run", aggfunc=lambda s: ":".join(str(i) for i in s.tolist())),
 													).reset_index()
@@ -207,7 +216,7 @@ assert config['setting'] == 'latin' # expect LH desig to be used when doing SD
 
 experiments = dfDD.loc[:, params]
 
-outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh']
+outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh', 'CrossEntDiff']
 outcomes = {k:dfDD[k].values for k in outcome_vars}
 
 # Create pairs plot
@@ -222,11 +231,10 @@ plt.show()
 #
 
 # Identify successfull scenarios, categorise into two groups
-dfPolicyDiff['success'] = (dfPolicyDiff['PedDurDiff'] < 0.3) & (dfPolicyDiff['VehDurDiff']<0) # vehicle wait times reduced and pedestrian wait times not significantly worse
+dfPolicyDiff['success'] = (dfPolicyDiff['PedDistDiffFrac'] > -0.1) & (dfPolicyDiff['CrossEntDiffFrac']<0) # crossing is more ordered and pedestrian trips not made too much longer on average
 
 # select parameters that actually varied
 varied_scenario_param_cols = [i for i in scenario_param_cols if params[i]['type']=='list']
-
 
 # Now use PRIM to identify what determines policy success/failure most
 x = dfPolicyDiff.loc[:, varied_scenario_param_cols].copy()
