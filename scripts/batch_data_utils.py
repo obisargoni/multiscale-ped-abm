@@ -192,7 +192,7 @@ def adjacent_edge_node(n, e):
     else:
         return None
 
-def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph):
+def node_path_from_edge_path_old(edge_id_path, start_node, end_node, pavement_graph):
     '''Get a node path from an edge path using the graph the path is on
     '''
 
@@ -234,6 +234,62 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
             next_candidate = adjacent_edge_node(candidate, edge_path_reverse[i+1])
 
         if (next_candidate is not None) & (candidate not in node_path):
+             node_path.append(candidate)
+             prev = candidate
+
+        if prev == start_node:
+            break
+
+
+    # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
+    # In this case return empty list
+    if len(node_path)==1:
+        return []
+
+    return node_path[::-1]
+
+def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph):
+    '''Get a node path from an edge path using the graph the path is on
+    '''
+
+    edge_path = []
+    for e_id in edge_id_path:
+        for e in pavement_graph.edges(data=True):
+            if e[-1]['fid'] == e_id:
+                edge_path.append(e[:2])
+                break
+
+    # Work way backwards through edges to reconstruct path
+    node_path = [end_node]
+    prev = end_node
+    edge_path_reverse = edge_path[::-1]
+    for i, e in enumerate(edge_path_reverse):
+        candidate = adjacent_edge_node(prev, e)
+
+        # The candidate node wll be none in cases where the edge path did not get to the destination node due to the ped being removed from the simulation.
+        if candidate is None:
+            break
+
+        # Decide whether this node was part of the path by looking at next edge
+        if i == len(edge_path_reverse)-1:
+            # If at the end of the edge path need different rule
+
+            if candidate == start_node:
+                # In this case the first pavement link is included in the edge path and so the path ends at the start node
+                # Set next_candidate to be the candidate node so that the candidate node is added to the node path
+                next_candidate = candidate
+            else:
+                # Check if the candidate is adjacent to the start node. if not then this edge is a default edge not traversed. Don't include in route.
+                if start_node in pavement_graph.neighbors(candidate):
+                    next_candidate = candidate
+                else:
+                    next_candidate = None
+
+        else:
+            # Now check that candidate connects to next edge
+            next_candidate = adjacent_edge_node(candidate, edge_path_reverse[i+1])
+
+        if (next_candidate is not None):
              node_path.append(candidate)
              prev = candidate
 
@@ -593,6 +649,9 @@ def edge_path_from_tactical_route_string_old(trs):
 
 def edge_path_from_tactical_route_string(trs):
 
+    # First get unique set of links in order of when they first appear in the path
+    links = tuple(dict.fromkeys(trs.strip(":").split(":")))
+
     # Need to loop through the path anre remove duplicated links in a row.
     # The whole path can have duplicated links but not next to each other
     ep = []
@@ -609,7 +668,24 @@ def edge_path_from_tactical_route_string(trs):
             ep.append(orig_ep[i])
         n+=1
 
-    return tuple(ep)
+    # Finally, identify whether the agent doubles back at any point in the path. Duplicate the double back link where this occurs
+    ep_final = []
+    prev_direction = True
+    for i, e in enumerate(ep[:-1]):
+        ep_final.append(e)
+
+        e_next = ep[i+1]
+        direction = links.index(e)<links.index(e_next) # true means ped moving to unseen link 
+
+        if (prev_direction & ~direction): 
+            # means that a double back has occurred, ped was moving to unseen links then moved to already traversed link
+            ep_final.append(e)
+
+        prev_direction = direction
+
+    ep_final.append(ep[-1])
+
+    return tuple(ep_final)
 
 def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, dfVehCounts = None, ped_routes_path = "ped_routes.csv", strategic_path_filter = True):
 
