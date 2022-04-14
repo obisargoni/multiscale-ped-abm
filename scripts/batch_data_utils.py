@@ -938,9 +938,7 @@ def road_link_crossing_point(cross_line_geom, rl_geom):
     intersection = cross_line_geom.intersection(rl_geom)
 
     c_point=None
-    if len(intersection.coords)==1:
-        c_point = intersection.coords[0]
-    else:
+    if intersection.is_empty:
         midpoint = cross_line_geom.centroid
         d1 = midpoint.distance(Point(rl_geom.coords[0]))
         d2 = midpoint.distance(Point(rl_geom.coords[-1]))
@@ -949,6 +947,12 @@ def road_link_crossing_point(cross_line_geom, rl_geom):
             c_point = rl_geom.coords[0]
         else:
             c_point = rl_geom.coords[-1]
+    else:
+        t = intersection.type
+        if t=='Point':
+            c_point = intersection.coords[0]
+        else:
+            c_point = intersection.centroid.coords[0]
 
     return Point(c_point)
 
