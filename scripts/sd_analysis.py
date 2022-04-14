@@ -191,7 +191,7 @@ dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg
 													).reset_index()
 
 for c in scenario_param_cols:
-	dfPolicyDiff[c] = dfPolicyDiff[c].to_numeric()
+	dfPolicyDiff[c] = dfPolicyDiff[c].astype(float)
 
 # Check that there are expected number of runs per scenario
 assert (dfPolicyDiff['CountRuns']==2).all()
