@@ -95,7 +95,7 @@ def sample_params(method, problem, N_samples, random_seed, num_levels, calc_seco
 		N_designs=sample_config['N_designs']
 		sampled_values = np.empty([N_samples*N_designs, problem['num_vars']])
 		for i in range(N_designs):
-			svs = latin.sample(problem, N_samples, seed=random_seed)
+			svs = latin.sample(problem, N_samples, seed=random_seed+(i*N_designs))
 			sampled_values[i*N_samples:(i+1)*N_samples, :] = svs
 	else:
 		sampled_values = mc_sample(problem, N_samples, seed = random_seed)
