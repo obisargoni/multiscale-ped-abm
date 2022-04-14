@@ -273,7 +273,6 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
         # Decide whether this node was part of the path by looking at next edge
         if i == len(edge_path_reverse)-1:
             # If at the end of the edge path need different rule
-
             if candidate == start_node:
                 # In this case the first pavement link is included in the edge path and so the path ends at the start node
                 # Set next_candidate to be the candidate node so that the candidate node is added to the node path
@@ -292,10 +291,6 @@ def node_path_from_edge_path(edge_id_path, start_node, end_node, pavement_graph)
         if (next_candidate is not None):
              node_path.append(candidate)
              prev = candidate
-
-        if prev == start_node:
-            break
-
 
     # If ped agent got removed from the simulation it would not have reached the end node and the path will not have any other nodes added
     # In this case return empty list
