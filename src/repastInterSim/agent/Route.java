@@ -219,22 +219,21 @@ public class Route implements Cacheable {
 			 */
 			boolean destinationOnRoad = true;
 			Coordinate finalDestination = null;
+			/*
 			if (!coordOnRoad(currentCoord)) {
-				/*
-				 * Not on a road so the first coordinate to add to the route is the point on the closest road segment.
-				 */
+				//Not on a road so the first coordinate to add to the route is the point on the closest road segment.
 				currentCoord = getNearestRoadCoord(currentCoord);
 				addToRoute(currentCoord, RoadLink.nullRoad, 1, "setRoute() initial");
 			}
 			if (!coordOnRoad(destCoord)) {
-				/*
-				 * Not on a road, so need to set the destination to be the closest point on a road, and set the
-				 * destinationOnRoad boolean to false so we know to add the final dest coord at the end of the route
-				 */
+				
+				 // Not on a road, so need to set the destination to be the closest point on a road, and set the
+				// destinationOnRoad boolean to false so we know to add the final dest coord at the end of the route
 				destinationOnRoad = false;
 				finalDestination = destCoord; // Added to route at end of alg.
 				destCoord = getNearestRoadCoord(destCoord);
 			}
+			*/
 
 
 			
