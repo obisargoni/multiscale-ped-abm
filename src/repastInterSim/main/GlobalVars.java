@@ -47,7 +47,7 @@ public abstract class GlobalVars {
 	public static final String TestDataDir = "TestDataDir";
 	public static final String VehicleRoadShapefile = "VehicleRoadShapefile";
 	public static final String PedestrianRoadShapefile = "PedestrianRoadShapefile";
-	public static final String RoadLinkShapefile = "RoadLinkShapefile";
+	public static final String RoadLinkShapefile = "VehicleRoadLinkShapefile";
 	public static final String ORRoadLinkShapefile = "ORRoadLinkShapefile";
 	public static final String PedestrianObstructionShapefile = "PedestrianObstructionShapefile";
 	public static final String VehicleDestinationsFile = "VehicleDestinationsFile";
