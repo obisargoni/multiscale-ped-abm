@@ -217,7 +217,7 @@ assert config['setting'] == 'latin' # expect LH desig to be used when doing SD
 
 experiments = dfDD.loc[:, params]
 
-outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh', 'CrossEntDiff']
+outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh', 'cross_entropy']
 outcomes = {k:dfDD[k].values for k in outcome_vars}
 
 # Create pairs plot
@@ -242,7 +242,7 @@ x = dfPolicyDiff.loc[:, varied_scenario_param_cols].copy()
 y = dfPolicyDiff['success'].values
 
 # Round values to make visualisations clearer
-for c in ['epsilon','lambda','alpha', 'tacticalPlanHorizon', 'ga']:
+for c in ['epsilon','lambda','alpha', 'tacticalPlanHorizon']:
 	x[c] = x[c].map(lambda x: np.round(x, 4))
 
 prim_alg = prim.Prim(x, y, threshold=0.8)
