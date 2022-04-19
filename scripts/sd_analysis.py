@@ -215,7 +215,6 @@ assert (dfPolicyDiff['CountRuns']==2).all()
 ##############################
 
 import matplotlib.pyplot as plt
-from ema_workbench.analysis import prim
 import seaborn as sns
 
 assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
@@ -235,24 +234,3 @@ data = dfDD.loc[:, outcome_vars]
 data['informalCrossing'] = experiments['informalCrossing']
 sns.pairplot(data, hue='informalCrossing', vars=outcome_vars)
 plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
-
-#
-# PRIM analysis requires a boolean outcome variable
-#
-
-# Identify successfull scenarios, categorise into two groups
-dfPolicyDiff['success'] = (dfPolicyDiff['PedDistDiffFrac'] > -0.1) & (dfPolicyDiff['CrossEntDiffFrac']<0) # crossing is more ordered and pedestrian trips not made too much longer on average
-
-# select parameters that actually varied
-varied_scenario_param_cols = [i for i in scenario_param_cols if params[i]['type']=='list']
-
-# Now use PRIM to identify what determines policy success/failure most
-x = dfPolicyDiff.loc[:, varied_scenario_param_cols].copy()
-y = dfPolicyDiff['success'].values
-
-# Round values to make visualisations clearer
-for c in ['epsilon','lambda','alpha', 'tacticalPlanHorizon']:
-	x[c] = x[c].map(lambda x: np.round(x, 4))
-
-prim_alg = prim.Prim(x, y, threshold=0.8)
-box1 = prim_alg.find_box()
