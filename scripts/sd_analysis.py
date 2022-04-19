@@ -140,6 +140,7 @@ dfCrossEventsBins = bd_utils.get_crossing_locations_and_bins(dfCrossEvents, dfPe
 gdfCrossEventsBins = gpd.GeoDataFrame(dfCrossEventsBins, geometry = 'rl_cross_point', crs = {'init' :'epsg:27700'})
 gdfCrossEventsBins = pd.merge(gdfCrossEventsBins, dfRun, on='run')
 gdfCrossEventsBins.drop(['fid', 'node_path'], axis=1, inplace=True)
+gdfCrossEventsBins.drop(['node_path'], axis=1, inplace=True)
 gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==True].to_file(os.path.join(data_dir, 'cross_locs_informal.{}.gpkg'.format(file_datetime_string)), driver='GPKG')
 gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==False].to_file(os.path.join(data_dir, 'cross_locs_no_informal.{}.gpkg'.format(file_datetime_string)), driver='GPKG')
 
