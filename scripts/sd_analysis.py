@@ -217,7 +217,7 @@ import matplotlib.pyplot as plt
 from ema_workbench.analysis import prim
 import seaborn as sns
 
-assert config['setting'] == 'latin' # expect LH desig to be used when doing SD
+assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
 
 
 #
