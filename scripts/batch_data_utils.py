@@ -135,7 +135,7 @@ def get_data_paths(file_datetime_string, data_dir):
 
     return output
 
-def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
+def get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = ''):
     # output paths for processed data
     paths = {}
     paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
@@ -152,7 +152,7 @@ def get_ouput_paths(file_datetime_string, vehicle_density_timestamp,  data_dir):
     paths["output_veh_distdurs_file"] = os.path.join(data_dir, "veh_durdists.{}.csv".format(file_datetime_string))
     paths['output_alt_routes_file'] = os.path.join(data_dir, "alt_model_paths.{}.csv".format(file_datetime_string))
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
-    paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}.csv".format(file_datetime_string))
+    paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
 
     return paths
 

@@ -41,6 +41,7 @@ setting = config['setting']
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
+nbins = config['crossing_nbins']
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
@@ -59,7 +60,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"] 
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = nbins)
 output_ped_routes_file = output_paths["output_ped_routes_file"]
 output_route_length_file = output_paths["output_route_length_file"]
 output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
@@ -133,16 +134,16 @@ print("\nCalculating/Loading Output Metrics")
 
 dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutes_removedpeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 5, output_path = output_cross_entropy)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, output_path = output_cross_entropy)
 
 # Helpful to visualise the crossing coordiantes
-dfCrossEventsBins = bd_utils.get_crossing_locations_and_bins(dfCrossEvents, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, 5)
+
+dfCrossEventsBins = bd_utils.get_crossing_locations_and_bins(dfCrossEvents, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins)
 gdfCrossEventsBins = gpd.GeoDataFrame(dfCrossEventsBins, geometry = 'rl_cross_point', crs = {'init' :'epsg:27700'})
 gdfCrossEventsBins = pd.merge(gdfCrossEventsBins, dfRun, on='run')
 gdfCrossEventsBins.drop(['fid', 'node_path'], axis=1, inplace=True)
-gdfCrossEventsBins.drop(['node_path'], axis=1, inplace=True)
-gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==True].to_file(os.path.join(data_dir, 'cross_locs_informal.{}.gpkg'.format(file_datetime_string)), driver='GPKG')
-gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==False].to_file(os.path.join(data_dir, 'cross_locs_no_informal.{}.gpkg'.format(file_datetime_string)), driver='GPKG')
+gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==True].to_file(os.path.join(data_dir, 'cross_locs_informal.{}.{}.gpkg'.format(nbins, file_datetime_string)), driver='GPKG')
+gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==False].to_file(os.path.join(data_dir, 'cross_locs_no_informal.{}.{}.gpkg'.format(nbins, file_datetime_string)), driver='GPKG')
 
 #dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
 #dfConflictsUnmarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
@@ -233,8 +234,7 @@ outcomes = {k:dfDD[k].values for k in outcome_vars}
 data = dfDD.loc[:, outcome_vars]
 data['informalCrossing'] = experiments['informalCrossing']
 sns.pairplot(data, hue='informalCrossing', vars=outcome_vars)
-plt.show()
-
+plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
 
 #
 # PRIM analysis requires a boolean outcome variable
