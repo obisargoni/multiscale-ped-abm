@@ -34,7 +34,9 @@ import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.IO;
 import repastInterSim.main.SpaceBuilder;
+import repastInterSim.pathfinding.AccumulatorRoute;
 import repastInterSim.pathfinding.PedPathFinder;
+import repastInterSim.pathfinding.TacticalRoute;
 
 public class Ped extends MobileAgent {
 	private static int uniqueID = 1;
@@ -1021,7 +1023,16 @@ public class Ped extends MobileAgent {
 	 * Flag that indicates whether this pedestrian has chosen a crossing and is therefore attempting to cross the road
 	 */
 	public boolean isCrossing() {
-		return this.pathFinder.getTacticalPath().getAccumulatorRoute().isCrossing();
+		PedPathFinder ppf = this.pathFinder;
+		if (ppf==null) {
+			return false;
+		}
+		else {
+			TacticalRoute tr = ppf.getTacticalPath();
+			AccumulatorRoute ar = tr.getAccumulatorRoute();
+			boolean isCrossing = ar.isCrossing();
+			return isCrossing;
+		}
 	}
 	
     public double[] getV() {
