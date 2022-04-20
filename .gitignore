@@ -25,6 +25,9 @@ hs_err_pid*
 
 *.orig
 
+/icons/*
+/installer/*
+
 /.project
 /.settings/org.eclipse.jdt.groovy.core.prefs
 /batch/model_run_data/*
@@ -79,3 +82,4 @@ hs_err_pid*
 # Compiled python files
 *.pyc
 /scripts/sample/sample_config.json
+/scripts/figure_config.json

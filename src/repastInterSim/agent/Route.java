@@ -112,6 +112,8 @@ public class Route implements Cacheable {
 	// Record which function has added each coord, useful for debugging
 	protected List<String> routeDescriptionX;
 	
+	protected String fullStrategicPathString = "";
+	
 
 	/*
 	 * Cache every coordinate which forms a road so that Route.onRoad() is quicker. Also save the Road(s) they are part
@@ -217,22 +219,21 @@ public class Route implements Cacheable {
 			 */
 			boolean destinationOnRoad = true;
 			Coordinate finalDestination = null;
+			/*
 			if (!coordOnRoad(currentCoord)) {
-				/*
-				 * Not on a road so the first coordinate to add to the route is the point on the closest road segment.
-				 */
+				//Not on a road so the first coordinate to add to the route is the point on the closest road segment.
 				currentCoord = getNearestRoadCoord(currentCoord);
 				addToRoute(currentCoord, RoadLink.nullRoad, 1, "setRoute() initial");
 			}
 			if (!coordOnRoad(destCoord)) {
-				/*
-				 * Not on a road, so need to set the destination to be the closest point on a road, and set the
-				 * destinationOnRoad boolean to false so we know to add the final dest coord at the end of the route
-				 */
+				
+				 // Not on a road, so need to set the destination to be the closest point on a road, and set the
+				// destinationOnRoad boolean to false so we know to add the final dest coord at the end of the route
 				destinationOnRoad = false;
 				finalDestination = destCoord; // Added to route at end of alg.
 				destCoord = getNearestRoadCoord(destCoord);
 			}
+			*/
 
 
 			
@@ -353,6 +354,11 @@ public class Route implements Cacheable {
 
 			// Check lists are still the same size.
 			checkListSizes();
+			
+			// record the IDs of the roads in the route in a single string variable
+			for (RoadLink rl: this.roadsX) {
+				this.fullStrategicPathString = this.fullStrategicPathString + ":" + rl.getFID();
+			}
 
 		} catch (RoutingException e) {
 			/*
@@ -1186,6 +1192,10 @@ public class Route implements Cacheable {
 	
 	public List<Double> getRouteSpeedsX(){
 		return this.routeSpeedsX;
+	}
+	
+	public String getFullStrategicPathString() {
+		return this.fullStrategicPathString;
 	}
 	
 	public void clear() {

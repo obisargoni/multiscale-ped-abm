@@ -47,7 +47,7 @@ public abstract class GlobalVars {
 	public static final String TestDataDir = "TestDataDir";
 	public static final String VehicleRoadShapefile = "VehicleRoadShapefile";
 	public static final String PedestrianRoadShapefile = "PedestrianRoadShapefile";
-	public static final String RoadLinkShapefile = "RoadLinkShapefile";
+	public static final String RoadLinkShapefile = "VehicleRoadLinkShapefile";
 	public static final String ORRoadLinkShapefile = "ORRoadLinkShapefile";
 	public static final String PedestrianObstructionShapefile = "PedestrianObstructionShapefile";
 	public static final String VehicleDestinationsFile = "VehicleDestinationsFile";
@@ -168,10 +168,7 @@ public abstract class GlobalVars {
 		public static final String ROAD_NETWORK = "RoadNetwork";
 		public static final String OR_ROAD_NETWORK = "ORRoadNetwork";
 		public static final String GRID_NETWORK = "GridNetwork";
-		
-		public static final String AGENT_CONTEXT = "AgentContext";
-		public static final String AGENT_GEOGRAPHY = "AgentGeography";
-		
+
 		public static final String BASE_COVERAGE = "baseGrid";
 
 	}

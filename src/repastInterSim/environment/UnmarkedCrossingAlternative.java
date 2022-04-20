@@ -1,33 +1,28 @@
 package repastInterSim.environment;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.space.gis.Geography;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
-import repastInterSim.pathfinding.RoadNetworkRoute;
 
 public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	
 	private Ped ped;
 	
 	private String type = "unmarked";
+	
+	private CrossingCoordsCache ccc;
 
 	public UnmarkedCrossingAlternative() {
-		// TODO Auto-generated constructor stub
+		this.ccc = new CrossingCoordsCache();
 	}
 	
 	/*
@@ -100,149 +95,63 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	}
 	
 	/*
-	 * Returns 1 if a conflict would occur between the input pedestrian and vehicles if the pedestrian were 
-	 * to cross at this crossing alternative.
-	 * 
-	 * @param Ped p
-	 */
-	@Override
-	public int wouldConflictOccur(Ped p) {
-		Coordinate c1 = getC1();
-		Coordinate c2 = getC2();
-		
-		double crossingTime = c1.distance(c2) / p.getDesiredSpeed();
-
-		// Initialise the pedestrian position and velocity to use for the ttc calculation
-		double[] pLoc = new double[2];
-		pLoc[0] = p.getLoc().x;
-		pLoc[1] = p.getLoc().y;
-		
-		// For pedestrian velocity, assume pedestrian walks from start to end crossing coordinate as it's desired speed
-		double bearing = GISFunctions.bearingBetweenCoordinates(c1, c2);
-		double[] pV = {p.getDesiredSpeed()*Math.sin(bearing), p.getDesiredSpeed()*Math.cos(bearing)};
-		
-		// Loop through vehicles on the road links this crossing covers
-		// Calculate TTC for each vehicle
-		// If TTC < time 
-		List<RoadLink> itnLinks = this.getCurrentVehicleRoadLinks(); 
-		for (int i=0; i<itnLinks.size(); i++){
-			RoadLink rl = itnLinks.get(i);
-			for(int j = 0; j<rl.getQueue().count(); j++){
-				int vi = rl.getQueue().readPos() + j;
-				if (vi>=rl.getQueue().capacity()) {
-					vi = vi-rl.getQueue().capacity();
-				}
-				Vehicle v = rl.getQueue().elements[vi];
-				
-				Double ttc = v.TTC(pLoc, pV);
-				
-				if (ttc!=null) {
-					if (ttc<crossingTime) {
-						return 1;
-					}
-				}
-			}
-		}
-		return 0;
-	}
-	
-	/*
-	 * Find the coordiante on the opposite side of the road to the pedestrians current position.
+	 * Find the nearest coordinate on the opposite side of the road to the pedestrians current position.
 	 * 
 	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
 	 * and at the far edge of the carriadgeway from the pedestrian.
 	 * 
 	 * @param Coordinate c
 	 * 		The location of the pedestrian agent
-	 * @param RoadLink roadLink
-	 * 		The road link the pedestrian agent is currently walking beside
-	 * @param Geography<Road> rG
-	 * 		The Road geography. Contains pavement and carriageway polygons objects
 	 * @param Geography<PedObstruction> poG
 	 * 		Geography containing the ped obstructions.
-	 * @param List<RoadLink> fsp
-	 * 		The strategic path road links. Contains all strategic path links, even those the pedestrian agent has passed.
 	 * 
 	 * @returns
 	 * 		Coordinate
 	 */
-	public Coordinate oppositeSideOfRoadCoord(Coordinate c, Geography<Road> rG, Geography<PedObstruction> poG) {
-		
-		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
-		Coordinate[] rlCoords = this.getORRoadLink().getGeom().getCoordinates(); 
-		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
-		double perp1 = rlBearing - Math.PI / 2;
-		double perp2 = rlBearing + Math.PI / 2;
-		
-		// Find which of these bearings points to opp side of road to ped
-		Coordinate rlCent = this.getORRoadLink().getGeom().getCentroid().getCoordinate();
-		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
-		
-		double range1 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp1);
-		double range2 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp2);
-		
-		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
-		// Use this to identify if a coordinate is on the opposite side of the road
-		double oppRoadAngle;
-		if (range1>Math.PI/2) {
-			oppRoadAngle = perp1;
-		} 
-		else {
-			oppRoadAngle = perp2;
-		}
-		
-		
-		// Identify geometries that demark the edge of the road - pedestrian pavement polygons and obstruction geometries.
-		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
-		List<Road> caPedRoads = this.getORRoadLink().getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
-		for (Road rd: caPedRoads) {
-			roadEdgeGeoms.add(rd.getGeom());
-		}
-		
-		// Add in ped obstruction geoms
-		Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
-		for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
-			roadEdgeGeoms.add(g);
-		}
-				
-		// Loop through ped roads and find nearest coordinate on each
-		Double minDist = Double.MAX_VALUE;
-		Coordinate nearestOpCoord = null;
-		Point p = GISFunctions.pointGeometryFromCoordinate(c);	
-		for (Geometry g: roadEdgeGeoms) {
-			
-			// Find the point nearest to the pedestrian
-			DistanceOp distOP = new DistanceOp(p, g);
-			Coordinate nearC = distOP.nearestPoints()[1];
-
-			// Check if this coordinate is on the opposite side of the road
-			double angToC = GISFunctions.bearingBetweenCoordinates(rlCent, nearC);
-			double angRange = Vector.nonReflexAngleBetweenBearings(angToC, oppRoadAngle);
-			
-			// If angle between bearing from centre of road link and coord and direction perpendicular to road link towards opposite side of the road
-			// is greater than 90 degs this coordinate is not on the other side of the road
-			if (angRange>Math.PI/2) {
-				continue;
-			}
-			
-			// Check if this coordinate is the nearest on the other side of the raod, if so update the chosen coord
-			double d = c.distance(nearC);
-			if (d < minDist) {
-				minDist = d;
-				nearestOpCoord = nearC;
-			}
-		}		
+	public Coordinate oppositeSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG) {
+		RoadLink orRoadLink = this.getORRoadLink();
+		Coordinate rlCent = orRoadLink.getGeom().getCentroid().getCoordinate();
+		double oppRoadAngle = GISFunctions.oppositeSideOfRoadAngle(c, orRoadLink, rlCent);
+		Coordinate nearestOpCoord = GISFunctions.xSideOfRoadCoord(c, poG, "opposite", orRoadLink, rlCent, oppRoadAngle);
 		return nearestOpCoord;
 	}
 	
+	/*
+	 * Find the nearest carriageway coordinate on the same side of the road to the pedestrians current position.
+	 * 
+	 * Same side of the road defined as being in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
+	 * and at the near edge of the carriadgeway from the pedestrian.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * 
+	 * @returns
+	 * 		Coordinate
+	 */
+	public Coordinate sameSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG) {
+		RoadLink orRoadLink = this.getORRoadLink();
+		Coordinate rlCent = orRoadLink.getGeom().getCentroid().getCoordinate();
+		double oppRoadAngle = GISFunctions.oppositeSideOfRoadAngle(c, orRoadLink, rlCent);
+		Coordinate nearestSameCoord = GISFunctions.xSideOfRoadCoord(c, poG, "same", orRoadLink, rlCent, oppRoadAngle);
+		return nearestSameCoord;
+	}
+	
 	public Coordinate getC1() {
-		return this.ped.getLoc();
+		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
+		RoadLink orRoadLink = this.getORRoadLink();
+		boolean caChosen = this.ped.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen();
+		
+		return ccc.getC1(this.ped.getLoc(), pedObstructGeography, orRoadLink, caChosen);
 	}
 
 	public Coordinate getC2() {
-		Geography<Road> roadGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.ROAD_GEOGRAPHY);
 		Geography<PedObstruction> pedObstructGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PED_OBSTRUCTION_GEOGRAPHY);
-		return oppositeSideOfRoadCoord(this.ped.getLoc(), roadGeography, pedObstructGeography);
+		RoadLink orRoadLink = this.getORRoadLink();
+		boolean caChosen = this.ped.getPathFinder().getTacticalPath().getAccumulatorRoute().caChosen();
+		
+		return ccc.getC2(this.ped.getLoc(), pedObstructGeography, orRoadLink, caChosen);
 	}
 	
 	public String getType() {
@@ -272,7 +181,113 @@ public class UnmarkedCrossingAlternative extends CrossingAlternative {
 	 */
 	public void setGeom(Geometry c) {
 		// TODO Auto-generated method stub
+	}
+	
+	@Override
+	public double getCrossingBearing() {
+		return GISFunctions.bearingBetweenCoordinates(this.getC1(), this.getC2());
+	}
+	
+	@Override
+	public double getCrossingDistance() {
+		return this.getC1().distance(this.getC2());
+	}
+
+}
+
+/**
+ * Caches the start and end coordinates of the crossing. Cache is recreated when new input coordinate is given (ie the pedestrian's location changes)
+ * 
+ * @author Obi Thompson Sargoni
+ */
+class CrossingCoordsCache {
+	
+	// Used to control when to update the cache
+	private boolean caChosen;
+	private Coordinate cacheCoord;
+	private RoadLink cacheRL;
+
+	private Coordinate[] theCache = new Coordinate[2]; // Records the crossing coordinates
+	private Double oppRoadBearing;
+	private Coordinate rlCentroid;
+
+	CrossingCoordsCache() {
 		
+	}
+
+	public void clear() {
+		this.theCache[0]=null;
+		this.theCache[1]=null;
+		this.oppRoadBearing=null;
+		this.rlCentroid=null;
+	}
+
+	
+	private void populateCache(Coordinate c, Geography<PedObstruction> poG, RoadLink orRoadLink, boolean caChosen) {
+		
+		this.caChosen = caChosen;
+		this.cacheCoord=c;
+		this.cacheRL=orRoadLink;
+		
+		this.rlCentroid = orRoadLink.getGeom().getCentroid().getCoordinate();
+		this.oppRoadBearing = GISFunctions.oppositeSideOfRoadAngle(c, orRoadLink, this.rlCentroid);
+		
+		Coordinate nearestOppCoord = GISFunctions.xSideOfRoadCoord(c, poG, "opposite", orRoadLink, this.rlCentroid, this.oppRoadBearing);
+		Coordinate nearestSameCoord = GISFunctions.xSideOfRoadCoord(c, poG, "same", orRoadLink, this.rlCentroid, this.oppRoadBearing);
+		
+		this.theCache[0] = nearestSameCoord;
+		this.theCache[1] = nearestOppCoord;
+	}
+
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 * @throws Exception
+	 */
+	public Coordinate getC1(Coordinate c, Geography<PedObstruction> poG, RoadLink orRoadLink, boolean caChosen) {
+		
+		boolean populate = decidePopulate(c, orRoadLink, caChosen);
+		
+		if (populate) {
+			populateCache(c, poG, orRoadLink, caChosen);
+		}
+		
+		return this.theCache[0];
+	}
+	
+	/**
+	 * 
+	 * @param c
+	 * @return
+	 * @throws Exception
+	 */
+	public Coordinate getC2(Coordinate c, Geography<PedObstruction> poG, RoadLink orRoadLink, boolean caChosen) {
+		
+		boolean populate = decidePopulate(c, orRoadLink, caChosen);
+		
+		if (populate) {
+			populateCache(c, poG, orRoadLink, caChosen);
+		}
+		
+		return this.theCache[1];
+	}
+	
+	private boolean decidePopulate(Coordinate c, RoadLink orRoadLink, boolean caChosen) {
+		boolean populate;
+		if ( this.cacheCoord==null ) {
+			populate=true;
+		}
+		else if (caChosen==true) {
+			populate = false;
+		}
+		else if(c.equals2D(this.cacheCoord)) {
+			populate = false;
+		}
+		else {
+			populate = true;
+		}
+		return populate;
 	}
 
 }

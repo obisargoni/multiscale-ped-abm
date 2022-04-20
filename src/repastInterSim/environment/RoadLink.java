@@ -4,12 +4,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.velocity.runtime.RuntimeInstance;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
+import repast.simphony.engine.environment.RunEnvironment;
+import repast.simphony.engine.environment.RunState;
+import repast.simphony.engine.schedule.ScheduledMethod;
 import repastInterSim.agent.Ped;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.main.GlobalVars;
@@ -34,6 +39,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	private RingBufferFillCount<Vehicle> queue;
 	private List<Ped> peds = new ArrayList<Ped>();
 	private List<Road> roads = new ArrayList<Road>();
+	private double averageVehicleCount=0;
 	
 	/**
 	 * The null road represents Road objects that do not actually exist, preventing NullPointerExceptions. This is
@@ -58,6 +64,12 @@ public class RoadLink implements FixedGeography, Serializable {
 		int capacity = Math.max(1, (int) (roadLength / GlobalVars.vehicleLength)); 
 		Vehicle[] queueArr = new Vehicle[capacity];
 		this.queue = new RingBufferFillCount<Vehicle>(queueArr);
+	}
+	
+	@ScheduledMethod(start = 1, interval = 1, priority = 3)
+	public void updateAverageVehicleCount() {
+		int vehCount = this.queue.count();
+		this.averageVehicleCount+= (vehCount - this.averageVehicleCount) / RunEnvironment.getInstance().getCurrentSchedule().getTickCount();
 	}
 
 	@Override
@@ -178,6 +190,10 @@ public class RoadLink implements FixedGeography, Serializable {
 	
 	public List<Road> getRoads(){
 		return this.roads;
+	}
+	
+	public double getAverageVehicleCount() {
+		return this.averageVehicleCount;
 	}
 	
 	public void clear() {

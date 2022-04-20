@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.geotools.coverage.grid.GridCoordinates2D;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -33,6 +34,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.context.Context;
 import repast.simphony.gis.util.GeometryUtil;
@@ -1107,6 +1109,122 @@ public class GISFunctions {
 		
 		// If difference between bearings is < 90 degs then coordinate is in front
 		return Math.abs(bearing - bearingToC) < Math.PI/2;
+	}
+	
+	/*
+	 * Find the bearing that points to the opposite side of the road from the input coordinate.
+	 * 
+	 */
+	public static double oppositeSideOfRoadAngle(Coordinate c, RoadLink orRoadLink, Coordinate rlCent) {
+		// Opposite side of the road is in direction perpendicular to road link. Find the bearing to the opposite side of the road
+		Coordinate[] rlCoords =orRoadLink.getGeom().getCoordinates(); 
+		double rlBearing = GISFunctions.bearingBetweenCoordinates(rlCoords[0], rlCoords[rlCoords.length-1]);
+		double perp1 = rlBearing - Math.PI / 2;
+		double perp2 = rlBearing + Math.PI / 2;
+		
+		// Find which of these bearings points to opp side of road to ped
+		double rlToPedBearing = GISFunctions.bearingBetweenCoordinates(rlCent, c);
+		
+		double range1 = Vector.nonReflexAngleBetweenBearings(rlToPedBearing, perp1);
+		
+		// Bearing to opposite side will be more than 90 deg from bearing to ped. 
+		// Use this to identify if a coordinate is on the opposite side of the road
+		double oppRoadAngle;
+		if (range1>Math.PI/2) {
+			oppRoadAngle = perp1;
+		} 
+		else {
+			oppRoadAngle = perp2;
+		}
+		
+		return oppRoadAngle;
+	}
+	
+	/*
+	 * Method for finding nearest coordinate to the road edge on either the same or opposite side of the road to the input coordinate c (typically the pedestrians current position)
+	 * 
+	 * Opposite side of the road defined as in the direction perpendicular to the bearing of the road link the pedestrian is walking beside
+	 * and at the far edge of the carriageway from the pedestrian. Same side defined in the same way but near side of the carriageway instead.
+	 * 
+	 * @param Coordinate c
+	 * 		The location of the pedestrian agent
+	 * @param Geography<PedObstruction> poG
+	 * 		Geography containing the ped obstructions.
+	 * @param String side
+	 * 		Indicates whether to return nearest coord on same of opposite side of the road to input coordinate c.
+	 * @param RoadLink orRoadLink
+	 * 		The road link object the pedestrian is currelt located beside
+	 * @param Coordinate rlCentroid
+	 * 		The centroid of the road link geometry
+	 * @param double oppRoadBearing
+	 * 		Bearing that points to the opposite side of the road
+	 * 
+	 * @returns
+	 * 		Coordinate
+	 */
+	public static Coordinate xSideOfRoadCoord(Coordinate c, Geography<PedObstruction> poG, String side, RoadLink orRoadLink, Coordinate rlCentroid, double oppRoadBearing) {
+		
+		// Set whether to identify the same side of the road coordinate or opposite side of the road coordinate
+		int comp;
+		List<Geometry> roadEdgeGeoms = new ArrayList<Geometry>();
+		if (side.contentEquals("opposite")) {
+			comp = 1; // will cause loop to continue when bearing to the coordinate points to same side of the road, therefore identifying coordinate that is on opposite side
+			
+			List<Road> caRoads = orRoadLink.getRoads().stream().filter(r -> r.getPriority().contentEquals("pedestrian")).collect(Collectors.toList());
+			for (Road rd: caRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+			
+			// Also consider ped obstruction geoms when finding opposite side of the road coordinate, in case there is no pavement directly opposite
+			Geometry nearby = GISFunctions.pointGeometryFromCoordinate(c).buffer(30);
+			for (Geometry g: SpatialIndexManager.searchGeoms(poG, nearby)) {
+				roadEdgeGeoms.add(g);
+			}
+		}
+		else {
+			comp = -1; // visa versa
+			
+			List<Road> caRoads = orRoadLink.getRoads().stream().filter(r -> r.getPriority().contentEquals("vehicle")).collect(Collectors.toList());
+			for (Road rd: caRoads) {
+				roadEdgeGeoms.add(rd.getGeom());
+			}
+		}
+		
+		// Loop through ped roads and find nearest coordinate on each
+		Double minDist = Double.MAX_VALUE;
+		Coordinate nearestOpCoord = null;
+		Point p = GISFunctions.pointGeometryFromCoordinate(c);	
+		for (Geometry g: roadEdgeGeoms) {
+			
+			// Find the point nearest to the pedestrian
+			DistanceOp distOP = new DistanceOp(p, g);
+			Coordinate nearC = distOP.nearestPoints()[1];
+
+			// Check if this coordinate is on the opposite side of the road
+			double angToC = GISFunctions.bearingBetweenCoordinates(rlCentroid, nearC);
+			double angRange = Vector.nonReflexAngleBetweenBearings(angToC, oppRoadBearing);
+			
+			// Compare angle between bearing that points to opposite side of the road and bearing that points to coordinate to pi/2
+			if ( Math.signum(Double.compare(angRange, Math.PI/2))==comp) {
+				continue;
+			}
+			
+			// Check if this coordinate is the nearest on the other side of the road, if so update the chosen coord
+			double d = c.distance(nearC);
+			if (d < minDist) {
+				minDist = d;
+				nearestOpCoord = nearC;
+			}
+		}
+		
+		// If finding near side crossing coordinate and a coordinate has not been found (either due to not finding suiatable geometries or because of unusual placement of the 
+		// pedestrian) return input coordinate which is expected to be the pedestrians current location
+		if (nearestOpCoord==null) {
+			return c;
+		}
+		else {
+			return nearestOpCoord;
+		}
 	}
 
 }
