@@ -377,7 +377,12 @@ public class Vehicle extends MobileAgent {
     	
     	// Get crossing peds via OR Link this ITN link is associated to
     	RoadLink orLink = SpaceBuilder.itnToOR.get(currentITNLink);
-    	crossingPedsOnRoad = orLink.getPeds().stream().filter(p -> (p.isCrossing() & (p.getYield()==false))).collect(Collectors.toList());
+    	for (int i=0; i<orLink.getPeds().size(); i++) {
+    		Ped p = orLink.getPeds().get(i);
+    		if (p.isCrossing() & !p.getYield()) {
+    			crossingPedsOnRoad.add(p);
+    		}
+    	}
     	return crossingPedsOnRoad;
     }
 
