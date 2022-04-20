@@ -715,9 +715,9 @@ if "morris_factor_fixing" in setting:
     # Gather into a dataframe
     dfEiSs = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_rlsi = morris_si_bar_figure(dfEiSs, "Crossing Location Entropy Sensitivity", r"$\mathrm{\mu^*}$", dfEiSs['names'].replace(rename_dict))
-    f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}.png".format(file_datetime_string)))
+    f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}bins.{}.png".format(config['crossing_nbins'], file_datetime_string)))
     f_rlsi.clear()
-    dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}".format(k))
+    dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}bins".format(config['crossing_nbins']))
 
 if 'sobol_si' in setting:
 
