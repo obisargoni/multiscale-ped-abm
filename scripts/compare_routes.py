@@ -444,7 +444,7 @@ cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
 
 # output paths for processed data
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = config['crossing_nbins'])
 output_ped_routes_file=             output_paths["output_ped_routes_file"]
 output_single_ped_links_file=       output_paths["output_single_ped_links_file"]
 output_vehicle_density_file=        output_paths["output_vehicle_density_file"]
@@ -522,7 +522,7 @@ dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEve
 
 print("\nCalculating/Loading Output Metrics")
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 10, output_path = output_cross_entropy)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = config['crossing_nbins'], output_path = output_cross_entropy)
 dfSPSim = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'dice_dist', output_path = output_sp_similarity_path)
 dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'path_length', output_path = output_sp_similarity_length_path)
 dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
