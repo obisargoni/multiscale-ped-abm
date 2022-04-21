@@ -926,7 +926,7 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
     return dfCrossEvents
 
-def linestring_from_crossing_coord_string(ccs, coord_regex = re.compile(r"(\d{6}.\d+)")):
+def linestring_from_crossing_coord_string(ccs, coord_regex = re.compile(r"(\d+.\d+)")):
     xys = coord_regex.findall(ccs)
     p1 = Point(*map(float, xys[:2]))
     p2 = Point(*map(float, xys[2:]))
