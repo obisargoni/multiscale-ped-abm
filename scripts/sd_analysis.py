@@ -226,11 +226,11 @@ assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
 
 experiments = dfDD.loc[:, params]
 
-outcome_vars = ['DistPAPed','DurPAPed', 'DistPAVeh', 'DurPAVeh', 'cross_entropy']
+outcome_vars = ['DistPAPed','cross_entropy']
 outcomes = {k:dfDD[k].values for k in outcome_vars}
 
 # Create pairs plot
-data = dfDD.loc[:, outcome_vars]
+data = dfDD.loc[:, outcome_vars].rename(columns = {"DistPAPed":"Average Pedestrian Trip Distance", "cross_entropy":"Crossing Location Entropy"})
 data['informalCrossing'] = experiments['informalCrossing']
 sns.pairplot(data, hue='informalCrossing', vars=outcome_vars)
 plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
