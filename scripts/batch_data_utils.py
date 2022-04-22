@@ -1028,7 +1028,17 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
         dfRunBinCounts['pi'] = dfRunBinCounts['bin_count'] / dfRunBinCounts['total']
         dfRunBinCounts['pi_log_pi'] = dfRunBinCounts['pi']* np.log(dfRunBinCounts['pi'])
 
+        # Also calculate entropy across all crossing locations, not aggregated by run
+        sim_bin_counts = dfCrossEvents['bin'].value_counts()
+        sim_bin_counts.name = 'sim_bin_count'
+        dfSimBinCounts = sim_bin_counts.reset_index()
+        dfSimBinCounts['sim_total'] = dfSimBinCounts['sim_bin_count'].sum()
+        dfSimBinCounts['sim_pi'] = dfSimBinCounts['sim_bin_count'] / dfSimBinCounts['sim_total']
+        dfSimBinCounts['sim_pi_log_pi'] = dfSimBinCounts['sim_pi']*np.log(dfSimBinCounts['sim_pi'])
+        sim_cross_entropy = dfSimBinCounts['sim_pi_log_pi'].sum()
+
         dfCrossRunEntropy = dfRunBinCounts.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
+        dfCrossRunEntropy['all_run_cross_entropy'] = sim_cross_entropy
 
         # Finally merge with run parameters
         dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
