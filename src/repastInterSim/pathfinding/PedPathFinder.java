@@ -222,7 +222,7 @@ public class PedPathFinder {
 		
 		// Create tactical alternative from this path
 		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-		tr.updateTargetCoordiante();
+ 		tr.updateTargetCoordiante();
 
 		return tr;
 	}
@@ -264,8 +264,8 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+	    int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
 	    
 	    return chosenPath;
 	}
@@ -288,8 +288,8 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+	    int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
 	    
 	    return chosenPath;
 	}
