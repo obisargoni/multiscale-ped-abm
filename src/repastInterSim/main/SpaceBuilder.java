@@ -120,8 +120,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Ped.resetID();
 		Vehicle.resetID();
 		
-		// Correct way to register multiple random number streams
+		int baseSeed = params.getInteger("randomSeed")*100; // Multiply by 100 to map to multiple sub-seeds
+   
+		// Random distributions for stochastic processes all initialised frrom the same base seed
+		// This allows us to simply perform model repetitions to analyse variation due to stochastic processes, rather than meaningful model processes
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", baseSeed+1);
+		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
+		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
 		
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", baseSeed+2);
+		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
+		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
+		
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", baseSeed+3);
+		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
+		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
+		
+		RandomEngine pathChoice = RandomHelper.registerGenerator("pathChoiceDistribution", baseSeed+4);
+		Uniform pathChoiceUniform = new Uniform(0, 1, pathChoice);
+		RandomHelper.registerDistribution("pathChoiceDistribution", pathChoiceUniform);
+		
+		
+		// These random distributions are modelling trips and so are not treated the same as other stochastic processes
 		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", params.getInteger("pedODSeed"));
 		Uniform pedODUniform = new Uniform(0, 1, engPedOD);
 		RandomHelper.registerDistribution("pedODThresholds", pedODUniform);
@@ -129,18 +149,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		RandomEngine engVehOD = RandomHelper.registerGenerator("vehODThresholds", params.getInteger("vehODSeed"));
 		Uniform vehODUniform = new Uniform(0, 1, engVehOD);
 		RandomHelper.registerDistribution("vehODThresholds", vehODUniform);
-   
-		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", params.getInteger("caSampleSeed"));
-		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
-		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
-		
-		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", params.getInteger("pedSpeedSeed"));
-		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
-		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
-		
-		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", params.getInteger("pedMassSeed"));
-		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
-		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		
 		// Read in the model properties
 		try {

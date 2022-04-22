@@ -14,6 +14,7 @@ import org.apache.commons.collections15.Transformer;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 
+import cern.jet.random.Uniform;
 import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.graph.Network;
@@ -222,7 +223,7 @@ public class PedPathFinder {
 		
 		// Create tactical alternative from this path
 		TacticalRoute tr = setupChosenTacticalAlternative(nP, sP, nTL, tacticalPath, currentJ, destJ, caG, rG, p);
-		tr.updateTargetCoordiante();
+ 		tr.updateTargetCoordiante();
 
 		return tr;
 	}
@@ -264,8 +265,9 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+		Uniform pathChoiceUniform = (Uniform) RandomHelper.getDistribution("pathChoiceDistribution");
+	    int pathIndex = pathChoiceUniform.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
 	    
 	    return chosenPath;
 	}
@@ -288,8 +290,9 @@ public class PedPathFinder {
 			
 		// Any paths in candidatePaths have equally low path length when measured using both heuristic 1 and heuristic 2.
 		// To choose between these we choose at random
-	    //int pathIndex = RandomHelper.nextIntFromTo(0, candidatePaths.size()-1);
-	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(0);
+		Uniform pathChoiceUniform = (Uniform) RandomHelper.getDistribution("pathChoiceDistribution");
+	    int pathIndex = pathChoiceUniform.nextIntFromTo(0, candidatePaths.size()-1);
+	    List<RepastEdge<Junction>> chosenPath = candidatePaths.get(pathIndex);
 	    
 	    return chosenPath;
 	}
