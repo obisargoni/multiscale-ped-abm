@@ -18,25 +18,6 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-		
-					<parameter name="caSampleSeed" displayName="Crossing alternative sampling seed" type="int" 
-						defaultValue="4"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
-					<parameter name="pedMassSeed" displayName="Ped masses seed" type="int" 
-						defaultValue="5"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
-					<parameter name="pedSpeedSeed" displayName="Ped speeds seed" type="int" 
-						defaultValue="6"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
 				<parameter name="addVehicleTicks" displayName="Ticks between vehicle creation" type="int" 
 						defaultValue="60" 
 						isReadOnly="false" 
