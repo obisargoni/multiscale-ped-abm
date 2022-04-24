@@ -69,17 +69,16 @@ def most_recent_directory_file(directory, file_regex):
 ######################################
 
 def explode_data(df, explode_col = 'edge_path'):
-    dfOut = pd.DataFrame()
-    for i, row in df.iterrows():
-        exploded = row[explode_col]
-        data = {}
-        for c in df.columns:
-            if c==explode_col:
-                continue
-            data[c] = [row[c]]*len(exploded)
-        data[explode_col]=exploded
-        dfTemp = pd.DataFrame(data)
-        dfOut = pd.concat([dfOut, dfTemp])
+    data = df.values
+    cols = list(df.columns)
+    explode_col_index = cols.index(explode_col)
+    new_data = []
+    for row in data:
+        for i in row[explode_col_index]:
+            new_row = list(row)
+            new_row[explode_col_index] = i
+            new_data.append(new_row)
+    dfOut = pd.DataFrame(new_data, columns = cols)
     return dfOut
 
 def get_peds_crossing_choice(series_choices):
