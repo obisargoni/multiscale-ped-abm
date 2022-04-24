@@ -50,6 +50,7 @@ or_nodes_file = os.path.join(gis_data_dir, config['openroads_node_processed_file
 itn_links_file = os.path.join(gis_data_dir, config['mastermap_itn_processed_direction_file'])
 itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_file'])
 crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
+ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 
 data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
 ped_crossings_file = data_paths["pedestrian_pave_link_crossings"]
@@ -91,6 +92,7 @@ gdfORLinks = gpd.read_file(or_links_file)
 gdfORNodes = gpd.read_file(or_nodes_file)
 gdfITNLinks = gpd.read_file(itn_links_file)
 gdfCAs = gpd.read_file(crossing_alternatives_file)
+gdfPedODs = gpd.read_file(ped_ods_file)
 
 # Get networkx graph and node positions
 pavement_graph = nx.Graph()
@@ -215,9 +217,13 @@ assert (dfPolicyDiff['CountRuns']==2).all()
 ##############################
 
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
 import seaborn as sns
 
 assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
+
+with open("figure_config.json") as f:
+    fig_config = json.load(f)
 
 
 #
@@ -229,8 +235,71 @@ experiments = dfDD.loc[:, params]
 outcome_vars = ['DistPAPed','cross_entropy']
 outcomes = {k:dfDD[k].values for k in outcome_vars}
 
+#
 # Create pairs plot
+#
 data = dfDD.loc[:, outcome_vars].rename(columns = {"DistPAPed":"Average Pedestrian Trip Distance", "cross_entropy":"Crossing Location Entropy"})
 data['Informal Crossing'] = experiments['informalCrossing']
 sns.pairplot(data, hue='Informal Crossing', vars=["Average Pedestrian Trip Distance","Crossing Location Entropy"])
 plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
+
+
+
+#
+# paths heatmap data
+#
+
+or_graph = nx.Graph()
+gdfORLinks['length'] = gdfORLinks['geometry'].length.map(lambda x: int(x)).replace(0,1)
+gdfORLinks['edge_data'] = gdfORLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
+edges = gdfORLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
+or_graph.add_edges_from(edges)
+
+# Using the geographical coordinates of the nodes when plotting them
+points_pos = gdfORNodes.set_index('node_fid')
+points_pos['x'] = points_pos['geometry'].map(lambda g: g.coords[0][0])
+points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
+node_posistions = list(zip(points_pos['x'], points_pos['y']))
+dict_node_pos = dict(zip(points_pos.index, node_posistions))
+
+# Get count of traversed edges across all runs
+dfPathORLinks = bd_utils.explode_data(dfPedRoutes.reindex(columns = ['run','ID','FullStrategicPathString']), explode_col='FullStrategicPathString')
+n_paths = dfPedRoutes['FullStrategicPathString'].unique().shape[0]
+edge_traverse_counts = dfPathORLinks['FullStrategicPathString'].value_counts()
+
+path_links = dfPathORLinks['FullStrategicPathString'].unique()
+edgedata = np.array([edge_traverse_counts[i] / n_paths for i in path_links])
+
+#tp_links = edge_traverse_counts.index()
+
+edgelist = []
+for edge_id in path_links:
+    for e in list(or_graph.edges(data=True)):
+        if edge_id == e[-1]['fid']:
+            edgelist.append(e)
+
+
+# Get start and end nodes
+gdfStartNodes = gdfPaveNodes.loc[ gdfPaveNodes['fid'].isin(dfPedRoutes['start_node'])]
+gdfEndNodes = gdfPedODs.loc[gdfPedODs['fid'] =='od_0']
+
+#
+# KDE + paths heatmap plot
+#
+#plt.style.use('dark_background')
+fig = plt.figure(figsize=(20,20))
+gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 2], width_ratios = [1,1])
+
+#  Varying density along a streamline
+ax0 = fig.add_subplot(gs[0, 0])
+ax1 = fig.add_subplot(gs[0, 1])
+ax2 = fig.add_subplot(gs[1, :])
+
+sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Trip Distance", hue="Informal Crossing")
+sns.kdeplot(ax=ax1, data=data, x="Crossing Location Entropy", hue="Informal Crossing")
+
+
+ax2 = bd_utils.figure_rl_paths_heatmap(fig, ax2, gdfORLinks, gdfStartNodes, gdfEndNodes, or_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), 'Paths Heatmap', "Frequency of link traversal divided by total number of trips", {'fontsize':15}, 15, fig_config, cbar_pad = 0.03)
+
+fig.savefig(os.path.join(img_dir, 'kde_path_heatmap.{}bins.{}.png'.format(nbins, file_datetime_string)))
+plt.style.use('default')

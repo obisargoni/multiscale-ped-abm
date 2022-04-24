@@ -9,6 +9,7 @@ import itertools
 import re
 from shapely.geometry import LineString
 from shapely.geometry import Point
+from matplotlib import pyplot as plt
 
 ######################################
 #
@@ -1128,3 +1129,30 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
         dfDursDists = pd.read_csv(output_path)
 
     return dfDursDists
+
+def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, graph, dict_node_pos, edgelist, edgedata, edge_cmap, title, cbar_title, title_font, labelsize, fig_config, cbar_pad=0.05, label_pad = 20):
+    '''Function for creating figures illustrating tactical path finding
+    '''
+    vmin = 0
+    vmax = 1
+    xmin, ymin, xmax, ymax = gdfORLink.total_bounds
+
+    gdfORLink.plot(ax=ax, edgecolor = fig_config['road_link']['color'], linewidth=fig_config['road_link']['linewidth'], linestyle = '-')
+    nx.draw_networkx_edges(graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
+
+    gdfStartNodes.plot(ax=ax, edgecolor = fig_config['pavement_node']['path_color'], facecolor = fig_config['pavement_node']['path_color'], linewidth=fig_config['pavement_node']['linewidth'], zorder=8)
+    gdfEndNodes.plot(ax=ax, edgecolor = 'red', facecolor = 'red', linewidth=fig_config['pavement_node']['linewidth'], zorder=8)
+
+    #ax.set_title(title, fontdict = title_font, y = 1.03)
+
+    ax.set_xlim(xmin-3, xmax+3)
+    ax.set_ylim(ymin-7.5, ymax+7.5)
+
+    ax.set_axis_off()
+
+    # Add colour bar
+    smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    cbar = fig.colorbar(smap, ax=ax, fraction=0.1, shrink = 0.3, location='bottom', pad = cbar_pad)
+    cbar.ax.tick_params(labelsize=labelsize)
+    cbar.ax.set_xlabel(cbar_title) #, rotation=0, labelpad = label_pad)
+    return ax
