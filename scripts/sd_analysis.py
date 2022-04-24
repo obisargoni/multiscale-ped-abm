@@ -264,7 +264,7 @@ dict_node_pos = dict(zip(points_pos.index, node_posistions))
 
 # Get count of traversed edges across all runs
 dfPathORLinks = bd_utils.explode_data(dfPedRoutes.reindex(columns = ['run','ID','FullStrategicPathString']), explode_col='FullStrategicPathString')
-n_paths = dfPedRoutes['FullStrategicPathString'].unique().shape[0]
+n_paths = dfPedRoutes['run'].unique().shape[0] * dfPedRoutes['ID'].unique().shape[0]
 edge_traverse_counts = dfPathORLinks['FullStrategicPathString'].value_counts()
 
 path_links = dfPathORLinks['FullStrategicPathString'].unique()
