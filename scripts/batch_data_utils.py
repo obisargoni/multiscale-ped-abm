@@ -1035,7 +1035,7 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
         dfSimBinCounts['sim_total'] = dfSimBinCounts['sim_bin_count'].sum()
         dfSimBinCounts['sim_pi'] = dfSimBinCounts['sim_bin_count'] / dfSimBinCounts['sim_total']
         dfSimBinCounts['sim_pi_log_pi'] = dfSimBinCounts['sim_pi']*np.log(dfSimBinCounts['sim_pi'])
-        sim_cross_entropy = dfSimBinCounts['sim_pi_log_pi'].sum()
+        sim_cross_entropy = dfSimBinCounts['sim_pi_log_pi'].sum() * -1
 
         dfCrossRunEntropy = dfRunBinCounts.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
         dfCrossRunEntropy['all_run_cross_entropy'] = sim_cross_entropy
