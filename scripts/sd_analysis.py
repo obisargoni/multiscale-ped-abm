@@ -220,7 +220,7 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
 
-assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
+#assert 'latin' in config['setting'] # expect LH desig to be used when doing SD
 
 with open("figure_config.json") as f:
     fig_config = json.load(f)
@@ -303,3 +303,41 @@ ax2 = bd_utils.figure_rl_paths_heatmap(fig, ax2, gdfORLinks, gdfStartNodes, gdfE
 
 fig.savefig(os.path.join(img_dir, 'kde_path_heatmap.{}bins.{}.png'.format(nbins, file_datetime_string)))
 plt.style.use('default')
+
+
+#
+# Sobol indices for each metric and policy setting
+#
+from SALib.analyze import sobol
+
+# Group by policy setting and calculate sobol indices
+dfSIs = pd.DataFrame()
+for metric in ['DistPAPed','cross_entropy']:
+    for pv in policy_values:
+        X = dfDD.loc[dfDD[policy_param]==pv, problem['names']].values
+        Y = dfDD.loc[dfDD[policy_param]==pv, metric].values.astype(float)
+        if pd.Series(Y).isnull().any():
+            print("Null values in utput for {} - {}, skipping".format(cat, metric))
+            continue
+
+        Sis = sobol.analyze(problem, Y, calc_second_order=False, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
+        df = pd.DataFrame(Sis)
+        df['param'] = problem['names']
+        df['metric']=metric
+        df[policy_param]=pv
+        dfSIs = pd.concat([dfSIs, df])
+
+policy_names = {0:"Informal crossing prevented", 1: "Informal crossing allowed"}
+
+f, axs = plt.subplots(2,2, figsize=(20,20), sharey=True)
+axs = axs.reshape(1,-1)[0]
+ylims = [(-10, 40), (-10, 40), (-5, 5), (-5, 5)]
+
+grouped = dfSIs.groupby(['metric',policy_param])
+for i, (m, pv) in enumerate(grouped.groups.keys()):
+    dfsi = grouped.get_group((m, pv)).sort_values(by='S1', ascending=False)
+    title = "{} - {}".format(m, policy_names[pv])
+    ax = bd_utils.sobol_si_bar_subplot(axs[i], dfsi, title, dfsi['param'])
+    ax.set_ylim(ylims[i])
+
+f.savefig(os.path.join(img_dir,"sobol_si_dist_cle_{}.png".format(file_datetime_string)))

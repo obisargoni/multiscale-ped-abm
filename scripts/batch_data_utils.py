@@ -1156,3 +1156,16 @@ def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, grap
     cbar.ax.tick_params(labelsize=labelsize)
     cbar.ax.set_xlabel(cbar_title) #, rotation=0, labelpad = label_pad)
     return ax
+
+def sobol_si_bar_subplot(ax, dfsi, fig_title, xticklabels):
+    bar_width=0.4
+    x_pos = np.arange(dfsi.shape[0])
+    ax.bar(x_pos, dfsi['S1'], width=bar_width, yerr = dfsi['S1_conf'], align='center', label="S1")
+    ax.bar(x_pos+bar_width, dfsi['ST'], width=bar_width, yerr = dfsi['ST_conf'], align='center', label="ST")
+
+    ax.set_xticks(x_pos + bar_width / 2)
+    ax.set_xticklabels(xticklabels, rotation=45)
+    ax.legend()
+
+    ax.set_title(fig_title)
+    return ax
