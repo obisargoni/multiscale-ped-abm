@@ -52,6 +52,9 @@ def create_batch_params_with_policy(method=method, params=params, N_samples=N_sa
 
 	repast_params = add_sampled_values_to_parameters_dictionary(sampled_param_names, params, total_sampled_values)
 
+	for policy_param in policies.keys():
+		repast_params[policy_param]['type']='list'
+		
 	export_params(repast_params)
 
 	return total_sampled_values
