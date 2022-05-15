@@ -25,29 +25,32 @@ def create_batch_params_with_policy(method=method, params=params, N_samples=N_sa
 	'''Samples batch parameters as usual but repeat for each policy parameter setting. Allows us to collect data for the same range of scenerios under different policies,
 	which in turn allows us to complate policy impacts.
 	'''
+	# initialise the problem
+	problem = init_problem(params = params)
+	
 	total_sampled_values = None
+	sampled_param_names = problem['names']
 
 	# Loop through each policy setting and sample values for each of these
 	for policy_param, policy_values in policies.items():
-		
-		# initialise the problem
-		params[policy_param]["type"]="list"
-		problem = init_problem(params = params)
+
+		# Add in policy name to sampled param names list
+		sampled_param_names += [policy_param]
 
 		for pv in policy_values:
 			# sample values
 			sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order)
 
-			# replace the sampled values for the policy with the fixed policy value
-			i = problem['names'].index(policy_param)
-			sampled_values[:, i] = np.array([pv]*sampled_values.shape[0])
+			# add in policy values to the sampled values
+			pv_array = np.array([pv]*sampled_values.shape[0]).reshape(sampled_values.shape[0], 1)
+			sampled_values = np.concatenate([sampled_values, pv_array], axis=1)
 
 			if total_sampled_values is None:
 				total_sampled_values = sampled_values
 			else:
 				total_sampled_values = np.concatenate([total_sampled_values, sampled_values], axis=0)
 
-	repast_params = add_sampled_values_to_parameters_dictionary(problem, params, total_sampled_values)
+	repast_params = add_sampled_values_to_parameters_dictionary(sampled_param_names, params, total_sampled_values)
 
 	export_params(repast_params)
 
@@ -57,7 +60,7 @@ def create_batch_params(method=method, params=params, N_samples=N_samples, rando
 	problem = init_problem(params = params)
 	sampled_values = sample_params(method, problem, N_samples, random_seed, num_levels, calc_second_order)
 
-	repast_params = add_sampled_values_to_parameters_dictionary(problem, params, sampled_values)
+	repast_params = add_sampled_values_to_parameters_dictionary(problem['names'], params, sampled_values)
 	export_params(repast_params)
 
 	return sampled_values
@@ -123,11 +126,11 @@ def mc_sample(problem, N_samples, seed = random_seed):
 
 	return samples
 
-def add_sampled_values_to_parameters_dictionary(problem, params, sampled_values):
+def add_sampled_values_to_parameters_dictionary(sampled_param_names, params, sampled_values):
 	repast_params = copy.deepcopy(params)
 
 	# Add sampled values into the params dictionary as the values these parameters should take
-	for i, name in enumerate(problem['names']):
+	for i, name in enumerate(sampled_param_names):
 		param_values = sampled_values[:, i]
 		del repast_params[name]['value']
 
