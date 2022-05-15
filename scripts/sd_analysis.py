@@ -335,7 +335,7 @@ for metric in ['DistPAPed','cross_entropy']:
 
 policy_names = {0:"Informal crossing prevented", 1: "Informal crossing allowed"}
 
-f, axs = plt.subplots(2,2, figsize=(20,20), sharey=True)
+f, axs = plt.subplots(2,2, figsize=(20,20))
 axs = axs.reshape(1,-1)[0]
 ylims = [(-10, 40), (-10, 40), (-5, 5), (-5, 5)]
 
