@@ -310,6 +310,12 @@ plt.style.use('default')
 #
 from SALib.analyze import sobol
 
+policy_param = list(policies.keys())[0]
+policy_values = policies[policy_param]
+scenario_param_cols =  [i for i in params if i!=policy_param]
+
+problem = init_problem(params)
+
 # Group by policy setting and calculate sobol indices
 dfSIs = pd.DataFrame()
 for metric in ['DistPAPed','cross_entropy']:
