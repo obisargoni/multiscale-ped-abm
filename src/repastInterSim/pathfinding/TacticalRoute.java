@@ -275,7 +275,7 @@ public class TacticalRoute {
 				cas.add(caU);
 			}
 			else if (informalCrossingPolicy.contentEquals("sometimes")) {
-				if (rl.informalCrosisng().contentEquals("true")) {
+				if (rl.infCross().contentEquals("true")) {
 					UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
 					caU.setRoadLinkID(rls.get(0).getFID());
 					caU.setPed(p);

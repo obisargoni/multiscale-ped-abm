@@ -335,7 +335,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				
 				// If informal crossing is sometimes permitted, inculde the road links where it is permitted in the collections of road links with crossings
 				for (RoadLink rl: orRoadLinkGeography.getAllObjects()) {
-					if (rl.informalCrosisng().contentEquals("true")) {
+					if (rl.infCross().contentEquals("true")) {
 						roadLinksWithCrossings.add(rl.getFID());
 					}
 				}
