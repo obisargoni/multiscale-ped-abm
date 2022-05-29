@@ -142,6 +142,8 @@ def add_sampled_values_to_parameters_dictionary(sampled_param_names, params, sam
 			param_values = param_values.astype(int)
 		elif repast_params[name]['data_type']=='boolean':
 			param_values = np.round(param_values).astype(bool)
+		elif repast_params[name]['data_type']=='string':
+			param_values = np.round(param_values).astype(str)
 
 		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
 

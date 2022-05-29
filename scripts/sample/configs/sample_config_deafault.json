@@ -19,7 +19,7 @@
         "ga": {             "type":"list",  "data_type":"double", "value":"1.0", "bounds":[0,2],      "dist":"unif"},
         "yieldThreshold": { "type":"list",  "data_type":"int",    "value":"60",   "bounds":[0,100],   "dist":"unif"},
         "updateFactor": {   "type":"constant",  "data_type":"double", "value":"0.75", "bounds":[0,1], "dist":"unif"},
-        "informalCrossing": {"type":"constant",  "data_type":"boolean", "value":"true", "bounds":[0,1], "dist":"unif"}        
+        "informalCrossing": {"type":"constant",  "data_type":"string", "value":"always", "bounds":["always","sometimes", "never"], "dist":"unif"}        
 
   		},
       "N_samples":30,
@@ -27,5 +27,5 @@
       "num_levels":6,
       "calc_second_order":false,
       "method":"morris",
-      "policies":{"informalCrossing":[1]}
+      "policies":{"informalCrossing":["always"]}
 }
