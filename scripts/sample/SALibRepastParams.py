@@ -139,11 +139,11 @@ def add_sampled_values_to_parameters_dictionary(sampled_param_names, params, sam
 
 		# convert to int if param data type is int
 		if repast_params[name]['data_type']=='int':
-			param_values = param_values.astype(int)
+			param_values = param_values.astype(float).astype(int)
 		elif repast_params[name]['data_type']=='boolean':
-			param_values = np.round(param_values).astype(bool)
+			param_values = np.round(param_values.astype(float)).astype(bool)
 		elif repast_params[name]['data_type']=='string':
-			param_values = np.round(param_values).astype(str)
+			param_values = param_values.astype(str)
 
 		repast_params[name]['values'] = " ".join(str(v).lower() for v in param_values)
 
