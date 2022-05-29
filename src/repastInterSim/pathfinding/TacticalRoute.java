@@ -264,15 +264,28 @@ public class TacticalRoute {
 					cas.add(ca);
 				}
 			}
-		}
-		
-		// Add unmarked crossing alternative to list if permitted by parameters
-		// Don't set road for unmarked crossings
-		if (SpaceBuilder.getInformalCrossingStatus()) {
-			UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
-			caU.setRoadLinkID(rls.get(0).getFID());
-			caU.setPed(p);
-			cas.add(caU);
+			
+			// Space Builder param controls whether to always, sometimes, or never allow informal crosisng.
+			// If sometimes, informal crossing is permitted on a per road link basis, as set by the road link data
+			String informalCrossingPolicy = SpaceBuilder.getInformalCrossingStatus(); 
+			if (informalCrossingPolicy.contentEquals("always")) {
+				UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+				caU.setRoadLinkID(rls.get(0).getFID());
+				caU.setPed(p);
+				cas.add(caU);
+			}
+			else if (informalCrossingPolicy.contentEquals("sometimes")) {
+				if (rl.informalCrosisng().contentEquals("true")) {
+					UnmarkedCrossingAlternative caU = new UnmarkedCrossingAlternative();
+					caU.setRoadLinkID(rls.get(0).getFID());
+					caU.setPed(p);
+					cas.add(caU);
+				}
+			}
+			else {
+				// Don't include an informal crossing option in the choice set
+			}
+			
 		}
 		
 		return cas;		

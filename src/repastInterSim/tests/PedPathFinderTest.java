@@ -1662,8 +1662,12 @@ class PedPathFinderTest {
 		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		
 		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
-		SpaceBuilder.setInformalCrossingStatus(false);
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		SpaceBuilder.setInformalCrossingStatus("never");
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
 		
 		Ped p = EnvironmentSetup.createPedestrian(null, null, "od_162", "od_0", true);
 		
@@ -1752,8 +1756,12 @@ class PedPathFinderTest {
 		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		
 		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
-		SpaceBuilder.setInformalCrossingStatus(false);
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		SpaceBuilder.setInformalCrossingStatus("never");
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
 		
 		Ped p = EnvironmentSetup.createPedestrian("od_78", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 276.37);;
 		
@@ -1835,8 +1843,12 @@ class PedPathFinderTest {
 		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		
 		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
-		SpaceBuilder.setInformalCrossingStatus(false);
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		SpaceBuilder.setInformalCrossingStatus("never");
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
 		
 		Ped p = EnvironmentSetup.createPedestrian("od_133", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 276.37);;
 		
@@ -1909,8 +1921,12 @@ class PedPathFinderTest {
 		Geography<CrossingAlternative> caG = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.CA_GEOGRAPHY);
 		
 		// Importantly, now edit the pavement network to remove road crossing links where no crossing infrastructure is available
-		SpaceBuilder.setInformalCrossingStatus(false);
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caG);
+		SpaceBuilder.setInformalCrossingStatus("never");
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
 		
 		Ped p = EnvironmentSetup.createPedestrian("od_129", "od_0", GlobalVars.pedVavg, GlobalVars.pedMassAv, 0.7634, 1.728, 0.976, 7.22, 78, 86, 1.85, 0.75, true, 25.0);
 		

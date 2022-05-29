@@ -36,6 +36,7 @@ public class RoadLink implements FixedGeography, Serializable {
 	private String direction = null;
 	private String MNodeFID = null;
 	private String PNodeFID = null;
+	private String informalCrossing = "true"; // Controls whether or not informal crossing is permitted on this road link
 	private RingBufferFillCount<Vehicle> queue;
 	private List<Ped> peds = new ArrayList<Ped>();
 	private List<Road> roads = new ArrayList<Road>();
@@ -194,6 +195,14 @@ public class RoadLink implements FixedGeography, Serializable {
 	
 	public double getAverageVehicleCount() {
 		return this.averageVehicleCount;
+	}
+	
+	public String informalCrosisng() {
+		return this.informalCrossing;
+	}
+	
+	public void setInformalCrossing(String ic) {
+		this.informalCrossing = ic;
 	}
 	
 	public void clear() {

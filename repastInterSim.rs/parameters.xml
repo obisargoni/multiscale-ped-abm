@@ -116,10 +116,10 @@
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
-								<parameter name="informalCrossing" displayName="Control whether to allow informal crossing or not" type="boolean" 
-						defaultValue="true" 
+								<parameter name="informalCrossing" displayName="Control whether to always, sometimes or never allow informal crossing" type="string" 
+						defaultValue="always" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$BooleanConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$StringConverter"
 									
 		/>
 		</parameters>

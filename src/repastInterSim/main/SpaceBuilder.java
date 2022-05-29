@@ -69,7 +69,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	private static Logger LOGGER = Logger.getLogger(SpaceBuilder.class.getName());
 	
-	private static Boolean informalCrossing=true; // Controls whether informal crossing is permitted.
+	private static String informalCrossing="always"; // Controls whether informal crossing is permitted.
 	
 	private Boolean isDirected = true; // Indicates whether the vehicle road network is directed ot not. s
 	private ArrayList<Geography> fixedGeographies;
@@ -103,7 +103,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		//RepastInterSimLogging.init();
 		Parameters params = RunEnvironment.getInstance ().getParameters();
 		
-		SpaceBuilder.informalCrossing=params.getBoolean("informalCrossing");
+		SpaceBuilder.informalCrossing=params.getString("informalCrossing");
 		
 		// Clear caches before starting
 		RoadNetworkRoute.clearCaches();
@@ -315,10 +315,32 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			GISFunctions.readShapefile(CrossingAlternative.class, caFile, caGeography, caContext);
 			SpatialIndexManager.createIndex(caGeography, CrossingAlternative.class);
 			
-			// Finally edit the pavement network as required by the policy (either keep all road crossing links or remove those that don't have assocaiated crossing infrastructure)
-			if (SpaceBuilder.informalCrossing==false) {
-				// Removes crossing links from pedestrian network where no crossing infrastructure is available
-				SpaceBuilder.removeCrossingLinksFromPavementNetwork(pavementNetwork, caGeography);
+			// If informal crossing is not always allowed then the pavement network needs to be edited to remove road crossing links where road crossing is not possible
+			// - where no crossing infrastructure is available and informal crossing is prevented 
+			if (SpaceBuilder.informalCrossing.contentEquals("never")) {
+				// Find road links that have crossings
+				List<String> roadLinksWithCrossings = new ArrayList<String>();
+				for (CrossingAlternative ca: caGeography.getAllObjects()) {
+					roadLinksWithCrossings.add(ca.getRoadLinkID());
+				}
+				
+				SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
+			}
+			else if (SpaceBuilder.informalCrossing.contentEquals("sometimes")) {
+				// Find road links that have crossings
+				List<String> roadLinksWithCrossings = new ArrayList<String>();
+				for (CrossingAlternative ca: caGeography.getAllObjects()) {
+					roadLinksWithCrossings.add(ca.getRoadLinkID());
+				}
+				
+				// If informal crossing is sometimes permitted, inculde the road links where it is permitted in the collections of road links with crossings
+				for (RoadLink rl: orRoadLinkGeography.getAllObjects()) {
+					if (rl.informalCrosisng().contentEquals("true")) {
+						roadLinksWithCrossings.add(rl.getFID());
+					}
+				}
+				
+				SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, pavementNetwork);
 			}
 			
 		} catch (MalformedURLException | FileNotFoundException | MismatchedDimensionException e1 ) {
@@ -834,15 +856,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * Used to implement a policy of no informal crossing. Removes road crossing links from the pavement network if there
 	 * is no crossing alternative crossing that link of the road network.
 	 */
-	public static void removeCrossingLinksFromPavementNetwork(Network<Junction> paveNetwork, Geography<CrossingAlternative> caG) {
+	public static void removeCrossingLinksFromPavementNetwork(List<String> roadLinksWithCrossings, Network<Junction> paveNetwork) {
 		
-		// Find road links that have crossings
-		List<String> roadLinksWithCrossings = new ArrayList<String>();
-		for (CrossingAlternative ca: caG.getAllObjects()) {
-			roadLinksWithCrossings.add(ca.getRoadLinkID());
-		}
-		
-		// Loop through entwork links and find those that cross road links that do not have crossing infrastructure. 
+		// Loop through network links and find those that cross road links that do not have crossing infrastructure. 
 		// These are the links to remove
 		List<RepastEdge<Junction>> edgesToRemove = new ArrayList<RepastEdge<Junction>>();
 		for (RepastEdge<Junction> re: paveNetwork.getEdges()) {
@@ -865,11 +881,11 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 	}
 	
-	public static boolean getInformalCrossingStatus() {
+	public static String getInformalCrossingStatus() {
 		return SpaceBuilder.informalCrossing;
 	}
 	
-	public static void setInformalCrossingStatus(boolean infX) {
+	public static void setInformalCrossingStatus(String infX) {
 		SpaceBuilder.informalCrossing=infX;
 	}
 	

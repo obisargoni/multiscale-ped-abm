@@ -3,6 +3,7 @@ package repastInterSim.tests;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -746,7 +747,11 @@ class CrossingAlternativeTest {
 		
 		// Edit the network
 		int origNEdges = paveNetwork.numEdges();
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, paveNetwork);
 		int editedNEdges = paveNetwork.numEdges();
 		
 		assert origNEdges>editedNEdges;
@@ -787,7 +792,11 @@ class CrossingAlternativeTest {
 		// Edit the network
 		int origNEdges = paveNetwork.numEdges();
 		int origNNodes = paveNetwork.size();
-		SpaceBuilder.removeCrossingLinksFromPavementNetwork(paveNetwork, caG);
+		List<String> roadLinksWithCrossings = new ArrayList<String>();
+		for (CrossingAlternative ca: caG.getAllObjects()) {
+			roadLinksWithCrossings.add(ca.getRoadLinkID());
+		}
+		SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, paveNetwork);
 		int editedNEdges = paveNetwork.numEdges();
 		int editedNNodes = paveNetwork.size();
 		
