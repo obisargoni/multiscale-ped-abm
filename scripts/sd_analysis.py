@@ -189,24 +189,24 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 
 # Now group by scenario and aggregate to find difference in outputs between policy conditions
 for c in scenario_param_cols:
-	dfDD[c] = dfDD[c].astype(str) # Helps with grouping, makes matching doubles easier
+    dfDD[c] = dfDD[c].astype(str) # Helps with grouping, makes matching doubles easier
 
-dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg( 	PedDistDiff = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
-														VehDistDiff = pd.NamedAgg(column = "DistPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
-														PedDurDiff = pd.NamedAgg(column = "DurPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
-														VehDurDiff = pd.NamedAgg(column = "DurPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
-														CrossEntDiff = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: s.values[0] - s.values[1]),
-														PedDistDiffFrac = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
-														CrossEntDiffFrac = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
-														CountRuns = pd.NamedAgg(column = "run", aggfunc=lambda s: s.shape[0]),
-														RunsStr = pd.NamedAgg(column = "run", aggfunc=lambda s: ":".join(str(i) for i in s.tolist())),
-													).reset_index()
+dfPolicyDiff = dfDD.groupby(scenario_param_cols).agg(   PedDistDiff = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
+                                                        VehDistDiff = pd.NamedAgg(column = "DistPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
+                                                        PedDurDiff = pd.NamedAgg(column = "DurPAPed", aggfunc=lambda s: s.values[0] - s.values[1]),
+                                                        VehDurDiff = pd.NamedAgg(column = "DurPAVeh", aggfunc=lambda s: s.values[0] - s.values[1]),
+                                                        CrossEntDiff = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: s.values[0] - s.values[1]),
+                                                        PedDistDiffFrac = pd.NamedAgg(column = "DistPAPed", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
+                                                        CrossEntDiffFrac = pd.NamedAgg(column = "cross_entropy", aggfunc=lambda s: (s.values[0] - s.values[1]) / s.values[0]),
+                                                        CountRuns = pd.NamedAgg(column = "run", aggfunc=lambda s: s.shape[0]),
+                                                        RunsStr = pd.NamedAgg(column = "run", aggfunc=lambda s: ":".join(str(i) for i in s.tolist())),
+                                                    ).reset_index()
 
 for c in scenario_param_cols:
-	dfPolicyDiff[c] = dfPolicyDiff[c].astype(float)
+    dfPolicyDiff[c] = dfPolicyDiff[c].astype(float)
 
 # Check that there are expected number of runs per scenario
-assert (dfPolicyDiff['CountRuns']==2).all()
+#assert (dfPolicyDiff['CountRuns']==2).all()
 
 ##############################
 #
@@ -334,16 +334,29 @@ for metric in ['DistPAPed','cross_entropy']:
         dfSIs = pd.concat([dfSIs, df])
 
 policy_names = {0:"Informal crossing prevented", 1: "Informal crossing allowed"}
+policy_names = {"never":"Informal crossing prevented", "always": "Informal crossing allowed", "sometimes":"Informal crossing prevented on A-Roads"}
 
-f, axs = plt.subplots(2,2, figsize=(20,20))
-axs = axs.reshape(1,-1)[0]
-ylims = [(-10, 40), (-10, 40), (-5, 5), (-5, 5)]
+f, axs = plt.subplots(3,2, figsize=(20,20), constrained_layout=True)
+axs = axs.reshape(3,2)
+ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
+
+def sf(k):
+    if k[1]=='always':
+        return 0
+    elif k[1]=='sometimes':
+        return 1
+    else:
+        return 2
 
 grouped = dfSIs.groupby(['metric',policy_param])
-for i, (m, pv) in enumerate(grouped.groups.keys()):
-    dfsi = grouped.get_group((m, pv)).sort_values(by='S1', ascending=False)
+keys = list(grouped.groups.keys())
+keys.sort(key=sf)
+for i, (m, pv) in enumerate(keys):
+    p = i//2
+    r = i%2
+    dfsi = grouped.get_group((m, pv))#.sort_values(by='S1', ascending=False)
     title = "{} - {}".format(m, policy_names[pv])
-    ax = bd_utils.sobol_si_bar_subplot(axs[i], dfsi, title, dfsi['param'])
-    ax.set_ylim(ylims[i])
+    ax = bd_utils.sobol_si_bar_subplot(axs[p,r], dfsi, title, dfsi['param'])
+    #ax.set_ylim(ylims[i])
 
 f.savefig(os.path.join(img_dir,"sobol_si_dist_cle_{}.png".format(file_datetime_string)))
