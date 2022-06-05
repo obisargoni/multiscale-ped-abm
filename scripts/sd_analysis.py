@@ -242,7 +242,7 @@ outcomes = {k:dfDD[k].values for k in outcome_vars}
 #
 data = dfDD.loc[:, outcome_vars].rename(columns = {"route_length_pp":"Average Pedestrian Route Length", "cross_entropy":"Crossing Location Entropy"})
 data['Informal Crossing'] = experiments['informalCrossing']
-sns.pairplot(data, hue='Informal Crossing', vars=["Average Pedestrian Trip Distance","Crossing Location Entropy"])
+sns.pairplot(data, hue='Informal Crossing', vars=["Average Pedestrian Route Length","Crossing Location Entropy"])
 plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
 
 
