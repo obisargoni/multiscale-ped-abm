@@ -234,13 +234,13 @@ with open("figure_config.json") as f:
 
 experiments = dfDD.loc[:, params]
 
-outcome_vars = ['DistPAPed','cross_entropy']
+outcome_vars = ['route_length_pp','cross_entropy']
 outcomes = {k:dfDD[k].values for k in outcome_vars}
 
 #
 # Create pairs plot
 #
-data = dfDD.loc[:, outcome_vars].rename(columns = {"DistPAPed":"Average Pedestrian Trip Distance", "cross_entropy":"Crossing Location Entropy"})
+data = dfDD.loc[:, outcome_vars].rename(columns = {"route_length_pp":"Average Pedestrian Route Length", "cross_entropy":"Crossing Location Entropy"})
 data['Informal Crossing'] = experiments['informalCrossing']
 sns.pairplot(data, hue='Informal Crossing', vars=["Average Pedestrian Trip Distance","Crossing Location Entropy"])
 plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
@@ -297,7 +297,7 @@ ax0 = fig.add_subplot(gs[0, 0])
 ax1 = fig.add_subplot(gs[0, 1])
 ax2 = fig.add_subplot(gs[1, :])
 
-sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Trip Distance", hue="Informal Crossing")
+sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Route Length", hue="Informal Crossing")
 sns.kdeplot(ax=ax1, data=data, x="Crossing Location Entropy", hue="Informal Crossing")
 
 
@@ -320,7 +320,7 @@ problem = init_problem(params)
 
 # Group by policy setting and calculate sobol indices
 dfSIs = pd.DataFrame()
-for metric in ['DistPAPed','cross_entropy']:
+for metric in ['route_length_pp','cross_entropy']:
     for pv in policy_values:
         X = dfDD.loc[dfDD[policy_param]==pv, problem['names']].values
         Y = dfDD.loc[dfDD[policy_param]==pv, metric].values.astype(float)
