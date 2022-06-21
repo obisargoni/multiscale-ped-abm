@@ -1137,7 +1137,7 @@ def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, grap
     vmax = 1
     xmin, ymin, xmax, ymax = gdfORLink.total_bounds
 
-    gdfORLink.plot(ax=ax, edgecolor = fig_config['road_link']['color'], linewidth=fig_config['road_link']['linewidth'], linestyle = '-')
+    #gdfORLink.plot(ax=ax, edgecolor = fig_config['road_link']['color'], linewidth=fig_config['road_link']['linewidth'], linestyle = '-')
     nx.draw_networkx_edges(graph, dict_node_pos, ax = ax, edgelist=edgelist, width = 3, edge_color = edgedata, edge_cmap=edge_cmap, alpha=0.8, edge_vmin = vmin, edge_vmax=vmax)
 
     gdfStartNodes.plot(ax=ax, edgecolor = fig_config['pavement_node']['path_color'], facecolor = fig_config['pavement_node']['path_color'], linewidth=fig_config['pavement_node']['linewidth'], zorder=8)
