@@ -9,6 +9,7 @@ import geopandas as gpd
 import networkx as nx
 import re
 from datetime import datetime as dt
+from sklearn.neighbors import KernelDensity
 
 import sys
 sys.path.append(".\\sample")
@@ -25,6 +26,62 @@ import batch_data_utils as bd_utils
 #####################################
 with open(".//config.json") as f:
     config = json.load(f)
+
+#####################################
+#
+#
+# Functions
+#
+#
+#####################################
+def sf(k):
+    if k[1]=='always':
+        return 0
+    elif k[1]=='sometimes':
+        return 1
+    else:
+        return 2
+
+def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '#ffcc33', '#ff9966']):
+
+	minv = data[val_col].min()
+	maxv = data[val_col].max()
+	rng = maxv-minv
+	x = np.linspace(minv, maxv, 100*int(rng)).reshape(-1,1)
+
+	groups = list(data[group_col].unique())
+	groups.sort(key=sf)
+	for i, g in enumerate(groups):
+		df = data.loc[ data[group_col]==g]
+
+		values = df[val_col].dropna().values.reshape(-1,1)
+		kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth).fit(values)
+		log_dens = kde.score_samples(x)
+
+		ax.plot(x, np.exp(log_dens), color=palette[i], label=g)
+	ax.legend()
+	#ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
+	ax.set_title(val_col)
+	return ax
+
+def hist_plot(ax, data, val_col, group_col, nbins=50, palette=['#66ff66', '#ffcc33', '#ff9966']):
+
+	minv = data[val_col].min()
+	maxv = data[val_col].max()
+	rng = maxv-minv
+	bins = np.linspace(minv, maxv, nbins)
+
+	groups = list(data[group_col].unique())
+	groups.sort(key=sf)
+	for i, g in enumerate(groups):
+		df = data.loc[ data[group_col]==g]
+
+		ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=0.5, label=g)
+
+	ax.legend()
+	#ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
+	ax.set_title(val_col)
+	return ax
 
 #####################################
 #
@@ -220,9 +277,14 @@ ax0 = fig.add_subplot(gs[0, 0])
 ax1 = fig.add_subplot(gs[0, 1])
 ax2 = fig.add_subplot(gs[1, :])
 
-sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Route Length", hue="Informal Crossing")
-sns.kdeplot(ax=ax1, data=data, x="Crossing Location Entropy", hue="Informal Crossing")
-
+'''
+ax0 = kde_plot(ax0, data, "Average Pedestrian Route Length", "Informal Crossing", bandwidth=0.1)
+ax1 = kde_plot(ax1, data, "Crossing Location Entropy", "Informal Crossing", bandwidth=0.05)
+'''
+ax0 = hist_plot(ax0, data, "Average Pedestrian Route Length", "Informal Crossing")
+ax1 = hist_plot(ax1, data, "Crossing Location Entropy", "Informal Crossing")
+#sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Route Length", hue="Informal Crossing")
+#sns.kdeplot(ax=ax1, data=data, x="Crossing Location Entropy", hue="Informal Crossing")
 
 ax2 = bd_utils.figure_rl_paths_heatmap(fig, ax2, gdfORLinks, gdfStartNodes, gdfEndNodes, or_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), 'Paths Heatmap', "Frequency of link traversal divided by total number of trips", {'fontsize':15}, 15, fig_config, cbar_pad = 0.03)
 
@@ -264,14 +326,6 @@ policy_names = {"never":"Informal crossing prevented", "always": "Informal cross
 f, axs = plt.subplots(3,2, figsize=(20,20), constrained_layout=True)
 axs = axs.reshape(3,2)
 ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
-
-def sf(k):
-    if k[1]=='always':
-        return 0
-    elif k[1]=='sometimes':
-        return 1
-    else:
-        return 2
 
 grouped = dfSIs.groupby(['metric',policy_param])
 keys = list(grouped.groups.keys())
