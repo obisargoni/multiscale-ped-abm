@@ -89,6 +89,9 @@ gdfORLinks = gpd.read_file(or_links_file)
 gdfORNodes = gpd.read_file(or_nodes_file)
 gdfPedODs = gpd.read_file(ped_ods_file)
 
+weight_params = range(0, 100, 100)
+dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(None, None, None, None, weight_params, ped_routes_path = ped_routes_file, strategic_path_filter=False)
+
 # Model output data
 dfDD = pd.read_csv(output_sd_data)
 
