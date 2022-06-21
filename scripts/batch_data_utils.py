@@ -696,7 +696,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         dfPedRoutes_removedpeds = pd.read_csv(routes_removed_path)
 
         # Convert columns to tuples
-        dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+        dfPedRoutes['FullStrategicPathString'] = dfPedRoutes['FullStrategicPathString'].map(lambda s: tuple(s.strip("('").strip("')").strip("',").split("', '")))
         dfPedRoutes['edge_path'] = dfPedRoutes['edge_path'].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
         dfPedRoutes['node_path'] = dfPedRoutes['node_path'].map(lambda s: s.strip("['").strip("']").split("', '"))
 
