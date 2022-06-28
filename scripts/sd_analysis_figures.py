@@ -76,7 +76,7 @@ def hist_plot(ax, data, val_col, group_col, nbins=50, palette=['#66ff66', '#ffcc
 	for i, g in enumerate(groups):
 		df = data.loc[ data[group_col]==g]
 
-		ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=0.5, label=g)
+		ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=0.5, label=g, histtype='step')
 
 	ax.legend()
 	#ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
