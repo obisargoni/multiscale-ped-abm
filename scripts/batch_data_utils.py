@@ -917,7 +917,9 @@ def load_and_clean_cross_events(gdfPaveLinks, cross_events_path = "cross_events.
 
         # Check that there is a single crossing event per ped per pavement link.
         cross_per_ped_link = dfCrossEvents.groupby(['run', 'ID', 'TacticalEdgeID']).apply(lambda df: df.shape[0])
-        assert cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]==0
+        nMultiCross = cross_per_ped_link.loc[ cross_per_ped_link!=1].shape[0]
+        if nMultiCross!=0:
+            print("WARNING: {} road links with multiple crossings per ped".format(nMultiCross))
 
         dfCrossEvents.to_csv(output_path, index=False)
     else:
