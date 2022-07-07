@@ -132,8 +132,17 @@ public class TacticalRoute {
 		// Add edge that has just been traversed to the record of the pedestrian's tactical path
 		this.ped.getPathFinder().addTacticalLinkToFullTacticalPathString(ped.getCurrentPavementLinkID());
 
-		// Update the current edge			
+		// Update the current edge
+		RepastEdge<Junction> prevEdge = this.currentEdge;
 		this.currentEdge = this.routePath.poll();
+		
+		// Check that current edge connects to previous edge, if it doesn't set to null so that new route is planned
+		// This is required when the route gets updated due to postponing crossing
+		if ( (this.currentEdge != null) & (prevEdge != null) ) {
+			if ( !( (prevEdge.getSource().equals(this.currentEdge.getSource())) | (prevEdge.getSource().equals(this.currentEdge.getTarget())) | (prevEdge.getTarget().equals(this.currentEdge.getSource())) | (prevEdge.getTarget().equals(this.currentEdge.getTarget())) ) ) {
+				this.currentEdge=null;
+			}
+		}
 		
 		// initialise blank accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
 		this.accumulator.clear();
