@@ -488,7 +488,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		SpaceBuilder.itnToOR = new HashMap<RoadLink, RoadLink>();
 		SpaceBuilder.orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
 		
-		clearContexts();
+		//clearContexts();
 	}
 	
 	private void clearFixedGeographies() {
