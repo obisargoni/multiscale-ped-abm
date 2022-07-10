@@ -225,7 +225,7 @@ public class TacticalRoute {
 		if (e.getSource().getGeom().equals(j.getGeom())) {
 			adj = e.getTarget();
 		}
-		else {
+		else if (e.getTarget().getGeom().equals(j.getGeom())) {
 			adj = e.getSource();
 		}
 		return adj;
