@@ -20,6 +20,7 @@ import repast.simphony.context.space.graph.NetworkBuilder;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.GeographyParameters;
 import repast.simphony.space.graph.RepastEdge;
+import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.GISFunctions;
 import repastInterSim.environment.Junction;
 import repastInterSim.environment.NetworkEdge;
@@ -920,6 +921,121 @@ class NetworkPathFinderTest {
 		System.out.print(duration);
 		
 		assert shortestDistancePaths.size() == 1;
+		
+	}
+	
+	/*
+	 * Test getting shortest paths using the Yens K shortest method. Tests whether method is able to return paths longer thatn the shortest path if
+	 * k is high enough
+	 */
+	@Test
+	public void testKShortestPathsYens() {
+		String origTestDir = EnvironmentSetup.testGISDir;
+		EnvironmentSetup.testGISDir += "/clapham_common/";
+		
+		// Setup environment
+		try {
+			EnvironmentSetup.setUpProperties();
+			EnvironmentSetup.setUpRoads();
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpORRoadLinks();
+			
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			// test under 'sometimes' informal crossing conditions
+			
+			List<String> roadLinksWithCrossings = new ArrayList<String>();
+			for (CrossingAlternative ca: EnvironmentSetup.caGeography.getAllObjects()) {
+				roadLinksWithCrossings.add(ca.getRoadLinkID());
+			}
+			
+			// If informal crossing is sometimes permitted, inculde the road links where it is permitted in the collections of road links with crossings
+			for (RoadLink rl: EnvironmentSetup.orRoadLinkGeography.getAllObjects()) {
+				if (rl.infCross().contentEquals("true")) {
+					roadLinksWithCrossings.add(rl.getFID());
+				}
+			}
+			
+			SpaceBuilder.removeCrossingLinksFromPavementNetwork(roadLinksWithCrossings, EnvironmentSetup.pavementNetwork);
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String sourceID = "pave_node_478";
+		String targetID1 = "pave_node_346";
+		String targetID2 = "pave_node_347";
+		Junction source = null;
+		List<Junction> targetJunctions = new ArrayList<Junction>();
+		for (Junction j : EnvironmentSetup.pavementJunctionGeography.getAllObjects()) {
+			if (j.getFID().contentEquals(sourceID)) {
+				source = j;
+			}
+			else if (j.getFID().contentEquals(targetID1) | j.getFID().contentEquals(targetID2) ) {
+				targetJunctions.add(j);
+			}
+		}
+
+		
+		NetworkPathFinder<Junction> np = new NetworkPathFinder<Junction>(EnvironmentSetup.pavementNetwork);
+		Transformer<RepastEdge<Junction>, Integer> distanceTransformer = new EdgeWeightTransformer<Junction>();
+		
+		List<Stack<RepastEdge<Junction>>> candidatePaths = np.getKShortestPaths(source, targetJunctions, null, distanceTransformer, 3);
+
+		// Expect at least one path to start with pave link pave_link_478_479
+		boolean pass = false;
+		for (Stack<RepastEdge<Junction>> path: candidatePaths) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>)path.get(0);
+			if (ne.getRoadLink().getFID().contentEquals("pave_link_478_479")) {
+				pass=true;
+			}
+		}
+		
+		assert pass;
+		
+		
+		// Maually create two paths and compare their lengths
+		// Don't need to do this now that test passes
+		/*
+		Stack<RepastEdge<Junction>> path1 = candidatePaths.get(0);
+		Stack<RepastEdge<Junction>> path2 = new Stack<RepastEdge<Junction>>();
+		NetworkEdge<Junction> startEdge;
+		for (RepastEdge<Junction> re: EnvironmentSetup.pavementNetwork.getEdges(source)) {
+			NetworkEdge<Junction> ne = (NetworkEdge<Junction>) re;
+			if (ne.getRoadLink().getFID().contentEquals("pave_link_478_479")) {
+				path2.add(ne);
+			}
+		}
+		for (int i=2; i<path1.size();i++) {
+			path2.add(path1.get(i));
+		}
+		
+		List<Stack<RepastEdge<Junction>>> paths = new ArrayList<Stack<RepastEdge<Junction>>>();
+		paths.add(path1);
+		paths.add(path2);
+		double[] pathLengths = new double[paths.size()];
+		for(int i =0; i<paths.size(); i++) {
+			Stack<RepastEdge<Junction>> path = paths.get(i);
+			Double pathLength = 0.0;
+			for(int j=0; j<path.size(); j++) {
+				pathLength += distanceTransformer.transform(path.get(j));
+			}
+			pathLengths[i] = pathLength;
+		}
+		
+		assert pathLengths[0] > pathLengths[1];
+		*/
 		
 	}
 	
