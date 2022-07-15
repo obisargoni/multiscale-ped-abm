@@ -42,46 +42,153 @@ def sf(k):
     else:
         return 2
 
+def pair_plot(dfDD, outcome_vars, policy_col, rename_dict, nbins, file_datetime_string):
+    data = dfDD.loc[:, outcome_vars].rename(columns = rename_dict)
+    data[rename_dict[policy_col]] = dfDD[policy_col]
+    sns.pairplot(data, hue=rename_dict[policy_col], vars=[rename_dict[outcome_vars[0]], rename_dict[outcome_vars[1]]])
+    plt.savefig(os.path.join(img_dir, 'pair_plot.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string)))
+
 def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '#ffcc33', '#ff9966']):
 
-	minv = data[val_col].min()
-	maxv = data[val_col].max()
-	rng = maxv-minv
-	x = np.linspace(minv, maxv, 100*int(rng)).reshape(-1,1)
+    minv = data[val_col].min()
+    maxv = data[val_col].max()
+    rng = maxv-minv
+    x = np.linspace(minv, maxv, 100*int(rng)).reshape(-1,1)
 
-	groups = list(data[group_col].unique())
-	groups.sort(key=sf)
-	for i, g in enumerate(groups):
-		df = data.loc[ data[group_col]==g]
+    groups = list(data[group_col].unique())
+    groups.sort(key=sf)
+    for i, g in enumerate(groups):
+        df = data.loc[ data[group_col]==g]
 
-		values = df[val_col].dropna().values.reshape(-1,1)
-		kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth).fit(values)
-		log_dens = kde.score_samples(x)
+        values = df[val_col].dropna().values.reshape(-1,1)
+        kde = KernelDensity(kernel="gaussian", bandwidth=bandwidth).fit(values)
+        log_dens = kde.score_samples(x)
 
-		ax.plot(x, np.exp(log_dens), color=palette[i], label=g)
-	ax.legend()
-	#ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
-	ax.set_title(val_col)
-	return ax
+        ax.plot(x, np.exp(log_dens), color=palette[i], label=g)
+    ax.legend()
+    #ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
+    ax.set_title(val_col)
+    return ax
 
-def hist_plot(ax, data, val_col, group_col, nbins=50, palette=['#66ff66', '#ffcc33', '#ff9966']):
+def hist_plot(ax, data, val_col, group_col, title, nbins=50, palette=['#66ff66', '#ffcc33', '#ff9966']):
 
-	minv = data[val_col].min()
-	maxv = data[val_col].max()
-	rng = maxv-minv
-	bins = np.linspace(minv, maxv, nbins)
+    minv = data[val_col].min()
+    maxv = data[val_col].max()
+    rng = maxv-minv
+    bins = np.linspace(minv, maxv, nbins)
 
-	groups = list(data[group_col].unique())
-	groups.sort(key=sf)
-	for i, g in enumerate(groups):
-		df = data.loc[ data[group_col]==g]
+    groups = list(data[group_col].unique())
+    groups.sort(key=sf)
+    for i, g in enumerate(groups):
+        df = data.loc[ data[group_col]==g]
 
-		ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=0.5, label=g, histtype='step')
+        ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=1, label=g, histtype='step')
 
-	ax.legend()
-	#ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
-	ax.set_title(val_col)
-	return ax
+    ax.legend()
+    #ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
+    ax.set_title(title)
+    return ax
+
+def paths_heatmap_data(gdfORLinks, gdfORNodes, dfPedRoutes, gdfPaveNodes):
+    or_graph = nx.Graph()
+    gdfORLinks['length'] = gdfORLinks['geometry'].length.map(lambda x: int(x)).replace(0,1)
+    gdfORLinks['edge_data'] = gdfORLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
+    edges = gdfORLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
+    or_graph.add_edges_from(edges)
+
+    # Using the geographical coordinates of the nodes when plotting them
+    points_pos = gdfORNodes.set_index('node_fid')
+    points_pos['x'] = points_pos['geometry'].map(lambda g: g.coords[0][0])
+    points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
+    node_posistions = list(zip(points_pos['x'], points_pos['y']))
+    dict_node_pos = dict(zip(points_pos.index, node_posistions))
+
+    # Get count of traversed edges across all runs
+    dfPathORLinks = bd_utils.explode_data(dfPedRoutes.reindex(columns = ['run','ID','FullStrategicPathString']), explode_col='FullStrategicPathString')
+    n_paths = dfPedRoutes['run'].unique().shape[0] * dfPedRoutes['ID'].unique().shape[0]
+    edge_traverse_counts = dfPathORLinks['FullStrategicPathString'].value_counts()
+
+    path_links = dfPathORLinks['FullStrategicPathString'].unique()
+    edgedata = np.array([edge_traverse_counts[i] / n_paths for i in path_links])
+
+    #tp_links = edge_traverse_counts.index()
+
+    edgelist = []
+    for edge_id in path_links:
+        for e in list(or_graph.edges(data=True)):
+            if edge_id == e[-1]['fid']:
+                edgelist.append(e)
+
+    return or_graph, dict_node_pos, edgelist, edgedata
+
+def paths_heatmap_figure(fig, ax, or_graph, dict_node_pos, edgelist, edgedata, fig_config, cmap = 'Reds', title = 'Paths Heatmap', cbar_title = "Frequency of link traversal divided by total number of trips", title_font = {'fontsize':15}, labelsize=15, cbar_pad=0.03, label_pad = 20):
+    # Get start and end nodes
+    gdfStartNodes = gdfPaveNodes.loc[ gdfPaveNodes['fid'].isin(dfPedRoutes['start_node'])]
+    gdfEndNodes = gdfPedODs.loc[gdfPedODs['fid'] =='od_0']
+
+    ax = bd_utils.figure_rl_paths_heatmap(fig, ax, gdfORLinks, gdfStartNodes, gdfEndNodes, or_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap(cmap), title, cbar_title, title_font, labelsize, fig_config, cbar_pad = cbar_pad)
+
+    return ax
+
+def combined_kde_path_heatmap_plot(dfDD, outcome_vars, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata, cmap = 'Reds', heatmap_title = 'Paths Heatmap', cbar_title = "Frequency of link traversal divided by total number of trips", title_font = {'fontsize':15}, labelsize=15, cbar_pad=0.03, label_pad = 20, figsize=(20,20)):
+    fig = plt.figure(figsize=figsize)
+    gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 2], width_ratios = [1,1])
+
+    #  Varying density along a streamline
+    ax0 = fig.add_subplot(gs[0, 0])
+    ax1 = fig.add_subplot(gs[0, 1])
+    ax2 = fig.add_subplot(gs[1, :])
+
+    data = dfDD.loc[:, outcome_vars+[policy_col]]
+    ax0 = hist_plot(ax0, data, outcome_vars[0], policy_col, title_rename_dict[outcome_vars[0]])
+    ax1 = hist_plot(ax1, data, outcome_vars[1], policy_col, title_rename_dict[outcome_vars[1]])
+    ax2 = paths_heatmap_figure(fig, ax2, or_graph, dict_node_pos, edgelist, edgedata, fig_config, cmap = cmap, title = heatmap_title, cbar_title = cbar_title, title_font = title_font, labelsize=labelsize, cbar_pad=cbar_pad, label_pad = label_pad)
+
+    outpath = os.path.join(img_dir, 'kde_pathmap.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string))
+    fig.savefig(outpath)
+
+    return outpath
+
+def sobol_si_figure(dfDD, problem, outcome_vars):
+
+
+    # Group by policy setting and calculate sobol indices
+    dfSIs = pd.DataFrame()
+    for metric in outcome_vars:
+        for pv in policy_values:
+            X = dfDD.loc[dfDD[policy_param]==pv, problem['names']].values
+            Y = dfDD.loc[dfDD[policy_param]==pv, metric].values.astype(float)
+            if pd.Series(Y).isnull().any():
+                print("Null values in utput for {} - {}, skipping".format(cat, metric))
+                continue
+
+            Sis = sobol.analyze(problem, Y, calc_second_order=False, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
+            df = pd.DataFrame(Sis)
+            df['param'] = problem['names']
+            df['metric']=metric
+            df[policy_param]=pv
+            dfSIs = pd.concat([dfSIs, df])
+
+    policy_names = {"never":"Informal crossing prevented", "always": "Informal crossing allowed", "sometimes":"Informal crossing prevented on A-Roads"}
+
+    f, axs = plt.subplots(3,2, figsize=(20,20), constrained_layout=True)
+    axs = axs.reshape(3,2)
+    ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
+
+    grouped = dfSIs.groupby(['metric',policy_param])
+    keys = list(grouped.groups.keys())
+    keys.sort(key=sf)
+    for i, (m, pv) in enumerate(keys):
+        p = i//2
+        r = i%2
+        dfsi = grouped.get_group((m, pv))#.sort_values(by='S1', ascending=False)
+        title = "{} - {}".format(m, policy_names[pv])
+        ax = bd_utils.sobol_si_bar_subplot(axs[p,r], dfsi, title, dfsi['param'])
+        #ax.set_ylim(ylims[i])
+
+    outpath = os.path.join(img_dir,"sobol_si.{}-{}.{}.png".format(outcome_vars[0], outcome_vars[1], file_datetime_string))
+    f.savefig(outpath)
+    return outpath
 
 #####################################
 #
@@ -211,84 +318,29 @@ with open("figure_config.json") as f:
 #
 # Initial exploratory analysis of multiple outcomes
 #
+outcome_vars1 = ['route_length_pp','cross_entropy']
+outcome_vars2 = ['DistPA','cross_entropy']
+policy_col = 'informalCrossing'
 
-experiments = dfDD.loc[:, params]
-
-outcome_vars = ['route_length_pp','cross_entropy']
-outcomes = {k:dfDD[k].values for k in outcome_vars}
-
+title_rename_dict = {   "route_length_pp":"Average Pedestrian Route Length",
+                        "DistPA": "Average Pedestrian Distance",
+                        "cross_entropy":"Crossing Location Entropy", 
+                        'informalCrossing':'Informal Crossing'}
 #
 # Create pairs plot
 #
-data = dfDD.loc[:, outcome_vars].rename(columns = {"route_length_pp":"Average Pedestrian Route Length", "cross_entropy":"Crossing Location Entropy"})
-data['Informal Crossing'] = experiments['informalCrossing']
-sns.pairplot(data, hue='Informal Crossing', vars=["Average Pedestrian Route Length","Crossing Location Entropy"])
-plt.savefig(os.path.join(img_dir, 'pair_plot.{}bins.{}.png'.format(nbins, file_datetime_string)))
-
-
-
-#
-# paths heatmap data
-#
-
-or_graph = nx.Graph()
-gdfORLinks['length'] = gdfORLinks['geometry'].length.map(lambda x: int(x)).replace(0,1)
-gdfORLinks['edge_data'] = gdfORLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
-edges = gdfORLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
-or_graph.add_edges_from(edges)
-
-# Using the geographical coordinates of the nodes when plotting them
-points_pos = gdfORNodes.set_index('node_fid')
-points_pos['x'] = points_pos['geometry'].map(lambda g: g.coords[0][0])
-points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
-node_posistions = list(zip(points_pos['x'], points_pos['y']))
-dict_node_pos = dict(zip(points_pos.index, node_posistions))
-
-# Get count of traversed edges across all runs
-dfPathORLinks = bd_utils.explode_data(dfPedRoutes.reindex(columns = ['run','ID','FullStrategicPathString']), explode_col='FullStrategicPathString')
-n_paths = dfPedRoutes['run'].unique().shape[0] * dfPedRoutes['ID'].unique().shape[0]
-edge_traverse_counts = dfPathORLinks['FullStrategicPathString'].value_counts()
-
-path_links = dfPathORLinks['FullStrategicPathString'].unique()
-edgedata = np.array([edge_traverse_counts[i] / n_paths for i in path_links])
-
-#tp_links = edge_traverse_counts.index()
-
-edgelist = []
-for edge_id in path_links:
-    for e in list(or_graph.edges(data=True)):
-        if edge_id == e[-1]['fid']:
-            edgelist.append(e)
-
-
-# Get start and end nodes
-gdfStartNodes = gdfPaveNodes.loc[ gdfPaveNodes['fid'].isin(dfPedRoutes['start_node'])]
-gdfEndNodes = gdfPedODs.loc[gdfPedODs['fid'] =='od_0']
+pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, nbins, file_datetime_string)
+pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, nbins, file_datetime_string)
 
 #
 # KDE + paths heatmap plot
 #
 #plt.style.use('dark_background')
-fig = plt.figure(figsize=(20,20))
-gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 2], width_ratios = [1,1])
+# get data for heatmap of paths
+or_graph, dict_node_pos, edgelist, edgedata = paths_heatmap_data(gdfORLinks, gdfORNodes, dfPedRoutes, gdfPaveNodes)
+combined_kde_path_heatmap_plot(dfDD, outcome_vars1, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata)
+combined_kde_path_heatmap_plot(dfDD, outcome_vars2, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata)
 
-#  Varying density along a streamline
-ax0 = fig.add_subplot(gs[0, 0])
-ax1 = fig.add_subplot(gs[0, 1])
-ax2 = fig.add_subplot(gs[1, :])
-
-'''
-ax0 = kde_plot(ax0, data, "Average Pedestrian Route Length", "Informal Crossing", bandwidth=0.1)
-ax1 = kde_plot(ax1, data, "Crossing Location Entropy", "Informal Crossing", bandwidth=0.05)
-'''
-ax0 = hist_plot(ax0, data, "Average Pedestrian Route Length", "Informal Crossing")
-ax1 = hist_plot(ax1, data, "Crossing Location Entropy", "Informal Crossing")
-#sns.kdeplot(ax=ax0, data=data, x="Average Pedestrian Route Length", hue="Informal Crossing")
-#sns.kdeplot(ax=ax1, data=data, x="Crossing Location Entropy", hue="Informal Crossing")
-
-ax2 = bd_utils.figure_rl_paths_heatmap(fig, ax2, gdfORLinks, gdfStartNodes, gdfEndNodes, or_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap('Reds'), 'Paths Heatmap', "Frequency of link traversal divided by total number of trips", {'fontsize':15}, 15, fig_config, cbar_pad = 0.03)
-
-fig.savefig(os.path.join(img_dir, 'kde_path_heatmap.{}bins.{}.png'.format(nbins, file_datetime_string)))
 plt.style.use('default')
 
 
@@ -303,39 +355,5 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 
 problem = init_problem(params)
 
-# Group by policy setting and calculate sobol indices
-dfSIs = pd.DataFrame()
-for metric in ['route_length_pp','cross_entropy']:
-    for pv in policy_values:
-        X = dfDD.loc[dfDD[policy_param]==pv, problem['names']].values
-        Y = dfDD.loc[dfDD[policy_param]==pv, metric].values.astype(float)
-        if pd.Series(Y).isnull().any():
-            print("Null values in utput for {} - {}, skipping".format(cat, metric))
-            continue
-
-        Sis = sobol.analyze(problem, Y, calc_second_order=False, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
-        df = pd.DataFrame(Sis)
-        df['param'] = problem['names']
-        df['metric']=metric
-        df[policy_param]=pv
-        dfSIs = pd.concat([dfSIs, df])
-
-policy_names = {0:"Informal crossing prevented", 1: "Informal crossing allowed"}
-policy_names = {"never":"Informal crossing prevented", "always": "Informal crossing allowed", "sometimes":"Informal crossing prevented on A-Roads"}
-
-f, axs = plt.subplots(3,2, figsize=(20,20), constrained_layout=True)
-axs = axs.reshape(3,2)
-ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
-
-grouped = dfSIs.groupby(['metric',policy_param])
-keys = list(grouped.groups.keys())
-keys.sort(key=sf)
-for i, (m, pv) in enumerate(keys):
-    p = i//2
-    r = i%2
-    dfsi = grouped.get_group((m, pv))#.sort_values(by='S1', ascending=False)
-    title = "{} - {}".format(m, policy_names[pv])
-    ax = bd_utils.sobol_si_bar_subplot(axs[p,r], dfsi, title, dfsi['param'])
-    #ax.set_ylim(ylims[i])
-
-f.savefig(os.path.join(img_dir,"sobol_si_dist_cle_{}.png".format(file_datetime_string)))
+sobol_si_figure(dfDD, problem, outcome_vars1)
+sobol_si_figure(dfDD, problem, outcome_vars2)
