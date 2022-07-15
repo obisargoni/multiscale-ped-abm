@@ -134,7 +134,7 @@ dfCrossEventsConsistentPeds = dfCrossEvents.loc[ ~dfCrossEvents['ID'].isin(dfPed
 print("\nCalculating/Loading Output Metrics")
 #dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
 
-#dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutes_removedpeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
+dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutes_removedpeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 #dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
 dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, output_path = output_cross_entropy)
@@ -161,9 +161,13 @@ print("\nAggregating Metrics for Policy Analysis")
 #assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 #dfDD.drop('_merge', axis=1, inplace=True)
 
-# Merge in crossing location entropy data
+# Merge in crossing location entropy data and ped distance travelled
 dfDD = pd.merge(dfRouteLength, dfCrossLocEntropy.reindex(columns = ['run','cross_entropy']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfPedTripDD.reindex(columns = ['run','DistPA']), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+
 
 dfDD.to_csv(output_sd_data, index=False)
