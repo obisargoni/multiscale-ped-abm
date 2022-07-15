@@ -70,24 +70,43 @@ def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '
     ax.set_title(val_col)
     return ax
 
-def hist_plot(ax, data, val_col, group_col, title, nbins=50, palette=['#66ff66', '#ffcc33', '#ff9966']):
+def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d993d', '#cca328', '#af3f33']):
 
     minv = data[val_col].min()
     maxv = data[val_col].max()
     rng = maxv-minv
-    bins = np.linspace(minv, maxv, nbins)
+    bins = np.linspace(minv, maxv, nhistbins)
 
     groups = list(data[group_col].unique())
     groups.sort(key=sf)
     for i, g in enumerate(groups):
         df = data.loc[ data[group_col]==g]
 
-        ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=1, label=g, histtype='step')
+        ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=1, label=g, histtype='step', linewidth=6)
 
-    ax.legend()
+    ax.legend(fontsize = 20)
+    ax.set_ylabel('count', fontsize = 20)
     #ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
-    ax.set_title(title)
+    ax.set_title(title, fontsize = 24)
     return ax
+
+def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
+    fig, axs = plt.subplots(1, 2, figsize=figsize)
+
+    data = dfDD.loc[:, outcome_vars+[policy_col]]
+    ax0 = hist_plot(axs[0], data, outcome_vars[0], policy_col, title_rename_dict[outcome_vars[0]], nhistbins = nhistbins)
+    ax1 = hist_plot(axs[1], data, outcome_vars[1], policy_col, title_rename_dict[outcome_vars[1]], nhistbins = nhistbins)
+
+    # add inset showing the road network
+    axins = fig.add_axes(inset_rec)
+    gdfORLinks.plot(ax=axins, color='black')
+    axins.set_axis_off()
+    axins.set_title('Environment', y=-0.2)
+
+    outpath = os.path.join(img_dir, 'hists_.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string))
+    fig.savefig(outpath)
+
+    return outpath
 
 def paths_heatmap_data(gdfORLinks, gdfORNodes, dfPedRoutes, gdfPaveNodes):
     or_graph = nx.Graph()
@@ -333,13 +352,12 @@ pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, nbins, file_dateti
 pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, nbins, file_datetime_string)
 
 #
-# KDE + paths heatmap plot
+# Histogram plots
 #
 #plt.style.use('dark_background')
-# get data for heatmap of paths
-or_graph, dict_node_pos, edgelist, edgedata = paths_heatmap_data(gdfORLinks, gdfORNodes, dfPedRoutes, gdfPaveNodes)
-combined_kde_path_heatmap_plot(dfDD, outcome_vars1, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata)
-combined_kde_path_heatmap_plot(dfDD, outcome_vars2, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata)
+inset_rec = [0, 0.85, 0.13, 0.13]
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars1, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(20,10))
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars2, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(20,10))
 
 plt.style.use('default')
 
