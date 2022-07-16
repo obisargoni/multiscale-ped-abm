@@ -10,12 +10,15 @@ import re
 from shapely.geometry import LineString
 from shapely.geometry import Point
 from matplotlib import pyplot as plt
+from math import log10, floor
 
 ######################################
 #
 # Functions
 #
 ######################################
+def round_sig(x, sig=2):
+    return round(x, sig-int(floor(log10(abs(x))))-1)
 
 def get_file_regex(prefix, file_datetime = None, suffix = None, ext = "csv"):
     if file_datetime is None:
@@ -1132,11 +1135,14 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
     return dfDursDists
 
-def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, graph, dict_node_pos, edgelist, edgedata, edge_cmap, title, cbar_title, title_font, labelsize, fig_config, cbar_pad=0.05, label_pad = 20):
+def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, graph, dict_node_pos, edgelist, edgedata, edge_cmap, title, cbar_title, title_font, labelsize, fig_config, vlims = None, cbar_pad=0.05, label_pad = 20):
     '''Function for creating figures illustrating tactical path finding
     '''
-    vmin = 0
-    vmax = 1
+    if vlims is None:
+        vmin = 0
+        vmax = 1
+    else:
+        vmin, vmax = vlims
     xmin, ymin, xmax, ymax = gdfORLink.total_bounds
 
     #gdfORLink.plot(ax=ax, edgecolor = fig_config['road_link']['color'], linewidth=fig_config['road_link']['linewidth'], linestyle = '-')
@@ -1156,6 +1162,8 @@ def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, grap
     smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     cbar = fig.colorbar(smap, ax=ax, fraction=0.1, shrink = 0.3, location='bottom', pad = cbar_pad)
     cbar.ax.tick_params(labelsize=labelsize)
+    cbar.ax.set_xticks([vmin, vmax])
+    cbar.ax.set_xticklabels(["{:e}".format(round_sig(vmin, sig=3)).replace("0000",""), "{:e}".format(round_sig(vmax, sig=3)).replace("0000","")])
     cbar.ax.set_xlabel(cbar_title) #, rotation=0, labelpad = label_pad)
     return ax
 
