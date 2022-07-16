@@ -108,66 +108,6 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_ren
 
     return outpath
 
-def paths_heatmap_data(gdfORLinks, gdfORNodes, dfPedRoutes, gdfPaveNodes):
-    or_graph = nx.Graph()
-    gdfORLinks['length'] = gdfORLinks['geometry'].length.map(lambda x: int(x)).replace(0,1)
-    gdfORLinks['edge_data'] = gdfORLinks.apply(lambda row: {'length':row['length'], 'fid':row['fid']}, axis=1)
-    edges = gdfORLinks.loc[:, ['MNodeFID', 'PNodeFID', 'edge_data']].values
-    or_graph.add_edges_from(edges)
-
-    # Using the geographical coordinates of the nodes when plotting them
-    points_pos = gdfORNodes.set_index('node_fid')
-    points_pos['x'] = points_pos['geometry'].map(lambda g: g.coords[0][0])
-    points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
-    node_posistions = list(zip(points_pos['x'], points_pos['y']))
-    dict_node_pos = dict(zip(points_pos.index, node_posistions))
-
-    # Get count of traversed edges across all runs
-    dfPathORLinks = bd_utils.explode_data(dfPedRoutes.reindex(columns = ['run','ID','FullStrategicPathString']), explode_col='FullStrategicPathString')
-    n_paths = dfPedRoutes['run'].unique().shape[0] * dfPedRoutes['ID'].unique().shape[0]
-    edge_traverse_counts = dfPathORLinks['FullStrategicPathString'].value_counts()
-
-    path_links = dfPathORLinks['FullStrategicPathString'].unique()
-    edgedata = np.array([edge_traverse_counts[i] / n_paths for i in path_links])
-
-    #tp_links = edge_traverse_counts.index()
-
-    edgelist = []
-    for edge_id in path_links:
-        for e in list(or_graph.edges(data=True)):
-            if edge_id == e[-1]['fid']:
-                edgelist.append(e)
-
-    return or_graph, dict_node_pos, edgelist, edgedata
-
-def paths_heatmap_figure(fig, ax, or_graph, dict_node_pos, edgelist, edgedata, fig_config, cmap = 'Reds', title = 'Paths Heatmap', cbar_title = "Frequency of link traversal divided by total number of trips", title_font = {'fontsize':15}, labelsize=15, cbar_pad=0.03, label_pad = 20):
-    # Get start and end nodes
-    gdfStartNodes = gdfPaveNodes.loc[ gdfPaveNodes['fid'].isin(dfPedRoutes['start_node'])]
-    gdfEndNodes = gdfPedODs.loc[gdfPedODs['fid'] =='od_0']
-
-    ax = bd_utils.figure_rl_paths_heatmap(fig, ax, gdfORLinks, gdfStartNodes, gdfEndNodes, or_graph, dict_node_pos, edgelist, edgedata, plt.get_cmap(cmap), title, cbar_title, title_font, labelsize, fig_config, cbar_pad = cbar_pad)
-
-    return ax
-
-def combined_kde_path_heatmap_plot(dfDD, outcome_vars, policy_col, nbins, title_rename_dict, fig_config, or_graph, dict_node_pos, edgelist, edgedata, cmap = 'Reds', heatmap_title = 'Paths Heatmap', cbar_title = "Frequency of link traversal divided by total number of trips", title_font = {'fontsize':15}, labelsize=15, cbar_pad=0.03, label_pad = 20, figsize=(20,20)):
-    fig = plt.figure(figsize=figsize)
-    gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 2], width_ratios = [1,1])
-
-    #  Varying density along a streamline
-    ax0 = fig.add_subplot(gs[0, 0])
-    ax1 = fig.add_subplot(gs[0, 1])
-    ax2 = fig.add_subplot(gs[1, :])
-
-    data = dfDD.loc[:, outcome_vars+[policy_col]]
-    ax0 = hist_plot(ax0, data, outcome_vars[0], policy_col, title_rename_dict[outcome_vars[0]])
-    ax1 = hist_plot(ax1, data, outcome_vars[1], policy_col, title_rename_dict[outcome_vars[1]])
-    ax2 = paths_heatmap_figure(fig, ax2, or_graph, dict_node_pos, edgelist, edgedata, fig_config, cmap = cmap, title = heatmap_title, cbar_title = cbar_title, title_font = title_font, labelsize=labelsize, cbar_pad=cbar_pad, label_pad = label_pad)
-
-    outpath = os.path.join(img_dir, 'kde_pathmap.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string))
-    fig.savefig(outpath)
-
-    return outpath
-
 def sobol_si_figure(dfDD, problem, outcome_vars):
 
 
@@ -241,16 +181,7 @@ veh_routes_file = data_paths["vehicle_routes"]
 cross_events_file = data_paths["cross_events"]
 ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
-batch_file = data_paths["batch_file"] 
-
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = nbins)
-output_ped_routes_file = output_paths["output_ped_routes_file"]
-output_route_length_file = output_paths["output_route_length_file"]
-output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
-output_veh_distdurs_file = output_paths["output_veh_distdurs_file"]
-output_sp_similarity_length_path = output_paths["output_sp_similarity_length_path"]
-output_cross_events_path = output_paths["output_cross_events_path"]
-output_cross_entropy = output_paths["output_cross_entropy"]
+batch_file = data_paths["batch_file"]
 
 output_sd_data = output_paths["output_sd_data"]
 
