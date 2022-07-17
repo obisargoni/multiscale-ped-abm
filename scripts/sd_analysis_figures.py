@@ -91,11 +91,12 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d
     return ax
 
 def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
-    fig, axs = plt.subplots(1, 2, figsize=figsize)
+    nvars = len(outcome_vars)
+    fig, axs = plt.subplots(1, nvars, figsize=figsize)
 
     data = dfDD.loc[:, outcome_vars+[policy_col]]
-    ax0 = hist_plot(axs[0], data, outcome_vars[0], policy_col, title_rename_dict[outcome_vars[0]], nhistbins = nhistbins)
-    ax1 = hist_plot(axs[1], data, outcome_vars[1], policy_col, title_rename_dict[outcome_vars[1]], nhistbins = nhistbins)
+    for i in range(nvars):
+        ax0 = hist_plot(axs[i], data, outcome_vars[i], policy_col, title_rename_dict[outcome_vars[i]], nhistbins = nhistbins)
 
     # add inset showing the road network
     axins = fig.add_axes(inset_rec)
@@ -103,7 +104,7 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_ren
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.2)
 
-    outpath = os.path.join(img_dir, 'hists_.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string))
+    outpath = os.path.join(img_dir, 'hists.{}bins.{}.png'.format(nbins, file_datetime_string))
     fig.savefig(outpath)
 
     return outpath
@@ -271,11 +272,12 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','cross_entropy']
 outcome_vars2 = ['DistPA','cross_entropy']
+outcome_vars3 = ['route_length_pp','DistPA','cross_entropy']
 policy_col = 'informalCrossing'
 
-title_rename_dict = {   "route_length_pp":"Average Pedestrian Route Length",
-                        "DistPA": "Average Pedestrian Distance",
-                        "cross_entropy":"Crossing Location Entropy", 
+title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
+                        "DistPA": r"$\bar{D_r}$",
+                        "cross_entropy":r"$CLE$", 
                         'informalCrossing':'Informal Crossing'}
 #
 # Create pairs plot
@@ -288,8 +290,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, nbins, file_dateti
 #
 #plt.style.use('dark_background')
 inset_rec = [0, 0.85, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars1, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(20,10))
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars2, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(20,10))
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(10*len(outcome_vars3),10))
 
 plt.style.use('default')
 
