@@ -183,6 +183,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"]
 
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = nbins)
 output_sd_data = output_paths["output_sd_data"]
 
 #####################################
