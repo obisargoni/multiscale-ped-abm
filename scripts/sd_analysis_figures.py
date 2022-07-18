@@ -42,11 +42,11 @@ def sf(k):
     else:
         return 2
 
-def pair_plot(dfDD, outcome_vars, policy_col, rename_dict, nbins, file_datetime_string):
+def pair_plot(dfDD, outcome_vars, policy_col, rename_dict, file_datetime_string):
     data = dfDD.loc[:, outcome_vars].rename(columns = rename_dict)
     data[rename_dict[policy_col]] = dfDD[policy_col]
     sns.pairplot(data, hue=rename_dict[policy_col], vars=[rename_dict[outcome_vars[0]], rename_dict[outcome_vars[1]]])
-    plt.savefig(os.path.join(img_dir, 'pair_plot.{}-{}.{}bins.{}.png'.format(outcome_vars[0], outcome_vars[1], nbins, file_datetime_string)))
+    plt.savefig(os.path.join(img_dir, 'pair_plot.{}-{}.{}.png'.format(outcome_vars[0], outcome_vars[1], file_datetime_string)))
 
 def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '#ffcc33', '#ff9966']):
 
@@ -90,7 +90,7 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d
     ax.set_title(title, fontsize = 24)
     return ax
 
-def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
+def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
     nvars = len(outcome_vars)
     fig, axs = plt.subplots(1, nvars, figsize=figsize)
 
@@ -104,7 +104,7 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, nbins, title_ren
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.2)
 
-    outpath = os.path.join(img_dir, 'hists.{}bins.{}.png'.format(nbins, file_datetime_string))
+    outpath = os.path.join(img_dir, 'hists.{}.png'.format(file_datetime_string))
     fig.savefig(outpath)
 
     return outpath
@@ -164,7 +164,8 @@ setting = config['setting']
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
-nbins = config['crossing_nbins']
+nbins = None
+bin_dist = 2
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
@@ -184,7 +185,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"]
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = nbins)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = bin_dist)
 output_sd_data = output_paths["output_sd_data"]
 
 #####################################
@@ -272,7 +273,7 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','cross_entropy']
 outcome_vars2 = ['DistPA','cross_entropy']
-outcome_vars3 = ['route_length_pp','DistPA','crossCountPP','cross_entropy']
+outcome_vars3 = ['DistPA','crossCountPP','cross_entropy']
 policy_col = 'informalCrossing'
 
 title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
@@ -283,15 +284,15 @@ title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
 #
 # Create pairs plot
 #
-pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, nbins, file_datetime_string)
-pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, nbins, file_datetime_string)
+pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, file_datetime_string)
+pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_string)
 
 #
 # Histogram plots
 #
 #plt.style.use('dark_background')
 inset_rec = [0, 0.85, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, nbins, title_rename_dict, fig_config, inset_rec, figsize=(10*len(outcome_vars3),10))
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(10*len(outcome_vars3),10))
 
 plt.style.use('default')
 
