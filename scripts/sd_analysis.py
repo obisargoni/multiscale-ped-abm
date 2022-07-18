@@ -41,7 +41,8 @@ setting = config['setting']
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
-nbins = config['crossing_nbins']
+nbins = None
+bin_dist = 2
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
@@ -61,7 +62,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"] 
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = nbins)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = bin_dist)
 output_ped_routes_file = output_paths["output_ped_routes_file"]
 output_route_length_file = output_paths["output_route_length_file"]
 output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
@@ -137,7 +138,7 @@ print("\nCalculating/Loading Output Metrics")
 dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutes_removedpeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 #dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, output_path = output_cross_entropy)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, bin_dist = bin_dist, output_path = output_cross_entropy)
 dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
 dfCrossLocEntropy = pd.merge(dfCrossLocEntropy, dfCrossCounts, on='run', how = 'outer')
 

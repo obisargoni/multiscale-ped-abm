@@ -960,26 +960,38 @@ def road_link_crossing_point(cross_line_geom, rl_geom):
             c_point = intersection.centroid.coords[0]
 
     return Point(c_point)
-
-def crossing_location_bin(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks, nbins):
+def crossing_location(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks):
     road_link_start_coord_index = None
     if or_first_node==gdfORLinks.loc[gdfORLinks['fid']==rl_fid, 'MNodeFID'].values[0]:
         road_link_start_coord_index = 0
     else:
         road_link_start_coord_index = -1
 
-
     # Calculate distance of crossing point from start of road link
     d = cross_point.distance(Point(rl_geom.coords[road_link_start_coord_index]))
 
-    # Now bin distance
+    return d
+
+
+def crossing_location_quantile_bin(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks, nbins):
+    d = crossing_location(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks)
+
+    # Now bin quantile
     cross_bin = int(np.floor( (d/rl_geom.length) * nbins))
     if cross_bin>=nbins:
         cross_bin = nbins-1
 
     return cross_bin
 
-def get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins):
+def crossing_location_distance_bin(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks, bin_dist=2):
+    d = crossing_location(cross_point, rl_geom, rl_fid, or_first_node, gdfORLinks)
+
+    # Now bin quantile
+    cross_bin = d//bin_dist
+
+    return cross_bin
+
+def get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins, bin_dist):
     '''
     '''
     # Merge in ped paths so that the direction they walk along the road link being crossed can be determined
@@ -1010,20 +1022,23 @@ def get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdf
     dfCrossEvents['rl_cross_point'] = dfCrossEvents.apply(lambda row: road_link_crossing_point(row['cross_linestring'], row['geometry']), axis=1)
 
     # Get bin of this position
-    dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['juncNodeID'], gdfORLinks, nbins), axis=1)
+    if nbins is None:
+        dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_distance_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['juncNodeID'], gdfORLinks, bin_dist), axis=1)
+    else:
+        dfCrossEvents['bin'] = dfCrossEvents.apply(lambda row: crossing_location_quantile_bin(row['rl_cross_point'], row['geometry'], row['fid_or'], row['juncNodeID'], gdfORLinks, nbins), axis=1)
 
     dfCrossEvents.drop(['cross_linestring', 'geometry'], axis=1, inplace=True)
 
     return dfCrossEvents
 
-def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = 10, output_path = "crossing_location_entropy.csv"):
+def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = None, bin_dist = 2, output_path = "crossing_location_entropy.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin. These probabilities are used to calculate the crossing entropy.
     '''
 
     if os.path.exists(output_path)==False:
 
-        dfCrossEvents = get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins)
+        dfCrossEvents = get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins, bin_dist)
 
         run_bin_counts = dfCrossEvents.groupby(['run'])['bin'].value_counts()
         run_bin_counts.name = 'bin_count'
