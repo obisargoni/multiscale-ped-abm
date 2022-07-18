@@ -165,7 +165,7 @@ print("\nAggregating Metrics for Policy Analysis")
 #dfDD.drop('_merge', axis=1, inplace=True)
 
 # Merge in crossing location entropy data and ped distance travelled
-dfDD = pd.merge(dfRouteLength, dfCrossLocEntropy.reindex(columns = ['run','cross_entropy']), on='run', indicator=True, how = 'outer')
+dfDD = pd.merge(dfRouteLength, dfCrossLocEntropy.reindex(columns = ['run','crossCountPP','cross_entropy']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfPedTripDD.reindex(columns = ['run','DistPA']), on='run', indicator=True, how = 'outer')
