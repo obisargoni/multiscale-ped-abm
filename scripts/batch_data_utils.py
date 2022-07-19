@@ -1194,3 +1194,23 @@ def sobol_si_bar_subplot(ax, dfsi, fig_title, xticklabels):
 
     ax.set_title(fig_title)
     return ax
+
+def output_metrics_descriptive_statistics(dfDD, policy_col, metrics):
+    '''Group the output metrics by the policy col and perform aggregations to give:
+    mean, std, normalised std, standard error in the mean.
+    '''
+
+    standard_error = lambda s: s.std() / np.sqrt(s.shape[0])
+    standardised_std = lambda s: s.std() / s.mean()
+
+    dfDesc = pd.DataFrame()
+    for metric in metrics:
+        dfDescM = dfDD.groupby(policy_col).agg( mean=pd.NamedAgg(column=metric, aggfunc=np.mean),
+                                                err=pd.NamedAgg(column=metric, aggfunc=standard_error),
+                                                std=pd.NamedAgg(column=metric, aggfunc=np.std),
+                                                std_st=pd.NamedAgg(column=metric, aggfunc=standardised_std),)
+        iterables = [[metric], dfDescM.columns]
+        dfDescM.columns = pd.MultiIndex.from_product(iterables, names=["m", "desc"])
+        dfDesc = pd.concat([dfDesc, dfDescM], axis=1)
+
+    return dfDesc.loc[['always','sometimes','never']]
