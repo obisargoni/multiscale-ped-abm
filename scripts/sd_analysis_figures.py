@@ -109,13 +109,9 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dic
 
     return outpath
 
-def sobol_si_figure(dfDD, problem, outcome_vars):
-
-
-    # Group by policy setting and calculate sobol indices
-    dfSIs = pd.DataFrame()
-    for metric in outcome_vars:
-        for pv in policy_values:
+def get_metric_sis(dfDD, problem, policy_param, policy_values, metric):
+    dfMetricSIs = pd.DataFrame()
+    for pv in policy_values:
             X = dfDD.loc[dfDD[policy_param]==pv, problem['names']].values
             Y = dfDD.loc[dfDD[policy_param]==pv, metric].values.astype(float)
             if pd.Series(Y).isnull().any():
@@ -127,26 +123,56 @@ def sobol_si_figure(dfDD, problem, outcome_vars):
             df['param'] = problem['names']
             df['metric']=metric
             df[policy_param]=pv
-            dfSIs = pd.concat([dfSIs, df])
+            dfMetricSIs = pd.concat([dfMetricSIs, df])
+    return dfMetricSIs
 
-    policy_names = {"never":"Informal crossing prevented", "always": "Informal crossing allowed", "sometimes":"Informal crossing prevented on A-Roads"}
+def get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars):
+    # Group by policy setting and calculate sobol indices
+    dfSIs = pd.DataFrame()
+    for metric in outcome_vars:
+        df = get_metric_sis(dfDD, problem, policy_param, policy_values, metric)
+        dfSIs = pd.concat([dfSIs, df])
+    return dfSIs
 
-    f, axs = plt.subplots(3,2, figsize=(20,20), constrained_layout=True)
-    axs = axs.reshape(3,2)
+def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#3d993d', '#cca328', '#af3f33']):
+
+    f, axs = plt.subplots(1,len(outcome_vars), figsize=(fig_width*len(outcome_vars),10), constrained_layout = constrained_layout)
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
-    grouped = dfSIs.groupby(['metric',policy_param])
+    grouped = dfSIs.groupby(['metric'])
     keys = list(grouped.groups.keys())
     keys.sort(key=sf)
-    for i, (m, pv) in enumerate(keys):
-        p = i//2
-        r = i%2
-        dfsi = grouped.get_group((m, pv))#.sort_values(by='S1', ascending=False)
-        title = "{} - {}".format(m, policy_names[pv])
-        ax = bd_utils.sobol_si_bar_subplot(axs[p,r], dfsi, title, dfsi['param'])
-        #ax.set_ylim(ylims[i])
+    for i, m in enumerate(keys):
+        dfsi = grouped.get_group(m)
 
-    outpath = os.path.join(img_dir,"sobol_si.{}-{}.{}.png".format(outcome_vars[0], outcome_vars[1], file_datetime_string))
+        n_policies = len(policy_values)
+        bar_width=0.8/n_policies
+        xi = np.linspace((-bar_width/2) * (n_policies-1), (bar_width/2) * (n_policies-1), n_policies)
+
+        # now loop through policy settings
+        title = "{}".format(rename_dict[m])
+        for j, pv in enumerate(policy_values):
+            dfsip = dfsi.loc[ dfsi[policy_param]==pv]
+            data = dfsip.set_index('param')[['ST','ST_conf']].sort_index()
+        
+            x_pos = np.arange(data.shape[0])+xi[j]
+            axs[i].bar(x_pos, data['ST'], width=bar_width, yerr = data['ST_conf'], align='center', label=pv, color = colors[j])
+
+        axs[i].set_xticks(np.arange(data.shape[0]))
+        axs[i].set_xticklabels([ rename_dict[i] for i in data.index], rotation=45, fontsize=20)
+        axs[i].legend()
+
+        axs[i].set_title(title, fontsize=24)
+
+
+    # add inset showing the road network
+    axins = f.add_axes(inset_rec)
+    gdfORLinks.plot(ax=axins, color='black')
+    axins.set_axis_off()
+    axins.set_title('Environment', y=-0.2)
+
+
+    outpath = os.path.join(img_dir,"sobol_si.{}.png".format(file_datetime_string))
     f.savefig(outpath)
     return outpath
 
@@ -302,11 +328,31 @@ plt.style.use('default')
 #
 from SALib.analyze import sobol
 
+rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
+                'lambda':r"$\mathrm{\lambda}$",
+                "epsilon":r"$\mathrm{\epsilon}$",
+                "gamma":r"$\mathrm{\gamma}$",
+                "minCrossing": r"$\mathrm{MC}$",
+                "tacticalPlanHorizon": r"$\mathrm{PH}$",
+                "addVehicleTicks": r"$\mathrm{T_{veh}}$",
+                "addPedTicks": r"$\mathrm{T_{ped}}$",
+                "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
+                "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
+                "caSampleSeed": r"$\mathrm{Seed_{CA}}$",
+                "vehODSeed": r"$\mathrm{Seed_{veh}}$",
+                "timeThreshold": r"$\mathrm{\tau}$",
+                "route_length_pp":r"$\bar{L_r}$",
+                "DistPA": r"$\bar{D_r}$",
+                "crossCountPP":r"$\bar{C_r}$",
+                "cross_entropy":r"$CLE$", 
+                'informalCrossing':'Informal Crossing'
+                }
+
 policy_param = list(policies.keys())[0]
 policy_values = policies[policy_param]
 scenario_param_cols =  [i for i in params if i!=policy_param]
 
 problem = init_problem(params)
 
-sobol_si_figure(dfDD, problem, outcome_vars1)
-sobol_si_figure(dfDD, problem, outcome_vars2)
+dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
+sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#3d993d', '#cca328', '#af3f33'])
