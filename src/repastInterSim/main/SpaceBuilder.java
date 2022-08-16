@@ -701,10 +701,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		}
 		
 		
+		// Used fixed pedestrian mass rather than normally distributed value
+		Double m = GlobalVars.pedMassAv;
+		/*
 		Double m = GlobalVars.pedMassAv + 3*GlobalVars.pedMasssd; // Initialises as a value far from mean
 		while ( (m < GlobalVars.pedMassAv - 2*GlobalVars.pedMasssd) | (m > GlobalVars.pedMassAv + 2*GlobalVars.pedMasssd) ){ // Exclude extreme values
 			m = RandomHelper.getDistribution("pedMasses").nextDouble();
 		}
+		*/
 		
 		Network<Junction> pavementNetwork = SpaceBuilder.getNetwork(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK);
 		Geography<Junction> pavementJunctionGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.PAVEMENT_JUNCTION_GEOGRAPHY);
