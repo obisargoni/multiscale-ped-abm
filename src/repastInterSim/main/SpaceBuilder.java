@@ -122,6 +122,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		
 		// Correct way to register multiple random number streams
 		
+		// Get random seed parameter and create other parameters from this
+		int rSeed = params.getInteger("randomSeed");
+		
 		RandomEngine engPedOD = RandomHelper.registerGenerator("pedODThresholds", params.getInteger("pedODSeed"));
 		Uniform pedODUniform = new Uniform(0, 1, engPedOD);
 		RandomHelper.registerDistribution("pedODThresholds", pedODUniform);
@@ -130,15 +133,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Uniform vehODUniform = new Uniform(0, 1, engVehOD);
 		RandomHelper.registerDistribution("vehODThresholds", vehODUniform);
    
-		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", params.getInteger("caSampleSeed"));
+		RandomEngine engCASample = RandomHelper.registerGenerator("caSampleDistribution", rSeed*30);
 		Uniform caSampleUniform = new Uniform(0, 1, engCASample);
 		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
 		
-		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", params.getInteger("pedSpeedSeed"));
+		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", rSeed*50);
 		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
 		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
 		
-		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", params.getInteger("pedMassSeed"));
+		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", rSeed*70);
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		

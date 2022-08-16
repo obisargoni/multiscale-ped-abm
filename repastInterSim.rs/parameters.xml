@@ -7,57 +7,38 @@
 									
 		/>
 					<parameter name="pedODSeed" displayName="Pedestrian OD Seed" type="int" 
-						defaultValue="2"
+						defaultValue="100"
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 					<parameter name="vehODSeed" displayName="Vehicle OD Seed" type="int" 
-						defaultValue="3"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
-		
-					<parameter name="caSampleSeed" displayName="Crossing alternative sampling seed" type="int" 
-						defaultValue="4"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
-					<parameter name="pedMassSeed" displayName="Ped masses seed" type="int" 
-						defaultValue="5"
-						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
-									
-		/>
-					<parameter name="pedSpeedSeed" displayName="Ped speeds seed" type="int" 
-						defaultValue="6"
+						defaultValue="101"
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="addVehicleTicks" displayName="Ticks between vehicle creation" type="int" 
-						defaultValue="60" 
+						defaultValue="177" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="addPedTicks" displayName="Ticks between pedestrian creation" type="int" 
-						defaultValue="10" 
+						defaultValue="48" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 
 						<parameter name="alpha" displayName="Controls weighting betweem traffic exposure and journey time" type="double" 
-						defaultValue="0.7" 
+						defaultValue="0.529296875" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 								<parameter name="lambda" displayName="Controls the effect of salience distance on sampling probability" type="double" 
-						defaultValue="0.7" 
+						defaultValue="1.49609375" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
@@ -69,13 +50,13 @@
 									
 		/>
 								<parameter name="epsilon" displayName="Activation threshold for crossing choice" type="double" 
-						defaultValue="2.5" 
+						defaultValue="5.767578125" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 								<parameter name="ga" displayName="Gap acceptance parameter" type="double" 
-						defaultValue="1.0" 
+						defaultValue="0" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
@@ -87,37 +68,37 @@
 									
 		/>
 								<parameter name="tacticalPlanHorizon" displayName="Cumulative angular distance pedestrian percieves at tactical level" type="double" 
-						defaultValue="20" 
+						defaultValue="141.5234375" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 								<parameter name="nPeds" displayName="Total number of pedestrians to add to the model" type="int" 
-						defaultValue="100" 
+						defaultValue="210" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 								<parameter name="timeThreshold" displayName="Time threshold to trigger crossing alternative choice at (direct crossing only)" type="int" 
-						defaultValue="120" 
+						defaultValue="39" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 								<parameter name="yieldThreshold" displayName="Yielding time at which to trigger choosing new crossing location" type="int" 
-						defaultValue="60" 
+						defaultValue="0" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 								<parameter name="updateFactor" displayName="Factor by which to update alpha dn gap acceptance parameters when ped has failed to cross" type="double" 
-						defaultValue="0.75" 
+						defaultValue="1.0" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									
 		/>
 								<parameter name="informalCrossing" displayName="Control whether to always, sometimes or never allow informal crossing" type="String" 
-						defaultValue="always" 
+						defaultValue="sometimes" 
 						isReadOnly="false" 
 						
 									
