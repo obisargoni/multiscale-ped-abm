@@ -410,7 +410,8 @@ with open(".//config.json") as f:
 file_datetime_string = config['file_datetime_string']
 vehicle_density_timestamp = config['vehicle_density_timestamp']
 setting = config['setting']
-
+nbins = None
+bin_dist = 2
 
 #####################################
 #
@@ -444,7 +445,7 @@ cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
 
 # output paths for processed data
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = config['crossing_nbins'])
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = bin_dist)
 output_ped_routes_file=             output_paths["output_ped_routes_file"]
 output_single_ped_links_file=       output_paths["output_single_ped_links_file"]
 output_vehicle_density_file=        output_paths["output_vehicle_density_file"]
@@ -527,7 +528,7 @@ dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, df
 dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
 
 '''
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = config['crossing_nbins'], output_path = output_cross_entropy)
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, bin_dist = bin_dist, output_path = output_cross_entropy)
 
 dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEventsConsistentPeds, gdfPaveLinks)
 dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
@@ -734,9 +735,9 @@ if "morris_factor_fixing" in setting:
     # Gather into a dataframe
     dfEiSs = pd.DataFrame(Sis).sort_values(by='mu_star', ascending=False)
     f_rlsi = morris_si_bar_figure(dfEiSs, "Crossing Location Entropy Sensitivity", r"$\mathrm{\mu^*}$", dfEiSs['names'].replace(rename_dict))
-    f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}bins.{}.png".format(config['crossing_nbins'], file_datetime_string)))
+    f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}bins.{}.png".format(bin_dist, file_datetime_string)))
     f_rlsi.clear()
-    dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}bins".format(config['crossing_nbins']))
+    dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}bins".format(bin_dist))
     '''
 
 if 'sobol_si' in setting:
