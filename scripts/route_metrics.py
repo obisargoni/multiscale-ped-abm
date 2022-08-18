@@ -458,6 +458,8 @@ output_corr_factormap=              output_paths["output_corr_factormap"]
 output_alt_routes_file=             output_paths["output_alt_routes_file"]
 output_cross_entropy =              output_paths["output_cross_entropy"]
 
+output_route_data = output_paths["output_route_data"]
+
 
 #####################################
 #
@@ -517,22 +519,36 @@ dfRouteCompletion = bd_utils.agg_route_completions(dfPedRoutes, dfRun, output_pa
 dfPedRoutesConsistentPeds = dfPedRoutes.loc[ ~dfPedRoutes['ID'].isin(dfPedRoutes_removedpeds['ID'])]
 dfCrossEventsConsistentPeds = dfCrossEvents.loc[ ~dfCrossEvents['ID'].isin(dfPedRoutes_removedpeds['ID'])]
 
-dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEventsConsistentPeds, gdfPaveLinks)
-
 
 print("\nCalculating/Loading Output Metrics")
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = config['crossing_nbins'], output_path = output_cross_entropy)
 dfSPSim = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'dice_dist', output_path = output_sp_similarity_path)
 dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'path_length', output_path = output_sp_similarity_length_path)
+dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
+
+'''
+dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = config['crossing_nbins'], output_path = output_cross_entropy)
+
+dfLinkCrossCounts = bd_utils.get_road_link_pedestrian_crossing_counts(dfCrossEventsConsistentPeds, gdfPaveLinks)
 dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsMarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unsignalised'], dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsUnmarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDirect = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='direct_cross'], dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonal = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['linkType']=='diag_cross'], dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
 dfConflictsDiagonalUm = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfRun, dfLinkCrossCounts, ttc_col = 'TTC')
-
 conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfConflictsUnmarked, 'direct':dfConflictsDirect, 'diag':dfConflictsDiagonal, 'diag_um':dfConflictsDiagonalUm}
+'''
+
+# Merge in crossing location entropy data and ped distance travelled
+dfDD = pd.merge(dfRouteLength, dfSPSimLen.reindex(columns = ['run','sp_sim']), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfCrossCounts.reindex(columns = ['run','crossCountPP']), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+
+
+dfDD.to_csv(output_route_data, index=False)
 
 ######################################
 #
@@ -597,6 +613,7 @@ if 'monte_carlo_filtering' in setting:
 
 if "morris_factor_fixing" in setting:
 
+    '''
     print("\nCalculating sensitivity indices - Route completions")
 
     X_rc = dfRouteCompletion.loc[:, problem['names']].values
@@ -609,8 +626,9 @@ if "morris_factor_fixing" in setting:
     f_compsi.savefig(os.path.join(img_dir, "route_completion_sis.{}.png".format(file_datetime_string)))
     f_compsi.clear()
     dfcompsi.to_excel(xlWriter, sheet_name = 'frac_completed_journeys')
+    '''
 
-
+    '''
     print("\nCalculating sensitivity indices - Conflicts")
     title_dict = config["title_dict"]
     for cat in config["conflict_categories"]:
@@ -634,6 +652,7 @@ if "morris_factor_fixing" in setting:
             f_ccsi.savefig(os.path.join(img_dir, "{}_{}_sis.{}.png".format(metric, cat, file_datetime_string)))
             f_ccsi.clear()
             df.to_excel(xlWriter, sheet_name = "{}_{}_sis".format(metric, cat))
+    '''
 
 
 
@@ -703,7 +722,7 @@ if "morris_factor_fixing" in setting:
     f_rlsi.clear()
     dfRLSis.to_excel(xlWriter, sheet_name = "route_length_pp_sis_{}".format(k))
 
-
+    '''
     print("\nCalculating sensitivity indices - Crossing location entropy")
     X = dfCrossLocEntropy.loc[:, problem['names']].values
     Y = dfCrossLocEntropy['cross_entropy'].values
@@ -718,9 +737,11 @@ if "morris_factor_fixing" in setting:
     f_rlsi.savefig(os.path.join(img_dir, "cross_loc_entropy_sis.{}bins.{}.png".format(config['crossing_nbins'], file_datetime_string)))
     f_rlsi.clear()
     dfEiSs.to_excel(xlWriter, sheet_name = "cross_loc_entropy_sis{}bins".format(config['crossing_nbins']))
+    '''
 
 if 'sobol_si' in setting:
 
+    '''
     print("\nCalculating sobol indices - Conflicts")
     title_dict = config["title_dict"]
     for cat in config["conflict_categories"]:
@@ -753,7 +774,7 @@ if 'sobol_si' in setting:
 
                 f_si = sobol_second_order_si_bar_figure(dfsi_second_order,  "{} Second Order Sobol Indices - {} crossings".format(title_dict[metric], cat), rename_dict)
                 f_si.savefig(os.path.join(img_dir, "{}_{}_sobol2T_bar.{}.png".format(metric, cat, file_datetime_string)))
-
+    '''
 
     print("Calculating Sobol Indices - Shortest Path Comparison")
 
