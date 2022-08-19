@@ -14,6 +14,7 @@
     <string>FullTacticalRouteString</string>
     <string>JourneyDistance</string>
     <string>JourneyDuration</string>
+    <string>PostponeCounts</string>
   </sourceIds>
   <fileName>.\batch\model_run_data\pedestrian_routes.csv</fileName>
   <addTimeStamp>true</addTimeStamp>
