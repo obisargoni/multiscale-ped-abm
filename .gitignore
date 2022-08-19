@@ -60,11 +60,11 @@ hs_err_pid*
 /.classpath
 /velocity.log.1
 /data/buildings_roads_coords_cache.serialised
-/data/model_gis_data/*
+
+# data and scripts
 /data/test_gis_data/*
-~/data/export/README.txt
-/data/export/*
 ~/data/README.txt
+
 /output/*
 ~/output/README.txt
 ~/output/logs/README.txt
