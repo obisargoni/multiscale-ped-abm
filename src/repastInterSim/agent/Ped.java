@@ -83,6 +83,7 @@ public class Ped extends MobileAgent {
     private Color col; // Colour of the pedestrian
     
 	private String currentPavementLinkID = "";
+	private int nCrossingPostponements = 0;
     
     private int stepsSinceReachedTarget = 0; // Counter used to identify when peds get struck and remove them from the simulation.
     private int stepsYielding = 0;
@@ -782,7 +783,7 @@ public class Ped extends MobileAgent {
     	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
     	
     	// Record the ped's route for data collection
-    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration);
+    	PedRouteData pd = new PedRouteData(this.id, this.pathFinder.getStartPavementJunction().getFID(), this.pathFinder.getDestPavementJunction().getFID(), this.pathFinder.getFullStrategicPathString(), this.pathFinder.getFullTacticalPathString(), this.journeyDistance, this.journeyDuration, this.nCrossingPostponements);
 		Context<Object> mc = RunState.getInstance().getMasterContext();
 		Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
 		mc.add(pd);
@@ -797,6 +798,7 @@ public class Ped extends MobileAgent {
         this.pHorizon=null;
         this.col=null;
     	this.currentPavementLinkID = null;
+    	this.nCrossingPostponements = 0;
     }
     
     public Color getColor() {
@@ -1094,5 +1096,9 @@ public class Ped extends MobileAgent {
 	public void resetAlphaGAFactors() {
 		this.alphaFactor=1.0;
 		this.gaFactor=1.0;
+	}
+	
+	public void increasePostponementCount() {
+		this.nCrossingPostponements++;
 	}
 }

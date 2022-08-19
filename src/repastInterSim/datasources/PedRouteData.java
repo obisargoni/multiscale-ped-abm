@@ -9,9 +9,10 @@ public class PedRouteData extends DefaultDataRecorder {
 	private String fullTacticalRouteString;
 	private String journeyDistance;
 	private String journeyDuration;
+	private String nCrossingPostponements;
 	
 
-	public PedRouteData(int pID, String spjID, String dpjID, String fsp, String ftp, double jD, int jDr) {
+	public PedRouteData(int pID, String spjID, String dpjID, String fsp, String ftp, double jD, int jDr, int nCP) {
 		super();
 		this.id = pID;
 		this.startPavementJunctionID = spjID;
@@ -20,6 +21,7 @@ public class PedRouteData extends DefaultDataRecorder {
 		this.fullTacticalRouteString = ftp;
 		this.journeyDistance = String.valueOf(jD);
 		this.journeyDuration = String.valueOf(jDr);
+		this.nCrossingPostponements = String.valueOf(nCP);
 	}
 	
 	public int getID() {
@@ -49,6 +51,10 @@ public class PedRouteData extends DefaultDataRecorder {
 
 	public String getJourneyDuration() {
 		return journeyDuration;
+	}
+	
+	public String getCrossingPostponements() {
+		return this.nCrossingPostponements;
 	}
 
 }

@@ -145,6 +145,9 @@ public class TacticalRoute {
 		}
 		
 		// initialise blank accumulator initially. Ensures that TacticalRoute accumulators is specific to the 'currentEdge'
+		if (this.accumulator.crossingRequired() & !this.accumulator.caChosen()) {
+			this.ped.increasePostponementCount();
+		}
 		this.accumulator.clear();
 		this.accumulator = new AccumulatorRoute();
 		
