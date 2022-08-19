@@ -266,13 +266,15 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'crossCountPP', 'cross_entropy']
+outcome_vars = ['route_length_pp', 'sp_sim', 'PostponeCountPP']
 
 title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
                         "DistPA": r"$\bar{D_r}$",
                         "crossCountPP":r"$\bar{C_r}$",
                         "cross_entropy":r"$CLE$", 
-                        'informalCrossing':'Informal Crossing'}
+                        'informalCrossing':'Informal Crossing',
+                        'PostponeCountPP': 'Postpone Crossing Per Ped',
+                        'sp_sim': 'Fractional length difference from shortest path'}
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
