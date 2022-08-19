@@ -737,7 +737,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
                 # Set dfPedRoutes to just have columns we are interested in
         dfPedRoutes = dfPedRoutes.reindex(columns = [   'run', 'ID', 'FullStrategicPathString', 'edge_path',
                                                         'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
-                                                        'start_node', 'end_node'])
+                                                        'start_node', 'end_node', 'PostponeCounts'])
 
         dfAltPaths = pd.DataFrame()
         for run in dfPedRoutes['run'].unique():
