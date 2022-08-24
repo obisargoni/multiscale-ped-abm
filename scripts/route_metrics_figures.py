@@ -101,7 +101,7 @@ def get_metric_sis_envs(dfDD, problem, env_col, metric):
             X = dfDD.loc[dfDD[env_col]==env, problem['names']].values
             Y = dfDD.loc[dfDD[env_col]==env, metric].values.astype(float)
             if pd.Series(Y).isnull().any():
-                print("Null values in utput for {} - {}, skipping".format(cat, metric))
+                print("Null values in utput for {}, skipping".format(metric))
                 continue
 
             Sis = sobol.analyze(problem, Y, calc_second_order=False, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=random_seed)
@@ -293,7 +293,9 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "DistPA": r"$\bar{D_r}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
-                'informalCrossing':'Informal Crossing'
+                'informalCrossing':'Informal Crossing',
+                'sp_sim': 'Fractional length difference from shortest path',
+                'PostponeCountPP': 'Postpone Crossing Per Ped'
                 }
 
 #
