@@ -442,6 +442,10 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
             df = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].describe().reset_index()
             df['k'] = k
 
+            # Also get count of 0 difference to sp
+            dfQ1Counts = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].apply(lambda s: (s<0.00000001).value_counts()[True]).reset_index().rename(columns = {'comp_value_{}'.format(k):'cv{}zeroCount'.format(k)})
+            df = pd.merge(df, dfQ1Counts, on = 'run', how = 'left')
+
             # T test to compare means
             # Compare frechet distances for different edge weights. Used to test whether the additional weighting of crossing links better matches pedestrian routes.
             dfTTests = dfPedRoutes.groupby('run').apply(lambda df: stats.ttest_rel(df['comp_value_0'], df['comp_value_{}'.format(k)])[1]).reset_index().rename(columns = {0:'ttp'})
