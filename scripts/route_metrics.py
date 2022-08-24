@@ -542,7 +542,7 @@ conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfCo
 '''
 
 # Merge in crossing location entropy data and ped distance travelled
-dfDD = pd.merge(dfRouteLength, dfSPSimLen.reindex(columns = ['run','sp_sim']), on='run', indicator=True, how = 'outer')
+dfDD = pd.merge(dfRouteLength, dfSPSimLen.reindex(columns = ['run','mean']).rename(columns = {'mean':'sp_sim'}), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfCrossCounts.reindex(columns = ['run','crossCountPP']), on='run', indicator=True, how = 'outer')
