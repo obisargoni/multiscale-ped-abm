@@ -545,6 +545,9 @@ conflicts_data = {'all':dfConflicts, 'marked':dfConflictsMarked, 'unmarked':dfCo
 dfDD = pd.merge(dfRouteLength, dfSPSimLen.reindex(columns = ['run','mean']).rename(columns = {'mean':'sp_sim'}), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfRouteLength, dfSPSim.reindex(columns = ['run','mean']).rename(columns = {'mean':'sp_sim_dice'}), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfCrossCounts.reindex(columns = ['run','crossCountPP']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
