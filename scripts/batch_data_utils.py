@@ -743,35 +743,12 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
                                                         'StartPavementJunctionID', 'DestPavementJunctionID', 'node_path',
                                                         'start_node', 'end_node', 'PostponeCounts'])
 
-        dfAltPaths = pd.DataFrame()
-        for run in dfPedRoutes['run'].unique():
-            dfAltPathsRun = dfUniqueStartEnd.copy()
-            dfAltPathsRun['run'] = run
-            for k in weight_params:
-                weight_name = "weight{}".format(k)
-
-                # Create df of costs to assign to pavement network links based on length and vehicle flow
-                dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
-                
-                if dfVehCounts is None:
-                    dfLinkWeights['cross_cost'] = 0
-                else:   
-                    dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
-                    dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
-                    dfLinkWeights['cross_cost'] = dfLinkWeights['AvVehDen'].fillna(0) * k
-
-                dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
-
-                # Weight pavement network crossing links by average vehicle flow
-                weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-                nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
-
-                if strategic_path_filter:
-                    dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
-                else:
-                    dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
-
-            dfAltPaths = pd.concat([dfAltPaths, dfAltPathsRun])
+        if (dfVehCounts is not None) & (weight_params is not None):
+            print("Calculating SPs with cross costs")
+            dfAltPathsOrig = alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, dfVehCounts, pavement_graph, weight_params, strategic_path_filter)
+        else:
+            print("Calculating SPs without cross costs")
+            dfAltPaths = alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, pavement_graph, strategic_path_filter)
 
         dfPedRoutes = pd.merge(dfPedRoutes, dfAltPaths, on = ['run', 'start_node', 'end_node', 'FullStrategicPathString'])
 
@@ -779,6 +756,62 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         dfPedRoutes_removedpeds.to_csv(routes_removed_path, index=False)
 
     return dfPedRoutes, dfPedRoutes_removedpeds
+
+def alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, dfVehCounts, pavement_graph, weight_params, strategic_path_filter):
+    dfAltPaths = pd.DataFrame()
+    for run in dfPedRoutes['run'].unique():
+        dfAltPathsRun = dfUniqueStartEnd.copy()
+        dfAltPathsRun['run'] = run
+        for k in weight_params:
+            weight_name = "weight{}".format(k)
+
+            # Create df of costs to assign to pavement network links based on length and vehicle flow
+            dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
+               
+            dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
+            dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
+            dfLinkWeights['cross_cost'] = dfLinkWeights['AvVehDen'].fillna(0) * k
+
+            dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
+
+            # Weight pavement network crossing links by average vehicle flow
+            weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+            nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+            if strategic_path_filter:
+                dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+            else:
+                dfAltPathsRun['sp_{}'.format(k)] = dfAltPathsRun.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
+
+        dfAltPaths = pd.concat([dfAltPaths, dfAltPathsRun])
+    return dfAltPaths
+
+def alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, pavement_graph, strategic_path_filter):
+    
+    dfAltPathsBase = dfUniqueStartEnd.copy()
+    weight_name = "weight{}".format(0)
+
+    # Create df of costs to assign to pavement network links based on length and vehicle flow
+    dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
+    dfLinkWeights['cross_cost'] = 0
+    dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
+
+    # Weight pavement network crossing links by average vehicle flow
+    weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+    nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+    if strategic_path_filter:
+        dfAltPathsBase['sp_{}'.format(0)] = dfAltPathsBase.apply(lambda row: shortest_path_within_strategic_path(row['FullStrategicPathString'], gdfORLinks, gdfPaveNodes, pavement_graph, row['start_node'], row['end_node'], weight = weight_name), axis=1)
+    else:
+        dfAltPathsBase['sp_{}'.format(0)] = dfAltPathsBase.apply(lambda row: nx.dijkstra_path(pavement_graph, row['start_node'], row['end_node'], weight =  weight_name), axis=1)
+
+    dfAltPaths = pd.DataFrame()
+    for run in dfPedRoutes['run'].unique():
+        dfAltPathsRun = dfAltPathsBase.copy()
+        dfAltPathsRun['run'] = run          
+        dfAltPaths = pd.concat([dfAltPaths, dfAltPathsRun])
+    return dfAltPaths
+
 
 def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links.csv'):
     '''Selects all of the tactical paths traverse by one pedestrian agetn across all simulation runs. From this calculates number of times each link is 

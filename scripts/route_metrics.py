@@ -508,7 +508,7 @@ weight_params = range(0, 2100, 500)
 dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, av_vehicle_counts_file, output_vehicle_density_file)
 dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 
-dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, range(0,100,100), dfVehCounts = dfVehCounts, ped_routes_path = ped_routes_file)
+dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, None, dfVehCounts = None, ped_routes_path = ped_routes_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
