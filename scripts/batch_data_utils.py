@@ -748,7 +748,8 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
             dfAltPathsOrig = alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNodes, dfVehCounts, pavement_graph, weight_params, strategic_path_filter)
         else:
             print("Calculating SPs without cross costs")
-            dfAltPaths = alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, pavement_graph, strategic_path_filter)
+            dfAltPaths = alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, strategic_path_filter)
+            
 
         dfPedRoutes = pd.merge(dfPedRoutes, dfAltPaths, on = ['run', 'start_node', 'end_node', 'FullStrategicPathString'])
 
