@@ -745,7 +745,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
 
         if (dfVehCounts is not None) & (weight_params is not None):
             print("Calculating SPs with cross costs")
-            dfAltPathsOrig = alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, dfVehCounts, pavement_graph, weight_params, strategic_path_filter)
+            dfAltPathsOrig = alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNodes, dfVehCounts, pavement_graph, weight_params, strategic_path_filter)
         else:
             print("Calculating SPs without cross costs")
             dfAltPaths = alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, pavement_graph, strategic_path_filter)
@@ -757,7 +757,7 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
 
     return dfPedRoutes, dfPedRoutes_removedpeds
 
-def alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, dfVehCounts, pavement_graph, weight_params, strategic_path_filter):
+def alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNodes, dfVehCounts, pavement_graph, weight_params, strategic_path_filter):
     dfAltPaths = pd.DataFrame()
     for run in dfPedRoutes['run'].unique():
         dfAltPathsRun = dfUniqueStartEnd.copy()
@@ -786,7 +786,7 @@ def alt_paths_cross_weight(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, dfVehCou
         dfAltPaths = pd.concat([dfAltPaths, dfAltPathsRun])
     return dfAltPaths
 
-def alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, pavement_graph, strategic_path_filter):
+def alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, strategic_path_filter):
     
     dfAltPathsBase = dfUniqueStartEnd.copy()
     weight_name = "weight{}".format(0)
