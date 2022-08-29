@@ -120,7 +120,7 @@ def get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars):
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
+def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, params = ['alpha','lambda','epsilon','timeThreshold', 'minCrossing', 'tacticalPlanHorizon','addPedTicks','addVehicleTicks'], constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
 
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
@@ -138,7 +138,7 @@ def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outc
         title = "{}".format(rename_dict[var])
         for j, env in enumerate(env_values):
             dfsip = dfsi.loc[ dfsi[env_col]==env]
-            data = dfsip.set_index('param')[['ST','ST_conf']].sort_index()
+            data = dfsip.set_index('param').loc[params][['ST','ST_conf']]
         
             x_pos = np.arange(data.shape[0])+xi[j]
             axs[i].bar(x_pos, data['ST'], width=bar_width, yerr = data['ST_conf'], align='center', label=env, color = colors[j])
@@ -148,7 +148,7 @@ def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outc
         #axs[i].legend()
 
         #axs[i].set_title(title, fontsize=24)
-    axs[-1].legend(fontsize = 20, bbox_to_anchor=(-2,-0.32,2.5,0), loc="lower center", mode='expand', ncol=3)
+    axs[-1].legend(fontsize = 20, bbox_to_anchor=(-2.5,-0.32,2.5,0), loc="lower center", mode='expand', ncol=3) # use bbox_to_anchor = [-2,-0.32,2.5,0] for 3 variables
     #bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=2
 
     return f
@@ -266,15 +266,7 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim', 'PostponeCountPP']
-
-title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
-                        "DistPA": r"$\bar{D_r}$",
-                        "crossCountPP":r"$\bar{C_r}$",
-                        "cross_entropy":r"$CLE$", 
-                        'informalCrossing':'Informal Crossing',
-                        'PostponeCountPP': 'Postpone Crossing Per Ped',
-                        'sp_sim': 'Fractional length difference from shortest path'}
+outcome_vars = ['route_length_pp', 'sp_sim', 'sp_sim_dice_zerocount', 'PostponeCountPP']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
@@ -294,8 +286,10 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
                 'informalCrossing':'Informal Crossing',
-                'sp_sim': 'Fractional length difference from shortest path',
-                'PostponeCountPP': 'Postpone Crossing Per Ped'
+                'sp_sim': r"$\bar{Diff_r}$",
+                'sp_sim_dice': r"$\Delta SP_{dice}$",
+                'sp_sim_dice_zerocount': r"$N_{SP}$",
+                'PostponeCountPP': r"$\bar{PC}_r$"
                 }
 
 #
@@ -310,7 +304,7 @@ fig, axs = plt.subplots(nplots, nvars, figsize=(fig_width*len(outcome_vars),13))
 # Histogram plots
 #
 #plt.style.use('dark_background')
-fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, env_col, title_rename_dict, fig_config, palette=palette)
+fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, env_col, rename_dict, fig_config, palette=palette)
 
 #
 # Sobol indices for each metric and policy setting
@@ -328,7 +322,7 @@ dfSIs = get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars)
 fig = multi_env_sobol_si_plot(fig, axs[1, :], dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, constrained_layout = False, colors = palette)
 
 # annotate figure
-texts = ['a)','b)','c)','d)','e)','f)']
+texts = ['a)','b)','c)','d)','e)','f)', 'g)','h)','i)']
 for i, ax in enumerate(axs.reshape(1,-1)[0]):
     ax.text(-0.15, 0.98, texts[i], transform=ax.transAxes, fontsize=18)
 
