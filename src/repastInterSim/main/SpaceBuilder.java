@@ -18,6 +18,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import cern.jet.random.Logarithmic;
 import cern.jet.random.Normal;
 import cern.jet.random.Uniform;
 import cern.jet.random.engine.RandomEngine;
@@ -138,7 +139,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		RandomHelper.registerDistribution("caSampleDistribution", caSampleUniform);
 		
 		RandomEngine engPedSpeeds = RandomHelper.registerGenerator("pedSpeeds", rSeed*50);
-		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg, GlobalVars.pedVsd, engPedSpeeds);
+		Normal pedSpeedsNorm= new Normal(GlobalVars.pedVavg_log, GlobalVars.pedVsd_log, engPedSpeeds);
 		RandomHelper.registerDistribution("pedSpeeds", pedSpeedsNorm);
 		
 		RandomEngine engPedMasses = RandomHelper.registerGenerator("pedMasses", rSeed*70);
@@ -695,11 +696,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Parameters  params = RunEnvironment.getInstance().getParameters();
 		
 		// Draw velocity and mass from random distribution
-		Double v = GlobalVars.pedVavg + 3*GlobalVars.pedVsd; // Initialises as a value far from mean
-		while ( (v < GlobalVars.pedVavg - 2*GlobalVars.pedVsd) | (v > GlobalVars.pedVavg + 2*GlobalVars.pedVsd) ){ // Exclude extreme values
-			v = RandomHelper.getDistribution("pedSpeeds").nextDouble();
-		}
-		
+		Double v = GlobalVars.pedVavg + 4*GlobalVars.pedVsd; // Initialises as a value far from mean
+		while ( (v < GlobalVars.pedVmin) | (v > GlobalVars.pedVmax) ){ // Exclude extreme values
+			v = Math.exp(RandomHelper.getDistribution("pedSpeeds").nextDouble());
+		}		
 		
 		// Used fixed pedestrian mass rather than normally distributed value
 		Double m = GlobalVars.pedMassAv;
