@@ -526,6 +526,7 @@ dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, d
 dfSPSim = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'dice_dist', output_path = output_sp_similarity_path)
 dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'path_length', output_path = output_sp_similarity_length_path)
 dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
+dfCrossTypes = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: (df['CrossingType'].value_counts()['unmarked'] / df.shape[0] ) * 100).reset_index().rename(columns = {0:'pcntInfCross'})
 dfCrossPostponements = dfPedRoutesConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df['PostponeCounts'].sum() / df['nPeds'].values[0]).reset_index().rename(columns = {0:'PostponeCountPP'})
 
 '''
@@ -552,6 +553,9 @@ dfDD = pd.merge(dfDD, dfCrossCounts.reindex(columns = ['run','crossCountPP']), o
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfCrossPostponements.reindex(columns = ['run','PostponeCountPP']), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfCrossTypes.reindex(columns = ['run','pcntInfCross']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
