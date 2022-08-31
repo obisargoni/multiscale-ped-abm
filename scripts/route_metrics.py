@@ -496,7 +496,7 @@ points_pos['y'] = points_pos['geometry'].map(lambda g: g.coords[0][1])
 node_posistions = list(zip(points_pos['x'], points_pos['y']))
 dict_node_pos = dict(zip(points_pos.index, node_posistions))
 
-weight_params = range(0, 2100, 500)
+weight_params = range(0, 100, 100)
 
 ######################################
 #
@@ -508,7 +508,7 @@ weight_params = range(0, 2100, 500)
 dfVehCounts = bd_utils.get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, av_vehicle_counts_file, output_vehicle_density_file)
 dfVehCounts.rename(columns = {'fid':'itn_fid'}, inplace=True)
 
-dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, None, dfVehCounts = None, ped_routes_path = ped_routes_file)
+dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_graph, weight_params, dfVehCounts = None, ped_routes_path = ped_routes_file)
 
 dfCrossEvents = bd_utils.load_and_clean_cross_events(gdfPaveLinks, cross_events_path = cross_events_file)
 
