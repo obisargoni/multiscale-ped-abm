@@ -64,7 +64,7 @@ def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '
     ax.set_title(val_col)
     return ax
 
-def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d993d', '#cca328', '#af3f33']):
+def hist_plot(ax, data, val_col, val_unit, group_col, title, nhistbins = 25, palette=['#3d993d', '#cca328', '#af3f33']):
 
     minv = data[val_col].min()
     maxv = data[val_col].max()
@@ -78,16 +78,24 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d
 
         ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=0.7, label=g, histtype='step', linewidth=6)
 
-    ax.set_ylabel('count', fontsize = 15)
-    #ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
-    ax.set_title(title, fontsize = 28, pad=25)
+    ax.set_yticks([])
+    ax.set_yticklabels([])
+    ax.set_ylim(ymin=0, ymax=900)
+    ax.set_xlabel(val_unit, fontsize = 26, labelpad=15)
+    ax.set_title(title, fontsize = 50, pad=25)
     return ax
 
-def multi_env_hist_plot(f, axs, dfDD, gdfORLinks, outcome_vars, env_col, title_rename_dict, fig_config, nhistbins = 25, palette = ['#3d993d', '#cca328', '#af3f33']):
+def multi_env_hist_plot(f, axs, dfDD, gdfORLinks, outcome_vars, outcome_units, env_col, title_rename_dict, fig_config, nhistbins = 25, palette = ['#3d993d', '#cca328', '#af3f33']):
 
     data = dfDD.loc[:, outcome_vars+[env_col]]
     for i in range(nvars):
-        ax0 = hist_plot(axs[i], data, outcome_vars[i], env_col, title_rename_dict[outcome_vars[i]], nhistbins = nhistbins, palette = palette)
+        ax0 = hist_plot(axs[i], data, outcome_vars[i], outcome_units[i], env_col, title_rename_dict[outcome_vars[i]], nhistbins = nhistbins, palette = palette)
+        axs[i].set_yticks(range(0, 1000, 200))
+        axs[i].tick_params(axis='y', length=10)
+        if i==0:
+            axs[i].set_ylabel('count of runs', fontsize = 35, labelpad=17)
+            axs[i].set_yticklabels(range(0, 1000, 200))
+        axs[i].tick_params(axis = 'both', labelsize = 26)
 
     # Add single legend
     #axs[-1].legend(fontsize = 20, bbox_to_anchor=(1,1), loc="upper left")
@@ -120,7 +128,7 @@ def get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars):
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, params = ['alpha','lambda','epsilon','timeThreshold', 'minCrossing', 'tacticalPlanHorizon','addPedTicks','addVehicleTicks'], constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
+def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, params = ['alpha','lambda','epsilon','timeThreshold', 'addPedTicks','addVehicleTicks', 'tacticalPlanHorizon', 'minCrossing'], constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
 
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
@@ -143,12 +151,23 @@ def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outc
             x_pos = np.arange(data.shape[0])+xi[j]
             axs[i].bar(x_pos, data['ST'], width=bar_width, yerr = data['ST_conf'], align='center', label=env, color = colors[j])
 
+        axs[i].set_yticks([])
+        axs[i].set_yticklabels([])
+        axs[i].set_ylim(ymin=0, ymax=1)
         axs[i].set_xticks(np.arange(data.shape[0]))
-        axs[i].set_xticklabels([ rename_dict[i] for i in data.index], rotation=45, fontsize=20)
-        #axs[i].legend()
+        axs[i].set_xticklabels([ rename_dict[i] for i in data.index], rotation=45)
+
+        axs[i].set_yticks(np.round(np.linspace(0, 1, 6),1))
+        axs[i].tick_params(axis='y', length=10)
+        if i==0:
+            axs[i].set_ylabel(r"$S_T$", fontsize=35, labelpad=17)
+            axs[i].set_yticklabels( np.round(np.linspace(0, 1, 6),1))
+
+        axs[i].tick_params(axis = 'y', labelsize = 26)
+        axs[i].tick_params(axis = 'x', labelsize = 35)
 
         #axs[i].set_title(title, fontsize=24)
-    axs[-1].legend(fontsize = 20, bbox_to_anchor=(-2.5,-0.32,2.5,0), loc="lower center", mode='expand', ncol=3) # use bbox_to_anchor = [-2,-0.32,2.5,0] for 3 variables
+    axs[-1].legend(fontsize = 35, bbox_to_anchor=(-2.37,-0.45,2.5,0), loc="lower center", mode='expand', ncol=3) # use bbox_to_anchor = [-2,-0.32,2.5,0] for 3 variables
     #bbox_to_anchor=(0, 1, 1, 0), loc="lower left", mode="expand", ncol=2
 
     return f
@@ -266,7 +285,8 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim', 'sp_sim_dice_zerocount', 'PostponeCountPP']
+outcome_vars = ['route_length_pp', 'sp_sim_dice_zerocount', 'PostponeCountPP', 'pcntInfCross']
+outcome_units = ['meters', 'pedestrian agents', 'crossings', '%']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
@@ -286,10 +306,11 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
                 'informalCrossing':'Informal Crossing',
-                'sp_sim': r"$\bar{Diff_r}$",
+                'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
-                'sp_sim_dice_zerocount': r"$N_{SP}$",
-                'PostponeCountPP': r"$\bar{PC}_r$"
+                'sp_sim_dice_zerocount': r"$N^{SP}_r$",
+                'PostponeCountPP': r"$\bar{P}_r$",
+                'pcntInfCross': r"$I_r$"
                 }
 
 #
@@ -297,14 +318,20 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
 #
 nplots = len(plot_types)
 nvars = len(outcome_vars)
-fig_width = 8
-fig, axs = plt.subplots(nplots, nvars, figsize=(fig_width*len(outcome_vars),13))
+fig_width = 10
+fig, axs = plt.subplots(nplots, nvars, figsize=(fig_width*len(outcome_vars),17))
+plt.subplots_adjust(left=0.05,
+                    bottom=0.15, 
+                    right=0.98, 
+                    top=0.93, 
+                    wspace=0.08, 
+                    hspace=0.23)
 
 #
 # Histogram plots
 #
 #plt.style.use('dark_background')
-fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, env_col, rename_dict, fig_config, palette=palette)
+fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, outcome_units, env_col, rename_dict, fig_config, palette=palette)
 
 #
 # Sobol indices for each metric and policy setting
@@ -324,6 +351,6 @@ fig = multi_env_sobol_si_plot(fig, axs[1, :], dfSIs, gdfORLinks, env_col, env_va
 # annotate figure
 texts = ['a)','b)','c)','d)','e)','f)', 'g)','h)','i)']
 for i, ax in enumerate(axs.reshape(1,-1)[0]):
-    ax.text(-0.15, 0.98, texts[i], transform=ax.transAxes, fontsize=18)
+    ax.text(0.94, 0.935, texts[i], transform=ax.transAxes, fontsize=26, fontweight='bold')
 
 fig.savefig(os.path.join(img_dir, "env_comparison_{}_{}_{}.png".format(config['ug_results'], config['qg_results'], config['cc_results'])))
