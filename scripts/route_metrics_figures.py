@@ -354,3 +354,17 @@ for i, ax in enumerate(axs.reshape(1,-1)[0]):
     ax.text(0.94, 0.935, texts[i], transform=ax.transAxes, fontsize=26, fontweight='bold')
 
 fig.savefig(os.path.join(img_dir, "env_comparison_{}_{}_{}.png".format(config['ug_results'], config['qg_results'], config['cc_results'])))
+
+
+#
+# Print some other useful summary statistics
+#
+
+print("\nDescribe number of peds following shortest path")
+print(dfDD.groupby(env_col)['sp_sim_dice_zerocount'].describe())
+
+print("\nDescribe number of crossings")
+print('\n')
+
+print("\nDescribe percent informal crossing")
+print(dfDD.groupby(env_col)['pcntInfCross'].describe())
