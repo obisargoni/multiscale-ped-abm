@@ -934,7 +934,6 @@ if 'variance_comparison' in setting:
     print(dfAltRouteLengthMean['mean_alt_path_length'].var())
     print(dfRouteLength['route_length_pp'].var())
 
-
     print("\nProducing single agents paths figure")
     dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
 
@@ -986,12 +985,11 @@ if 'variance_comparison' in setting:
     output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp_{}_{}.{}.png".format(weight_params.stop, weight_params.step, file_datetime_string))
     f_path_comp.savefig(output_single_pad_paths)
 
-    # Now compare path length varaition
+    # Now compare path length varaition for just the paths being plotted
     clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
     s_clt = pd.Series(clt_path_lengths)
 
     print(s_clt.describe())
     print(dfAltSinglePedPaths['alt_path_length'].describe())
-
 
 xlWriter.close()
