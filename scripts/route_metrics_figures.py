@@ -413,11 +413,13 @@ dfSIs = get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars)
 fig = multi_env_sobol_si_plot(fig, axs[1, :], dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, constrained_layout = False, colors = palette)
 
 # annotate figure
-texts = ['a)','b)','c)','d)','e)','f)', 'g)','h)','i)']
+texts = ['i','ii','iii','iv','v','vi', 'vii','viii','ix']
 for i, ax in enumerate(axs.reshape(1,-1)[0]):
-    ax.text(0.94, 0.935, texts[i], transform=ax.transAxes, fontsize=26, fontweight='bold')
+    ax.text(0.945, 0.935, texts[i], transform=ax.transAxes, fontsize=20, fontweight='bold')
 
 fig.savefig(os.path.join(img_dir, "env_comparison_{}_{}_{}.png".format(config['ug_results'], config['qg_results'], config['cc_results'])))
+
+
 #
 # Regression Tree plots
 #
