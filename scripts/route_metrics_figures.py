@@ -11,6 +11,16 @@ import re
 from datetime import datetime as dt
 from sklearn.neighbors import KernelDensity
 
+#from sklearn.model_selection import train_test_split # for splitting the data into train and test samples
+from sklearn.metrics import classification_report # for model evaluation metrics
+from sklearn import tree, linear_model # for decision tree models
+from sklearn.feature_extraction import DictVectorizer
+
+import graphviz # for plotting decision tree graphs
+
+import seaborn as sns
+import matplotlib.patches as mpatches
+
 import sys
 sys.path.append(".\\sample")
 from SALibRepastParams import num_levels, params, random_seed, init_problem, calc_second_order, policies
@@ -172,6 +182,60 @@ def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outc
 
     return f
 
+def fitting_tree(X, y, feature_names, criterion, splitter, mdepth, clweight, minleaf):
+
+    # Fit the model
+    model = tree.DecisionTreeRegressor(criterion=criterion, 
+                                        splitter=splitter, 
+                                        max_depth=mdepth,
+                                        min_samples_leaf=minleaf, 
+                                        random_state=0, 
+                                  )
+    clf = model.fit(X, y)
+
+    # Predict class labels on training data
+    pred_labels_tr = model.predict(X)
+
+    # Tree summary and model evaluation metrics
+    print('*************** Tree Summary ***************')
+    print('Tree Depth: ', clf.tree_.max_depth)
+    print('No. of leaves: ', clf.tree_.n_leaves)
+    print('No. of features: ', clf.n_features_in_)
+    print('--------------------------------------------------------')
+    print("")
+    
+    print('*************** Evaluation on Training Data ***************')
+    score_tr = model.score(X, y)
+    print('Accuracy Score: ', score_tr)
+    print('--------------------------------------------------------')
+    
+    # Use graphviz to plot the tree
+    dot_data = tree.export_graphviz(clf, out_file=None, 
+                                feature_names=feature_names, 
+                                class_names=None,
+                                filled=True, 
+                                rounded=True, 
+                                #rotate=True,
+                               ) 
+    graph = graphviz.Source(dot_data)
+    
+    # Return relevant data for chart plotting
+    return X, y, clf, graph
+
+def fitting_linear_regression(X, y, feature_names):
+
+    # Fit the model
+    model = linear_model.LinearRegression( fit_intercept=True)
+    clf = model.fit(X, y)
+    
+    print('*************** Evaluation on Training Data ***************')
+    score_tr = model.score(X, y)
+    print('Accuracy Score: ', score_tr)
+    print('--------------------------------------------------------')
+    
+    # Return relevant data for chart plotting
+    return X, y, clf
+
 #####################################
 #
 #
@@ -285,7 +349,7 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim_dice_zerocount', 'PostponeCountPP', 'pcntInfCross']
+outcome_vars = ['route_length_pp', 'sp_sim_zerocount', 'PostponeCountPP', 'pcntInfCross']
 outcome_units = ['meters', 'pedestrian agents', 'crossings', '%']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -308,7 +372,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'informalCrossing':'Informal Crossing',
                 'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
-                'sp_sim_dice_zerocount': r"$N^{SP}_r$",
+                'sp_sim_zerocount': r"$N^{SP}_r$",
                 'PostponeCountPP': r"$\bar{P}_r$",
                 'pcntInfCross': r"$I_r$"
                 }
@@ -349,15 +413,74 @@ dfSIs = get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars)
 fig = multi_env_sobol_si_plot(fig, axs[1, :], dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, constrained_layout = False, colors = palette)
 
 # annotate figure
-texts = ['a)','b)','c)','d)','e)','f)', 'g)','h)','i)']
+texts = ['i','ii','iii','iv','v','vi', 'vii','viii','ix']
 for i, ax in enumerate(axs.reshape(1,-1)[0]):
-    ax.text(0.94, 0.935, texts[i], transform=ax.transAxes, fontsize=26, fontweight='bold')
+    ax.text(0.945, 0.935, texts[i], transform=ax.transAxes, fontsize=20, fontweight='bold')
 
 fig.savefig(os.path.join(img_dir, "env_comparison_{}_{}_{}.png".format(config['ug_results'], config['qg_results'], config['cc_results'])))
 
 
 #
-# Print some other useful summary statistics
+# Regression Tree plots
+#
+'''
+# Tree settings
+criterion = 'squared_error'
+splitter = 'best'
+mdepth = 4
+clweight = None
+
+minleaf = 10
+model_results = {}
+grouped = dfDD.groupby(env_col)
+for i, (env) in enumerate(grouped.groups.keys()):
+    model_results[env] = {}
+    for var in outcome_vars:
+        df_env = grouped.get_group((env))
+        
+        data_dict = df_env.loc[:, problem['names']].to_dict('records')
+        vec = DictVectorizer()  # create the DictVectorizer object
+        vec_array = vec.fit_transform(data_dict).toarray()  # execute process on the record dictionaries and transform the result into a numpy array object
+        
+        X, y, clf, graph = fitting_tree(vec_array, df_env[var].values, vec.get_feature_names_out(), criterion, splitter, mdepth, clweight, minleaf)
+        model_results[env][var] = {'X':X, 'y':y, 'clf':clf, 'graph':graph}
+
+        # save figure
+        graph.format='png'
+        graph.render(filename="tree.{}.{}".format(env, var), directory=img_dir)
+'''
+
+#
+# Pair plot figure
+#
+dfDDPair = dfDD.rename(columns = rename_dict)
+x_vars = [rename_dict[i] for i in ['alpha','lambda','epsilon','addVehicleTicks', 'tacticalPlanHorizon', 'minCrossing']]
+y_vars = [rename_dict[i] for i in outcome_vars]
+grid = sns.pairplot(dfDDPair, hue=env_col, palette = palette, x_vars = x_vars, y_vars = y_vars, kind = 'reg', diag_kind = 'hist', height = 2.5, plot_kws=dict(scatter_kws=dict(s=0.8, alpha=0.1)))
+
+# remove default legend
+grid._legend.remove()
+
+# Create patches for the legend
+ug_patch = mpatches.Patch(color=palette[0], label='Uniform Grid')
+qg_patch = mpatches.Patch(color=palette[1], label='Quad Grid')
+cc_patch = mpatches.Patch(color=palette[2], label='Clapham Common')
+grid.axes[-1,-1].legend(handles = [ug_patch, qg_patch, cc_patch], fontsize = 16, bbox_to_anchor=(-4,-0.55,3.8,0), loc="lower center", mode='expand', ncol=3)
+
+# Set font sizes
+for ax in grid.axes.reshape(1,-1)[0]:
+    if len(ax.get_xticklabels()) != 0:
+        ax.set_xticklabels(ax.get_xticklabels(), fontdict = dict(fontsize=12))
+        ax.set_xlabel(ax.get_xlabel(), fontdict = dict(fontsize=18))
+
+    if len(ax.get_yticklabels()) != 0:
+        ax.set_yticklabels(ax.get_yticklabels(), fontdict = dict(fontsize=12))
+        ax.set_ylabel(ax.get_ylabel(), fontdict = dict(fontsize=18))
+
+grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_results'], config['qg_results'], config['cc_results'])))
+
+#
+# Print some useful summary stats
 #
 
 print("\nDescribe number of peds following shortest path")
