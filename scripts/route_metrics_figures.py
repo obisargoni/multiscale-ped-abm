@@ -349,7 +349,7 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim_dice_zerocount', 'PostponeCountPP', 'pcntInfCross']
+outcome_vars = ['route_length_pp', 'sp_sim_zerocount', 'PostponeCountPP', 'pcntInfCross']
 outcome_units = ['meters', 'pedestrian agents', 'crossings', '%']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -372,7 +372,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'informalCrossing':'Informal Crossing',
                 'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
-                'sp_sim_dice_zerocount': r"$N^{SP}_r$",
+                'sp_sim_zerocount': r"$N^{SP}_r$",
                 'PostponeCountPP': r"$\bar{P}_r$",
                 'pcntInfCross': r"$I_r$"
                 }
