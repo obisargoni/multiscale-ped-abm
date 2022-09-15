@@ -71,8 +71,8 @@ public abstract class GlobalVars {
 	public static double pedVavg = 1.47; 
 	public static double pedVmin = 0.45;  
 	public static double pedVmax = 2.5;
-	public static double pedVavg_log = 0.3;
-	public static double pedVsd_log = 0.35;
+	public static double pedVavg_log = 0.4;
+	public static double pedVsd_log = 0.3;
 	public static double pedMassAv = 60; // 60kg average mass
 	public static double pedMasssd = 10; // 60kg average mass
 	public static double interactionForceConstant = 5000; // 5e3 as per moussaid 2011
