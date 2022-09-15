@@ -705,7 +705,6 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Double v = GlobalVars.pedVavg + 4*GlobalVars.pedVsd; // Initialises as a value far from mean
 		while ( (v < GlobalVars.pedVmin) | (v > GlobalVars.pedVmax) ){ // Exclude extreme values
 			v = Math.exp(RandomHelper.getDistribution("pedSpeeds").nextDouble());
-			System.out.println(v);
 		}		
 		
 		// Used fixed pedestrian mass rather than normally distributed value
