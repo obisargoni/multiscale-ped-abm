@@ -38,6 +38,7 @@ import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import repast.simphony.context.Context;
 import repast.simphony.gis.util.GeometryUtil;
+import repast.simphony.random.RandomHelper;
 import repast.simphony.space.gis.Geography;
 import repast.simphony.space.gis.WritableGridCoverage2D;
 import repast.simphony.space.graph.Network;
@@ -64,7 +65,7 @@ public class GISFunctions {
 	 * @throws MismatchedDimensionException 
 	 */
 	public static void buildGISRoadNetwork(Geography<RoadLink> roadLinkGeography, Context<Junction> junctionContext,
-			Geography<Junction> junctionGeography, Network<Junction> roadNetwork) {
+			Geography<Junction> junctionGeography, Network<Junction> roadNetwork, boolean randWeightEdit) {
 
 		// Create a GeometryFactory so we can create points/lines from the junctions and roads
 		// (this is so they can be displayed on the same display to check if the network has been created successfully)
@@ -133,12 +134,20 @@ public class GISFunctions {
 			}
 			
 			// Create an edge between the two junctions, assigning a weight equal to it's length]
+			Double weightEditValue;
+			if (randWeightEdit) {
+				weightEditValue = RandomHelper.getDistribution("weightEdit").nextDouble();
+			}
+			else {
+				weightEditValue = 0.0;
+			}
+			
 			NetworkEdge<Junction> edge = null;
 			if (direction.equals("+")) {
-				edge = new NetworkEdge<Junction>(juncFirst, juncLast, true, roadGeom.getLength(), null);
+				edge = new NetworkEdge<Junction>(juncFirst, juncLast, true, roadGeom.getLength()* (1+weightEditValue), null);
 			}
 			else if (direction.equals("-")) {
-				edge = new NetworkEdge<Junction>(juncLast, juncFirst, true, roadGeom.getLength(), null);
+				edge = new NetworkEdge<Junction>(juncLast, juncFirst, true, roadGeom.getLength()* (1+weightEditValue), null);
 			}
 			
 

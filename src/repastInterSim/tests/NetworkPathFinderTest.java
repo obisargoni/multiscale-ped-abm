@@ -82,7 +82,7 @@ class NetworkPathFinderTest {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.roadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext, junctionGeography, EnvironmentSetup.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext, junctionGeography, EnvironmentSetup.roadNetwork, false);
 	}
 	
 	void setUpPavementNetwork() {
@@ -90,7 +90,7 @@ class NetworkPathFinderTest {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.pavementNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.pavementLinkGeography, EnvironmentSetup.pavementJunctionContext, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.pavementLinkGeography, EnvironmentSetup.pavementJunctionContext, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork, false);
 	}
 	
 	void setUpPavementJunctions() throws Exception {

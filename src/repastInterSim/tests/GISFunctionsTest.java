@@ -159,7 +159,7 @@ class GISFunctionsTest {
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, true);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext,EnvironmentSetup.junctionGeography, EnvironmentSetup.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.roadLinkGeography, junctionContext,EnvironmentSetup.junctionGeography, EnvironmentSetup.roadNetwork, false);
 	}
 	
 	int getNumberIntersectingCoords(String lineDataFile) {

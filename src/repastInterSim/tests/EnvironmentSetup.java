@@ -290,7 +290,7 @@ public class EnvironmentSetup {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		Network<Junction> rN = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(rlG, junctionContext, junctionGeography, rN);
+		GISFunctions.buildGISRoadNetwork(rlG, junctionContext, junctionGeography, rN, false);
 		
 		return rN;
 	}
@@ -307,7 +307,7 @@ public class EnvironmentSetup {
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.orRoadNetwork = builder.buildNetwork();
 		
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.orRoadLinkGeography, junctionContext, EnvironmentSetup.orJunctionGeography, EnvironmentSetup.orRoadNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.orRoadLinkGeography, junctionContext, EnvironmentSetup.orJunctionGeography, EnvironmentSetup.orRoadNetwork, false);
 	}
 	
 	static void setUpITNRoadNetwork(boolean isDirected) {
@@ -320,7 +320,7 @@ public class EnvironmentSetup {
 		EnvironmentSetup.pavementNetwork = builder.buildNetwork();
 		context.addSubContext(pavementJunctionContext);
 		
-		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.pavementLinkGeography, EnvironmentSetup.pavementJunctionContext, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		GISFunctions.buildGISRoadNetwork(EnvironmentSetup.pavementLinkGeography, EnvironmentSetup.pavementJunctionContext, EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork, false);
 	}
 	
 	static void setUpPedJunctions() throws Exception {

@@ -146,6 +146,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Normal pedMassesNorm= new Normal(GlobalVars.pedMassAv, GlobalVars.pedMasssd, engPedMasses);
 		RandomHelper.registerDistribution("pedMasses", pedMassesNorm);
 		
+		// Random distribution used to make very small edits to road link weights
+		RandomEngine weightEditEng = RandomHelper.registerGenerator("weightEditEng", 1992);
+		Uniform weightEditUniform = new Uniform(0, 0.001, weightEditEng);
+		RandomHelper.registerDistribution("weightEdit", weightEditUniform);
+		
+		
 		// Read in the model properties
 		try {
 			IO.readProperties();
@@ -247,19 +253,19 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);
 			builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			Network<Junction> roadNetwork = builder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork);
+			GISFunctions.buildGISRoadNetwork(roadLinkGeography, junctionContext,junctionGeography, roadNetwork, true);
 			
 			// 2b. open road road network (use by pedestrian agents)
 			NetworkBuilder<Junction> orBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.OR_ROAD_NETWORK,orJunctionContext, false);
 			orBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			Network<Junction> orRoadNetwork = orBuilder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork);
+			GISFunctions.buildGISRoadNetwork(orRoadLinkGeography, orJunctionContext,orJunctionGeography, orRoadNetwork, true);
 			
 			// 2c pavement network
 			NetworkBuilder<Junction> pavementBuilder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.PAVEMENT_NETWORK, pavementJunctionContext, false);
 			pavementBuilder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 			Network<Junction> pavementNetwork = pavementBuilder.buildNetwork();
-			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork);
+			GISFunctions.buildGISRoadNetwork(pavementLinkGeography, pavementJunctionContext, pavementJunctionGeography, pavementNetwork, true);
 			
 			// Create lookup from OR road junctions to pavement junctions
 			for (Junction orJ : orJunctionGeography.getAllObjects()) {
@@ -699,6 +705,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Double v = GlobalVars.pedVavg + 4*GlobalVars.pedVsd; // Initialises as a value far from mean
 		while ( (v < GlobalVars.pedVmin) | (v > GlobalVars.pedVmax) ){ // Exclude extreme values
 			v = Math.exp(RandomHelper.getDistribution("pedSpeeds").nextDouble());
+			System.out.println(v);
 		}		
 		
 		// Used fixed pedestrian mass rather than normally distributed value

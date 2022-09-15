@@ -72,7 +72,7 @@ public class RoadNetworkRouteTest {
 		NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,EnvironmentSetup.junctionContext, isDirected);
 		builder.setEdgeCreator(new NetworkEdgeCreator<Junction>());
 		EnvironmentSetup.roadNetwork = builder.buildNetwork();
-		GISFunctions.buildGISRoadNetwork(roadLinkGeography, EnvironmentSetup.junctionContext,junctionGeography, EnvironmentSetup.roadNetwork);
+		GISFunctions.buildGISRoadNetwork(roadLinkGeography, EnvironmentSetup.junctionContext,junctionGeography, EnvironmentSetup.roadNetwork, false);
 		
     }
 
