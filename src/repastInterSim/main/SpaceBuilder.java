@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +19,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
-import cern.jet.random.Logarithmic;
 import cern.jet.random.Normal;
 import cern.jet.random.Uniform;
 import cern.jet.random.engine.RandomEngine;
@@ -45,7 +45,6 @@ import repastInterSim.agent.Ped;
 import repastInterSim.agent.Route;
 import repastInterSim.agent.Vehicle;
 import repastInterSim.datasources.AvVehicleCountData;
-import repastInterSim.datasources.PedRouteData;
 import repastInterSim.environment.OD;
 import repastInterSim.environment.CrossingAlternative;
 import repastInterSim.environment.FixedGeography;
@@ -79,6 +78,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public static HashMap<RoadLink, List<RoadLink>> orToITN = new HashMap<RoadLink, List<RoadLink>>();
 	public static HashMap<RoadLink, RoadLink> itnToOR = new HashMap<RoadLink, RoadLink>();
 	public static HashMap<Junction, List<Junction>> orJuncToPaveJunc = new HashMap<Junction, List<Junction>>();
+	public static HashMap<String, Double> weightEdits = new HashMap<String, Double>();
+
 	
 	private GeometryFactory fac = new GeometryFactory();
 	
@@ -248,6 +249,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			String pavementLinkFile = GISDataDir + IO.getProperty("PavementLinkShapefile");
 			GISFunctions.readShapefile(RoadLink.class, pavementLinkFile, pavementLinkGeography, pavementLinkContext);
 			SpatialIndexManager.createIndex(pavementLinkGeography, RoadLink.class);
+			
+			// Create lookup of road link ID to random weight adjustment factor. Used to avoid multiple shortest paths in grid environments
+			List<String> allIds = new ArrayList<String>();
+			roadLinkContext.forEach(rl -> allIds.add(rl.getFID()));
+			orRoadLinkContext.forEach(rl -> allIds.add(rl.getFID()));
+			pavementLinkContext.forEach(rl -> allIds.add(rl.getFID()));
+			Collections.sort(allIds);
+			allIds.forEach(rlID -> SpaceBuilder.weightEdits.put(rlID, RandomHelper.getDistribution("weightEdit").nextDouble()));
 			
 			// 2a. vehicle roadNetwork
 			NetworkBuilder<Junction> builder = new NetworkBuilder<Junction>(GlobalVars.CONTEXT_NAMES.ROAD_NETWORK,junctionContext, isDirected);

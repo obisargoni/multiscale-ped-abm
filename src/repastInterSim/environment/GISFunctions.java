@@ -136,7 +136,7 @@ public class GISFunctions {
 			// Create an edge between the two junctions, assigning a weight equal to it's length]
 			Double weightEditValue;
 			if (randWeightEdit) {
-				weightEditValue = RandomHelper.getDistribution("weightEdit").nextDouble();
+				weightEditValue = SpaceBuilder.weightEdits.get(roadLink.getFID());
 			}
 			else {
 				weightEditValue = 0.0;
