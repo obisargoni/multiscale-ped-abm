@@ -470,5 +470,92 @@ public class RoadNetworkRouteTest {
 		double duration = System.currentTimeMillis() - start;
 		System.out.print("testGetRoadLinkPedestrianRoads() duration: \n" + duration + "\n");
 	}
+	
+	/*
+	 * Test is suppose to replicate problem of different shortest path being produced between runs but doesn't do this because problem
+	 * is caused by road links appearing in a different order in the context and geography each simulation run.
+	 */
+	@Test
+	public void testGetShortestRouteQuadGrid1() throws MalformedURLException, FileNotFoundException {
+		
+		try {
+			String origTestDir = EnvironmentSetup.testGISDir;
+			EnvironmentSetup.testGISDir += "/QuadGrid145NodesBuffer/";
+			
+			EnvironmentSetup.setUpProperties();
+			
+			EnvironmentSetup.setUpRoads();
+			
+			EnvironmentSetup.setUpITNRoadLinks();
+			EnvironmentSetup.setUpITNRoadNetwork(true);
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp");
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpPedODs("OD_pedestrian_nodes.shp");
+			
+			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
+			
+			EnvironmentSetup.testGISDir = origTestDir;
+		} catch (Exception e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		
+		// Select pedestrian origins and destinations to test
+		Coordinate o = null;
+		Coordinate d = null;
+		for ( OD od: EnvironmentSetup.pedestrianDestinationGeography.getAllObjects()) {
+			if (od.getFID().contentEquals("od_132")) {
+				o = od.getGeom().getCoordinate();
+			}
+			else if (od.getFID().contentEquals("od_0")) {
+				d = od.getGeom().getCoordinate();
+			}
+		}
+		
+		RoadNetworkRoute rnr = new RoadNetworkRoute(o, d);
+		
+		// initialise object to record the start and end pavement junctions of the route
+		Junction[] routeEnds = null;
+		
+		// Find shortest path using road network route
+		try {
+			routeEnds = rnr.setRoadLinkRoute(EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Get path of road links and set this as the strategic path
+		List<RoadLink> strategicPath = rnr.getRoadsX();
+		String fullStrategicPathString="";
+		for (RoadLink rl: strategicPath) {
+			fullStrategicPathString = fullStrategicPathString + ":" + rl.getFID();
+		}
+		
+		for (int i=0; i<10; i++) {
+			// Repeatedly calculate shortest path and check that it is the same to the first one calculated
+			RoadNetworkRoute rnri = new RoadNetworkRoute(o, d);
+			Junction[] routeEndsi = null;
+			try {
+				routeEndsi = rnri.setRoadLinkRoute(EnvironmentSetup.pavementJunctionGeography, EnvironmentSetup.pavementNetwork);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			List<RoadLink> strategicPathi = rnri.getRoadsX();
+			String fullStrategicPathStringi="";
+			for (RoadLink rl: strategicPathi) {
+				fullStrategicPathStringi = fullStrategicPathStringi + ":" + rl.getFID();
+			}
+			
+			assert fullStrategicPathString.contentEquals(fullStrategicPathStringi);
+		}	
+		
+	}
 
 }
