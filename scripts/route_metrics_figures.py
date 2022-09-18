@@ -477,6 +477,22 @@ for ax in grid.axes.reshape(1,-1)[0]:
         ax.set_yticklabels(ax.get_yticklabels(), fontdict = dict(fontsize=12))
         ax.set_ylabel(ax.get_ylabel(), fontdict = dict(fontsize=18))
 
+# Edit x ticks for a couple of plots
+
+# Column of MC axes
+for i, ax in enumerate(grid.axes[:,-1]):
+    ax.set_xticks([0,1])
+    if i==3:
+        ax.set_xticklabels(['false', 'true'])
+
+# Change lambda tick labels
+grid.axes[-1,1].set_xticks([0,1.0,2.0])
+grid.axes[-1,1].set_xticklabels(['0','1.0','2.0'])
+
+grid.axes[-1,0].set_xticks([0,0.5,1.0])
+grid.axes[-1,0].set_xticklabels(['0','0.5','1.0'])
+
+
 grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_results'], config['qg_results'], config['cc_results'])))
 
 #
