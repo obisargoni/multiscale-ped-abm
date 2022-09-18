@@ -484,10 +484,16 @@ grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_re
 #
 
 print("\nDescribe number of peds following shortest path")
-print(dfDD.groupby(env_col)['sp_sim_dice_zerocount'].describe())
+print(dfDD.groupby(env_col)['sp_sim_zerocount'].describe())
+
+print("\nDescribe different in length to shortest path")
+print(dfDD.groupby(env_col)['sp_sim'].describe())
 
 print("\nDescribe number of crossings")
-print('\n')
+print(dfDD.groupby(env_col)['crossCountPP'].describe())
 
 print("\nDescribe percent informal crossing")
 print(dfDD.groupby(env_col)['pcntInfCross'].describe())
+
+print("\nDescribe postpone crossing - 70% quantile")
+print(dfDD.groupby(env_col)['PostponeCountPP'].quantile(0.7))
