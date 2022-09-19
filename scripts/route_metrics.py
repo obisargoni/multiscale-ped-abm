@@ -924,6 +924,8 @@ if "epsilon_gamma_scatter" in setting:
 if 'variance_comparison' in setting:
     print("\nRunning variance comparison")
 
+    weight_params = range(0, 2100, 500)
+
     # Calculate a corresponding set of routes using an alternative shortest path model, aggregate to get mean trip length per parameter setting (run, k, j)
     dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
     dfAltRouteLengthMean = dfAlternativeRoutes.groupby(['run','k','j'])['alt_path_length'].mean().reset_index().rename(columns = {'alt_path_length':'mean_alt_path_length'})
