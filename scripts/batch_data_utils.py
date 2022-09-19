@@ -634,6 +634,8 @@ def get_road_link_vehicle_density_from_vehicle_counts(gdfITNLinks, data_file, ou
         dfVehCounts.rename(columns = {'FID':'fid'}, inplace=True)
 
         # Merge with ITN links to get lookup to ped rl ID
+        if 'length' not in gdfITNLinks.columns:
+            gdfITNLinks['length'] = gdfITNLinks.geometry.length
         gdfITNLinks = gdfITNLinks.reindex(columns = ['fid','length', 'pedRLID'])
 
         dfVehCounts = pd.merge(dfVehCounts, gdfITNLinks, left_on = 'fid', right_on = 'fid', how = 'left')
