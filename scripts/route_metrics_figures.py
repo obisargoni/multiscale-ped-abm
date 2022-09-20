@@ -16,8 +16,6 @@ from sklearn.metrics import classification_report # for model evaluation metrics
 from sklearn import tree, linear_model # for decision tree models
 from sklearn.feature_extraction import DictVectorizer
 
-import graphviz # for plotting decision tree graphs
-
 import seaborn as sns
 import matplotlib.patches as mpatches
 
@@ -424,6 +422,8 @@ fig.savefig(os.path.join(img_dir, "env_comparison_{}_{}_{}.png".format(config['u
 # Regression Tree plots
 #
 '''
+import graphviz # for plotting decision tree graphs
+
 # Tree settings
 criterion = 'squared_error'
 splitter = 'best'
