@@ -868,6 +868,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
         # Create alternative set of paths for each vehicle flow setting
         data = {'run':[], 'start_node':[], 'end_node':[], 'sp':[], 'k':[], 'j':[], 'ratio_min':[], 'ratio_max':[], 'ratio_median':[], 'alt_path':[], 'alt_path_length':[]}
         for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
+            print("Run:{}".format(run))
             for k in weight_params:
                 for j in weight_params:
                     weight_name = "weight{}_{}".format(k, j)
