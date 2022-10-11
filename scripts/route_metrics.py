@@ -559,6 +559,8 @@ dfDD = pd.merge(dfDD, dfCrossTypes.reindex(columns = ['run','pcntInfCross']), on
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
+# Calculate percentage of peds following shortest path
+dfDD['sp_sim_zerocount_pct'] = (dfDD['sp_sim_zerocount'] / dfDD['nPeds']) * 100
 
 dfDD.to_csv(output_route_data, index=False)
 
