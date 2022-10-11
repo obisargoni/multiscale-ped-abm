@@ -500,7 +500,7 @@ grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_re
 #
 
 print("\nDescribe number of peds following shortest path")
-print(dfDD.groupby(env_col)['sp_sim_zerocount'].describe())
+print(dfDD.groupby(env_col)['sp_sim_zerocount_pct'].describe())
 
 print("\nDescribe different in length to shortest path")
 print(dfDD.groupby(env_col)['sp_sim'].describe())
