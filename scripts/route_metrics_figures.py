@@ -89,8 +89,8 @@ def hist_plot(ax, data, val_col, val_unit, group_col, title, nhistbins = 25, pal
     ax.set_yticks([])
     ax.set_yticklabels([])
     ax.set_ylim(ymin=0, ymax=900)
-    ax.set_xlabel(val_unit, fontsize = 26, labelpad=15)
-    ax.set_title(title, fontsize = 50, pad=25)
+    ax.set_xlabel(val_unit, fontsize = 23, labelpad=15)
+    ax.set_title(title, fontsize = 40, pad=25)
     return ax
 
 def multi_env_hist_plot(f, axs, dfDD, gdfORLinks, outcome_vars, outcome_units, env_col, title_rename_dict, fig_config, nhistbins = 25, palette = ['#3d993d', '#cca328', '#af3f33']):
@@ -347,8 +347,8 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim_zerocount_pct', 'PostponeCountPP', 'pcntInfCross']
-outcome_units = ['meters', 'pedestrian agents', 'crossings', '%']
+outcome_vars = ['route_length_pp', 'sp_sim_zerocount', 'PostponeCountPP', 'pcntInfCross']
+outcome_units = ['meters', '%', 'crossings', '%']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
@@ -370,10 +370,24 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'informalCrossing':'Informal Crossing',
                 'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
-                'sp_sim_zerocount_pct': r"$N^{SP}_r$",
+                'sp_sim_zerocount': r"$N^{SP}_r$",
                 'PostponeCountPP': r"$\bar{P}_r$",
                 'pcntInfCross': r"$I_r$"
                 }
+
+name_titles = { 'route_length_pp': 'Av. Route Length, '+ r"$\bar{L_r}$",
+                'sp_sim_zerocount': 'Pcnt. Shortest Paths, ' + r"$N^{SP}_r$",
+                'PostponeCountPP':'Av. Crossing Postponements, ' + r"$\bar{P}_r$",
+                'pcntInfCross': 'Pcnt. Informal Crossings, ' + r"$I_r$"}
+
+name_titles_pair = { 'route_length_pp': 'Av. Route\nLength,\n'+ r"$\bar{L_r}$",
+                'sp_sim_zerocount': 'Pcnt. Shortest\nPaths,\n' + r"$N^{SP}_r$",
+                'PostponeCountPP':'Av. Crossing\nPostponements,\n' + r"$\bar{P}_r$",
+                'pcntInfCross': 'Pcnt. Informal\nCrossings,\n' + r"$I_r$"}
+
+# update the rename dict with name titles - doesn't look good.
+for k,v in name_titles_pair.items():
+    rename_dict[k] = v
 
 #
 # Initialise figure
@@ -393,7 +407,7 @@ plt.subplots_adjust(left=0.05,
 # Histogram plots
 #
 #plt.style.use('dark_background')
-fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, outcome_units, env_col, rename_dict, fig_config, palette=palette)
+fig = multi_env_hist_plot(fig, axs[0, :], dfDD, gdfORLinks, outcome_vars, outcome_units, env_col, name_titles, fig_config, palette=palette)
 
 #
 # Sobol indices for each metric and policy setting
@@ -470,12 +484,18 @@ grid.axes[-1,-1].legend(handles = [ug_patch, qg_patch, cc_patch], fontsize = 16,
 # Set font sizes
 for ax in grid.axes.reshape(1,-1)[0]:
     if len(ax.get_xticklabels()) != 0:
-        ax.set_xticklabels(ax.get_xticklabels(), fontdict = dict(fontsize=12))
-        ax.set_xlabel(ax.get_xlabel(), fontdict = dict(fontsize=18))
+        ax.set_xticklabels(ax.get_xticklabels(), fontdict = dict(fontsize=11))
+        ax.set_xlabel(ax.get_xlabel(), fontdict = dict(fontsize=15))
 
     if len(ax.get_yticklabels()) != 0:
-        ax.set_yticklabels(ax.get_yticklabels(), fontdict = dict(fontsize=12))
-        ax.set_ylabel(ax.get_ylabel(), fontdict = dict(fontsize=18))
+        ax.set_yticklabels(ax.get_yticklabels(), fontdict = dict(fontsize=11))
+        ax.set_ylabel(ax.get_ylabel(), fontdict = dict(fontsize=15))
+
+# Use annotations to label plots with metrics
+for i, ax in enumerate(grid.axes[:,0]):
+    metric_title = ax.yaxis.get_label_text()
+    ax.text(-0.65, 0.5, metric_title, transform=ax.transAxes, fontsize=15, horizontalalignment='center',verticalalignment='center')
+    ax.yaxis.set_label_text(outcome_units[i], fontdict = dict(fontsize=11))
 
 # Edit x ticks for a couple of plots
 
@@ -500,7 +520,7 @@ grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_re
 #
 
 print("\nDescribe number of peds following shortest path")
-print(dfDD.groupby(env_col)['sp_sim_zerocount_pct'].describe())
+print(dfDD.groupby(env_col)['sp_sim_zerocount'].describe())
 
 print("\nDescribe different in length to shortest path")
 print(dfDD.groupby(env_col)['sp_sim'].describe())
