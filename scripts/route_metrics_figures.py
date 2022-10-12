@@ -281,6 +281,17 @@ output_paths = { 'Uniform Grid':    ug_output_path,
                 'Quad Grid':        qg_output_path,
                 'Clapham Common':   cc_output_path}
 
+'''
+oneway_output_paths = bd_utils.get_ouput_paths(config['one_way_results'], "", data_dir, nbins = bin_dist)
+oneway_output_path = oneway_output_paths["output_route_data"]
+
+twoway_output_paths = bd_utils.get_ouput_paths(config['two_way_results'], "", data_dir, nbins = bin_dist)
+twoway_output_path = twoway_output_paths["output_route_data"]
+
+output_paths = {'One Way Peds': oneway_output_path,
+                'Two Way Peds': twoway_output_path}
+'''
+
 #####################################
 #
 #
@@ -418,6 +429,7 @@ policy_param = list(policies.keys())[0]
 scenario_param_cols =  [i for i in params if i!=policy_param]
 
 env_values = ['Uniform Grid','Quad Grid','Clapham Common']
+#env_values = ['One Way Peds','Two Way Peds']
 
 problem = init_problem(params)
 
