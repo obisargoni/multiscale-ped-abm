@@ -358,7 +358,7 @@ with open("figure_config.json") as f:
 
 plot_types = ['histograph','si']
 #outcome_vars = ['DistPA','crossCountPP','cross_entropy']
-outcome_vars = ['route_length_pp', 'sp_sim_zerocount', 'PostponeCountPP', 'pcntInfCross']
+outcome_vars = ['route_length_pp', 'sp_sim_zerocount_pct', 'PostponeCountPP', 'pcntInfCross']
 outcome_units = ['meters', '%', 'crossings', '%']
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -382,17 +382,20 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
                 'sp_sim_zerocount': r"$N^{SP}_r$",
+                'sp_sim_zerocount_pct':r'$SP_r',
                 'PostponeCountPP': r"$\bar{P}_r$",
                 'pcntInfCross': r"$I_r$"
                 }
 
 name_titles = { 'route_length_pp': 'Av. Route Length, '+ r"$\bar{L_r}$",
-                'sp_sim_zerocount': 'Pcnt. Shortest Paths, ' + r"$N^{SP}_r$",
+                'sp_sim_zerocount': 'N Shortest Paths, ' + r"$N^{SP}_r$",
+                'sp_sim_zerocount_pct': 'Pcnt. Shortest Paths, ' + r"$SP_r$",
                 'PostponeCountPP':'Av. Crossing Postponements, ' + r"$\bar{P}_r$",
                 'pcntInfCross': 'Pcnt. Informal Crossings, ' + r"$I_r$"}
 
 name_titles_pair = { 'route_length_pp': 'Av. Route\nLength,\n'+ r"$\bar{L_r}$",
-                'sp_sim_zerocount': 'Pcnt. Shortest\nPaths,\n' + r"$N^{SP}_r$",
+                'sp_sim_zerocount': 'N Shortest\nPaths,\n' + r"$N^{SP}_r$",
+                'sp_sim_zerocount_pct': 'Pcnt. Shortest\nPaths,\n' + r"$SP_r$",
                 'PostponeCountPP':'Av. Crossing\nPostponements,\n' + r"$\bar{P}_r$",
                 'pcntInfCross': 'Pcnt. Informal\nCrossings,\n' + r"$I_r$"}
 
