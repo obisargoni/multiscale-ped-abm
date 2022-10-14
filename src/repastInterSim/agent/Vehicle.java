@@ -27,7 +27,7 @@ import repastInterSim.main.SpaceBuilder;
 public class Vehicle extends MobileAgent {
 	private static int uniqueID = 1;
 
-	private int maxSpeed; // The distance from a vehicle ahead at which the agent adjusts speed to follow
+	private double maxSpeed; // The distance from a vehicle ahead at which the agent adjusts speed to follow
 	
 	private double speed;
 	private double acc;
@@ -40,7 +40,7 @@ public class Vehicle extends MobileAgent {
 	private int journeyDuration=0;
 
 
-	public Vehicle(int mS, double a, double s, OD o, OD d) {
+	public Vehicle(double  mS, double a, double s, OD o, OD d) {
 		super(o, d);
 		this.id = Vehicle.uniqueID++;
 		this.maxSpeed = mS;

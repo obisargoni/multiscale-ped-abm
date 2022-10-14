@@ -867,40 +867,44 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
 
         # Create alternative set of paths for each vehicle flow setting
         data = {'run':[], 'start_node':[], 'end_node':[], 'sp':[], 'k':[], 'j':[], 'ratio_min':[], 'ratio_max':[], 'ratio_median':[], 'alt_path':[], 'alt_path_length':[]}
-        for start_node, end_node, sp in dfUniqueStartEnd.values:
-            for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
-                for k in weight_params:
-                    for j in weight_params:
-                        weight_name = "weight{}_{}".format(k, j)
+        for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
+            if (int(run) % 10) == 0:
+                print("Run:{}".format(run))
+            for k in weight_params:
+                for j in weight_params:
+                    weight_name = "weight{}_{}".format(k, j)
 
-                        # Calculate pavement link weights based on vehicle density
-                        dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
+                    # Calculate pavement link weights based on vehicle density
+                    dfLinkWeights = gdfPaveLinks.reindex(columns = ['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])
 
-                        if dfVehCounts is None:
-                            dfLinkWeights['cross_cost'] = 0
-                        else:
-                            dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
-                            dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
+                    if dfVehCounts is None:
+                        dfLinkWeights['cross_cost'] = 0
+                    else:
+                        dfRunVehCounts = dfVehCounts.loc[dfVehCounts['run']==run]
+                        dfLinkWeights = pd.merge(dfLinkWeights, dfRunVehCounts, on='pedRLID', how = 'left')
 
-                            # Initialise cross cost as zero. Calculate mean veh den to account for one:many lookup from or to itn links
-                            dfLinkWeights['AvVehDen'] = dfLinkWeights['AvVehDen'].fillna(0)
-                            dfLinkWeights = dfLinkWeights.groupby(['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])['AvVehDen'].mean().reset_index()
+                        # Initialise cross cost as zero. Calculate mean veh den to account for one:many lookup from or to itn links
+                        dfLinkWeights['AvVehDen'] = dfLinkWeights['AvVehDen'].fillna(0)
+                        dfLinkWeights = dfLinkWeights.groupby(['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])['AvVehDen'].mean().reset_index()
 
-                            # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
-                            dfLinkWeights['cross_cost']=0
-                            dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
-                            dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
-                            dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
+                        # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
+                        dfLinkWeights['cross_cost']=0
+                        dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * k
+                        dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'cross_cost'] = dfLinkWeights.loc[ ~dfLinkWeights['fid'].isin(direct_crossing_with_marked_cas), 'AvVehDen'] * j
+                        dfLinkWeights[weight_name] = dfLinkWeights['length'] + dfLinkWeights['cross_cost']
 
-                        # sense check the weights by recording the median, min and max vaues of cross cost to length ratio for crossing links only
-                        ratio = (dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'cross_cost'] / dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'length'])
-                        min_ratio = ratio.min()
-                        max_ratio = ratio.max()
-                        median_ratio = ratio.median()
+                    # sense check the weights by recording the median, min and max vaues of cross cost to length ratio for crossing links only
+                    ratio = (dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'cross_cost'] / dfLinkWeights.loc[~dfLinkWeights['pedRLID'].isnull(), 'length'])
+                    min_ratio = ratio.min()
+                    max_ratio = ratio.max()
+                    median_ratio = ratio.median()
 
-                        # Weight pavement network crossing links by average vehicle flow
-                        weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
-                        nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+                    # Weight pavement network crossing links by average vehicle flow
+                    weight_attributes = dfLinkWeights.set_index( dfLinkWeights.apply(lambda row: (row['MNodeFID'], row['PNodeFID']), axis=1))[weight_name].to_dict()
+                    nx.set_edge_attributes(pavement_graph, weight_attributes, name = weight_name)
+
+                    # With network weights set can now calculate paths
+                    for start_node, end_node, sp in dfUniqueStartEnd.values:
                         try:
                             if strategic_path_filter:
                                alt_model_path = shortest_path_within_strategic_path(sp, gdfORLinks, gdfPaveNodes, pavement_graph, start_node, end_node, weight = weight_name)
