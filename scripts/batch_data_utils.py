@@ -885,7 +885,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
 
                         # Initialise cross cost as zero. Calculate mean veh den to account for one:many lookup from or to itn links
                         dfLinkWeights['AvVehDen'] = dfLinkWeights['AvVehDen'].fillna(0)
-                        dfLinkWeights = dfLinkWeights.groupby(['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'])['AvVehDen'].mean().reset_index()
+                        dfLinkWeights = dfLinkWeights.groupby(['fid', 'MNodeFID', 'PNodeFID', 'pedRLID', 'length'], dropna=False)['AvVehDen'].mean().reset_index() # Very important to set dropna=False otherwise non-crossing pavement links get dropped from the dataset.
 
                         # Then for road crossing link set crossing cost as a multiple of the average vehicle desnity on the link the crossing is on.
                         dfLinkWeights['cross_cost']=0
