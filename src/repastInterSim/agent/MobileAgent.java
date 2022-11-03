@@ -89,8 +89,8 @@ public class MobileAgent {
 		return this.id;
 	}
 	
-	public void tidyForRemoval() {
-		;
+	public boolean tidyForRemoval() {
+		return true;
 	}
 	
 	public double getBearing() {

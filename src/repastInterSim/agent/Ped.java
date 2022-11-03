@@ -778,7 +778,7 @@ public class Ped extends MobileAgent {
     /**
      * Method to be run when agent is removed from the context.
      */
-    public void tidyForRemoval() {
+    public boolean tidyForRemoval() {
     	// Add the final tactical link to the reord
     	this.pathFinder.addTacticalLinkToFullTacticalPathString(this.getCurrentPavementLinkID());
     	
@@ -799,6 +799,7 @@ public class Ped extends MobileAgent {
         this.col=null;
     	this.currentPavementLinkID = null;
     	this.nCrossingPostponements = 0;
+    	return true;
     }
     
     public Color getColor() {

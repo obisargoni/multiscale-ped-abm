@@ -797,8 +797,10 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		if (msg!=null) {
     		LOGGER.log(Level.FINE, msg);
 		}
-    	mA.tidyForRemoval();
-    	context.remove(mA);		
+    	boolean tidiedOK = mA.tidyForRemoval();
+    	if (tidiedOK) {
+    		context.remove(mA);	
+    	}	
 	}
 	
 	
