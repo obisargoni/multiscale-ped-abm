@@ -174,9 +174,16 @@ class VehicleTest {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
-			EnvironmentSetup.setUpORRoadLinks();
-			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
@@ -270,9 +277,16 @@ class VehicleTest {
 			EnvironmentSetup.setUpProperties();
 			EnvironmentSetup.setUpRoads();
 			EnvironmentSetup.setUpITNRoadLinks();
-			EnvironmentSetup.setUpORRoadLinks();
-			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpITNRoadNetwork(true);
+			
+			EnvironmentSetup.setUpORRoadLinks();
+			EnvironmentSetup.setUpORRoadNetwork(false);
+			
+			EnvironmentSetup.setUpPedJunctions();
+			EnvironmentSetup.setUpPavementLinks("pedNetworkLinks.shp", GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_CONTEXT, GlobalVars.CONTEXT_NAMES.PAVEMENT_LINK_GEOGRAPHY);
+			EnvironmentSetup.setUpPavementNetwork();
+			
+			EnvironmentSetup.setUpVehicleODs("OD_vehicle_nodes_intersect_within.shp");
 			EnvironmentSetup.setUpCrossingAlternatives("CrossingAlternatives.shp");
 			EnvironmentSetup.assocaiteRoadsWithRoadLinks();
 		} catch (IOException e) {
