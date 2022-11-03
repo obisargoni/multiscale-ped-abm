@@ -79,7 +79,8 @@ public class Vehicle extends MobileAgent {
 		}
 
 		// Drive only if vehicle has been added to road link
-    	if(this.queuePos!=null) {
+    	// and if vehicle is not waiting to be removed - ie no more entries in its route
+    	if((this.queuePos!=null) & (this.route.roadsX.size()>0) ) {
     		drive();
     	}
 	}
@@ -427,7 +428,8 @@ public class Vehicle extends MobileAgent {
 		// tidy for removal can be called when vehicle is close to destinattion node but still stuck behind another vehicle
 		// only remove vehicle if it is at the front of the queue, ie no vehicle in front
 		boolean tidiedOK=false;
-		if (getVehicleInFront()==null) {
+		Vehicle vif = getVehicleInFront(); 
+		if (vif==null) {
 			this.currentRoadLink.removeVehicleFromQueue();
 			
 	    	// Record the vehicle's route for data collection
