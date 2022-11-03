@@ -91,4 +91,8 @@ public class RingBufferFillCount<T> {
 		int end = this.endPos();
 		return this.elements[end];
 	}
+	
+	public boolean hasCapacity() {
+		return this.capacity > this.count;
+	}
 }

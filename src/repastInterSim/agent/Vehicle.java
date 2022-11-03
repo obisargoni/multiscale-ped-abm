@@ -23,6 +23,7 @@ import repastInterSim.environment.RoadLink;
 import repastInterSim.environment.Vector;
 import repastInterSim.main.GlobalVars;
 import repastInterSim.main.SpaceBuilder;
+import repastInterSim.util.RingBufferFillCount;
 
 public class Vehicle extends MobileAgent {
 	private static int uniqueID = 1;
@@ -145,19 +146,19 @@ public class Vehicle extends MobileAgent {
 				boolean canProgressToNextLink=false;
 				Integer newQPos = null;
 		        if (routeCoordIsOnNextLink) {
-		        	// Check if vehicle can move onto the next link. Can't if there is no capacity
-		        	// If successfully added will return true
-		        	newQPos = nextRoadLink.addVehicleToQueue(this);
-		        	if (newQPos!=null) {
+		        	// Check if vehicle can move onto the next link. Can't if there is no capacity or if it is not at the front of the queue for its current link
+		        	boolean hasCapacity = nextRoadLink.getQueue().hasCapacity();
+		        	boolean frontOfQueue = currentRoadLink.getQueue().readPos() == this.queuePos; 
+		        	if ( hasCapacity & frontOfQueue) {
 		        		canProgressToNextLink = true;
 		        	}
 		        }
 				
 
 		        if (canProgressToNextLink) {
-		        	boolean posOK = currentRoadLink.getQueue().readPos() == this.queuePos; // Check that the vehicle that will be removed from the queue is this vehicle
-		        	assert posOK;
 		        	currentRoadLink.removeVehicleFromQueue();
+		        	newQPos = nextRoadLink.addVehicleToQueue(this);
+		        	assert newQPos != null;
 		        	this.queuePos = newQPos;
 		        }
 		        else if (routeCoordIsOnNextLink & !canProgressToNextLink) {
