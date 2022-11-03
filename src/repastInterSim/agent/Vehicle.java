@@ -349,19 +349,21 @@ public class Vehicle extends MobileAgent {
 	 */
 	public Vehicle getVehicleAtEndOfNextRoadLink() {
 		int i = 0;
-		String nextRoadID = this.route.getRoadsX().get(i).getFID();
-		while ( (this.currentRoadLink.getFID() == nextRoadID) & (i<this.route.getRoadsX().size())) {
+		String nextRoadID = null;
+		Vehicle vInFront = null;
+		
+		while (i<this.route.getRoadsX().size() ) {
 			nextRoadID = this.route.getRoadsX().get(i).getFID();
+			if (this.currentRoadLink.getFID() != nextRoadID) {
+				RingBufferFillCount q1 =  this.route.getRoadsX().get(i).getQueue();
+				RingBufferFillCount q2 =  currentRoadLink.getQueue();
+				vInFront = this.route.getRoadsX().get(i).getQueue().getEndElement();
+				break;
+			}
 			i++;
 		}
 		
-		// Get vehicle at the back of the road link ahead if there is a link ahead
-		if (nextRoadID.contentEquals(this.currentRoadLink.getFID())==false) {
-			return this.route.getRoadsX().get(i).getQueue().getEndElement();
-		}
-		else {
-			return null;
-		}
+		return vInFront;
 	}
 	
     
