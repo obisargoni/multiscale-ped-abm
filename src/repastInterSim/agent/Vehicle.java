@@ -423,8 +423,13 @@ public class Vehicle extends MobileAgent {
 		// only remove vehicle if it is at the front of the queue, ie no vehicle in front
 		boolean tidiedOK=false;
 		Vehicle vif = getVehicleInFront(); 
+		int readPos = this.currentRoadLink.getQueue().readPos();
+		Vehicle vFront = this.currentRoadLink.getQueue().getStartElement();
+		if ( (vif==null) & (vFront.getID()!=this.id)) {
+			vif = getVehicleInFront();
+		}
 		if (vif==null) {
-			this.currentRoadLink.removeVehicleFromQueue();
+			Vehicle removed = this.currentRoadLink.removeVehicleFromQueue();
 			
 	    	// Record the vehicle's route for data collection
 	    	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
