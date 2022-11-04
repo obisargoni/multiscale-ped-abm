@@ -316,8 +316,11 @@ public class Vehicle extends MobileAgent {
 		// Only do this if there is a vehicle in front to follow
 		if (vehicleInFront != null) {
 			
-			// Get the location and speed of the vehicle in front and use to calculate safe following speed
-			vSafe = safeFollowingSpeedVehicle(vehicleInFront.getSpeed(), vehicleInFront.getLoc());
+			if (maLoc.distance(vehicleInFront.getLoc()) < this.dmax) {
+			
+				// Get the location and speed of the vehicle in front and use to calculate safe following speed
+				vSafe = safeFollowingSpeedVehicle(vehicleInFront.getSpeed(), vehicleInFront.getLoc());
+			}
 		}
 
 		return vSafe;
@@ -333,16 +336,7 @@ public class Vehicle extends MobileAgent {
     		vInFront = getVehicleAtEndOfNextRoadLink();
     	}
     	
-    	// If still no vehicle in front return null, otherwise check distance to vehicle in front
-    	if (vInFront==null) {
-    		return null;
-    	}
-    	else if (maLoc.distance(vInFront.getLoc()) < this.dmax) {
-    		return vInFront;
-    	}
-    	else {
-    		return null;
-    	}
+    	return vInFront;
     }
 	
 	/*
