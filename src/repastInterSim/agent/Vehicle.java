@@ -329,7 +329,14 @@ public class Vehicle extends MobileAgent {
     public Vehicle getVehicleInFront()  {
     	
     	// Use road link queue to check for any vehicles in front on the current link
-    	Vehicle vInFront = this.currentRoadLink.getQueue().getElementAhead(this.queuePos);
+    	Vehicle vInFront = null;
+    	RingBufferFillCount<Vehicle> q = this.currentRoadLink.getQueue();
+    	if ( this.queuePos!=null) {
+    		vInFront = q.getElementAhead(this.queuePos);
+    	} 
+    	else {
+    		return vInFront;
+    	}
     	
     	if (vInFront == null) {
     		// Get vehicle at the back of the road link ahead, returns null if there are no road links ahead.
