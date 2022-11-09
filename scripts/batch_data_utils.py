@@ -138,12 +138,12 @@ def get_data_paths(file_datetime_string, data_dir):
 
     return output
 
-def get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = ''):
+def get_ouput_paths(file_datetime_string, data_dir, nbins = ''):
     # output paths for processed data
     paths = {}
     paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
     paths["output_single_ped_links_file"] = os.path.join(data_dir, "single_ped_routes.{}.csv".format(file_datetime_string))
-    paths["output_vehicle_density_file"] = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(vehicle_density_timestamp))
+    paths["output_vehicle_density_file"] = os.path.join(data_dir, "av_vehicle_density.{}.csv".format(file_datetime_string))
     paths["output_route_length_file"] = os.path.join(data_dir, "run_route_length.{}.csv".format(file_datetime_string))
     paths["output_sp_similarity_path"] = os.path.join(data_dir, "sp_similarity.{}.csv".format(file_datetime_string))
     paths["output_sp_similarity_length_path"] = os.path.join(data_dir, "path_length_sp_similarity.{}.csv".format(file_datetime_string))

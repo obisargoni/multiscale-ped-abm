@@ -35,7 +35,6 @@ with open(".//config.json") as f:
 #
 #####################################
 file_datetime_string = config['file_datetime_string']
-vehicle_density_timestamp = config['vehicle_density_timestamp']
 setting = config['setting']
 
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
@@ -62,7 +61,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"] 
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = bin_dist)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist)
 output_ped_routes_file = output_paths["output_ped_routes_file"]
 output_route_length_file = output_paths["output_route_length_file"]
 output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]

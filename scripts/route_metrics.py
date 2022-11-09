@@ -408,7 +408,6 @@ with open(".//config.json") as f:
 #
 #####################################
 file_datetime_string = config['file_datetime_string']
-vehicle_density_timestamp = config['vehicle_density_timestamp']
 setting = config['setting']
 nbins = None
 bin_dist = 2
@@ -445,7 +444,7 @@ cross_events_file = data_paths["cross_events"]
 batch_file = data_paths["batch_file"] 
 
 # output paths for processed data
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, vehicle_density_timestamp, data_dir, nbins = bin_dist)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist)
 output_ped_routes_file=             output_paths["output_ped_routes_file"]
 output_single_ped_links_file=       output_paths["output_single_ped_links_file"]
 output_vehicle_density_file=        output_paths["output_vehicle_density_file"]

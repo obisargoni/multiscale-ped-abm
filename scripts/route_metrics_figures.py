@@ -267,13 +267,13 @@ data_paths = bd_utils.get_data_paths(config['cc_results'], data_dir)
 batch_file = data_paths["batch_file"]
 
 
-ug_output_paths = bd_utils.get_ouput_paths(config['ug_results'], "", data_dir, nbins = bin_dist)
+ug_output_paths = bd_utils.get_ouput_paths(config['ug_results'], data_dir, nbins = bin_dist)
 ug_output_path = ug_output_paths["output_route_data"]
 
-qg_output_paths = bd_utils.get_ouput_paths(config['qg_results'], "", data_dir, nbins = bin_dist)
+qg_output_paths = bd_utils.get_ouput_paths(config['qg_results'], data_dir, nbins = bin_dist)
 qg_output_path = qg_output_paths["output_route_data"]
 
-cc_output_paths = bd_utils.get_ouput_paths(config['cc_results'], "", data_dir, nbins = bin_dist)
+cc_output_paths = bd_utils.get_ouput_paths(config['cc_results'], data_dir, nbins = bin_dist)
 cc_output_path = cc_output_paths["output_route_data"]
 
 
@@ -282,10 +282,10 @@ output_paths = { 'Uniform Grid':    ug_output_path,
                 'Clapham Common':   cc_output_path}
 
 '''
-oneway_output_paths = bd_utils.get_ouput_paths(config['one_way_results'], "", data_dir, nbins = bin_dist)
+oneway_output_paths = bd_utils.get_ouput_paths(config['one_way_results'], data_dir, nbins = bin_dist)
 oneway_output_path = oneway_output_paths["output_route_data"]
 
-twoway_output_paths = bd_utils.get_ouput_paths(config['two_way_results'], "", data_dir, nbins = bin_dist)
+twoway_output_paths = bd_utils.get_ouput_paths(config['two_way_results'], data_dir, nbins = bin_dist)
 twoway_output_path = twoway_output_paths["output_route_data"]
 
 output_paths = {'One Way Peds': oneway_output_path,
