@@ -156,6 +156,10 @@ public class RoadLink implements FixedGeography, Serializable {
 		return this.queue.take();
 	}
 	
+	public Vehicle removeVehicleFromQueue(int i) {
+		return this.queue.take(i);
+	}
+	
 	public String getPriority() {
 		return this.priority;
 	}
