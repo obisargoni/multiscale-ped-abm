@@ -426,24 +426,23 @@ public class Vehicle extends MobileAgent {
 	 */
 	@Override
 	public boolean tidyForRemoval() {
-		// tidy for removal can be called when vehicle is close to destinattion node but still stuck behind another vehicle
+		// tidy for removal can be called when vehicle is close to destination node but still stuck behind another vehicle
 		// only remove vehicle if it is at the front of the queue, ie no vehicle in front
 		boolean tidiedOK=false;
 		Vehicle vif = getVehicleInFront(); 
-		int readPos = this.currentRoadLink.getQueue().readPos();
-		Vehicle vFront = this.currentRoadLink.getQueue().getStartElement();
-		if ( (vif==null) & (vFront.getID()!=this.id)) {
-			vif = getVehicleInFront();
-		}
 		if (vif==null) {
-			Vehicle removed = this.currentRoadLink.removeVehicleFromQueue();
+			// If queuPos is null this means the vehicle has yet to enter the study area and is queueing at its start node. In which case do not want to colect route data from this vehicle.
+			if (this.queuePos!=null) {
+				this.currentRoadLink.removeVehicleFromQueue(this.queuePos);
+		    	
+				// Record the vehicle's route for data collection
+		    	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
+				Context<Object> mc = RunState.getInstance().getMasterContext();
+				Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+				mc.add(vd);
+				g.move(vd, vd.getGeom());	
+			}
 			
-	    	// Record the vehicle's route for data collection
-	    	VehicleRouteData vd = new VehicleRouteData(this.id, this.origin.getFID(), this.destination.getFID(), this.route.getFullStrategicPathString(), this.journeyDistance, this.journeyDuration);
-			Context<Object> mc = RunState.getInstance().getMasterContext();
-			Geography<Object> g = (Geography<Object>) mc.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
-			mc.add(vd);
-			g.move(vd, vd.getGeom());
 			
 			this.currentRoadLink=null;
 			this.queuePos=null;
