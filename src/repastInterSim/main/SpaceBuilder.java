@@ -86,6 +86,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	private ISchedulableAction addVehicleAction;
 	private ISchedulableAction addPedAction;
 	private ISchedulableAction stopAddingPedsAction;
+	private ISchedulableAction stopAddingVehiclesAction;
 	private ISchedulableAction removeMAgentAction;
 	private int nPedsCreated;
 	
@@ -420,8 +421,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			}
 			else {
 				// If successfully stop adding peds to model, schedule methods that monitors when ti end the simulation
-			    ScheduleParameters endRunScheduleParams = ScheduleParameters.createRepeating(schedule.getTickCount()+1,10,ScheduleParameters.LAST_PRIORITY);
-			    schedule.schedule(endRunScheduleParams, this, "endSimulation");
+			    ScheduleParameters stopAddingVehicleAgentsParams = ScheduleParameters.createRepeating(schedule.getTickCount()+1,10,ScheduleParameters.LAST_PRIORITY);
+			    stopAddingVehiclesAction = schedule.schedule(stopAddingVehicleAgentsParams, this, "stopAddingVehicleAgents");
 			    
 			    // Also schedule action that removes the action that triggers this function
 			    ScheduleParameters sp = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.FIRST_PRIORITY);
@@ -432,7 +433,14 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public void stopStopAddingPedAgents() {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-		boolean sucess = schedule.removeAction(stopAddingPedsAction);
+		boolean success = schedule.removeAction(stopAddingPedsAction);
+		assert success;
+	}
+	
+	public void stopStopAddingVehicleAgents() {
+		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		boolean success = schedule.removeAction(stopAddingVehiclesAction);
+		assert success;
 	}
 	
 	/**
@@ -440,19 +448,24 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 */
 	public void stopAddingVehicleAgents() {
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
-
-		// Remove add agents methods from the scedule
-		boolean success = schedule.removeAction(addVehicleAction);
 		
-		// if action not removed, reschedule this method for the following tick
-		if (success==false) {
-		    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
-		    schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingVehicleAgents");
-		}
-		else {
-			// If successfully stop adding vehicle agents, can schedule method remove all vehicle agents from the simualtion, to trigger the end of the run.
-		    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
-		    schedule.schedule(removeAllVehicleAgentsParams, this, "removeAllVehicleAgents");
+		Context context = RunState.getInstance().getMasterContext();
+		if (context.getObjects(Ped.class).size()==0) {
+		
+			// Remove add agents methods from the scedule
+			boolean success = schedule.removeAction(addVehicleAction);
+			
+			// if action not removed, reschedule this method for the following tick
+			if (success==true) {
+				
+			    // Also schedule action that removes the action that triggers this function
+			    ScheduleParameters sp = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.FIRST_PRIORITY);
+			    schedule.schedule(sp, this, "stopStopAddingVehicleAgents");		
+
+				// If successfully stop adding vehicle agents, can schedule method remove all vehicle agents from the simualtion, to trigger the end of the run.
+			    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+			    schedule.schedule(removeAllVehicleAgentsParams, this, "removeAllVehicleAgents");
+			}
 		}
 	}
 	
@@ -469,7 +482,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		for (Vehicle v: vehiclesToRemove) {
 			removeMobileAgent(v, null);
 		}
-
+		
+		if (context.getObjects(MobileAgent.class).size() == 0) {
+			endSimulation();
+		}
+		else {
+			ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
+		    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
+		    schedule.schedule(removeAllVehicleAgentsParams, this, "removeAllVehicleAgents");
+		}
 	}
 	
 	
@@ -477,19 +498,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * End the simulation if there are no mobile agents in the context.
 	 */
 	public void endSimulation() {
-		
-		// First stop adding vehicle agents if no more pedestrian agents
-		Context context = RunState.getInstance().getMasterContext();
-		if (context.getObjects(Ped.class).size()==0) {
-			stopAddingVehicleAgents();
-		}
-		
-		// Then if all agents have completed trips end simulation
-		if (context.getObjects(MobileAgent.class).size() == 0) {
-			recordRoadLinkData();
-			runCleanUP();
-			RunEnvironment.getInstance().endRun();
-		}
+		recordRoadLinkData();
+		runCleanUP();
+		RunEnvironment.getInstance().endRun();
 	}
 	
 	/*

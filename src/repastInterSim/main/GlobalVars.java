@@ -83,7 +83,7 @@ public abstract class GlobalVars {
 	public static double defaultVehicleAcceleration = 0.8;
 	public static double defaultVehicleDecceleration = 4.5; // These two values taken from SUMO car following model https://sumo.dlr.de/pdf/KraussDiss.pdf
 	public static double initialVehicleSpeed = 0.5;
-	public static Double maxVehicleSpeed = 11.2; // 11.4 ms-1 is 25 mph
+	public static Double maxVehicleSpeed = 11.2; // 11.2 ms-1 is 25 mph
 	public static double vehicleLength = 3.5; // 3.5m
 	public static double vehicleWidth = 1.7; // 1.7m
 	public static double obstacleYieldDistance = 2; // Keep 2m distance from obstacles such as peds and traffic signals
