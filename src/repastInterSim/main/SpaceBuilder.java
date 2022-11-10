@@ -471,19 +471,27 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	
 	public void removeAllVehicleAgents() {
 		Context context = RunState.getInstance().getMasterContext();
-	        
-        // Iterate over vehicles and remove them
-		List<Vehicle> vehiclesToRemove = new ArrayList<Vehicle>();
-        for (Object o :context.getObjects(Vehicle.class)) {
-        	Vehicle v  = (Vehicle) o;
-        	vehiclesToRemove.add(v);
-        }
 		
-		for (Vehicle v: vehiclesToRemove) {
-			removeMobileAgent(v, true, null);
+		int nAgents = context.getObjects(MobileAgent.class).size();
+		int removalAttempts=0;
+		
+		while ( (nAgents>0)|(removalAttempts<100)) {
+	        // Iterate over vehicles and remove them
+			List<Vehicle> vehiclesToRemove = new ArrayList<Vehicle>();
+	        for (Object o :context.getObjects(Vehicle.class)) {
+	        	Vehicle v  = (Vehicle) o;
+	        	vehiclesToRemove.add(v);
+	        }
+			
+			for (Vehicle v: vehiclesToRemove) {
+				removeMobileAgent(v, true, null);
+			}
+			
+			nAgents = context.getObjects(MobileAgent.class).size();
+			removalAttempts++;
 		}
 		
-		if (context.getObjects(MobileAgent.class).size() == 0) {
+		if (nAgents == 0) {
 			endSimulation();
 		}
 		else {
