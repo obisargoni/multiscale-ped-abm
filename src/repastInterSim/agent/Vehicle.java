@@ -425,11 +425,17 @@ public class Vehicle extends MobileAgent {
 	 * In this case make sure to reduce the count of vehicles on the current road link
 	 */
 	@Override
-	public boolean tidyForRemoval() {
+	public boolean tidyForRemoval(boolean endOfSim) {
 		// tidy for removal can be called when vehicle is close to destination node but still stuck behind another vehicle
 		// only remove vehicle if it is at the front of the queue, ie no vehicle in front
 		boolean tidiedOK=false;
-		Vehicle vif = getVehicleInFront(); 
+		Vehicle vif = null;
+		
+		// Only ensure vehicles are removed in the correct order whilst simulation is still underway. At the end of the sim it doesn't matter.
+		if (endOfSim==false) {
+			vif = getVehicleInFront();
+		}
+		
 		if (vif==null) {
 			// If queuPos is null this means the vehicle has yet to enter the study area and is queueing at its start node. In which case do not want to colect route data from this vehicle.
 			if (this.queuePos!=null) {
@@ -451,6 +457,11 @@ public class Vehicle extends MobileAgent {
 			tidiedOK=true;
 		}
 		return tidiedOK;
+	}
+	
+	@Override
+	public boolean tidyForRemoval() {
+		return tidyForRemoval(false);
 	}
 	
 	/*

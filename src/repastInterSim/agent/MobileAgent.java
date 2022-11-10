@@ -93,6 +93,10 @@ public class MobileAgent {
 		return true;
 	}
 	
+	public boolean tidyForRemoval(boolean eOS) {
+		return true;
+	}
+	
 	public double getBearing() {
 		return this.bearing;
 	}
