@@ -480,7 +480,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
         }
 		
 		for (Vehicle v: vehiclesToRemove) {
-			removeMobileAgent(v, null);
+			removeMobileAgent(v, true, null);
 		}
 		
 		if (context.getObjects(MobileAgent.class).size() == 0) {
