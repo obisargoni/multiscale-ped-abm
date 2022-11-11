@@ -242,7 +242,6 @@ def fitting_linear_regression(X, y, feature_names):
 #
 #####################################
 file_datetime_string = config['file_datetime_string']
-vehicle_density_timestamp = config['vehicle_density_timestamp']
 setting = config['setting']
 
 gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
