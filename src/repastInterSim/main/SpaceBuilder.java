@@ -422,7 +422,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			}
 			else {
 				// If successfully stop adding peds to model, schedule methods that monitors when ti end the simulation
-			    ScheduleParameters stopAddingVehicleAgentsParams = ScheduleParameters.createRepeating(schedule.getTickCount()+1,10,ScheduleParameters.LAST_PRIORITY);
+			    ScheduleParameters stopAddingVehicleAgentsParams = ScheduleParameters.createRepeating(schedule.getTickCount()+1,1,ScheduleParameters.LAST_PRIORITY);
 			    stopAddingVehiclesAction = schedule.schedule(stopAddingVehicleAgentsParams, this, "stopAddingVehicleAgents");
 			    
 			    // Also schedule action that removes the action that triggers this function
@@ -476,7 +476,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		int nAgents = context.getObjects(MobileAgent.class).size();
 		int removalAttempts=0;
 		
-		while ( (nAgents>0)|(removalAttempts<100)) {
+		while ( (nAgents>0) & (removalAttempts<100)) {
 	        // Iterate over vehicles and remove them
 			List<Vehicle> vehiclesToRemove = new ArrayList<Vehicle>();
 	        for (Object o :context.getObjects(Vehicle.class)) {
