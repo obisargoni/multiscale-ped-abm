@@ -378,13 +378,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		
 		int  addVehicleTicks = params.getInteger("addVehicleTicks");
-	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, addVehicleTicks, ScheduleParameters.FIRST_PRIORITY);
+	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, Math.round(5*Math.pow(2, addVehicleTicks)), ScheduleParameters.FIRST_PRIORITY);
 	    addVehicleAction = schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
-	    int startPedsTick = 3*addVehicleTicks; // Add peds to model after three round of adding vehicles.
+	    int startPedsTick = (int) (3*Math.round(5*Math.pow(2, addVehicleTicks))); // Add peds to model after three round of adding vehicles.
 		int  addPedTicks = params.getInteger("addPedTicks");
-	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(startPedsTick,addPedTicks,ScheduleParameters.FIRST_PRIORITY);
+	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(startPedsTick,5*Math.pow(2, addPedTicks),ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
 	    
 	    // Schedule method that removes agents
@@ -392,7 +392,8 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		removeMAgentAction = schedule.schedule(removeMAgentScheduleParameters, this, "removeAgentsAtDestinations");
 	    
 	    // Stop adding agents to the simulation at endTick ticks
-	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createRepeating(startPedsTick+1, addPedTicks, ScheduleParameters.LAST_PRIORITY);
+		int pedInterval = (int) Math.round(5*Math.pow(2, addPedTicks));
+	    ScheduleParameters stopAddingAgentsScheduleParams = ScheduleParameters.createRepeating(startPedsTick+1, pedInterval, ScheduleParameters.LAST_PRIORITY);
 	    stopAddingPedsAction = schedule.schedule(stopAddingAgentsScheduleParams, this, "stopAddingPedAgents");
 	    
 	    //IO.exportGridCoverageData(baseGrid);
