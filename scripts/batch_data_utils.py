@@ -816,14 +816,17 @@ def alt_paths(dfPedRoutes, dfUniqueStartEnd, gdfPaveLinks, gdfORLinks, gdfPaveNo
     return dfAltPaths
 
 
-def median_ped_pavement_link_counts(dfPedRoutes, output_path = 'single_ped_links.csv'):
+def median_ped_pavement_link_counts(dfPedRoutes, start_node = None, output_path = 'single_ped_links.csv'):
     '''Selects all of the tactical paths traverse by one pedestrian agetn across all simulation runs. From this calculates number of times each link is 
     traversed. Used to visualise path heterogeneity.
     '''
 
     # Calculate number of links in each strategic path and choose a pedestrian with a median length path
-    dfPedRoutes['sp_len'] = dfPedRoutes['FullStrategicPathString'].map(lambda x: len(x))
-    pedID = dfPedRoutes.loc[ dfPedRoutes['sp_len'] == dfPedRoutes['sp_len'].median(), 'ID'].values[0]
+    if start_node is None:
+        dfPedRoutes['sp_len'] = dfPedRoutes['FullStrategicPathString'].map(lambda x: len(x))
+        pedID = dfPedRoutes.loc[ dfPedRoutes['sp_len'] == dfPedRoutes['sp_len'].median(), 'ID'].values[0]
+    else:
+        pedID = dfPedRoutes.loc[ dfPedRoutes['start_node'] == start_node, 'ID'].values[0]
     
     # Now get all ped routes for this ped so they can be visualised
     dfSinglePedRoutes = dfPedRoutes.loc[ dfPedRoutes['ID'] == pedID]
