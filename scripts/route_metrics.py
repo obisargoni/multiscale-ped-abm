@@ -938,7 +938,7 @@ if 'variance_comparison' in setting:
     print(dfRouteLength['route_length_pp'].var())
 
     print("\nProducing single agents paths figure")
-    dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, output_path = output_single_ped_links_file)
+    dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, start_node='pave_node_151', output_path = output_single_ped_links_file)
 
     # Get corresponding alternative model paths
     vs = dfSinglePedPaths.loc[:, ['FullStrategicPathString','start_node','end_node']].drop_duplicates().values
