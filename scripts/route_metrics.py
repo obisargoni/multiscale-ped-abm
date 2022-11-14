@@ -343,12 +343,12 @@ def plot_layers(ax, config, pavement = None, carriageway = None, road_link = Non
 
     return ax
 
-def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, edgelists, edgedatas, edge_cmap, title_font, labelsize, offsets, fig_config):
+def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, edgelists, edgedatas, edge_cmap, title_font, labelsize, offsets, fig_config, figsize = (10,10)):
     '''Function for creating figures illustrating tactical path finding
     '''
     plt.style.use('dark_background')
     # Initialise figure
-    f, axs = plt.subplots(1,2, figsize = (10,10))
+    f, axs = plt.subplots(1,2, figsize = figsize)
 
     # Get study area gdfs
     gdfORLinkSA = gdfORLink.loc[ gdfORLink['fid'].isin(study_area_rls)]
@@ -361,7 +361,7 @@ def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_
     gdfd = gdfPedODs.loc[ gdfPedODs['fid']==end_node]
 
     vmin = 0
-    vmax = 1
+    vmax = 100
     xmin, ymin, xmax, ymax = gdfsp.total_bounds
 
     for i, ax in enumerate(axs):
@@ -386,7 +386,7 @@ def figure_single_ped_tactical_paths(gdfORLink, gdfPedODs, pavement_graph, dict_
     smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     cbar = f.colorbar(smap, ax=axs, fraction=0.1, shrink = 0.6)
     cbar.ax.tick_params(labelsize=labelsize)
-    cbar.ax.set_ylabel("Proportion of paths", rotation=-90, labelpad = 20)
+    cbar.ax.set_ylabel("% of paths", rotation=-90, labelpad = 20)
     plt.style.use('default')
     return f
 
@@ -969,7 +969,7 @@ if 'variance_comparison' in setting:
     # Now get link counts to colour figure by
     # Aggregate single ped links to get edge data values
     edge_traverse_counts = dfSinglePedPaths['edge_path'].value_counts()
-    edgedataCLT = np.array([edge_traverse_counts[i] / n_paths for i in tp_links])
+    edgedataCLT = np.array([(edge_traverse_counts[i] / n_paths) * 100 for i in tp_links])
 
     # Create complementary figure for alternative model paths
     edges_sp = [list(zip(i[:-1], i[1:])) for i in dfAltSinglePedPaths['alt_path']]
@@ -978,12 +978,12 @@ if 'variance_comparison' in setting:
     s_edgelist = pd.Series(tuple(i) for i in all_edges)
 
     # Count number of times each edge is traversed
-    edge_counts = s_edgelist.value_counts() / n_paths
+    edge_counts = (s_edgelist.value_counts() / n_paths) *100
     edgelistSP = edge_counts.index
     edgedataSP = edge_counts.values
 
-    titles = ['Hierarchical CLT', 'Constrained Shortest Path']
-    f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('spring'), {'fontsize':15}, 12, [[10,4],[15,-10]], fig_config)
+    titles = ['Hierarchical CLT', 'Constrained Least Cost']
+    f_path_comp = figure_single_ped_tactical_paths(gdfORLinks, gdfPaveNodes, pavement_graph, dict_node_pos, study_area_rls, sp, start_node, end_node, titles, [edgelistCLT, edgelistSP], [edgedataCLT, edgedataSP], plt.get_cmap('spring'), {'fontsize':15}, 12, [[10,4],[15,-10]], fig_config, figsize=(10,5))
     #f_path_comp.tight_layout()
     output_single_pad_paths = os.path.join(img_dir, "single_ped_paths_comp_{}_{}.{}.png".format(weight_params.stop, weight_params.step, file_datetime_string))
     f_path_comp.savefig(output_single_pad_paths)
