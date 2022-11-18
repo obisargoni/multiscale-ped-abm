@@ -22,12 +22,12 @@ import batch_data_utils as bd_utils
 #
 #
 ###############################
-file_datetime_string = "2021.Nov.29.11_00_52"
+file_datetime_string = "2022.Nov.18.12_33_08"
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 with open(".//config.json") as f:
     config = json.load(f)
 
-gis_data_dir = config['gis_data_dir']
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\simple_pedestrian_trips"
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
@@ -35,7 +35,7 @@ l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-hex_polys_file = os.path.join(gis_data_dir, "simple_pedestrian_trips", "hexgrid1m.shp")
+hex_polys_file = os.path.join(gis_data_dir, "hexgrid1m.shp")
 
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
@@ -77,9 +77,9 @@ df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
 
 selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
-selction_values = [ [0.5,0.5],
-                    [0.1,0.1],
-                    [5,50]
+selction_values = [ [0.4,1.6],
+                    [0.1,0.9],
+                    [0,3.321928]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -147,7 +147,7 @@ gdf_hex_counts.rename(columns = {'addVehicle':'addVehicleTicks'}, inplace=True)
 import matplotlib.pyplot as plt
 import contextily as cx
 
-def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
+def batch_run_map(df_data, run_selection_dict, data_col, run_col, rename_dict, title, output_path):
 
     global tbounds
 
@@ -164,7 +164,7 @@ def batch_run_map(df_data, data_col, run_col, rename_dict, title, output_path):
     f,axs = plt.subplots(p, q*r,figsize=(20,10), sharey=True, sharex = True)
 
     # Set bounds for map
-    map_bounds = [-0.1223057351372325,51.5111630749215195, -0.1212368380101798,51.5117320438929838]
+    map_bounds = [-0.13535773, 51.46418611, -0.13410014, 51.46472197]
 
     for ki in range(len(keys)):
         group_key = keys[ki]
@@ -278,10 +278,10 @@ def batch_run_map_single(df_data, data_col, run_col, rename_dict, title, output_
     f.show()
     plt.savefig(output_path)
 
-rename_dict = {5:"High Vehicle Flow", 50:"Low Vehicle Flow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
+rename_dict = {0:"High Vehicle Flow", 3.321928:"Low Vehicle Flow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
 
-#batch_run_map(gdf_hex_counts, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
-batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
+batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dict, "Between Configuration", map_output_path)
+#batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
 
 
 
