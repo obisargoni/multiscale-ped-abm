@@ -124,3 +124,7 @@ dfqgagg = dfqgagg.groupby(['addVehicleTicks','addPedTicks']).mean()
 
 dfugagg = pd.merge(dfugagg, dfugaggd, left_index=True, right_index=True).reset_index()
 dfugagg = dfugagg.groupby(['addVehicleTicks','addPedTicks']).mean()
+
+dfccagg.to_csv(os.path.join(data_dir, 'cc_vehden_agg_{}.csv'.format(config['cc_results'])))
+dfqgagg.to_csv(os.path.join(data_dir, 'qg_vehden_agg_{}.csv'.format(config['qg_results'])))
+dfugagg.to_csv(os.path.join(data_dir, 'ug_vehden_agg_{}.csv'.format(config['ug_results'])))
