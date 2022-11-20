@@ -1,8 +1,10 @@
 import os
 import json
+import re
 from datetime import datetime as dt
 import pandas as pd
 import numpy as np
+import geopandas as gpd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from colorspacious import cspace_convert
@@ -10,7 +12,7 @@ from colorspacious import cspace_convert
 from importlib import reload
 import batch_data_utils
 batch_data_utils = reload(batch_data_utils)
-from batch_data_utils import get_processed_crossing_locations_data
+from batch_data_utils import get_processed_crossing_locations_data, get_data_paths, load_and_clean_cross_events
 
 
 #####################################
@@ -239,6 +241,8 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 #
 #
 #####################################
+with open(".//config.json") as f:
+    config = json.load(f)
 
 rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 'alpha':r"$\mathrm{\alpha}$",
@@ -247,8 +251,8 @@ rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
                 "gamma":r"$\mathrm{\gamma}$",
                 "between": "Between Configuration",
                 "beyond":"Beyond Configuration",
-                5:"High\nVehicle\nFlow",
-                50:"Low\nVehicle\nFlow"
+                0:"High\nVehicle\nFlow",
+                3.321928:"Low\nVehicle\nFlow"
                 }
 
 configuration_datetime_strings = {
@@ -256,14 +260,65 @@ configuration_datetime_strings = {
                                     "beyond":   dt.strptime(config['al_sweep_beyond'], "%Y.%b.%d.%H_%M_%S")
                                 }
 
-with open(".//config.json") as f:
-    config = json.load(f)
+configuration_datetime_strings = {
+                                    "between":  config['al_sweep_between'],
+                                    "beyond":   config['al_sweep_beyond']
+                                }
 
+
+#####################################
+#
+# File locations
+#
+#####################################
+project_crs = {'init': 'epsg:27700'}
+
+gis_data_dir = os.path.abspath("..\\data\\model_gis_data")
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
+l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
+
+pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
+pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
+crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
+ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
+
+# Model output data
+between_data_paths = get_data_paths(configuration_datetime_strings['between'], data_dir)
+between_cross_events_file = between_data_paths["cross_events"]
+between_batch_file = between_data_paths["batch_file"]
+
+beyond_data_paths = get_data_paths(configuration_datetime_strings['beyond'], data_dir)
+beyond_cross_events_file = beyond_data_paths["cross_events"]
+beyond_batch_file = beyond_data_paths["batch_file"]
+
+dfRunBetween = pd.read_csv(os.path.join(data_dir, between_batch_file))
+dfRunBeyond = pd.read_csv(os.path.join(data_dir, beyond_batch_file))
+assert (dfRunBetween==dfRunBeyond).all().all()
 
 
+# GIS Data
+gdfPaveLinks = gpd.read_file(pavement_links_file)
+gdfPaveNodes = gpd.read_file(pavement_nodes_file)
+gdfCAs = gpd.read_file(crossing_alternatives_file)
 
+dfCrossEventsBetween = load_and_clean_cross_events(gdfPaveLinks, cross_events_path = between_cross_events_file)
+dfCrossEventsBeyond = load_and_clean_cross_events(gdfPaveLinks, cross_events_path = beyond_cross_events_file)
+
+# Aggregate to get percent informal or formal crossing
+dfCrossTypesBetween = dfCrossEventsBetween.groupby('run')['CrossingType'].apply(lambda s: (s.value_counts() / s.value_counts().sum()) *100 ).unstack().reset_index()
+dfCrossTypesBeyond = dfCrossEventsBeyond.groupby('run')['CrossingType'].apply(lambda s: (s.value_counts() / s.value_counts().sum()) *100 ).unstack().reset_index()
+
+ # Merge to batch run params files
+dfCrossTypesBetween = pd.merge(dfRunBetween, dfCrossTypesBetween, on='run')
+dfCrossTypesBeyond = pd.merge(dfRunBetween, dfCrossTypesBeyond, on='run')
+dfCrossTypesBetween['configuration'] = 'between'
+dfCrossTypesBeyond['configuration'] = 'beyond'
+df_cc_count_al = pd.concat([dfCrossTypesBetween, dfCrossTypesBeyond])
+
+
+# This old method accounted for agents being undecided. Also based on old data outputs
+'''
 btwn_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locations", configuration_datetime_strings['between'])
 btwn_ped_cc["configuration"] = "between"
 
@@ -271,15 +326,16 @@ bynd_ped_cc = get_processed_crossing_locations_data(data_dir, "pedestrian_locati
 bynd_ped_cc["configuration"] = "beyond"
 
 df_cc_count_al = pd.concat([btwn_ped_cc, bynd_ped_cc])
+'''
 
 # Groups by the variables I want to keep constant in eac plot
 groupby_columns = ['addVehicleTicks', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$")
-fig_path = os.path.join(img_dir, "al_crossing_heatmap_{}.png".format(configuration_datetime_strings['between'].strftime("%Y.%b.%d.%H_%M_%S")))
+fig_path = os.path.join(img_dir, "al_crossing_heatmap_{}.png".format(configuration_datetime_strings['between']))
 
-f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked_pcnt', None, 'undecided', rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
+f, axs = batch_run_heatmap(df_cc_count_al, groupby_columns, parameter_sweep_columns, 'unmarked', None, None, rename_dict, title = fig_title, cbarlabel = "Proportion choosing informal crossings", cmap = plt.cm.coolwarm_r, output_path = fig_path)
 f.show()
 
 
