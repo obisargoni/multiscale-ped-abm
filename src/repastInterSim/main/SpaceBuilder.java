@@ -559,8 +559,9 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 				nVehicles++;
 		}
 		
-		if (nVehicles<addVehicleTicks) {
-			addVehicleAgents(odData);
+		if (nVehicles<avNVehicles) {
+			int nVehiclesToAdd = avNVehicles-nVehicles;
+			addVehicleAgents(odData, nVehiclesToAdd);
 		}
 		
 	}
@@ -572,9 +573,15 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	 * the flow of vehicles 
 	 * 
 	 */
-	public void addVehicleAgents(List<String[]> odData) {
+	public void addVehicleAgents(List<String[]> odData, int nVehicles) {
 		Geography<OD> vehicleDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData, "vehODThresholds");
+		
+		while (ods.size()>nVehicles) {
+			// Randomly remove some trips
+			int removeInd = RandomHelper.nextIntFromTo(0, ods.size()-1);
+			ods.remove(removeInd);
+		}
 		
 		for (int i=0; i< ods.size(); i++) {
 			OD[] od = ods.get(i);
