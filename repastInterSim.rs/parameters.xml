@@ -18,8 +18,8 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="addVehicleTicks" displayName="Ticks between vehicle creation" type="double" 
-						defaultValue="0.5" 
+				<parameter name="addVehicleTicks" displayName="Level of vehicle agents" type="int" 
+						defaultValue="50" 
 						isReadOnly="false" 
 						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
 									

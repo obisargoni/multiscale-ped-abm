@@ -377,12 +377,12 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		// Schedule the creation of vehicle agents - tried doing this with annotations but it didnt work
 		ISchedule schedule = RunEnvironment.getInstance().getCurrentSchedule();
 		
-		double  addVehicleTicks = params.getDouble("addVehicleTicks");
-	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, Math.round(5*Math.pow(2, addVehicleTicks)), ScheduleParameters.FIRST_PRIORITY);
-	    addVehicleAction = schedule.schedule(vehicleScheduleParams, this, "addVehicleAgents", vehicleFlows);
+		int increaseVehicleCountInterval = 3;
+	    ScheduleParameters vehicleScheduleParams = ScheduleParameters.createRepeating(1, increaseVehicleCountInterval, ScheduleParameters.FIRST_PRIORITY);
+	    addVehicleAction = schedule.schedule(vehicleScheduleParams, this, "increaseVehicleCount", vehicleFlows);
 	    
 		// Schedule the creation of pedestrian agents
-	    int startPedsTick = (int) (3*Math.round(5*Math.pow(2, addVehicleTicks))); // Add peds to model after three round of adding vehicles.
+	    int startPedsTick = 3*increaseVehicleCountInterval; // Add peds to model after three round of adding vehicles.
 		double  addPedTicks = params.getDouble("addPedTicks");
 	    ScheduleParameters pedestrianScheduleParams = ScheduleParameters.createRepeating(startPedsTick,5*Math.pow(2, addPedTicks),ScheduleParameters.FIRST_PRIORITY);
 	    addPedAction = schedule.schedule(pedestrianScheduleParams, this, "addPedestrianAgents", pedestrianFlows);
@@ -545,6 +545,28 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			Context sc  = (Context) o;
 			sc.clear();
 		}
+	}
+	
+	/*
+	 * Method that adds vehicle agents to the simulation if the number of vehicle agents is below the target number ste by a parameter
+	 */
+	public void increaseVehicleCount(List<String[]> odData) {
+		
+		Parameters params = RunEnvironment.getInstance ().getParameters();
+		int addVehicleTicks = params.getInteger("addVehicleTicks");
+		
+		Context context = RunState.getInstance().getMasterContext();
+		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
+		int nVehicles = 0;
+		for (Object o: context.getObjects(Vehicle.class)) {
+				Vehicle v = (Vehicle) o;
+				nVehicles++;
+		}
+		
+		if (nVehicles<addVehicleTicks) {
+			addVehicleAgents(odData);
+		}
+		
 	}
 
 	/*
