@@ -457,11 +457,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 			boolean success = schedule.removeAction(addVehicleAction);
 			
 			// if action not removed, reschedule this method for the following tick
-			if (success==true) {
-				
-			    // Also schedule action that removes the action that triggers this function
-			    ScheduleParameters sp = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.FIRST_PRIORITY);
-			    schedule.schedule(sp, this, "stopStopAddingVehicleAgents");		
+			if (success==true) {	
 
 				// If successfully stop adding vehicle agents, can schedule method remove all vehicle agents from the simualtion, to trigger the end of the run.
 			    ScheduleParameters removeAllVehicleAgentsParams = ScheduleParameters.createOneTime(schedule.getTickCount()+1, ScheduleParameters.LAST_PRIORITY);
