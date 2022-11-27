@@ -366,7 +366,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "gamma":r"$\mathrm{\gamma}$",
                 "minCrossing": r"$\mathrm{MC}$",
                 "tacticalPlanHorizon": r"$\mathrm{PH}$",
-                "addVehicleTicks": r"$\mathrm{T_{veh}}$",
+                "addVehicleTicks": r"$\bar{N^v}_r$",
                 "addPedTicks": r"$\mathrm{T_{ped}}$",
                 "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
                 "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
@@ -518,14 +518,6 @@ for i, ax in enumerate(grid.axes[:,-1]):
     ax.set_xticks([0,1])
     if i==3:
         ax.set_xticklabels(['false', 'true'])
-
-# Column of T_veh axes
-for i, ax in enumerate(grid.axes[:,-3]):
-    if i==3:
-        t = [0,1,2,3,4]
-        l = [5 * (2**i) for i in t]
-        ax.set_xticks(t)
-        ax.set_xticklabels(l)
 
 # Change lambda tick labels
 grid.axes[-1,1].set_xticks([0,1.0,2.0])

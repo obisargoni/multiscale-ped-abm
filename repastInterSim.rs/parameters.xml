@@ -18,10 +18,10 @@
 						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
-				<parameter name="addVehicleTicks" displayName="Level of vehicle agents" type="int" 
+				<parameter name="avNVehicles" displayName="Level of vehicle agents" type="int" 
 						defaultValue="50" 
 						isReadOnly="false" 
-						converter="repast.simphony.parameter.StringConverterFactory$DoubleConverter"
+						converter="repast.simphony.parameter.StringConverterFactory$IntConverter"
 									
 		/>
 				<parameter name="addPedTicks" displayName="Ticks between pedestrian creation" type="double" 

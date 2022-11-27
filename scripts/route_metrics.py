@@ -583,7 +583,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "gamma":r"$\mathrm{\gamma}$",
                 "minCrossing": r"$\mathrm{MC}$",
                 "tacticalPlanHorizon": r"$\mathrm{PH}$",
-                "addVehicleTicks": r"$\mathrm{T_{veh}}$",
+                "avNVehicles": r"$\bar{N^v}_r$",
                 "addPedTicks": r"$\mathrm{T_{ped}}$",
                 "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
                 "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
@@ -865,16 +865,16 @@ if 'sobol_si' in setting:
 if "epsilon_gamma_scatter" in setting:
 
     fixed_columns = ['random_seed', 'addPedTicks', 'alpha','tacticalPlanHorizon', 'minCrossing']
-    variable_columns = ['epsilon', 'gamma', 'lambda', 'addVehicleTicks']
+    variable_columns = ['epsilon', 'gamma', 'lambda', 'avNVehicles']
 
     metric = 'frac_completed_journeys'
-    groupby_columns = ['addVehicleTicks', 'lambda']
+    groupby_columns = ['avNVehicles', 'lambda']
     parameter_sweep_columns = ['epsilon', 'gamma']
 
     output_path = os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string))
     fig_title = "Route Completions\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
-    rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
+    rename_dict = { 'avNVehicles':"Ticks\nBetween\nVehicle\nAddition",
                 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
                 "epsilon":r"$\mathrm{\epsilon}$",

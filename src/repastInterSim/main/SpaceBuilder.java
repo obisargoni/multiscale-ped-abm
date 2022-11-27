@@ -549,7 +549,7 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 	public void increaseVehicleCount(List<String[]> odData) {
 		
 		Parameters params = RunEnvironment.getInstance ().getParameters();
-		int addVehicleTicks = params.getInteger("addVehicleTicks");
+		int avNVehicles = params.getInteger("avNVehicles");
 		
 		Context context = RunState.getInstance().getMasterContext();
 		Geography geography = (Geography) context.getProjection(GlobalVars.CONTEXT_NAMES.MAIN_GEOGRAPHY);
