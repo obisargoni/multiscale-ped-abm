@@ -48,7 +48,7 @@ def pair_plot(dfDD, outcome_vars, policy_col, rename_dict, file_datetime_string)
     sns.pairplot(data, hue=rename_dict[policy_col], vars=[rename_dict[outcome_vars[0]], rename_dict[outcome_vars[1]]])
     plt.savefig(os.path.join(img_dir, 'pair_plot.{}-{}.{}.png'.format(outcome_vars[0], outcome_vars[1], file_datetime_string)))
 
-def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '#ffcc33', '#ff9966']):
+def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#1b9e77', '#d95f02', '#7570b3']):
 
     minv = data[val_col].min()
     maxv = data[val_col].max()
@@ -70,7 +70,7 @@ def kde_plot(ax, data, val_col, group_col, bandwidth=0.75, palette=['#66ff66', '
     ax.set_title(val_col)
     return ax
 
-def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#3d993d', '#cca328', '#af3f33']):
+def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#1b9e77', '#d95f02', '#7570b3']):
 
     minv = data[val_col].min()
     maxv = data[val_col].max()
@@ -134,7 +134,7 @@ def get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#3d993d', '#cca328', '#af3f33']):
+def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#1b9e77', '#d95f02', '#7570b3']):
 
     f, axs = plt.subplots(1,len(outcome_vars), figsize=(fig_width*len(outcome_vars),10), constrained_layout = constrained_layout)
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
@@ -212,6 +212,8 @@ batch_file = data_paths["batch_file"]
 
 output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist)
 output_sd_data = output_paths["output_sd_data"]
+
+palette = ['#1b9e77', '#d95f02', '#7570b3']
 
 #####################################
 #
