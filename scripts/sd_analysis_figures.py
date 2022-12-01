@@ -356,4 +356,4 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 problem = init_problem(params)
 
 dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
-sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#3d993d', '#cca328', '#af3f33'])
+sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#1b9e77', '#d95f02', '#7570b3'])
