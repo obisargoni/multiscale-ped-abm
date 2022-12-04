@@ -35,7 +35,7 @@ l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-hex_polys_file = os.path.join(gis_data_dir, "hexgrid1m.shp")
+hex_polys_file = os.path.join(gis_data_dir, "hexgrid2m.shp")
 
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
@@ -76,10 +76,10 @@ gdf_loc = gdf_loc.to_crs(wsg_crs)
 df_run = pd.read_csv(os.path.join(data_dir, batch_file))
 
 
-selection_columns = ['lambda', 'alpha', 'addVehicleTicks']
+selection_columns = ['lambda', 'alpha', 'avNVehicles']
 selction_values = [ [0.4,1.6],
                     [0.1,0.9],
-                    [0,3.321928]
+                    [15,1]
                     ]
 
 run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
@@ -130,7 +130,7 @@ gdf_hex_counts.to_file(output_trajectories_path, drive='GPKG')
 ################################
 
 gdf_hex_counts = gpd.read_file(output_trajectories_path)
-gdf_hex_counts.rename(columns = {'addVehicle':'addVehicleTicks'}, inplace=True)
+gdf_hex_counts.rename(columns = {'avNVehicle':'avNVehicles'}, inplace=True)
 
 
 ################################
@@ -151,7 +151,7 @@ def batch_run_map(df_data, run_selection_dict, data_col, run_col, rename_dict, t
 
     global tbounds
 
-    groupby_columns = ['addVehicleTicks','alpha','lambda']
+    groupby_columns = ['avNVehicles','alpha','lambda']
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
 
@@ -244,7 +244,7 @@ def batch_run_map_single(df_data, data_col, run_col, rename_dict, title, output_
 
     global tbounds
 
-    groupby_columns = ['addVehicleTicks']
+    groupby_columns = ['avNVehicles']
     grouped = df_data.groupby(groupby_columns)
     keys = list(grouped.groups.keys())
 
@@ -278,7 +278,7 @@ def batch_run_map_single(df_data, data_col, run_col, rename_dict, title, output_
     f.show()
     plt.savefig(output_path)
 
-rename_dict = {0:"High Vehicle Flow", 3.321928:"Low Vehicle Flow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
+rename_dict = {15:"High Vehicle Flow", 1:"Low Vehicle Flow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
 
 batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dict, "Between Configuration", map_output_path)
 #batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
@@ -294,7 +294,7 @@ batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dic
 #####################################
 
 from matplotlib.animation import FuncAnimation, FFMpegWriter
- plt.rcParams['animation.ffmpeg_path'] = "C:\\Anaconda3\\bin\\ffmpeg"
+plt.rcParams['animation.ffmpeg_path'] = "C:\\Anaconda3\\bin\\ffmpeg"
 
 # Get crossing locations and origin and destination
 gdfCA = gpd.read_file(os.path.join(gis_data_dir, "simple_pedestrian_trips", "CrossingAlternatives.shp"))
