@@ -170,6 +170,9 @@ dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfPedTripDD.reindex(columns = ['run','DistPA']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfVehTripDD.reindex(columns = ['run','speed']).rename(columns={'speed':'speedVeh'}), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
 
 
 dfDD.to_csv(output_sd_data, index=False)
