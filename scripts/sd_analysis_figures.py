@@ -106,7 +106,7 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dic
     axins = fig.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.2)
+    axins.set_title('Environment', y=-0.1)
 
     outpath = os.path.join(img_dir, 'hists.{}.png'.format(file_datetime_string))
     fig.savefig(outpath)
@@ -149,11 +149,8 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
 
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
-    grouped = dfSIs.groupby(['metric'])
-    keys = list(grouped.groups.keys())
-    keys.sort(key=sf)
-    for i, m in enumerate(keys):
-        dfsi = grouped.get_group(m)
+    for i, m in enumerate(outcome_vars):
+        dfsi = dfSIs.loc[ dfSIs['metric']==m]
 
         n_policies = len(policy_values)
         bar_width=0.8/n_policies
@@ -179,13 +176,12 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.2)
+    axins.set_title('Environment', y=-0.1)
 
 
     outpath = os.path.join(img_dir,"sobol_si.{}.png".format(file_datetime_string))
     f.savefig(outpath)
     return outpath
-
 #####################################
 #
 #
@@ -244,7 +240,7 @@ gdfORNodes = gpd.read_file(or_nodes_file)
 gdfPedODs = gpd.read_file(ped_ods_file)
 
 weight_params = range(0, 100, 100)
-dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(None, None, None, None, weight_params, ped_routes_path = ped_routes_file, strategic_path_filter=False)
+#dfPedRoutes, dfPedRoutes_removedpeds = bd_utils.load_and_clean_ped_routes(None, None, None, None, weight_params, ped_routes_path = ped_routes_file, strategic_path_filter=False)
 
 # Model output data
 dfDD = pd.read_csv(output_sd_data)
@@ -329,7 +325,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_stri
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [0, 0.85, 0.13, 0.13]
+inset_rec = [0, 0.87, 0.13, 0.13]
 multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
 
 plt.style.use('default')
