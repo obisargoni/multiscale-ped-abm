@@ -1170,6 +1170,7 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
         # Keep only the columns of interest
         dfRoutes = dfRoutes.reindex(columns = ["run", "ID", "JourneyDistance", "JourneyDuration"])
+        dfRoutes['JourneySpeed'] = dfRoutes['JourneyDistance'] / dfRoutes['JourneyDuration']
 
         # Remove ids, typically these are agents that get stuck along their journey
         if agent_ids_to_exclude is not None:
@@ -1181,6 +1182,7 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
         # Aggregate trip distance and duration to the run level
         dfDursDists = dfRoutes.groupby("run").agg(  distance=pd.NamedAgg(column="JourneyDistance", aggfunc=lambda s: s.dropna().sum()),
                                                     duration=pd.NamedAgg(column="JourneyDuration", aggfunc=lambda s: s.dropna().sum()),
+                                                    speed=pd.NamedAgg(column="JourneySpeed", aggfunc=lambda s: s.dropna().mean()),
                                                     nagents=pd.NamedAgg(column="ID", aggfunc=lambda s: s.unique().shape[0])
                                                 ).reset_index()
 
