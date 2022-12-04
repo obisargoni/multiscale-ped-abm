@@ -92,7 +92,11 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#1b
 
 def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
     nvars = len(outcome_vars)
-    fig, axs = plt.subplots(1, nvars, figsize=figsize)
+    if nvars==4:
+        fig, axs = plt.subplots(2, 2, figsize=figsize)
+        axs = axs.reshape(1,-1)[0]
+    else:
+        fig, axs = plt.subplots(1, nvars, figsize=figsize)
 
     data = dfDD.loc[:, outcome_vars+[policy_col]]
     for i in range(nvars):
@@ -135,8 +139,14 @@ def get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome
     return dfSIs
 
 def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#1b9e77', '#d95f02', '#7570b3']):
+    nvars = len(outcome_vars)
+    if nvars==4:
+        f, axs = plt.subplots(2,2, figsize=(20,20), constrained_layout = constrained_layout)
+        axs = axs.reshape(1,-1)[0]
+    else:
+        f, axs = plt.subplots(1,nvars, figsize=(fig_width*nvars,10), constrained_layout = constrained_layout)
+    
 
-    f, axs = plt.subplots(1,len(outcome_vars), figsize=(fig_width*len(outcome_vars),10), constrained_layout = constrained_layout)
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
     grouped = dfSIs.groupby(['metric'])
@@ -300,13 +310,14 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','cross_entropy']
 outcome_vars2 = ['DistPA','cross_entropy']
-outcome_vars3 = ['DistPA','crossCountPP','cross_entropy']
+outcome_vars3 = ['route_length_pp', 'speedVeh','crossCountPP','cross_entropy']
 policy_col = 'informalCrossing'
 
 title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
                         "DistPA": r"$\bar{D_r}$",
                         "crossCountPP":r"$\bar{C_r}$",
                         "cross_entropy":r"$CLE$", 
+                        "speedVeh":r"$\bar{S^v_r}$",
                         'informalCrossing':'Informal Crossing'}
 #
 # Create pairs plot
@@ -319,7 +330,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_stri
 #
 #plt.style.use('dark_background')
 inset_rec = [0, 0.85, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(10*len(outcome_vars3),10))
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
 
 plt.style.use('default')
 
@@ -346,6 +357,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "DistPA": r"$\bar{D_r}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
+                "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing'
                 }
 
