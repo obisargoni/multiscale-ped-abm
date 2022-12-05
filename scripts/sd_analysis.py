@@ -53,7 +53,7 @@ itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_fil
 crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
 ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 
-data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir, nbins = nbins, ttc_threshold=ttc_threshold)
+data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
 ped_crossings_file = data_paths["pedestrian_pave_link_crossings"]
 ped_routes_file = data_paths["pedestrian_routes"]
 veh_routes_file = data_paths["vehicle_routes"]
@@ -62,7 +62,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"] 
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
 output_ped_routes_file = output_paths["output_ped_routes_file"]
 output_route_length_file = output_paths["output_route_length_file"]
 output_ped_distdurs_file = output_paths["output_ped_distdurs_file"]
