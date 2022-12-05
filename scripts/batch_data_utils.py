@@ -519,7 +519,7 @@ def agg_cross_conflicts(dfCrossEvents, dfRun, dfLinkCrossCounts, output_path, tt
     '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the
     mean TTC per run.
     '''
-    if os.path.exist(output_path):
+    if os.path.exists(output_path):
         print("\nLoading crossing conflicts, {}, {}".format(ttc_col, ttc_threshold))
         dfRunConflicts = pd.read_csv(output_path)
 
