@@ -42,6 +42,7 @@ data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 nbins = None
 bin_dist = 2
+ttc_threshold = 3
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
@@ -52,7 +53,7 @@ itn_nodes_file = os.path.join(gis_data_dir, config['mastermap_node_processed_fil
 crossing_alternatives_file = os.path.join(gis_data_dir, config['crossing_alternatives_file'])
 ped_ods_file = os.path.join(gis_data_dir, config['pedestrian_od_file'])
 
-data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir)
+data_paths = bd_utils.get_data_paths(file_datetime_string, data_dir, nbins = nbins, ttc_threshold=ttc_threshold)
 ped_crossings_file = data_paths["pedestrian_pave_link_crossings"]
 ped_routes_file = data_paths["pedestrian_routes"]
 veh_routes_file = data_paths["vehicle_routes"]
@@ -69,6 +70,7 @@ output_veh_distdurs_file = output_paths["output_veh_distdurs_file"]
 output_sp_similarity_length_path = output_paths["output_sp_similarity_length_path"]
 output_cross_events_path = output_paths["output_cross_events_path"]
 output_cross_entropy = output_paths["output_cross_entropy"]
+output_cross_conflicts = output_paths["output_cross_conflicts"]
 
 output_sd_data = output_paths["output_sd_data"]
 
@@ -150,7 +152,7 @@ gdfCrossEventsBins.drop(['fid', 'node_path'], axis=1, inplace=True)
 gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==True].to_file(os.path.join(data_dir, 'cross_locs_informal.{}.{}.gpkg'.format(nbins, file_datetime_string)), driver='GPKG')
 gdfCrossEventsBins.loc[ gdfCrossEventsBins['informalCrossing']==False].to_file(os.path.join(data_dir, 'cross_locs_no_informal.{}.{}.gpkg'.format(nbins, file_datetime_string)), driver='GPKG')
 '''
-#dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfLinkCrossCounts, ttc_col = 'TTC')
+dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, dfLinkCrossCounts, output_cross_conflicts, ttc_col = 'TTC', ttc_threshold=ttc_threshold)
 #dfConflictsUnmarked = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ dfCrossEventsConsistentPeds['CrossingType']=='unmarked'], dfLinkCrossCounts, ttc_col = 'TTC')
 #dfConflictsDiagonalUm = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 #conflicts_data = {'all':dfConflicts, 'unmarked':dfConflictsUnmarked, 'diag_um':dfConflictsDiagonalUm}
@@ -171,6 +173,9 @@ dfDD = pd.merge(dfDD, dfPedTripDD.reindex(columns = ['run','DistPA']), on='run',
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfVehTripDD.reindex(columns = ['run','speed']).rename(columns={'speed':'speedVeh'}), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfConflicts.reindex(columns = ['run','conflict_count']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 

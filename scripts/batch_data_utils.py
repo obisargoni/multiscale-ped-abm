@@ -138,7 +138,7 @@ def get_data_paths(file_datetime_string, data_dir):
 
     return output
 
-def get_ouput_paths(file_datetime_string, data_dir, nbins = ''):
+def get_ouput_paths(file_datetime_string, data_dir, nbins = '', ttc_threshold = 3):
     # output paths for processed data
     paths = {}
     paths["output_ped_routes_file"] = os.path.join(data_dir, "ped_routes.{}.csv".format(file_datetime_string))
@@ -157,6 +157,7 @@ def get_ouput_paths(file_datetime_string, data_dir, nbins = ''):
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
     paths["output_route_data"] = os.path.join(data_dir, "metrics_for_route_analysis.{}.csv".format(file_datetime_string))
     paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
+    paths["output_cross_conflicts"] = os.path.join(data_dir, "conflicts.{}.{}.csv".format(ttc_threshold, file_datetime_string))
 
     return paths
 
@@ -514,37 +515,41 @@ def agg_route_completions(dfPedRoutes, dfRun, output_path = 'route_completions.c
 
     return dfCompletions
 
-def agg_cross_conflicts(dfCrossEvents, dfRun, dfLinkCrossCounts, ttc_col = 'TTC', ttc_threshold = 3):
+def agg_cross_conflicts(dfCrossEvents, dfRun, dfLinkCrossCounts, output_path, ttc_col = 'TTC', ttc_threshold = 3):
     '''Aggregate crossing events to create indicators of conflict for each run. This involves findings the total number of conflicts per run and the
     mean TTC per run.
     '''
+    if os.path.exist(output_path):
+        print("\nLoading crossing conflicts, {}, {}".format(ttc_col, ttc_threshold))
+        dfRunConflicts = pd.read_csv(output_path)
 
-    # Join with pavement links data and aggregate to OR road link ID to get number of peds per OR road link for normalising crossing counts
+    else:
+        print("\nProcessing crossing conflicts, {}, {}".format(ttc_col, ttc_threshold))
+        
+        # Join with pavement links data and aggregate to OR road link ID to get number of peds per OR road link for normalising crossing counts
+        calc_conflict_count = lambda s: s.dropna().loc[s<ttc_threshold].shape[0]
+        calc_mean_ttc = lambda s: s.dropna().loc[s<ttc_threshold].mean()
+        calc_var_ttc = lambda s: s.dropna().loc[s<ttc_threshold].var()
 
+        dfRunConflicts = dfCrossEvents.groupby("run").agg(  conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),
+                                                            meanTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_mean_ttc),
+                                                            varTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_var_ttc),
+                                                            ).reset_index()
 
-    calc_conflict_count = lambda s: s.dropna().loc[s<ttc_threshold].shape[0]
-    calc_mean_ttc = lambda s: s.dropna().loc[s<ttc_threshold].mean()
-    calc_var_ttc = lambda s: s.dropna().loc[s<ttc_threshold].var()
+        # get conflict counts normalsied by numbers of peds on road links
+        dfPaveLinkConflictCounts = dfCrossEvents.groupby(['run','TacticalEdgeID']).agg( conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),).reset_index()
+        dfPaveLinkConflictCounts = pd.merge(dfPaveLinkConflictCounts, dfLinkCrossCounts, left_on = ['run', 'TacticalEdgeID'], right_on = ['run', 'fid'], indicator=True)
+        assert dfPaveLinkConflictCounts.loc[ dfPaveLinkConflictCounts['_merge']!='both'].shape[0]==0
+        dfPaveLinkConflictCounts['norm_conflict_count'] = dfPaveLinkConflictCounts['conflict_count'] / dfPaveLinkConflictCounts['cross_count']
 
-    dfRunConflicts = dfCrossEvents.groupby("run").agg(  conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),
-                                                        meanTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_mean_ttc),
-                                                        varTTC=pd.NamedAgg(column=ttc_col, aggfunc=calc_var_ttc),
-                                                        ).reset_index()
+        # now aggregate trun
+        dfRunConflictsNorm = dfPaveLinkConflictCounts.groupby("run").agg(   meanNormCC=pd.NamedAgg(column='norm_conflict_count', aggfunc=np.mean),
+                                                                            varNormCC =pd.NamedAgg(column='norm_conflict_count', aggfunc=np.var),).reset_index()
 
-    # get conflict counts normalsied by numbers of peds on road links
-    dfPaveLinkConflictCounts = dfCrossEvents.groupby(['run','TacticalEdgeID']).agg( conflict_count=pd.NamedAgg(column=ttc_col, aggfunc=calc_conflict_count),).reset_index()
-    dfPaveLinkConflictCounts = pd.merge(dfPaveLinkConflictCounts, dfLinkCrossCounts, left_on = ['run', 'TacticalEdgeID'], right_on = ['run', 'fid'], indicator=True)
-    assert dfPaveLinkConflictCounts.loc[ dfPaveLinkConflictCounts['_merge']!='both'].shape[0]==0
-    dfPaveLinkConflictCounts['norm_conflict_count'] = dfPaveLinkConflictCounts['conflict_count'] / dfPaveLinkConflictCounts['cross_count']
+        dfRunConflicts = pd.merge(dfRunConflicts, dfRunConflictsNorm, on='run')
 
-    # now aggregate trun
-    dfRunConflictsNorm = dfPaveLinkConflictCounts.groupby("run").agg(   meanNormCC=pd.NamedAgg(column='norm_conflict_count', aggfunc=np.mean),
-                                                                        varNormCC =pd.NamedAgg(column='norm_conflict_count', aggfunc=np.var),).reset_index()
-
-    dfRunConflicts = pd.merge(dfRunConflicts, dfRunConflictsNorm, on='run')
-
-    # Merge with run params
-    dfRunConflicts = pd.merge(dfRun, dfRunConflicts, on='run')
+        # Merge with run params
+        dfRunConflicts = pd.merge(dfRun, dfRunConflicts, on='run')
 
     return dfRunConflicts
 
