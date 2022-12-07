@@ -443,10 +443,10 @@ group_param = 'addVehicleTicks'
 policy_param = 'informalCrossing'
 metric = 'speedVeh'
 title = 'Vehicle speed increases with crossing restrictions'
-f = agg_policy_comparison_figure(dfSpeedComp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
+f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
 
 group_param = 'addVehicleTicks'
 policy_param = 'informalCrossing'
 metric = 'conflict_count'
 title = 'Conflicts decrease with crossing restrictions'
-f = agg_policy_comparison_figure(dfSpeedComp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
+f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
