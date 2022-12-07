@@ -306,12 +306,13 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','cross_entropy']
 outcome_vars2 = ['DistPA','cross_entropy']
-outcome_vars3 = ['route_length_pp', 'speedVeh','crossCountPP','cross_entropy']
+outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','cross_entropy']
 policy_col = 'informalCrossing'
 
 title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
                         "DistPA": r"$\bar{D_r}$",
                         "crossCountPP":r"$\bar{C_r}$",
+                        "conflict_count":r"$\bar{C_r}$",
                         "cross_entropy":r"$CLE$", 
                         "speedVeh":r"$\bar{S^v_r}$",
                         'informalCrossing':'Informal Crossing'}
@@ -352,6 +353,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "route_length_pp":r"$\bar{L_r}$",
                 "DistPA": r"$\bar{D_r}$",
                 "crossCountPP":r"$\bar{C_r}$",
+                "conflict_count":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
                 "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing'
