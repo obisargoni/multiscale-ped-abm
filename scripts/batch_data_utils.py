@@ -551,6 +551,8 @@ def agg_cross_conflicts(dfCrossEvents, dfRun, dfLinkCrossCounts, output_path, tt
         # Merge with run params
         dfRunConflicts = pd.merge(dfRun, dfRunConflicts, on='run')
 
+        dfRunConflicts.to_csv(output_path, index=False)
+
     return dfRunConflicts
 
 def get_processed_crossing_locations_data(data_dir, file_prefix, file_datetime = None):
