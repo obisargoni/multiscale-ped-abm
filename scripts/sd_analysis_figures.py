@@ -199,7 +199,7 @@ def interval_index_from_groups(groups):
 
 
 
-def agg_policy_comparison_figure(dfcomp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+def agg_policy_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -240,12 +240,11 @@ def agg_policy_comparison_figure(dfcomp, group_param, policy_param, metric, rena
 
 
     # add inset showing the road network
-    '''
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.1)
-    '''
+
     outpath = os.path.join(img_dir,"agg_comparison_{}.{}.png".format(metric,file_datetime_string))
     f.savefig(outpath)
     return f
