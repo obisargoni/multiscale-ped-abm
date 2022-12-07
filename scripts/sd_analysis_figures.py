@@ -42,6 +42,14 @@ def sf(k):
     else:
         return 2
 
+def sf2(k):
+    if k=='always':
+        return 0
+    elif k=='sometimes':
+        return 1
+    else:
+        return 2
+
 def pair_plot(dfDD, outcome_vars, policy_col, rename_dict, file_datetime_string):
     data = dfDD.loc[:, outcome_vars].rename(columns = rename_dict)
     data[rename_dict[policy_col]] = dfDD[policy_col]
@@ -182,6 +190,65 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     outpath = os.path.join(img_dir,"sobol_si.{}.png".format(file_datetime_string))
     f.savefig(outpath)
     return outpath
+
+
+def interval_index_from_groups(groups):
+    intervals = [pd.Interval(left=i, right=j, closed = 'right') for (i,j) in zip(groups[:-1], groups[1:])]
+    interval_index = pd.IntervalIndex(intervals, verify_integrity=True)
+    return interval_index
+
+
+
+def agg_policy_comparison_figure(dfcomp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+
+    cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
+    cut_values = [0] + cut_values
+    cut_bins = interval_index_from_groups(cut_values)
+    dfDD['group_level'] = pd.cut(dfDD[group_param], bins = cut_bins)
+    dfDD['group_label'] = dfDD['group_level'].replace(dict(zip(cut_bins, quantile_labels)))
+
+    # Get mean conflict counts for each flow level and 
+    dfcomp = dfDD.groupby(['group_label',policy_param]).agg( av = pd.NamedAgg(column = metric, aggfunc=np.mean), err=pd.NamedAgg(column = metric, aggfunc=lambda x: np.std(x) / np.sqrt(x.shape[0]) ) ).reset_index()
+
+    f, ax = plt.subplots(figsize = figsize)
+
+    group_values = dfcomp['group_label'].unique()
+    policy_values = dfcomp[policy_param].unique().tolist()
+    policy_values.sort(key=sf2)
+
+    x = np.arange(1, len(group_values)+1)
+
+
+    for i, p in enumerate(policy_values):
+        dfp = dfcomp.loc[ dfcomp[policy_param]==p]
+        dx = -0.2+ (0.2*i)
+
+        xi = x+dx
+
+        ax.errorbar(xi, dfp['av'], yerr = dfp['err'], c = colors[i], fmt="x", markersize=15, label=p)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(group_values)
+    ax.tick_params(axis='both', labelsize=15)
+
+    ax.legend(fontsize=20)
+
+    ax.set_title(title, fontsize=24)
+
+    ax.set_ylabel(rename_dict[metric], fontsize=18)
+    ax.set_xlabel(rename_dict[group_param], fontsize=18, labelpad=20)
+
+
+    # add inset showing the road network
+    '''
+    axins = f.add_axes(inset_rec)
+    gdfORLinks.plot(ax=axins, color='black')
+    axins.set_axis_off()
+    axins.set_title('Environment', y=-0.1)
+    '''
+    outpath = os.path.join(img_dir,"agg_comparison_{}.{}.png".format(metric,file_datetime_string))
+    f.savefig(outpath)
+    return f
 #####################################
 #
 #
@@ -367,3 +434,20 @@ problem = init_problem(params)
 
 dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
 sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#1b9e77', '#d95f02', '#7570b3'])
+
+
+
+#
+# Looking at metrics for different levels of vehicle flow
+#
+group_param = 'addVehicleTicks'
+policy_param = 'informalCrossing'
+metric = 'speedVeh'
+title = 'Vehicle speed increases with crossing restrictions'
+f = agg_policy_comparison_figure(dfSpeedComp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
+
+group_param = 'addVehicleTicks'
+policy_param = 'informalCrossing'
+metric = 'conflict_count'
+title = 'Conflicts decrease with crossing restrictions'
+f = agg_policy_comparison_figure(dfSpeedComp, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
