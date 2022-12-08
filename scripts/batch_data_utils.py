@@ -157,6 +157,7 @@ def get_ouput_paths(file_datetime_string, data_dir, nbins = '', ttc_threshold = 
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
     paths["output_route_data"] = os.path.join(data_dir, "metrics_for_route_analysis.{}.csv".format(file_datetime_string))
     paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
+    paths["output_link_cross_entropy"] = os.path.join(data_dir, "link_cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
     paths["output_cross_conflicts"] = os.path.join(data_dir, "conflicts.{}.{}.csv".format(ttc_threshold, file_datetime_string))
 
     return paths
