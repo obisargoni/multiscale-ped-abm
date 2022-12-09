@@ -70,6 +70,7 @@ output_veh_distdurs_file = output_paths["output_veh_distdurs_file"]
 output_sp_similarity_length_path = output_paths["output_sp_similarity_length_path"]
 output_cross_events_path = output_paths["output_cross_events_path"]
 output_cross_entropy = output_paths["output_cross_entropy"]
+output_link_cross_entropy = output_paths["output_link_cross_entropy"]
 output_cross_conflicts = output_paths["output_cross_conflicts"]
 
 output_sd_data = output_paths["output_sd_data"]
@@ -139,7 +140,7 @@ print("\nCalculating/Loading Output Metrics")
 dfPedTripDD = bd_utils.agg_trip_distance_and_duration(dfPedRoutes_removedpeds['ID'], dfRun, ped_routes_file, output_ped_distdurs_file)
 dfVehTripDD = bd_utils.agg_trip_distance_and_duration(None, dfRun, veh_routes_file, output_veh_distdurs_file)
 dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, dfRun, pavement_graph, output_path = output_route_length_file)
-dfCrossLocEntropy = bd_utils.calculate_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, bin_dist = bin_dist, output_path = output_cross_entropy)
+dfCrossLocEntropy = bd_utils.calculate_average_link_level_crossing_location_entropy(dfCrossEventsConsistentPeds, dfPedRoutesConsistentPeds.reindex(columns = ['run','ID','node_path']), gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = nbins, bin_dist = bin_dist, output_path = output_link_cross_entropy)
 dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
 dfCrossLocEntropy = pd.merge(dfCrossLocEntropy, dfCrossCounts, on='run', how = 'outer')
 
@@ -166,7 +167,7 @@ print("\nAggregating Metrics for Policy Analysis")
 #dfDD.drop('_merge', axis=1, inplace=True)
 
 # Merge in crossing location entropy data and ped distance travelled
-dfDD = pd.merge(dfRouteLength, dfCrossLocEntropy.reindex(columns = ['run','crossCountPP','cross_entropy']), on='run', indicator=True, how = 'outer')
+dfDD = pd.merge(dfRouteLength, dfCrossLocEntropy.reindex(columns = ['run','crossCountPP','mean_link_cross_entropy']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfPedTripDD.reindex(columns = ['run','DistPA']), on='run', indicator=True, how = 'outer')

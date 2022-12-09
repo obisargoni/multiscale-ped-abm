@@ -157,6 +157,7 @@ def get_ouput_paths(file_datetime_string, data_dir, nbins = '', ttc_threshold = 
     paths["output_sd_data"] = os.path.join(data_dir, "metrics_for_sd_analysis.{}.csv".format(file_datetime_string))
     paths["output_route_data"] = os.path.join(data_dir, "metrics_for_route_analysis.{}.csv".format(file_datetime_string))
     paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
+    paths["output_link_cross_entropy"] = os.path.join(data_dir, "link_cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
     paths["output_cross_conflicts"] = os.path.join(data_dir, "conflicts.{}.{}.csv".format(ttc_threshold, file_datetime_string))
 
     return paths
@@ -1114,6 +1115,36 @@ def calculate_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks,
 
         dfCrossRunEntropy = dfRunBinCounts.groupby('run')['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'cross_entropy'})
         dfCrossRunEntropy['all_run_cross_entropy'] = sim_cross_entropy
+
+        # Finally merge with run parameters
+        dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
+
+        dfCrossRunEntropy.to_csv(output_path, index=False)
+    else:
+        dfCrossRunEntropy = pd.read_csv(output_path)
+
+    return dfCrossRunEntropy
+
+def calculate_average_link_level_crossing_location_entropy(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, nbins = None, bin_dist = 2, output_path = "crossing_location_entropy.csv"):
+    '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
+    and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
+    '''
+
+    if os.path.exists(output_path)==False:
+
+        dfCrossEvents = get_crossing_locations_and_bins(dfCrossEvents, dfPedPaths, gdfPaveLinks, gdfPaveNodes, gdfORLinks, nbins, bin_dist)
+
+        run_bin_counts = dfCrossEvents.groupby(['run', 'pedRLID'])['bin'].value_counts()
+        run_bin_counts.name = 'bin_count'
+        dfRunBinCounts = run_bin_counts.reset_index()
+
+        dfRunBinCounts['total'] = dfRunBinCounts.groupby(['run', 'pedRLID'])['bin_count'].transform(lambda s: s.sum())
+        dfRunBinCounts['pi'] = dfRunBinCounts['bin_count'] / dfRunBinCounts['total']
+        dfRunBinCounts['pi_log_pi'] = dfRunBinCounts['pi']* np.log(dfRunBinCounts['pi'])
+
+        dfLinkRunEntropy = dfRunBinCounts.groupby(['run','pedRLID'])['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'link_cross_entropy'})
+
+        dfCrossRunEntropy = dfLinkRunEntropy.groupby('run')['link_cross_entropy'].apply(lambda s: np.mean(s)).reset_index().rename(columns = {'link_cross_entropy':'mean_link_cross_entropy'})
 
         # Finally merge with run parameters
         dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
