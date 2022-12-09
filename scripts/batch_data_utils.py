@@ -1144,7 +1144,7 @@ def calculate_average_link_level_crossing_location_entropy(dfCrossEvents, dfPedP
 
         dfLinkRunEntropy = dfRunBinCounts.groupby(['run','pedRLID'])['pi_log_pi'].apply(lambda s: -sum(s)).reset_index().rename(columns = {'pi_log_pi':'link_cross_entropy'})
 
-        dfCrossRunEntropy = dfLinkRunEntropy.groupby('run')['link_cross_entropy'].apply(lambda s: mean(s)).reset_index().rename(columns = {'link_cross_entropy':'mean_link_cross_entropy'})
+        dfCrossRunEntropy = dfLinkRunEntropy.groupby('run')['link_cross_entropy'].apply(lambda s: np.mean(s)).reset_index().rename(columns = {'link_cross_entropy':'mean_link_cross_entropy'})
 
         # Finally merge with run parameters
         dfCrossRunEntropy = pd.merge(dfCrossRunEntropy, dfRun, on='run')
