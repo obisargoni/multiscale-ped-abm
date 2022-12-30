@@ -410,7 +410,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "gamma":r"$\mathrm{\gamma}$",
                 "minCrossing": r"$\mathrm{MC}$",
                 "tacticalPlanHorizon": r"$\mathrm{PH}$",
-                "addVehicleTicks": r"$\bar{N^v}_r$",
+                "avNVehicles": r"$\bar{N^v}_r$",
                 "addPedTicks": r"$\mathrm{T_{ped}}$",
                 "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
                 "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
@@ -441,13 +441,13 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 #
 # Looking at metrics for different levels of vehicle flow
 #
-group_param = 'addVehicleTicks'
+group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metric = 'speedVeh'
 title = 'Vehicle speed increases with crossing restrictions'
 f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
 
-group_param = 'addVehicleTicks'
+group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metric = 'conflict_count'
 title = 'Conflicts decrease with crossing restrictions'
