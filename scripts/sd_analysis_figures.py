@@ -249,7 +249,7 @@ def agg_policy_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, 
     f.savefig(outpath)
     return f
 
-def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, legend_loc = (1.2,1) colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -257,12 +257,7 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
     dfDD['group_level'] = pd.cut(dfDD[group_param], bins = cut_bins)
     dfDD['group_label'] = dfDD['group_level'].replace(dict(zip(cut_bins, quantile_labels)))
 
-    # Get mean conflict counts for each flow level and 
-    dfcomp0 = dfDD.groupby(['group_label',policy_param]).agg( av = pd.NamedAgg(column = metrics[0], aggfunc=np.mean), err=pd.NamedAgg(column = metrics[0], aggfunc=lambda x: np.std(x) / np.sqrt(x.shape[0]) ) ).reset_index()
-    dfcomp1 = dfDD.groupby(['group_label',policy_param]).agg( av = pd.NamedAgg(column = metrics[1], aggfunc=np.mean), err=pd.NamedAgg(column = metrics[1], aggfunc=lambda x: np.std(x) / np.sqrt(x.shape[0]) ) ).reset_index()
-
-    f, ax0 = plt.subplots(figsize = figsize)
-    ax1 = ax0.twinx()
+    f, axs = plt.subplots(2,1,figsize = figsize)
 
     group_values = dfcomp['group_label'].unique()
     policy_values = dfcomp[policy_param].unique().tolist()
@@ -273,14 +268,19 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
     handles = []
     labels = []
 
-    for k, (dfcomp, ax, fmt) in enumerate(zip([dfcomp0, dfcomp1], [ax0, ax1], ['x','+'])):
+    for k, ax in enumerate(axs):
+        
+        # Get mean conflict counts for each flow level and policy
+        dfcomp = dfDD.groupby(['group_label',policy_param]).agg( av = pd.NamedAgg(column = metrics[k], aggfunc=np.mean), err=pd.NamedAgg(column = metrics[k], aggfunc=lambda x: np.std(x) / np.sqrt(x.shape[0]) ) ).reset_index()
+
+
         for i, p in enumerate(policy_values):
             dfp = dfcomp.loc[ dfcomp[policy_param]==p]
             dx = -0.2+ (0.2*i)
 
             xi = x+dx
 
-            ebar = ax.errorbar(xi, dfp['av'], yerr = dfp['err'], c = colors[i], fmt=fmt, markersize=15, label=rename_dict[metrics[k]] + ", " + p)
+            ebar = ax.errorbar(xi, dfp['av'], yerr = dfp['err'], c = colors[i], fmt='x', markersize=15, label=p)
             handles.append(ebar)
             labels.append(rename_dict[metrics[k]] + ", " + p)
 
@@ -288,12 +288,14 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
         ax.set_xlabel(rename_dict[group_param], fontsize=18, labelpad=20)
         ax.tick_params(axis='both', labelsize=15)
 
-    # Settings that are not metric specific
-    ax0.set_xticks(x)
-    ax0.set_xticklabels(group_values)
-    ax0.set_title(title, fontsize=24)
+        ax.set_xticks(x)
+        ax.set_xticklabels(group_values)
     
-    f.legend(handles, labels, fontsize=20, loc='upper left', bbox_to_anchor=(-0.2, 0.8))
+    axs[0].legend(fontsize=20)#, loc='upper left', bbox_to_anchor=(-0.2, 0.8))
+    axs[0].set_xticklabels([])
+    axs[0].set_xlabel(None)
+
+    f.suptitle(title, fontsize=24)
 
     # add inset showing the road network
     axins = f.add_axes(inset_rec)
@@ -450,7 +452,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_stri
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [0, 0.87, 0.13, 0.13]
+inset_rec = [0, 0.89, 0.13, 0.13]
 multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
 
 plt.style.use('default')
@@ -515,4 +517,4 @@ group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,10), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") )
+agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,13), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") )
