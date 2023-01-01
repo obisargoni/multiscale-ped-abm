@@ -500,6 +500,8 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 #
 # Looking at metrics for different levels of vehicle flow
 #
+
+'''
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metric = 'speedVeh'
@@ -511,7 +513,7 @@ policy_param = 'informalCrossing'
 metric = 'conflict_count'
 title = 'Conflicts decrease with crossing restrictions'
 f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
-
+'''
 
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
