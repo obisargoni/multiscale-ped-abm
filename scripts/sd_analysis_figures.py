@@ -452,7 +452,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_stri
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [0, 0.89, 0.13, 0.13]
+inset_rec = [0, 0.87, 0.13, 0.13]
 multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
 
 plt.style.use('default')
