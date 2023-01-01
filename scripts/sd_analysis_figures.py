@@ -301,7 +301,7 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.15)
+    axins.set_title('Environment', y=-0.115)
 
     outpath = os.path.join(img_dir,"agg_comparison_{}_{}.{}.png".format(metrics[0],metrics[1],file_datetime_string))
     f.savefig(outpath)
