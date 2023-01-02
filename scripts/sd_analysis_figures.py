@@ -519,4 +519,4 @@ group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") )
+agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4") )
