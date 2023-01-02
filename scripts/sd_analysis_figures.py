@@ -199,7 +199,7 @@ def interval_index_from_groups(groups):
 
 
 
-def agg_policy_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+def agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -249,7 +249,7 @@ def agg_policy_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, 
     f.savefig(outpath)
     return f
 
-def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -259,12 +259,6 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
 
     f, axs = plt.subplots(2,1,figsize = figsize)
 
-    group_values = dfcomp['group_label'].unique()
-    policy_values = dfcomp[policy_param].unique().tolist()
-    policy_values.sort(key=sf2)
-
-    x = np.arange(1, len(group_values)+1)
-
     handles = []
     labels = []
 
@@ -273,10 +267,16 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
         # Get mean conflict counts for each flow level and policy
         dfcomp = dfDD.groupby(['group_label',policy_param]).agg( av = pd.NamedAgg(column = metrics[k], aggfunc=np.mean), err=pd.NamedAgg(column = metrics[k], aggfunc=lambda x: np.std(x) / np.sqrt(x.shape[0]) ) ).reset_index()
 
+        group_values = dfcomp['group_label'].unique()
+        policy_values = dfcomp[policy_param].unique().tolist()
+        policy_values.sort(key=sf2)
+
+        x = np.arange(1, len(group_values)+1)
+
 
         for i, p in enumerate(policy_values):
             dfp = dfcomp.loc[ dfcomp[policy_param]==p]
-            dx = -0.2+ (0.2*i)
+            dx = -0.25+ (0.25*i)
 
             xi = x+dx
 
@@ -301,7 +301,7 @@ def agg_policy_two_metric_comparison_figure(dfcomp, gdfORLinks, group_param, pol
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.115)
+    axins.set_title('Environment', y=-0.15)
 
     outpath = os.path.join(img_dir,"agg_comparison_{}_{}.{}.png".format(metrics[0],metrics[1],file_datetime_string))
     f.savefig(outpath)
@@ -452,7 +452,7 @@ pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_stri
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [0, 0.87, 0.13, 0.13]
+inset_rec = [-0.02, 0.87, 0.13, 0.13]
 multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
 
 plt.style.use('default')
@@ -519,4 +519,4 @@ group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,13), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") )
+agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") )
