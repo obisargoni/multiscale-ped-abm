@@ -522,3 +522,37 @@ metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
 inset_rec = [-0.02, 0.87, 0.13, 0.13]
 agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
+
+
+
+#
+# Combining output data into a single dataframe
+#
+ug_output_paths = bd_utils.get_ouput_paths(config['ug_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
+ug_output_path = ug_output_paths["output_sd_data"]
+
+qg_output_paths = bd_utils.get_ouput_paths(config['qg_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
+qg_output_path = qg_output_paths["output_sd_data"]
+
+cc_output_paths = bd_utils.get_ouput_paths(config['cc_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
+cc_output_path = cc_output_paths["output_sd_data"]
+
+
+output_paths = { 'Uniform Grid':    ug_output_path,
+                'Quad Grid':        qg_output_path,
+                'Clapham Common':   cc_output_path}
+
+outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+policy_col = 'informalCrossing'
+env_col = 'environment'
+
+dfDDAll = pd.DataFrame()
+for env, data_path in output_paths.items():
+    df = pd.read_csv(data_path)
+    df[env_col] = env
+    dfDDAll = pd.concat([dfDDAll, df])
+
+#dfDDAll.sort_values(by = policy_col, key=lambda s: s.map(sf2), inplace=True)
+dfAgg = dfDDAll.groupby([env_col, policy_col])[outcome_vars3].apply(lambda df: pd.concat( [df.mean(), df.std()] ) ).reset_index()
+dfAgg['porder'] = dfAgg[policy_col].map(sf2)
+dfAgg.sort_values(by=[env_col, 'porder'], inplace=True)
