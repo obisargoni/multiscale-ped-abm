@@ -98,7 +98,7 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#1b
     ax.set_title(title, fontsize = 24)
     return ax
 
-def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10)):
+def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10), ttc_threshold=1):
     nvars = len(outcome_vars)
     if nvars==4:
         fig, axs = plt.subplots(2, 2, figsize=figsize)
@@ -116,7 +116,7 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dic
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.1)
 
-    outpath = os.path.join(img_dir, 'hists.{}.png'.format(file_datetime_string))
+    outpath = os.path.join(img_dir, 'hists_ttc{}.{}.png'.format(ttc_threshold,file_datetime_string))
     fig.savefig(outpath)
 
     return outpath
@@ -146,7 +146,7 @@ def get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#1b9e77', '#d95f02', '#7570b3']):
+def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=1):
     nvars = len(outcome_vars)
     if nvars==4:
         f, axs = plt.subplots(2,2, figsize=(20,20), constrained_layout = constrained_layout)
@@ -187,7 +187,7 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     axins.set_title('Environment', y=-0.1)
 
 
-    outpath = os.path.join(img_dir,"sobol_si.{}.png".format(file_datetime_string))
+    outpath = os.path.join(img_dir,"sobol_si_ttc{}.{}.png".format(ttc_threshold, file_datetime_string))
     f.savefig(outpath)
     return outpath
 
@@ -249,7 +249,7 @@ def agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, me
     f.savefig(outpath)
     return f
 
-def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%") ):
+def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%"), ttc_threshold=1 ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -303,7 +303,7 @@ def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, polic
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.15)
 
-    outpath = os.path.join(img_dir,"agg_comparison_{}_{}.{}.png".format(metrics[0],metrics[1],file_datetime_string))
+    outpath = os.path.join(img_dir,"agg_comparison_ttc{}_{}_{}.{}.png".format(ttc_threshold, metrics[0],metrics[1],file_datetime_string))
     f.savefig(outpath)
     return f
 
@@ -322,6 +322,7 @@ data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 nbins = None
 bin_dist = 2
+ttc_threshold = 1
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
@@ -341,7 +342,7 @@ ped_locations_file = data_paths["pedestrian_locations"]
 vehicle_rls_file = data_paths["vehicle_road_links"]
 batch_file = data_paths["batch_file"]
 
-output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist)
+output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
 output_sd_data = output_paths["output_sd_data"]
 
 palette = ['#1b9e77', '#d95f02', '#7570b3']
@@ -445,15 +446,15 @@ title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
 #
 # Create pairs plot
 #
-pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, file_datetime_string)
-pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_string)
+#pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, file_datetime_string)
+#pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_string)
 
 #
 # Histogram plots
 #
 #plt.style.use('dark_background')
 inset_rec = [-0.02, 0.87, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20))
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
 
 plt.style.use('default')
 
@@ -493,7 +494,7 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 problem = init_problem(params)
 
 dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
-sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#1b9e77', '#d95f02', '#7570b3'])
+sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=ttc_threshold)
 
 
 
@@ -519,4 +520,4 @@ group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4") )
+agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
