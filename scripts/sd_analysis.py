@@ -72,6 +72,7 @@ output_cross_events_path = output_paths["output_cross_events_path"]
 output_cross_entropy = output_paths["output_cross_entropy"]
 output_link_cross_entropy = output_paths["output_link_cross_entropy"]
 output_cross_conflicts = output_paths["output_cross_conflicts"]
+output_ped_trip_length = output_paths["output_ped_trip_length"]
 
 output_sd_data = output_paths["output_sd_data"]
 
@@ -158,6 +159,7 @@ dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, d
 #dfConflictsDiagonalUm = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 #conflicts_data = {'all':dfConflicts, 'unmarked':dfConflictsUnmarked, 'diag_um':dfConflictsDiagonalUm}
 
+dfPedTL = calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, dfRun, output_path = output_ped_trip_length)
 
 print("\nAggregating Metrics for Policy Analysis")
 
@@ -177,6 +179,9 @@ dfDD = pd.merge(dfDD, dfVehTripDD.reindex(columns = ['run','speed']).rename(colu
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfConflicts.reindex(columns = ['run','conflict_count']), on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfPedTL, on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 

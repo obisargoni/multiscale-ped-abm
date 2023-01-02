@@ -159,6 +159,7 @@ def get_ouput_paths(file_datetime_string, data_dir, nbins = '', ttc_threshold = 
     paths["output_cross_entropy"] = os.path.join(data_dir, "cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
     paths["output_link_cross_entropy"] = os.path.join(data_dir, "link_cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
     paths["output_cross_conflicts"] = os.path.join(data_dir, "conflicts.{}.{}.csv".format(ttc_threshold, file_datetime_string))
+    paths["output_ped_trip_length"] = os.path.join(data_dir, "ped_trip_length.{}.csv".format(file_datetime_string))
 
     return paths
 
@@ -1238,7 +1239,7 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
     return dfDursDists
 
-def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, output_path = "ped_trip_distance.csv"):
+def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, dfRun, output_path = "ped_trip_distance.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
     '''
