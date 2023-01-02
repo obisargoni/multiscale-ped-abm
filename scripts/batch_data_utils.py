@@ -1238,6 +1238,70 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
     return dfDursDists
 
+def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPaveNodes, gdfORLinks, dfRun, output_path = "ped_trip_distance.csv"):
+    '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
+    and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
+    '''
+
+    if os.path.exists(output_path)==False:
+        print("Calculating ped trip distance")
+
+        # Lookup from link id to link type
+        dict_link_type = gdfPaveLinks.set_index('fid')['linkType'].to_dict()
+        dict_link_length = gdfPaveLinks.set_index('fid')['length'].to_dict()
+
+        # Loop through runs and ped ids, get edge path and cross events for each and use to sum trip length
+        runs = dfPedRoutes['run'].unique()
+        ids = dfPedRoutes['ID'].unique()
+
+        dfPedRoutes = dfPedRoutes.reindex(columns = ['run','ID','edge_path']).drop_duplicates()
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','TacticalEdgeID', 'CrossingCoordinatesString']).drop_duplicates()
+        dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
+
+        records = []
+        for run in runs:
+            for i in ids:
+
+                trip_length = 0
+
+                eps = dfPedRoutes.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['id']==i), 'edge_path'].values
+                assert len(eps)==1
+                ep = eps[0]
+
+                link_cross_index = dict(zip(ep, np.zeros(len(ep))))
+
+                # loop through edges
+                for edge_id in ep:
+
+                    etype = dict_link_type[edge_id]
+                    if etype == 'pavement':
+                        trip_length+=dict_link_length[edge_id]
+                    else:
+
+                        # get crossing event
+                        clines = dfCrossEvents.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['id']==i) & (dfCrossEvents['TacticalEdgeID'] == edge_id), 'cross_linestring'].values
+                        
+                        cross_index = link_cross_index[edge_id]
+                        trip_length+=clines[cross_index].length
+                        link_cross_index[edge_id]+=1
+
+                records.append([run, i, trip_length])
+
+        dfTL = pd.DataFrame(columns = ['run','ID','trip_length'], data = records)
+
+        dfTL.groupby('run')['trip_length'].mean().reset_index()
+
+        # Finally merge with run parameters
+        dfTL = pd.merge(dfTL, dfRun, on='run')
+
+        dfTL.to_csv(output_path, index=False)
+    else:
+        print("Loading ped trip distance")
+
+        dfTL = pd.read_csv(output_path)
+
+    return dfTL
+
 def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, graph, dict_node_pos, edgelist, edgedata, edge_cmap, title, cbar_title, title_font, labelsize, fig_config, vlims = None, cbar_pad=0.05, label_pad = 20):
     '''Function for creating figures illustrating tactical path finding
     '''
