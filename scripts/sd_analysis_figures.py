@@ -453,7 +453,7 @@ title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [-0.02, 0.87, 0.13, 0.13]
+inset_rec = [0, 0.87, 0.13, 0.13]
 multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
 
 plt.style.use('default')
@@ -520,4 +520,5 @@ group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh','conflict_count']
 title = 'Comparing vehicle speed and conflicts between policies'
+inset_rec = [-0.02, 0.87, 0.13, 0.13]
 agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
