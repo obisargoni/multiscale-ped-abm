@@ -42,7 +42,7 @@ data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 nbins = None
 bin_dist = 2
-ttc_threshold = 1
+ttc_threshold = config['ttc_threshold']
 
 pavement_links_file = os.path.join(gis_data_dir, config['pavement_links_file'])
 pavement_nodes_file = os.path.join(gis_data_dir, config['pavement_nodes_file'])
