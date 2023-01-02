@@ -249,6 +249,7 @@ data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 nbins = None
 bin_dist = 2
+ttc_threshold = config['ttc_threshold']
 env_col = 'environment'
 
 palette = ['#1b9e77', '#d95f02', '#7570b3']
@@ -266,13 +267,13 @@ data_paths = bd_utils.get_data_paths(config['cc_results'], data_dir)
 batch_file = data_paths["batch_file"]
 
 
-ug_output_paths = bd_utils.get_ouput_paths(config['ug_results'], data_dir, nbins = bin_dist)
+ug_output_paths = bd_utils.get_ouput_paths(config['ug_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
 ug_output_path = ug_output_paths["output_route_data"]
 
-qg_output_paths = bd_utils.get_ouput_paths(config['qg_results'], data_dir, nbins = bin_dist)
+qg_output_paths = bd_utils.get_ouput_paths(config['qg_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
 qg_output_path = qg_output_paths["output_route_data"]
 
-cc_output_paths = bd_utils.get_ouput_paths(config['cc_results'], data_dir, nbins = bin_dist)
+cc_output_paths = bd_utils.get_ouput_paths(config['cc_results'], data_dir, nbins = bin_dist, ttc_threshold=ttc_threshold)
 cc_output_path = cc_output_paths["output_route_data"]
 
 
