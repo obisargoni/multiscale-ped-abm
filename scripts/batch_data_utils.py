@@ -1296,7 +1296,7 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
 
                         ccoords = list(cline.coords)
 
-                        d = uc.distance(Point(ccoords[0])) + cline.length + vc.distance(Point(ccoords[1]))
+                        d = uc.distance(Point(ccoords[1])) + cline.length + vc.distance(Point(ccoords[0])) # last crossing coord is the first one reached by ped.
                         trip_length+=d
                         link_cross_index[edge_id]+=1
 
