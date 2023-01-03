@@ -1270,9 +1270,9 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
                 nps = dfPedRoutes.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['ID']==i), 'node_path'].values
                 assert len(eps)==1
                 ep = eps[0]
-                np = nps[0]
+                npath = nps[0]
 
-                np = list(zip(np[:-1], np[1:]))
+                npath = list(zip(npath[:-1], npath[1:]))
 
                 link_cross_index = dict(zip(ep, np.zeros(len(ep)).astype(int)))
 
@@ -1285,7 +1285,7 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
                     else:
 
                         # Get coordinates of start and end node
-                        uid, vid = np[ind]
+                        uid, vid = npath[ind]
                         uc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==uid, 'geometry'].values[0]
                         vc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==vid, 'geometry'].values[0]
 
