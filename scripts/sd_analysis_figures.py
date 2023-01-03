@@ -432,37 +432,8 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','mean_link_cross_entropy']
 outcome_vars2 = ['DistPA','mean_link_cross_entropy']
-outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['trip_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
 policy_col = 'informalCrossing'
-
-title_rename_dict = {   "route_length_pp":r"$\bar{L_r}$",
-                        "DistPA": r"$\bar{D_r}$",
-                        "crossCountPP":r"$\bar{C_r}$",
-                        "conflict_count":r"$\bar{C_r}$",
-                        "cross_entropy":r"$CLE$", 
-                        "mean_link_cross_entropy":r"$CLE$", 
-                        "speedVeh":r"$\bar{S^v_r}$",
-                        'informalCrossing':'Informal Crossing'}
-#
-# Create pairs plot
-#
-#pair_plot(dfDD, outcome_vars1, policy_col, title_rename_dict, file_datetime_string)
-#pair_plot(dfDD, outcome_vars2, policy_col, title_rename_dict, file_datetime_string)
-
-#
-# Histogram plots
-#
-#plt.style.use('dark_background')
-inset_rec = [0, 0.87, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
-
-plt.style.use('default')
-
-
-#
-# Sobol indices for each metric and policy setting
-#
-from SALib.analyze import sobol
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
@@ -478,7 +449,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "vehODSeed": r"$\mathrm{Seed_{veh}}$",
                 "timeThreshold": r"$\mathrm{\tau}$",
                 "route_length_pp":r"$\bar{L_r}$",
-                "DistPA": r"$\bar{D_r}$",
+                "trip_length_pp": r"$\bar{D_r}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "conflict_count":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
@@ -486,6 +457,27 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing'
                 }
+
+#
+# Create pairs plot
+#
+#pair_plot(dfDD, outcome_vars1, policy_col, rename_dict, file_datetime_string)
+#pair_plot(dfDD, outcome_vars2, policy_col, rename_dict, file_datetime_string)
+
+#
+# Histogram plots
+#
+#plt.style.use('dark_background')
+inset_rec = [0, 0.87, 0.13, 0.13]
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
+
+plt.style.use('default')
+
+
+#
+# Sobol indices for each metric and policy setting
+#
+from SALib.analyze import sobol
 
 policy_param = list(policies.keys())[0]
 policy_values = policies[policy_param]
@@ -542,7 +534,7 @@ output_paths = { 'Uniform Grid':    ug_output_path,
                 'Quad Grid':        qg_output_path,
                 'Clapham Common':   cc_output_path}
 
-outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['trip_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
 policy_col = 'informalCrossing'
 env_col = 'environment'
 
@@ -553,6 +545,7 @@ for env, data_path in output_paths.items():
     dfDDAll = pd.concat([dfDDAll, df])
 
 #dfDDAll.sort_values(by = policy_col, key=lambda s: s.map(sf2), inplace=True)
-dfAgg = dfDDAll.groupby([env_col, policy_col])[outcome_vars3].apply(lambda df: pd.concat( [df.mean(), df.std()] ) ).reset_index()
+dfAgg = dfDDAll.groupby([env_col, policy_col])[outcome_vars3].apply(lambda df: pd.concat( [df.mean(), df.std(), df.std() / np.sqrt(df.shape[0])] ) ).reset_index()
 dfAgg['porder'] = dfAgg[policy_col].map(sf2)
 dfAgg.sort_values(by=[env_col, 'porder'], inplace=True)
+dfAgg.set_index([env_col, policy_col], inplace=True)
