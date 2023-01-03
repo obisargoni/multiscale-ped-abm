@@ -1305,6 +1305,7 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
         dfTL = pd.DataFrame(columns = ['run','ID','trip_length'], data = records)
 
         dfTL.groupby('run')['trip_length'].mean().reset_index()
+        dfTL.rename(columns = {'trip_length':'trip_length_pp'})
 
         # Finally merge with run parameters
         dfTL = pd.merge(dfTL, dfRun, on='run')
