@@ -1239,7 +1239,7 @@ def agg_trip_distance_and_duration(agent_ids_to_exclude, dfRun, routes_path, out
 
     return dfDursDists
 
-def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, dfRun, output_path = "ped_trip_distance.csv"):
+def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = "ped_trip_distance.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
     '''
@@ -1265,25 +1265,39 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, dfRun,
 
                 trip_length = 0
 
-                eps = dfPedRoutes.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['id']==i), 'edge_path'].values
+                eps = dfPedRoutes.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['ID']==i), 'edge_path'].values
+                nps = dfPedRoutes.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['ID']==i), 'node_path'].values
                 assert len(eps)==1
                 ep = eps[0]
+                np = nps[0]
 
-                link_cross_index = dict(zip(ep, np.zeros(len(ep))))
+                np = list(zip(np[:-1], np[1:]))
+
+                link_cross_index = dict(zip(ep, np.zeros(len(ep)).astype(int)))
 
                 # loop through edges
-                for edge_id in ep:
+                for ind, edge_id in enumerate(ep):
 
                     etype = dict_link_type[edge_id]
                     if etype == 'pavement':
                         trip_length+=dict_link_length[edge_id]
                     else:
 
+                        # Get coordinates of start and end node
+                        uid, vid = np[ind]
+                        uc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==uid, 'geometry'].values[0]
+                        vc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==vid, 'geometry'].values[0]
+
                         # get crossing event
-                        clines = dfCrossEvents.loc[ (dfPedRoutes['run']==run) & (dfPedRoutes['id']==i) & (dfCrossEvents['TacticalEdgeID'] == edge_id), 'cross_linestring'].values
+                        clines = dfCrossEvents.loc[ (dfCrossEvents['run']==run) & (dfCrossEvents['ID']==i) & (dfCrossEvents['TacticalEdgeID'] == edge_id), 'cross_linestring'].values
                         
                         cross_index = link_cross_index[edge_id]
-                        trip_length+=clines[cross_index].length
+                        cline = clines[cross_index]
+
+                        ccoords = list(cline.coords)
+
+                        d = uc.distance(Point(ccoords[0])) + cline.length + vc.distance(Point(ccoords[1]))
+                        trip_length+=d
                         link_cross_index[edge_id]+=1
 
                 records.append([run, i, trip_length])
