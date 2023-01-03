@@ -159,7 +159,7 @@ dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, d
 #dfConflictsDiagonalUm = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 #conflicts_data = {'all':dfConflicts, 'unmarked':dfConflictsUnmarked, 'diag_um':dfConflictsDiagonalUm}
 
-dfPedTL = calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
+dfPedTL = bd_utils.calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
 
 print("\nAggregating Metrics for Policy Analysis")
 

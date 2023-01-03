@@ -1255,7 +1255,7 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
         runs = dfPedRoutes['run'].unique()
         ids = dfPedRoutes['ID'].unique()
 
-        dfPedRoutes = dfPedRoutes.reindex(columns = ['run','ID','edge_path']).drop_duplicates()
+        dfPedRoutes = dfPedRoutes.reindex(columns = ['run','ID','edge_path', 'node_path']).drop_duplicates()
         dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','TacticalEdgeID', 'CrossingCoordinatesString']).drop_duplicates()
         dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
 
