@@ -11,6 +11,7 @@ from shapely.geometry import LineString
 from shapely.geometry import Point
 from matplotlib import pyplot as plt
 from math import log10, floor
+from pointpats import centrography, k
 
 ######################################
 #
@@ -1326,6 +1327,50 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
         dfTL = pd.read_csv(output_path)
 
     return dfTL
+
+def cross_coords_point_pattern_analysis(gdfCrossPoint, k_distance):
+
+    coordinates = gdfCrossPoint.geometry.map(lambda g: list(g.coords)).values
+    coordinates = np.vstack(coordinates)
+
+    # calculate dispersion
+    dispersion = centrography.std_distance(coordinates)
+
+    # calculate mean Ripley G at input k_distance
+    support = np.array([k_distance])
+    support, k_estimate = k(coordinates, support=support, distances=None, metric="euclidean")
+    k_stat = k_estimate[0]
+
+    return pd.DataFrame({'dispersion':[dispersion], 'k_stat':[k_stat]})
+
+
+def calculate_crossing_morani(dfCrossEvents, dfRun, gdfORLinks, output_path = "cross_pp.csv"):
+    '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
+    and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
+    '''
+
+    if os.path.exists(output_path)==False:
+        print("Calculating point pattern statistics")
+
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','TacticalEdgeID', 'CrossingCoordinatesString']).drop_duplicates()
+        dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
+        dfCrossEvents['cross_point'] = dfCrossEvents['cross_linestring'].map(lambda x: x.centroid)
+
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','cross_point']).rename(columns = {'cross_point':'geometry'})
+        gdfCrossPoint = gpd.GeoDataFrame(dfCrossEvents, geometry='geometry')
+        gdfCrossPoint['val']=1
+
+        # Get distance to calculate Ripleys K at
+        k_distance = gdfORLinks.geometry.length.mean() * 3
+
+        dfpp = gdfCrossPoint.groupby('run').apply(lambda df: cross_coords_point_pattern_analysis(df, k_distance)).reset_index()
+
+        dfpp = pd.merge(dfRun, dfpp)
+
+    else:
+        dfpp = pd.read(output_path)
+
+    return dfpp
 
 def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, graph, dict_node_pos, edgelist, edgedata, edge_cmap, title, cbar_title, title_font, labelsize, fig_config, vlims = None, cbar_pad=0.05, label_pad = 20):
     '''Function for creating figures illustrating tactical path finding
