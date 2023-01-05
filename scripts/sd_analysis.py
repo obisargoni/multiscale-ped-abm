@@ -73,6 +73,7 @@ output_cross_entropy = output_paths["output_cross_entropy"]
 output_link_cross_entropy = output_paths["output_link_cross_entropy"]
 output_cross_conflicts = output_paths["output_cross_conflicts"]
 output_ped_trip_length = output_paths["output_ped_trip_length"]
+output_cross_pp = output_paths["output_cross_pp"]
 
 output_sd_data = output_paths["output_sd_data"]
 
@@ -161,6 +162,9 @@ dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, d
 
 dfPedTL = bd_utils.calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
 
+# Point pattern analysis stats
+dfPP = calculate_crossing_morani(dfCrossEvents, dfRun, gdfORLinks, output_path = output_cross_pp)
+
 print("\nAggregating Metrics for Policy Analysis")
 
 # Merge pedestrian and vehicle distances and durations together
@@ -182,6 +186,9 @@ dfDD = pd.merge(dfDD, dfConflicts.reindex(columns = ['run','conflict_count']), o
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfPedTL, on='run', indicator=True, how = 'outer')
+assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfPP, on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
