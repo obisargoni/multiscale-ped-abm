@@ -1285,21 +1285,29 @@ def calculate_ped_trip_distance(dfPedRoutes, dfCrossEvents, gdfPaveLinks, gdfPav
                     else:
 
                         # Get coordinates of start and end node
-                        uid, vid = npath[ind]
-                        uc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==uid, 'geometry'].values[0]
-                        vc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==vid, 'geometry'].values[0]
+                        try:
+                            uid, vid = npath[ind]
+                            uc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==uid, 'geometry'].values[0]
+                            vc = gdfPaveNodes.loc[ gdfPaveNodes['fid']==vid, 'geometry'].values[0]
 
-                        # get crossing event
-                        clines = dfCrossEvents.loc[ (dfCrossEvents['run']==run) & (dfCrossEvents['ID']==i) & (dfCrossEvents['TacticalEdgeID'] == edge_id), 'cross_linestring'].values
-                        
-                        cross_index = link_cross_index[edge_id]
-                        cline = clines[cross_index]
+                            # get crossing event
+                            clines = dfCrossEvents.loc[ (dfCrossEvents['run']==run) & (dfCrossEvents['ID']==i) & (dfCrossEvents['TacticalEdgeID'] == edge_id), 'cross_linestring'].values
+                            if len(clines)==0:
+                                print(edge_id, run, i)
+                                trip_length+=dict_link_length[edge_id]
+                            else:
+                                cross_index = link_cross_index[edge_id]
+                                cline = clines[cross_index]
 
-                        ccoords = list(cline.coords)
+                                ccoords = list(cline.coords)
 
-                        d = uc.distance(Point(ccoords[1])) + cline.length + vc.distance(Point(ccoords[0])) # last crossing coord is the first one reached by ped.
-                        trip_length+=d
-                        link_cross_index[edge_id]+=1
+                                d = uc.distance(Point(ccoords[1])) + cline.length + vc.distance(Point(ccoords[0])) # last crossing coord is the first one reached by ped.
+                                trip_length+=d
+                                link_cross_index[edge_id]+=1
+                        except Exception as e:
+                            print(e)
+                            print(run,i,ind)
+                            trip_length+=dict_link_length[edge_id]
 
                 records.append([run, i, trip_length])
 
