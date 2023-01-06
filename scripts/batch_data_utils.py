@@ -1345,7 +1345,7 @@ def cross_coords_point_pattern_analysis(gdfCrossPoint, k_distance):
     return pd.DataFrame({'dispersion':[dispersion], 'k_stat':[k_stat]})
 
 
-def calculate_crossing_morani(dfCrossEvents, dfRun, gdfORLinks, output_path = "cross_pp.csv"):
+def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = "cross_pp.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
     '''

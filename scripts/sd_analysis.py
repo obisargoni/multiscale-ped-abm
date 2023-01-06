@@ -163,7 +163,7 @@ dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, d
 dfPedTL = bd_utils.calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
 
 # Point pattern analysis stats
-dfPP = calculate_crossing_morani(dfCrossEvents, dfRun, gdfORLinks, output_path = output_cross_pp)
+dfPP = bd_utils.calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = output_cross_pp)
 
 print("\nAggregating Metrics for Policy Analysis")
 
