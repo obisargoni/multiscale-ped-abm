@@ -160,7 +160,7 @@ dfConflicts = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds, dfRun, d
 #dfConflictsDiagonalUm = bd_utils.agg_cross_conflicts(dfCrossEventsConsistentPeds.loc[ (dfCrossEventsConsistentPeds['linkType']=='diag_cross') & (dfCrossEventsConsistentPeds['CrossingType']=='unmarked')], dfLinkCrossCounts, ttc_col = 'TTC')
 #conflicts_data = {'all':dfConflicts, 'unmarked':dfConflictsUnmarked, 'diag_um':dfConflictsDiagonalUm}
 
-dfPedTL = bd_utils.calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
+#dfPedTL = bd_utils.calculate_ped_trip_distance(dfPedRoutesConsistentPeds, dfCrossEventsConsistentPeds, gdfPaveLinks, gdfPaveNodes, dfRun, output_path = output_ped_trip_length)
 
 # Point pattern analysis stats
 dfPP = bd_utils.calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = output_cross_pp)
@@ -185,10 +185,10 @@ dfDD.drop('_merge', axis=1, inplace=True)
 dfDD = pd.merge(dfDD, dfConflicts.reindex(columns = ['run','conflict_count']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
-dfDD = pd.merge(dfDD, dfPedTL, on='run', indicator=True, how = 'outer')
-assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
-dfDD.drop('_merge', axis=1, inplace=True)
-dfDD = pd.merge(dfDD, dfPP, on='run', indicator=True, how = 'outer')
+#dfDD = pd.merge(dfDD, dfPedTL, on='run', indicator=True, how = 'outer')
+#assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
+#dfDD.drop('_merge', axis=1, inplace=True)
+dfDD = pd.merge(dfDD, dfPP.reindex(columns = ['run','dispersion', 'k_stat']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
