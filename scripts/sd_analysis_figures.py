@@ -432,7 +432,7 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','mean_link_cross_entropy']
 outcome_vars2 = ['DistPA','mean_link_cross_entropy']
-outcome_vars3 = ['trip_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
 policy_col = 'informalCrossing'
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -455,7 +455,8 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "cross_entropy":r"$CLE$", 
                 "mean_link_cross_entropy":r"$CLE$", 
                 "speedVeh":r"$\bar{S^v_r}$",
-                'informalCrossing':'Informal Crossing'
+                'informalCrossing':'Informal Crossing',
+                "dispersion":r"$\bar{D_r}$"
                 }
 
 #
@@ -469,7 +470,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
 #
 #plt.style.use('dark_background')
 inset_rec = [0, 0.87, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, title_rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
 
 plt.style.use('default')
 
@@ -515,6 +516,12 @@ title = 'Comparing vehicle speed and conflicts between policies'
 inset_rec = [-0.02, 0.87, 0.13, 0.13]
 agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
+group_param = 'avNVehicles'
+policy_param = 'informalCrossing'
+metrics = ['speedVeh','dispersion']
+title = 'Comparing vehicle speed and dispersion between policies'
+inset_rec = [-0.02, 0.87, 0.13, 0.13]
+agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
 
 #
@@ -534,7 +541,7 @@ output_paths = { 'Uniform Grid':    ug_output_path,
                 'Quad Grid':        qg_output_path,
                 'Clapham Common':   cc_output_path}
 
-outcome_vars3 = ['trip_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
 policy_col = 'informalCrossing'
 env_col = 'environment'
 
