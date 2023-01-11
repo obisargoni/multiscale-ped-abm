@@ -161,7 +161,7 @@ def get_ouput_paths(file_datetime_string, data_dir, nbins = '', ttc_threshold = 
     paths["output_link_cross_entropy"] = os.path.join(data_dir, "link_cross_loc_entropy.{}bins.{}.csv".format(nbins, file_datetime_string))
     paths["output_cross_conflicts"] = os.path.join(data_dir, "conflicts.{}.{}.csv".format(ttc_threshold, file_datetime_string))
     paths["output_ped_trip_length"] = os.path.join(data_dir, "ped_trip_length.{}.csv".format(file_datetime_string))
-    paths["output_cross_pp"] = os.path.join(data_dir, "cross_pp.{}.csv".format(file_datetime_string))
+    paths["output_cross_pp"] = os.path.join(data_dir, "cross_pp.ttc{}.{}.csv".format(ttc_threshold, file_datetime_string))
 
     return paths
 
@@ -1345,7 +1345,7 @@ def cross_coords_point_pattern_analysis(gdfCrossPoint, k_distance):
     return pd.DataFrame({'dispersion':[dispersion], 'k_stat':[k_stat]})
 
 
-def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = "cross_pp.csv"):
+def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, ttc_col = 'TTC', ttc_threshold = 1.5, output_path = "cross_pp.csv"):
     '''Calculates an entropy measure of the heterogeneity of crossing locations along road links. Does this by binning locations into nbins for each road link 
     and calculating the probability of a crossing occuring in each bin on each road link. Road link level entropy is then calculated from this and averaged across all road links to get the run level value.
     '''
@@ -1353,11 +1353,14 @@ def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = 
     if os.path.exists(output_path)==False:
         print("Calculating point pattern statistics")
 
-        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','TacticalEdgeID', 'CrossingCoordinatesString']).drop_duplicates()
+        # identify crossings that involve a conflicts
+        dfCrossEvents['is_conflict'] = dfCrossEvents[ttc_col].map(lambda x: bool( (~pd.isnull(x)) & (x<ttc_threshold) ) )
+
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','TacticalEdgeID', 'CrossingCoordinatesString', 'is_conflict']).drop_duplicates()
         dfCrossEvents['cross_linestring'] = dfCrossEvents['CrossingCoordinatesString'].map(lambda x: linestring_from_crossing_coord_string(x))
         dfCrossEvents['cross_point'] = dfCrossEvents['cross_linestring'].map(lambda x: x.centroid)
 
-        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID','cross_point']).rename(columns = {'cross_point':'geometry'})
+        dfCrossEvents = dfCrossEvents.reindex(columns = ['run','ID', 'is_conflict', 'cross_point']).rename(columns = {'cross_point':'geometry'})
         gdfCrossPoint = gpd.GeoDataFrame(dfCrossEvents, geometry='geometry')
         gdfCrossPoint['val']=1
 
@@ -1365,10 +1368,14 @@ def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, output_path = 
         k_distance = gdfORLinks.geometry.length.mean() * 3
 
         dfpp = gdfCrossPoint.groupby('run').apply(lambda df: cross_coords_point_pattern_analysis(df, k_distance)).reset_index()
+        dfpp_conflict = gdfCrossPoint.loc[ gdfCrossPoint['is_conflict']==True].groupby('run').apply(lambda df: cross_coords_point_pattern_analysis(df, k_distance)).reset_index()
+
+        dfpp = pd.merge(dfpp, dfpp_conflict, on='run', how='outer', suffixes = ('','_conflict'))
 
         dfpp = pd.merge(dfRun, dfpp)
 
     else:
+        print("Loading point pattern analysis")
         dfpp = pd.read(output_path)
 
     return dfpp
