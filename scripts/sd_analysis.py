@@ -188,7 +188,7 @@ dfDD.drop('_merge', axis=1, inplace=True)
 #dfDD = pd.merge(dfDD, dfPedTL, on='run', indicator=True, how = 'outer')
 #assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 #dfDD.drop('_merge', axis=1, inplace=True)
-dfDD = pd.merge(dfDD, dfPP.reindex(columns = ['run','dispersion', 'k_stat']), on='run', indicator=True, how = 'outer')
+dfDD = pd.merge(dfDD, dfPP.reindex(columns = ['run','dispersion', 'k_stat', 'dispersion_conflict', 'k_stat_conflict']), on='run', indicator=True, how = 'outer')
 assert dfDD.loc[ dfDD['_merge']!='both'].shape[0]==0
 dfDD.drop('_merge', axis=1, inplace=True)
 
