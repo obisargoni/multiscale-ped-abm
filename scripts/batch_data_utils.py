@@ -1374,6 +1374,8 @@ def calculate_crossing_pp_stats(dfCrossEvents, dfRun, gdfORLinks, ttc_col = 'TTC
 
         dfpp = pd.merge(dfRun, dfpp)
 
+        dfpp.to_csv(output_path, index=False)
+
     else:
         print("Loading point pattern analysis")
         dfpp = pd.read(output_path)
