@@ -523,7 +523,6 @@ title = 'Comparing vehicle speed and dispersion between policies'
 inset_rec = [-0.02, 0.87, 0.13, 0.13]
 agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
-
 #
 # Combining output data into a single dataframe
 #
@@ -556,3 +555,108 @@ dfAgg = dfDDAll.groupby([env_col, policy_col])[outcome_vars3].apply(lambda df: p
 dfAgg['porder'] = dfAgg[policy_col].map(sf2)
 dfAgg.sort_values(by=[env_col, 'porder'], inplace=True)
 dfAgg.set_index([env_col, policy_col], inplace=True)
+
+
+# Using regression models to explain results
+import statsmodels.api as sm
+
+dfDDAll['informalCrossing'] = pd.Categorical(dfDDAll['informalCrossing'])
+dfDDAlln = pd.get_dummies(dfDDAll)
+dfDDAlln.drop('informalCrossing_always', axis=1, inplace=True)
+dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always':1,'sometimes':2,'never':3})
+dfDDAlln[env_col] = dfDDAll[env_col]
+
+dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
+dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
+dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
+
+# compare effcet of policies on vehicle speed between environments
+model_v_p_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['avNVehicles', 'informalCrossing_rank']])).fit()
+model_v_p_cc.summary() # +ve trend between restriction and speed
+
+model_v_p_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['avNVehicles', 'informalCrossing_rank']])).fit()
+model_v_p_qg.summary() # -ve trend between restriction and speed
+
+model_v_p_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['avNVehicles', 'informalCrossing_rank']])).fit()
+model_v_p_ug.summary() # -ve trend between restriction and speed
+
+
+# Now to try and explain that - with IV analysis
+
+# Stage 1
+first_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_cc['dispersion_conflict_predict'] = first_stage_d_cc.predict(sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_cc.summary() # -ve between policy and dispersion. Restrictions reduce dispersion
+
+first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_qg['dispersion_conflict_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_qg.summary() # slight +ve between policy and disperision. Restrictions slightly increase dispersion.
+
+first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_ug['dispersion_conflict_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_ug.summary() # strong +ve between policy and dispersion. Restrictions increase dispersion
+
+
+# Stage 2
+second_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_cc.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+second_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_qg.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+second_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_ug.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+
+#
+# Repeat with conflict count - really I should be using a method that can use multiple treatments with the same instrument
+#
+
+# Stage 1
+first_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['conflict_count']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_cc['conflict_count_predict'] = first_stage_d_cc.predict(sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_cc.summary() # +ve between policy and conflict count. Restrictions increase conflicts
+
+first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['conflict_count']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_qg['conflict_count_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_qg.summary() # +ve between policy and conflict count. Restrictions increase conflicts
+
+first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['conflict_count']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']])).fit()
+dfDDAlln_ug['conflict_count_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']]))
+first_stage_d_ug.summary() # no significant association
+
+
+# Stage 2
+second_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_cc.summary() # +ve relationship between conflicts and speed. Increasing conflicts increases speed
+
+second_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_qg.summary() # -ve relationship between conflicts and speed. Increasing conflicts reduces speed
+
+second_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_ug.summary() # -ve realtionship, but stage 1 was non-significant
+
+
+
+# Also why not just regression speed ~ dispersion + conflicts + Nv ?
+# - 
+
+'''model_v_speed3 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never', 'conflict_count']])).fit()
+model_v_speed3.summary()
+
+model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never', 'dispersion_conflict']])).fit()
+model_v_speed4.summary()
+
+model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'dispersion_conflict']])).fit()
+model_v_speed4.summary()
+
+# Try with informal crossing rank
+model_v_speed2 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank']])).fit()
+model_v_speed2.summary()
+
+model_v_speed3 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank', 'conflict_count']])).fit()
+model_v_speed3.summary()
+
+model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank', 'dispersion_conflict']])).fit()
+model_v_speed4.summary()
+'''
