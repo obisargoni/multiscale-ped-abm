@@ -496,17 +496,6 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 #
 
 '''
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metric = 'speedVeh'
-title = 'Vehicle speed increases with crossing restrictions'
-f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
-
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metric = 'conflict_count'
-title = 'Conflicts decrease with crossing restrictions'
-f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
 '''
 
 group_param = 'avNVehicles'
@@ -559,16 +548,170 @@ dfAgg.set_index([env_col, policy_col], inplace=True)
 
 # Using regression models to explain results
 import statsmodels.api as sm
+from linearmodels.iv import IV2SLS
+
+def iv_models(dfDDAlln, env_col, y, t, i, c):
+
+    first_stages = {}
+    second_stages = {}
+
+    grouped = dfDDAlln.groupby(env_col) 
+    names = list(grouped.groups.keys())
+    for name in names:
+        dfDD = grouped.get_group(name)
+        first_stage = IV2SLS(dfDD[t], dfDD[i+c],None,None).fit()
+        m = IV2SLS(dfDD[y], dfDD[c], dfDD[t], dfDD[i])
+        second_stage = m.fit()
+
+        first_stages[name] = first_stage
+        second_stages[name] = second_stage
+
+    return first_stages, second_stages
+
+
+def stage_results_df(**models):
+    dfRes = pd.DataFrame()
+    res = {}
+    for name, model in models.items():
+        b = model.params
+        e = model.std_errors
+        p = model.pvalues
+
+        s = pd.DataFrame({'B':b, 'err':e, 'p':p}).stack()
+        s['r'] = model.rsquared
+        s['adjr'] = model.rsquared_adj
+
+        res[name]=s
+
+    dfRes = pd.DataFrame(res).T.reset_index()
+
+    # remove multi column
+    dfRes.columns = ["_".join(c) for c in dfRes.columns]
+
+    return dfRes
+
+def iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = True):
+    first_stages, second_stages = iv_models(dfDDAlln, env_col, y, t, i, c)
+
+    df1 = stage_results_df(**first_stages)
+    df1['stage'] = 1
+    df1['y'] = t[0]
+
+    if twosls:
+        df2 = stage_results_df(**second_stages)
+        df2['stage'] = 2
+        df2['y'] = y[0]
+
+        return pd.concat([df1, df2])
+    else:
+        return df1
+
 
 dfDDAll['informalCrossing'] = pd.Categorical(dfDDAll['informalCrossing'])
 dfDDAlln = pd.get_dummies(dfDDAll)
 dfDDAlln.drop('informalCrossing_always', axis=1, inplace=True)
 dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always':1,'sometimes':2,'never':3})
 dfDDAlln[env_col] = dfDDAll[env_col]
+dfDDAlln['const'] = 1
 
+# Normalise vars
+to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count']
+for c in to_norm:
+    dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
+
+output_excel_path = "..\\output\\regression_results.xlsx"
+if os.path.exists(output_excel_path):
+    xlWriter = pd.ExcelWriter(output_excel_path, mode='a', engine_kwargs=None, if_sheet_exists='replace')
+else:
+    xlWriter = pd.ExcelWriter(output_excel_path, mode='w', engine_kwargs=None)
+
+#
+# Analyse effect of policy
+#
+
+t = ['speedVeh']
+y = ['speedVeh']
+i = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['avNVehicles','const']
+
+dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
+dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p', index=False)
+
+
+#
+# IV analysis
+#
+
+t = ['dispersion_conflict']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['avNVehicles','const']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D', index=False)
+
+t = ['conflict_count']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C', index=False)
+
+#
+# Repeat with normalised varaibles
+#
+
+
+t = ['speedVeh']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['avNVehicles_norm','const']
+
+dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
+dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p_norm', index=False)
+
+#
+# IV analysis
+#
+
+t = ['dispersion_conflict_norm']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['avNVehicles_norm','const']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D_norm', index=False)
+
+t = ['conflict_count_norm']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
+
+xlWriter.close()
+
+
+# Check with rank
+t = ['dispersion_conflict_norm']
+y = ['speedVeh']
+iv = ['informalCrossing_rank']
+c = ['avNVehicles_norm','const']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+
+
+'''
 dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
 dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
 dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
+
+# compare effect of policies using categorical variable
+model_v_p_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model_v_p_cc.summary() # +ve trend between restriction and speed
+
+model_v_p_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model_v_p_qg.summary() # -ve trend between restriction and speed
+
+model_v_p_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model_v_p_ug.summary() #
+
 
 # compare effcet of policies on vehicle speed between environments
 model_v_p_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['avNVehicles', 'informalCrossing_rank']])).fit()
@@ -580,21 +723,27 @@ model_v_p_qg.summary() # -ve trend between restriction and speed
 model_v_p_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['avNVehicles', 'informalCrossing_rank']])).fit()
 model_v_p_ug.summary() # -ve trend between restriction and speed
 
-
 # Now to try and explain that - with IV analysis
 
 # Stage 1
 first_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']])).fit()
 dfDDAlln_cc['dispersion_conflict_predict'] = first_stage_d_cc.predict(sm.add_constant(dfDDAlln_cc[['informalCrossing_rank', 'avNVehicles']]))
 first_stage_d_cc.summary() # -ve between policy and dispersion. Restrictions reduce dispersion
+print(np.cov(dfDDAlln_cc['dispersion_conflict'], dfDDAlln_cc['informalCrossing_rank'])) # need high covariance for IV method to work
+print(np.corrcoef(dfDDAlln_cc['dispersion_conflict'], dfDDAlln_cc['avNVehicles'])) # check correlation between metric and Nv
 
 first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']])).fit()
 dfDDAlln_qg['dispersion_conflict_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']]))
 first_stage_d_qg.summary() # slight +ve between policy and disperision. Restrictions slightly increase dispersion.
+print(np.cov(dfDDAlln_qg['dispersion_conflict'], dfDDAlln_qg['informalCrossing_rank']))
+print(np.corrcoef(dfDDAlln_qg['dispersion_conflict'], dfDDAlln_qg['avNVehicles'])) # check correlation between metric and Nv
+
 
 first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']])).fit()
 dfDDAlln_ug['dispersion_conflict_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']]))
 first_stage_d_ug.summary() # strong +ve between policy and dispersion. Restrictions increase dispersion
+print(np.cov(dfDDAlln_ug['dispersion_conflict'], dfDDAlln_ug['informalCrossing_rank']))
+print(np.corrcoef(dfDDAlln_ug['dispersion_conflict'], dfDDAlln_ug['avNVehicles'])) # check correlation between metric and Nv
 
 
 # Stage 2
@@ -620,6 +769,7 @@ first_stage_d_cc.summary() # +ve between policy and conflict count. Restrictions
 first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['conflict_count']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']])).fit()
 dfDDAlln_qg['conflict_count_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_rank', 'avNVehicles']]))
 first_stage_d_qg.summary() # +ve between policy and conflict count. Restrictions increase conflicts
+print(np.cov(dfDDAlln_qg['conflict_count'], dfDDAlln_qg['informalCrossing_rank']))
 
 first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['conflict_count']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']])).fit()
 dfDDAlln_ug['conflict_count_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_rank', 'avNVehicles']]))
@@ -639,24 +789,69 @@ second_stage_d_ug.summary() # -ve realtionship, but stage 1 was non-significant
 
 
 # Also why not just regression speed ~ dispersion + conflicts + Nv ?
-# - 
+# - well because I am specifically interested in explaining why the policies have affected the outcomes in the way they have.
 
-'''model_v_speed3 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never', 'conflict_count']])).fit()
-model_v_speed3.summary()
 
-model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never', 'dispersion_conflict']])).fit()
-model_v_speed4.summary()
+# Repeat IV, dispersion treatment, using categorical policy variablce
 
-model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'dispersion_conflict']])).fit()
-model_v_speed4.summary()
+# Now to try and explain that - with IV analysis
 
-# Try with informal crossing rank
-model_v_speed2 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank']])).fit()
-model_v_speed2.summary()
+# Stage 1
+first_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_cc['dispersion_conflict_predict'] = first_stage_d_cc.predict(sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_cc.summary() # -ve between policy and dispersion. Restrictions reduce dispersion
+print(np.cov(dfDDAlln_cc[['dispersion_conflict', 'informalCrossing_sometimes', 'informalCrossing_never']])) # need high covariance for IV method to work
+print(np.corrcoef(dfDDAlln_cc['dispersion_conflict'], dfDDAlln_cc['avNVehicles'])) # check correlation between metric and Nv
 
-model_v_speed3 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank', 'conflict_count']])).fit()
-model_v_speed3.summary()
+first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_qg['dispersion_conflict_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_qg.summary() # slight +ve between policy and disperision. Restrictions slightly increase dispersion.
+print(np.cov(dfDDAlln_qg['dispersion_conflict'], dfDDAlln_qg['informalCrossing_sometimes', 'informalCrossing_never']))
+print(np.corrcoef(dfDDAlln_qg['dispersion_conflict'], dfDDAlln_qg['avNVehicles'])) # check correlation between metric and Nv
 
-model_v_speed4 = sm.OLS(endog=dfDDn[['speedVeh']], exog=sm.add_constant(dfDDn[['avNVehicles', 'informalCrossing_rank', 'dispersion_conflict']])).fit()
-model_v_speed4.summary()
+
+first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['dispersion_conflict']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_ug['dispersion_conflict_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_ug.summary() # strong +ve between policy and dispersion. Restrictions increase dispersion
+print(np.cov(dfDDAlln_ug['dispersion_conflict'], dfDDAlln_ug['informalCrossing_sometimes', 'informalCrossing_never']))
+print(np.corrcoef(dfDDAlln_ug['dispersion_conflict'], dfDDAlln_ug['avNVehicles'])) # check correlation between metric and Nv
+
+
+# Stage 2
+second_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_cc.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+second_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_qg.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+second_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['dispersion_conflict_predict', 'avNVehicles']])).fit()
+second_stage_d_ug.summary() # -ve relationship between dispersion and speed. Increasing dispersion reduces speed
+
+
+# Repeat with conflict count
+
+# Stage 1
+first_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['conflict_count']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_cc['conflict_count_predict'] = first_stage_d_cc.predict(sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_cc.summary() # +ve between policy and conflict count. Restrictions increase conflicts
+
+first_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['conflict_count']], exog=sm.add_constant(dfDDAlln_qg[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_qg['conflict_count_predict'] = first_stage_d_qg.predict(sm.add_constant(dfDDAlln_qg[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_qg.summary() # +ve between policy and conflict count. Restrictions increase conflicts
+print(np.cov(dfDDAlln_qg['conflict_count'], dfDDAlln_qg['informalCrossing_sometimes', 'informalCrossing_never']))
+
+first_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['conflict_count']], exog=sm.add_constant(dfDDAlln_ug[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']])).fit()
+dfDDAlln_ug['conflict_count_predict'] = first_stage_d_ug.predict(sm.add_constant(dfDDAlln_ug[['informalCrossing_sometimes', 'informalCrossing_never', 'avNVehicles']]))
+first_stage_d_ug.summary() # no significant association
+
+
+# Stage 2
+second_stage_d_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_cc.summary() # +ve relationship between conflicts and speed. Increasing conflicts increases speed
+
+second_stage_d_qg = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_qg.summary() # -ve relationship between conflicts and speed. Increasing conflicts reduces speed
+
+second_stage_d_ug = sm.OLS(endog=dfDDAlln_ug[['speedVeh']], exog=sm.add_constant(dfDDAlln_ug[['conflict_count_predict', 'avNVehicles']])).fit()
+second_stage_d_ug.summary() # -ve realtionship, but stage 1 was non-significant
 '''
