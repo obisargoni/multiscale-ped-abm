@@ -516,6 +516,14 @@ title = 'Comparing vehicle speed to conflict metrics between policies'
 inset_rec = [-0.015, 0.87, 0.13, 0.13]
 agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
+group_param = 'avNVehicles'
+policy_param = 'informalCrossing'
+metrics = ['speedVeh','crossCountPP', 'dispersion']
+title = 'Comparing vehicle speed to crossing metrics between policies'
+inset_rec = [-0.015, 0.87, 0.13, 0.13]
+agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
+
+
 '''
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
@@ -636,12 +644,16 @@ dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always
 dfDDAlln[env_col] = dfDDAll[env_col]
 dfDDAlln['const'] = 1
 
+dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
+dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
+dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
+
 # Normalise vars
-to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count']
+to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion"]
 for c in to_norm:
     dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
 
-output_excel_path = "..\\output\\regression_results.xlsx"
+output_excel_path = "..\\output\\regression_results.ttc{}.xlsx".format(ttc_threshold)
 if os.path.exists(output_excel_path):
     xlWriter = pd.ExcelWriter(output_excel_path, mode='a', engine_kwargs=None, if_sheet_exists='replace')
 else:
@@ -664,7 +676,7 @@ dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p', index=False)
 # IV analysis
 #
 
-t = ['dispersion_conflict']
+t = ['dispersion']
 y = ['speedVeh']
 iv = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles','const']
@@ -676,7 +688,7 @@ f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
 f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
-t = ['conflict_count']
+t = ['crossCountPP']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C', index=False)
@@ -703,7 +715,7 @@ dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p_norm', index=False)
 # IV analysis
 #
 
-t = ['dispersion_conflict_norm']
+t = ['dispersion_norm']
 y = ['speedVeh']
 iv = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles_norm','const']
@@ -715,7 +727,7 @@ f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
 f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
-t = ['conflict_count_norm']
+t = ['crossCountPP_norm']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
@@ -737,10 +749,6 @@ dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 
 
 '''
-dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
-dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
-dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
-
 # compare effect of policies using categorical variable
 model_v_p_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never']])).fit()
 model_v_p_cc.summary() # +ve trend between restriction and speed
