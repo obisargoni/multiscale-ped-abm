@@ -249,7 +249,7 @@ def agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, me
     f.savefig(outpath)
     return f
 
-def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%"), ttc_threshold=1 ):
+def agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (15,7), quantile_groups = (0.25,0.75,1.0), quantile_labels = ("Bottom 25%", "Middle 50%", "Top 25%"), ttc_threshold=1 ):
 
     cut_values = dfDD[group_param].drop_duplicates().quantile(quantile_groups).tolist()
     cut_values = [0] + cut_values
@@ -257,7 +257,7 @@ def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, polic
     dfDD['group_level'] = pd.cut(dfDD[group_param], bins = cut_bins)
     dfDD['group_label'] = dfDD['group_level'].replace(dict(zip(cut_bins, quantile_labels)))
 
-    f, axs = plt.subplots(2,1,figsize = figsize)
+    f, axs = plt.subplots(len(metrics),1,figsize = figsize)
 
     handles = []
     labels = []
@@ -292,8 +292,9 @@ def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, polic
         ax.set_xticklabels(group_values)
     
     axs[0].legend(fontsize=20)#, loc='upper left', bbox_to_anchor=(-0.2, 0.8))
-    axs[0].set_xticklabels([])
-    axs[0].set_xlabel(None)
+    for i in range(len(metrics)-1):
+        axs[i].set_xticklabels([])
+        axs[i].set_xlabel(None)
 
     f.suptitle(title, fontsize=24)
 
@@ -303,7 +304,7 @@ def agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, polic
     axins.set_axis_off()
     axins.set_title('Environment', y=-0.15)
 
-    outpath = os.path.join(img_dir,"agg_comparison_ttc{}_{}_{}.{}.png".format(ttc_threshold, metrics[0],metrics[1],file_datetime_string))
+    outpath = os.path.join(img_dir,"agg_comparison_ttc{}.{}.png".format(ttc_threshold,file_datetime_string))
     f.savefig(outpath)
     return f
 
