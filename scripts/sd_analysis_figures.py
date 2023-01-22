@@ -606,6 +606,15 @@ def iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = True):
     else:
         return df1
 
+def sm_iv_analysis(dfDD, y, t, iv, c):
+    first_stage = sm.OLS(endog=dfDD[t], exog=dfDD[iv+c]).fit()
+    dfDD['t_predict'] = first_stage.predict(dfDD[iv+c])
+
+    # Stage 2
+    second_stage = sm.OLS(endog=dfDD[y], exog=dfDD[['t_predict'] + c]).fit()
+
+    return first_stage, second_stage
+
 
 dfDDAll['informalCrossing'] = pd.Categorical(dfDDAll['informalCrossing'])
 dfDDAlln = pd.get_dummies(dfDDAll)
@@ -650,10 +659,19 @@ c = ['avNVehicles','const']
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D', index=False)
 
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
 t = ['conflict_count']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
 
 #
 # Repeat with normalised varaibles
@@ -680,10 +698,18 @@ c = ['avNVehicles_norm','const']
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D_norm', index=False)
 
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
 t = ['conflict_count_norm']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
 xlWriter.close()
 
