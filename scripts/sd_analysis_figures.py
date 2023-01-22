@@ -645,14 +645,14 @@ dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always
 dfDDAlln[env_col] = dfDDAll[env_col]
 dfDDAlln['const'] = 1
 
+# Normalise vars
+to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion", 'mean_link_cross_entropy']
+for c in to_norm:
+    dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
+
 dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
 dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
 dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
-
-# Normalise vars
-to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion"]
-for c in to_norm:
-    dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
 
 output_excel_path = "..\\output\\regression_results.ttc{}.xlsx".format(ttc_threshold)
 if os.path.exists(output_excel_path):
@@ -728,7 +728,20 @@ f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
 f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
+print(f_cc.rsquared_adj, s_cc.rsquared_adj)
+print(f_qg.rsquared_adj, s_qg.rsquared_adj)
+print(f_ug.rsquared_adj, s_ug.rsquared_adj)
+
 t = ['crossCountPP_norm']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
+t = ['mean_link_cross_entropy_norm']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
