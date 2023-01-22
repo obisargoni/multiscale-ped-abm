@@ -456,7 +456,8 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "mean_link_cross_entropy":r"$CLE$", 
                 "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing',
-                "dispersion":r"$\bar{D_r}$"
+                "dispersion":r"$\bar{D_r}$",
+                "dispersion_conflict":r"$\bar{D_r}$"
                 }
 
 #
@@ -470,7 +471,7 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
 #
 #plt.style.use('dark_background')
 inset_rec = [0, 0.87, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(20,20), ttc_threshold=ttc_threshold)
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(20,10), ttc_threshold=ttc_threshold)
 
 plt.style.use('default')
 
@@ -487,8 +488,7 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 problem = init_problem(params)
 
 dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
-sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 9, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=ttc_threshold)
-
+sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 8, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=ttc_threshold)
 
 
 #
@@ -496,21 +496,34 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 #
 
 '''
+group_param = 'avNVehicles'
+policy_param = 'informalCrossing'
+metric = 'speedVeh'
+title = 'Vehicle speed increases with crossing restrictions'
+f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
+
+group_param = 'avNVehicles'
+policy_param = 'informalCrossing'
+metric = 'conflict_count'
+title = 'Conflicts decrease with crossing restrictions'
+f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
 '''
 
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
-metrics = ['speedVeh','conflict_count']
-title = 'Comparing vehicle speed and conflicts between policies'
-inset_rec = [-0.02, 0.87, 0.13, 0.13]
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
+metrics = ['speedVeh','conflict_count', 'dispersion_conflict']
+title = 'Comparing vehicle speed to conflict metrics between policies'
+inset_rec = [-0.015, 0.87, 0.13, 0.13]
+agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
+'''
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
-metrics = ['speedVeh','dispersion']
+metrics = ['speedVeh','dispersion_conflict']
 title = 'Comparing vehicle speed and dispersion between policies'
 inset_rec = [-0.02, 0.87, 0.13, 0.13]
 agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
+'''
 
 #
 # Combining output data into a single dataframe
