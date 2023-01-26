@@ -92,8 +92,8 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#1b
 
         ax.hist(df[val_col].dropna(), bins = bins, density=False, color=palette[i], alpha=1, label=g, histtype='step', linewidth=6)
 
-    ax.legend(fontsize = 20)
-    ax.set_ylabel('count', fontsize = 20)
+    #ax.legend(fontsize = 20)
+    ax.set_ylabel('')
     #ax.set_xlim(xmin=minv*0.9, xmax=maxv*1.1)
     ax.set_title(title, fontsize = 24)
     return ax
@@ -114,10 +114,15 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dic
     axins = fig.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.1)
+    axins.set_title('Environment', y=-0.3)
+    
+    # Add legend to bottom of the plot
+    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-1.55,-0.16,1.6,0), loc="lower center", mode='expand', ncol=3)
+    axs[0].set_ylabel('count', fontsize = 20)
+    plt.margins(x=0)
 
     outpath = os.path.join(img_dir, 'hists_ttc{}.{}.png'.format(ttc_threshold,file_datetime_string))
-    fig.savefig(outpath)
+    fig.savefig(outpath, bbox_inches='tight', pad_inches=0.07)
 
     return outpath
 
@@ -146,16 +151,13 @@ def get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=1):
+def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars, rename_dict, inset_rec, constrained_layout = True, fig_width = 10, fig_height=7, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=1):
     nvars = len(outcome_vars)
     if nvars==4:
         f, axs = plt.subplots(2,2, figsize=(20,20), constrained_layout = constrained_layout)
         axs = axs.reshape(1,-1)[0]
     else:
-        f, axs = plt.subplots(1,nvars, figsize=(fig_width*nvars,10), constrained_layout = constrained_layout)
-    
-
-    ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
+        f, axs = plt.subplots(1,nvars, figsize=(fig_width*nvars,fig_height), constrained_layout = constrained_layout)
 
     for i, m in enumerate(outcome_vars):
         dfsi = dfSIs.loc[ dfSIs['metric']==m]
@@ -175,7 +177,6 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
 
         axs[i].set_xticks(np.arange(data.shape[0]))
         axs[i].set_xticklabels([ rename_dict[i] for i in data.index], rotation=45, fontsize=20)
-        axs[i].legend()
 
         axs[i].set_title(title, fontsize=24)
 
@@ -184,11 +185,15 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.1)
+    axins.set_title('Environment', y=-0.3)
+    
+    # Add legend to bottom of the plot
+    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-1.55,-0.25,1.6,0), loc="lower center", mode='expand', ncol=3)
+    plt.margins(x=0)
 
 
     outpath = os.path.join(img_dir,"sobol_si_ttc{}.{}.png".format(ttc_threshold, file_datetime_string))
-    f.savefig(outpath)
+    f.savefig(outpath,bbox_inches='tight', pad_inches=0.07)
     return outpath
 
 
@@ -433,7 +438,7 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','mean_link_cross_entropy']
 outcome_vars2 = ['DistPA','mean_link_cross_entropy']
-outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['route_length_pp', 'mean_link_cross_entropy', 'speedVeh']
 policy_col = 'informalCrossing'
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -471,8 +476,8 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
 # Histogram plots
 #
 #plt.style.use('dark_background')
-inset_rec = [0, 0.87, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(20,10), ttc_threshold=ttc_threshold)
+inset_rec = [0.0, 0.9, 0.13, 0.13]
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(18,7), ttc_threshold=ttc_threshold)
 
 plt.style.use('default')
 
@@ -489,7 +494,7 @@ scenario_param_cols =  [i for i in params if i!=policy_param]
 problem = init_problem(params)
 
 dfSIs = get_multiple_metrics_sis(dfDD, problem, policy_param, policy_values, outcome_vars3)
-sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 8, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=ttc_threshold)
+sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, rename_dict, inset_rec, constrained_layout = False, fig_width = 6, fig_height = 7, colors = ['#1b9e77', '#d95f02', '#7570b3'], ttc_threshold=ttc_threshold)
 
 
 #
