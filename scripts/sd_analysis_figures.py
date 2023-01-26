@@ -451,14 +451,14 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "timeThreshold": r"$\mathrm{\tau}$",
                 "route_length_pp":r"$\bar{L_r}$",
                 "trip_length_pp": r"$\bar{D_r}$",
-                "crossCountPP":r"$\bar{C_r}$",
-                "conflict_count":r"$\bar{C_r}$",
+                "crossCountPP":r"$\bar{N^x_r}$",
+                "conflict_count":r"$\bar{N^c_r}$",
                 "cross_entropy":r"$CLE$", 
                 "mean_link_cross_entropy":r"$CLE$", 
                 "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing',
-                "dispersion":r"$\bar{D_r}$",
-                "dispersion_conflict":r"$\bar{D_r}$"
+                "dispersion":r"$\bar{D^x_r}$",
+                "dispersion_conflict":r"$\bar{D^c_r}$"
                 }
 
 #
