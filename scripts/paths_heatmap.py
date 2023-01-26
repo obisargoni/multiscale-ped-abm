@@ -22,10 +22,11 @@ import batch_data_utils as bd_utils
 #
 #
 ###############################
-file_datetime_string = "2022.Nov.18.12_33_08"
-file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 with open(".//config.json") as f:
     config = json.load(f)
+
+file_datetime_string = config['file_datetime_string']
+file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
 gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\simple_pedestrian_trips"
 data_dir = config['batch_data_dir']
@@ -35,7 +36,7 @@ l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-hex_polys_file = os.path.join(gis_data_dir, "hexgrid2m.shp")
+hex_polys_file = os.path.join(gis_data_dir, "hexgrid1m.shp")
 
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
@@ -236,7 +237,7 @@ def batch_run_map(df_data, run_selection_dict, data_col, run_col, rename_dict, t
         plt.text(0.35,-0.35, t, fontsize = 15, transform = ax.transAxes)
 
     if title is not None:
-        f.suptitle(title, fontsize=16, y = 1)
+        f.suptitle(title, fontsize=16, y = 0.93)
     f.show()
     plt.savefig(output_path)
 
@@ -280,10 +281,10 @@ def batch_run_map_single(df_data, data_col, run_col, rename_dict, title, output_
 
 rename_dict = {15:"High Vehicle Flow", 1:"Low Vehicle Flow", 'alpha':r"$\mathrm{\alpha}$",'lambda':r"$\mathrm{\lambda}$"}
 
-batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dict, "Between Configuration", map_output_path)
+batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
 #batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
 
-
+'''
 
 #####################################
 #
@@ -358,3 +359,4 @@ ani = FuncAnimation(fig, update, frames = points_filter[:1000], init_func=init, 
 
 FFwriter = FFMpegWriter()
 ani.save(os.path.join(img_dir, 'simple_paths_animation_final.{}.mp4'.format(file_datetime_string)), writer = FFwriter)
+'''

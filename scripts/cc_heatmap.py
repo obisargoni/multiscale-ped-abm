@@ -187,6 +187,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
             ax = axs[pi, qi]
 
             # get the data and plot image
+            df_group[value_col] = df_group[value_col].fillna(0.0)
             rgba, row_labels, col_labels = heatmap_rgba_data(df_group, parameter_sweep_columns[0], parameter_sweep_columns[1], value_col = value_col, alpha_col = alpha_col, cmap = cmap)
             im = heatmap(rgba, row_labels, col_labels, ax = ax,  y_label = rename_dict[parameter_sweep_columns[0]], x_label = rename_dict[parameter_sweep_columns[1]], cmap = cmap)
 
@@ -244,15 +245,15 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
 with open(".//config.json") as f:
     config = json.load(f)
 
-rename_dict = { 'addVehicleTicks':"Ticks\nBetween\nVehicle\nAddition",
+rename_dict = { "avNVehicles": r"$\bar{N^v}_r$",
                 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
                 "epsilon":r"$\mathrm{\epsilon}$",
                 "gamma":r"$\mathrm{\gamma}$",
                 "between": "Between Configuration",
                 "beyond":"Beyond Configuration",
-                0:"High\nVehicle\nFlow",
-                3.321928:"Low\nVehicle\nFlow"
+                15:"High\nVehicle\nFlow",
+                1:"Low\nVehicle\nFlow"
                 }
 
 configuration_datetime_strings = {
@@ -329,7 +330,7 @@ df_cc_count_al = pd.concat([btwn_ped_cc, bynd_ped_cc])
 '''
 
 # Groups by the variables I want to keep constant in eac plot
-groupby_columns = ['addVehicleTicks', 'configuration']
+groupby_columns = ['avNVehicles', 'configuration']
 parameter_sweep_columns = ['alpha', 'lambda']
 
 fig_title = "Crossing Choices\n{} and {} parameter sweep".format(r"$\mathrm{\alpha}$", r"$\mathrm{\lambda}$")
