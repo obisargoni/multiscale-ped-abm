@@ -1,0 +1,27 @@
+{
+  "params":{
+        "randomSeed":{      "type":"constant", "data_type":"int",   "value":"1", "bounds":[1,100], "dist":"unif"},
+        "pedODSeed":{       "type":"constant", "data_type":"int",     "value":"100",  "bounds":[1,100], "dist":"unif"},
+        "vehODSeed":{       "type":"constant", "data_type":"int",     "value":"101",  "bounds":[101,200], "dist":"unif"},
+        "epsilon":{         "type":"list", "data_type":"double",  "value":"2.5",  "bounds":[5,8], "dist":"unif"},
+        "lambda":{          "type":"list", "data_type":"double",  "value":"1",  "bounds":[0,2], "dist":"unif"},
+        "addPedTicks":{     "type":"list", "data_type":"double",    "value":"2",  "bounds":[0,4], "dist":"unif"},
+        "avNVehicles":{     "type":"list", "data_type":"int",     "value":"50",   "bounds":[20,700], "dist":"unif"},
+        "gamma":{           "type":"constant", "data_type":"double", "value":"0.9",   "bounds":[0.8,1.0], "dist":"unif"},
+        "alpha":{           "type":"list", "data_type":"double",  "value":"0.5",  "bounds":[0,1], "dist":"unif"},
+        "tacticalPlanHorizon":{ "type":"list", "data_type":"double",  "value":"20",   "bounds":[20,360], "dist":"unif"},
+        "minCrossing":{     "type":"list", "data_type":"boolean",   "value":"true",   "bounds":[0,1],   "dist":"unif"},
+        "nPeds":{           "type":"constant", "data_type":"int",   "value":"200",  "bounds":[10,150],  "dist":"unif"},
+        "timeThreshold":{   "type":"list", "data_type":"int",   "value":"75",  "bounds":[30,120],  "dist":"unif"},
+        "ga": {             "type":"constant",  "data_type":"double", "value":"0", "bounds":[0,2],      "dist":"unif"},
+        "yieldThreshold": { "type":"constant",  "data_type":"int",    "value":"0",   "bounds":[0,100],   "dist":"unif"},
+        "updateFactor": {   "type":"constant",  "data_type":"double", "value":"1", "bounds":[0,1], "dist":"unif"},
+        "informalCrossing": {"type":"constant",  "data_type":"string", "value":"always", "bounds":["always","sometimes", "never"], "dist":"unif"}   
+      },
+      "N_samples":256,
+      "random_seed":100,
+      "num_levels":6,
+      "calc_second_order":false,
+      "method":"saltelli",
+      "policies":{"informalCrossing":["always","sometimes", "never"]}
+}
