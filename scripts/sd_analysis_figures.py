@@ -517,14 +517,7 @@ f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, me
 
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
-metrics = ['speedVeh','conflict_count', 'dispersion_conflict']
-title = 'Comparing vehicle speed to conflict metrics between policies'
-inset_rec = [-0.015, 0.87, 0.13, 0.13]
-agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
-
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metrics = ['speedVeh','crossCountPP', 'dispersion']
+metrics = ['speedVeh', 'dispersion', 'mean_link_cross_entropy']
 title = 'Comparing vehicle speed to crossing metrics between policies'
 inset_rec = [-0.015, 0.87, 0.13, 0.13]
 agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
