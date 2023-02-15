@@ -98,11 +98,11 @@ def multi_env_hist_plot(f, axs, dfDD, gdfORLinks, outcome_vars, outcome_units, e
     data = dfDD.loc[:, outcome_vars+[env_col]]
     for i in range(nvars):
         ax0 = hist_plot(axs[i], data, outcome_vars[i], outcome_units[i], env_col, title_rename_dict[outcome_vars[i]], nhistbins = nhistbins, palette = palette)
-        axs[i].set_yticks(range(0, 1000, 200))
+        axs[i].set_yticks(range(0, 1600, 300))
         axs[i].tick_params(axis='y', length=10)
         if i==0:
             axs[i].set_ylabel('count of runs', fontsize = 35, labelpad=17)
-            axs[i].set_yticklabels(range(0, 1000, 200))
+            axs[i].set_yticklabels(range(0, 1600, 300))
         axs[i].tick_params(axis = 'both', labelsize = 26)
 
     # Add single legend
@@ -136,7 +136,7 @@ def get_multiple_metrics_sis_envs(dfDD, problem, env_col, outcome_vars):
         dfSIs = pd.concat([dfSIs, df])
     return dfSIs
 
-def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, params = ['alpha','lambda','epsilon','timeThreshold', 'addPedTicks','addVehicleTicks', 'tacticalPlanHorizon', 'minCrossing'], constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
+def multi_env_sobol_si_plot(f, axs, dfSIs, gdfORLinks, env_col, env_values, outcome_vars, rename_dict, params = ['alpha','lambda','epsilon','timeThreshold', 'addPedTicks','avNVehicles', 'tacticalPlanHorizon', 'minCrossing'], constrained_layout = True, colors = ['#3d993d', '#cca328', '#af3f33']):
 
     ylims = [(-12, 40), (-12, 40), (-5, 5), (-5, 5)]
 
@@ -367,37 +367,37 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "gamma":r"$\mathrm{\gamma}$",
                 "minCrossing": r"$\mathrm{MC}$",
                 "tacticalPlanHorizon": r"$\mathrm{PH}$",
-                "addVehicleTicks": r"$\bar{N^v}_r$",
-                "addPedTicks": r"$\mathrm{T_{ped}}$",
+                "avNVehicles": r"$N_v$",
+                "addPedTicks": r"$\mathrm{T_p}$",
                 "pedSpeedSeed": r"$\mathrm{Seed_{pSpeed}}$",
                 "pedMassSeed": r"$\mathrm{Seed_{pMass}}$",
                 "caSampleSeed": r"$\mathrm{Seed_{CA}}$",
                 "vehODSeed": r"$\mathrm{Seed_{veh}}$",
                 "timeThreshold": r"$\mathrm{\tau}$",
-                "route_length_pp":r"$\bar{L_r}$",
+                "route_length_pp":r"$\bar{L}$",
                 "DistPA": r"$\bar{D_r}$",
                 "crossCountPP":r"$\bar{C_r}$",
                 "cross_entropy":r"$CLE$", 
                 'informalCrossing':'Informal Crossing',
                 'sp_sim': r"$\bar{\Delta^{SP}_r}$",
                 'sp_sim_dice': r"$\Delta SP_{dice}$",
-                'sp_sim_zerocount': r"$N^{SP}_r$",
-                'sp_sim_zerocount_pct':r'$SP_r',
-                'PostponeCountPP': r"$\bar{P}_r$",
-                'pcntInfCross': r"$I_r$"
+                'sp_sim_zerocount': r"$N^{SP}$",
+                'sp_sim_zerocount_pct':r'$SP$',
+                'PostponeCountPP': r"$\bar{P}$",
+                'pcntInfCross': r"$I$"
                 }
 
-name_titles = { 'route_length_pp': 'Av. Route Length, '+ r"$\bar{L_r}$",
-                'sp_sim_zerocount': 'N Shortest Paths, ' + r"$N^{SP}_r$",
-                'sp_sim_zerocount_pct': 'Pcnt. Shortest Paths, ' + r"$SP_r$",
-                'PostponeCountPP':'Av. Crossing Postponements, ' + r"$\bar{P}_r$",
-                'pcntInfCross': 'Pcnt. Informal Crossings, ' + r"$I_r$"}
+name_titles = { 'route_length_pp': 'Av. Route Length, '+ r"$\bar{L}$",
+                'sp_sim_zerocount': 'N Shortest Paths, ' + r"$N^{SP}$",
+                'sp_sim_zerocount_pct': 'Pcnt. Shortest Paths, ' + r"$SP$",
+                'PostponeCountPP':'Av. Crossing Postponements, ' + r"$\bar{P}$",
+                'pcntInfCross': 'Pcnt. Informal Crossings, ' + r"$I$"}
 
-name_titles_pair = { 'route_length_pp': 'Av. Route\nLength,\n'+ r"$\bar{L_r}$",
-                'sp_sim_zerocount': 'N Shortest\nPaths,\n' + r"$N^{SP}_r$",
-                'sp_sim_zerocount_pct': 'Pcnt. Shortest\nPaths,\n' + r"$SP_r$",
-                'PostponeCountPP':'Av. Crossing\nPostponements,\n' + r"$\bar{P}_r$",
-                'pcntInfCross': 'Pcnt. Informal\nCrossings,\n' + r"$I_r$"}
+name_titles_pair = { 'route_length_pp': 'Av. Route\nLength,\n'+ r"$\bar{L}$",
+                'sp_sim_zerocount': 'N Shortest\nPaths,\n' + r"$N^{SP}$",
+                'sp_sim_zerocount_pct': 'Pcnt. Shortest\nPaths,\n' + r"$SP$",
+                'PostponeCountPP':'Av. Crossing\nPostponements,\n' + r"$\bar{P}$",
+                'pcntInfCross': 'Pcnt. Informal\nCrossings,\n' + r"$I$"}
 
 # update the rename dict with name titles - doesn't look good.
 for k,v in name_titles_pair.items():
@@ -483,7 +483,7 @@ for i, (env) in enumerate(grouped.groups.keys()):
 # Pair plot figure
 #
 dfDDPair = dfDD.rename(columns = rename_dict)
-x_vars = [rename_dict[i] for i in ['alpha','lambda','epsilon','addVehicleTicks', 'tacticalPlanHorizon', 'minCrossing']]
+x_vars = [rename_dict[i] for i in ['alpha','lambda','epsilon','avNVehicles', 'tacticalPlanHorizon', 'minCrossing']]
 y_vars = [rename_dict[i] for i in outcome_vars]
 grid = sns.pairplot(dfDDPair, hue=env_col, palette = palette, x_vars = x_vars, y_vars = y_vars, kind = 'reg', diag_kind = 'hist', height = 2.5, plot_kws=dict(scatter_kws=dict(s=0.8, alpha=0.1)))
 
@@ -533,6 +533,8 @@ grid.savefig(os.path.join(img_dir, 'pair_plot.{}.{}.{}.png'.format(config['ug_re
 #
 # Print some useful summary stats
 #
+print("\nDescribe route lengths")
+print(dfDD.groupby(env_col)['route_length_pp'].describe())
 
 print("\nDescribe percentage of peds following shortest path")
 print(dfDD.groupby(env_col)['sp_sim_zerocount_pct'].describe())
