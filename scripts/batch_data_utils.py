@@ -426,6 +426,7 @@ def get_road_link_pedestrian_crossing_counts(dfCrossEvents, gdfPaveLinks):
 
     return dfRLCrossCounts
 
+ 
 def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_pos, weight_params, distance_function = 'dice_dist', output_path = "sp_similarity.csv"):
 
     ######################################
@@ -448,7 +449,7 @@ def get_shortest_path_similarity(dfPedRoutes, dfRun, pavement_graph, dict_node_p
             df['k'] = k
 
             # Also get count of 0 difference to sp
-            dfQ1Counts = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].apply(lambda s: (s<0.00000001).value_counts()[True]).reset_index().rename(columns = {'comp_value_{}'.format(k):'cv{}zeroCount'.format(k)})
+            dfQ1Counts = dfPedRoutes.groupby('run')['comp_value_{}'.format(k)].apply(lambda s: (s<0.00000001).astype(int).sum()).reset_index().rename(columns = {'comp_value_{}'.format(k):'cv{}zeroCount'.format(k)})
             df = pd.merge(df, dfQ1Counts, on = 'run', how = 'left')
 
             # T test to compare means
@@ -722,7 +723,11 @@ def load_and_clean_ped_routes(gdfPaveLinks, gdfORLinks, gdfPaveNodes, pavement_g
         dfPedRoutes['node_path'] = dfPedRoutes['node_path'].map(lambda s: s.strip("['").strip("']").split("', '"))
 
         for k in weight_params:
-            dfPedRoutes['sp_{}'.format(k)] = dfPedRoutes['sp_{}'.format(k)].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
+            sp_eg = dfPedRoutes['sp_{}'.format(k)].values[0]
+            if sp_eg[:2] == "['":
+                dfPedRoutes['sp_{}'.format(k)] = dfPedRoutes['sp_{}'.format(k)].map(lambda s: tuple(s.strip("['").strip("']").split("', '")))
+            else:
+                dfPedRoutes['sp_{}'.format(k)] = dfPedRoutes['sp_{}'.format(k)].map(lambda s: tuple(s.strip("('").strip("')").split("', '")))
     else:
         # Otherwise create data
 
@@ -881,7 +886,7 @@ def load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, g
 
         # Create alternative set of paths for each vehicle flow setting
         data = {'run':[], 'start_node':[], 'end_node':[], 'sp':[], 'k':[], 'j':[], 'ratio_min':[], 'ratio_max':[], 'ratio_median':[], 'alt_path':[], 'alt_path_length':[]}
-        for run in dfRun.drop_duplicates(subset = 'addVehicleTicks')['run'].unique():
+        for run in dfRun.drop_duplicates(subset = 'avNVehicles')['run'].unique():
             if (int(run) % 10) == 0:
                 print("Run:{}".format(run))
             for k in weight_params:
