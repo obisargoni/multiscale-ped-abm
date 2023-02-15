@@ -650,8 +650,8 @@ dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always
 dfDDAlln[env_col] = dfDDAll[env_col]
 dfDDAlln['const'] = 1
 
-# Normalise vars
-to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion", 'mean_link_cross_entropy']
+# Normalise vars - should apply min max scaling to parameters bc these are sampled from uniform dist
+to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion", "mean_link_cross_entropy"]
 for c in to_norm:
     dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
 
@@ -677,31 +677,50 @@ c = ['avNVehicles','const']
 dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
 dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p', index=False)
 
+# Check if effects of the policy differ when controls not included
+
+c = ['const']
+
+first_stage = sm.OLS(endog=dfDDAlln_cc[t], exog=dfDDAlln_cc[i+c]).fit()
+first_stage.summary()
 
 #
-# IV analysis
+# IV analysis - multiple treatments
 #
-
-t = ['dispersion']
+'''
+t = ['mean_link_cross_entropy_norm','dispersion_norm', 'crossCountPP_norm']
 y = ['speedVeh']
 iv = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles','const']
 
-dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
-dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D', index=False)
+m = IV2SLS(dfDDAlln_cc[y], dfDDAlln_cc[c], dfDDAlln_cc[t], dfDDAlln_cc[iv])
+second_stage = m.fit()
 
-f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
-f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
-f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+m = IV2SLS(dfDDAlln_qg[y], dfDDAlln_qg[c], dfDDAlln_qg[t], dfDDAlln_qg[iv])
+second_stage = m.fit()
 
-t = ['crossCountPP']
 
-dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
-dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C', index=False)
 
-f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
-f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
-f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+first_stage0 = sm.OLS(endog=dfDDAlln_cc[t[0]], exog=dfDDAlln_cc[iv+c]).fit()
+first_stage1 = sm.OLS(endog=dfDDAlln_cc[t[1]], exog=dfDDAlln_cc[iv+c]).fit()
+first_stage2 = sm.OLS(endog=dfDDAlln_cc[t[2]], exog=dfDDAlln_cc[iv+c]).fit()
+dfDDAlln_cc['t_predict0'] = first_stage0.predict(dfDDAlln_cc[iv+c])
+dfDDAlln_cc['t_predict1'] = first_stage1.predict(dfDDAlln_cc[iv+c])
+dfDDAlln_cc['t_predict2'] = first_stage2.predict(dfDDAlln_cc[iv+c])
+
+# Stage 2
+second_stage = sm.OLS(endog=dfDDAlln_cc[y], exog=dfDDAlln_cc[['t_predict0', 't_predict1', 't_predict2'] + c]).fit()
+
+first_stage0 = sm.OLS(endog=dfDDAlln_qg[t[0]], exog=dfDDAlln_qg[iv+c]).fit()
+first_stage1 = sm.OLS(endog=dfDDAlln_qg[t[1]], exog=dfDDAlln_qg[iv+c]).fit()
+dfDDAlln_qg['t_predict0'] = first_stage0.predict(dfDDAlln_qg[iv+c])
+dfDDAlln_qg['t_predict1'] = first_stage1.predict(dfDDAlln_qg[iv+c])
+
+# Stage 2
+second_stage = sm.OLS(endog=dfDDAlln_qg[y], exog=dfDDAlln_qg[['t_predict0', 't_predict1'] + c]).fit()
+'''
+
+
 
 
 #
@@ -711,7 +730,7 @@ f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
 t = ['speedVeh']
 y = ['speedVeh']
-iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+i = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles_norm','const']
 
 dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
@@ -723,7 +742,7 @@ dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p_norm', index=False)
 
 t = ['dispersion_norm']
 y = ['speedVeh']
-iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+i = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles_norm','const']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
@@ -749,7 +768,7 @@ f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 t = ['mean_link_cross_entropy_norm']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
-dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm', index=False)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_CLE_norm', index=False)
 
 f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
@@ -767,7 +786,91 @@ c = ['avNVehicles_norm','const']
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
 
 
+#
+# Only regression analysis, since 
+#
+
+# Check effect of policy, with all params as controls
+constant_params = ['randomSeed','pedODSeed','vehODSeed','nPeds', 'ga','yieldThreshold','updateFactor']
+[scenario_param_cols.remove(i) for i in constant_params]
+
+t = ['speedVeh']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = scenario_param_cols +  ['const']
+
+model = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives the same results as without the other model variables. As expected.
+
+model = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary()
+
+# Effect of policies on crossing metrics
+model = sm.OLS(endog=dfDDAlln_cc[['crossCountPP_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
+
+model = sm.OLS(endog=dfDDAlln_cc[['dispersion_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
+
+model = sm.OLS(endog=dfDDAlln_cc[['mean_link_cross_entropy_norm']], exog=sm.add_constant(dfDDAlln_cc[ ['avNVehicles_norm'] + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
+
+
+# replace policy with crossings metrics
+crossing_metrics = ['crossCountPP_norm', 'mean_link_cross_entropy_norm', 'dispersion_norm']
+
+model_cross = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[scenario_param_cols + crossing_metrics])).fit()
+model_cross.summary()
+
+model_cross = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[scenario_param_cols + crossing_metrics])).fit()
+model_cross.summary()
+
+# above two regressions produce difference direction of effect of crossing metrics on speed.
+# this switching of direction is also observed with 2SLS
+# however, with 2SLS in Clapham D and CLE act in the same direction on Sv (that it, the components of D and CLE due to variation in policy.) This makes sense 
+# since change in speed is greatest in this env.
+# with just a straight regression with all params, D and CLE act in different directions. 
+# Other params also vary these metrics, so could be picking up effect of those as well.
+
+
+
+
 '''
+#
+# IV analysis
+#
+
+t = ['dispersion']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['avNVehicles','const']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
+t = ['crossCountPP']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
+t = ['mean_link_cross_entropy']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_CLE', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
+
 # compare effect of policies using categorical variable
 model_v_p_cc = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[['avNVehicles', 'informalCrossing_sometimes', 'informalCrossing_never']])).fit()
 model_v_p_cc.summary() # +ve trend between restriction and speed
