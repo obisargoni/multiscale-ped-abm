@@ -525,7 +525,7 @@ dfRouteLength = bd_utils.get_run_total_route_length(dfPedRoutesConsistentPeds, d
 dfSPSim = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'dice_dist', output_path = output_sp_similarity_path)
 dfSPSimLen = bd_utils.get_shortest_path_similarity(dfPedRoutesConsistentPeds, dfRun, pavement_graph, dict_node_pos, range(0,100,100), distance_function = 'path_length', output_path = output_sp_similarity_length_path)
 dfCrossCounts = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df.shape[0] / df['nPeds'].values[0]).reset_index().rename(columns = {0:'crossCountPP'})
-dfCrossTypes = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: (df['CrossingType'].value_counts()['unmarked'] / df.shape[0] ) * 100).reset_index().rename(columns = {0:'pcntInfCross'})
+dfCrossTypes = dfCrossEventsConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: ((df['CrossingType']=='unmarked').astype(int).sum() / df.shape[0] ) * 100).reset_index().rename(columns = {0:'pcntInfCross'})
 dfCrossPostponements = dfPedRoutesConsistentPeds.merge(dfRun.reindex(columns = ['run','nPeds']), on='run').groupby('run').apply(lambda df: df['PostponeCounts'].sum() / df['nPeds'].values[0]).reset_index().rename(columns = {0:'PostponeCountPP'})
 
 '''
@@ -926,9 +926,12 @@ if 'variance_comparison' in setting:
     print("\nRunning variance comparison")
 
     weight_params = range(0, 2100, 500)
+    
+    dfRunAlways = dfRun.loc[ dfRun['informalCrossing']=='always']
+    dfPedRoutesAlways = dfPedRoutes.loc[ dfPedRoutes['run'].isin(dfRunAlways['run'])]
 
     # Calculate a corresponding set of routes using an alternative shortest path model, aggregate to get mean trip length per parameter setting (run, k, j)
-    dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutes, dfRun, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
+    dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutesAlways, dfRunAlways, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
     dfAltRouteLengthMean = dfAlternativeRoutes.groupby(['run','k','j'])['alt_path_length'].mean().reset_index().rename(columns = {'alt_path_length':'mean_alt_path_length'})
 
     print("\nComparing mean path length and SD between models:\n")
