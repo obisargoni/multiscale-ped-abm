@@ -929,6 +929,7 @@ if 'variance_comparison' in setting:
     
     dfRunAlways = dfRun.loc[ dfRun['informalCrossing']=='always']
     dfPedRoutesAlways = dfPedRoutes.loc[ dfPedRoutes['run'].isin(dfRunAlways['run'])]
+    dfRouteLengthAlways = dfRouteLength.loc[ dfRouteLength['run'].isin(dfRunAlways['run'])]
 
     # Calculate a corresponding set of routes using an alternative shortest path model, aggregate to get mean trip length per parameter setting (run, k, j)
     dfAlternativeRoutes = bd_utils.load_sp_model_shortest_paths(dfPedRoutesAlways, dfRunAlways, gdfORLinks, gdfPaveLinks, gdfPaveNodes, gdfCAs, pavement_graph, weight_params, dfVehCounts, output_alt_routes_file, strategic_path_filter = True)
@@ -936,12 +937,12 @@ if 'variance_comparison' in setting:
 
     print("\nComparing mean path length and SD between models:\n")
     print(dfAltRouteLengthMean['mean_alt_path_length'].describe())
-    print(dfRouteLength['route_length_pp'].describe())
+    print(dfRouteLengthAlways['route_length_pp'].describe())
     print(dfAltRouteLengthMean['mean_alt_path_length'].var())
-    print(dfRouteLength['route_length_pp'].var())
+    print(dfRouteLengthAlways['route_length_pp'].var())
 
     print("\nProducing single agents paths figure")
-    dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutes, start_node='pave_node_151', output_path = output_single_ped_links_file)
+    dfSinglePedPaths, ped_id_simple_paths = bd_utils.median_ped_pavement_link_counts(dfPedRoutesAlways, start_node='pave_node_151', output_path = output_single_ped_links_file)
 
     # Get corresponding alternative model paths
     vs = dfSinglePedPaths.loc[:, ['FullStrategicPathString','start_node','end_node']].drop_duplicates().values
