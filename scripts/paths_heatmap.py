@@ -15,6 +15,10 @@ from shapely.geometry import Point, Polygon
 
 import batch_data_utils as bd_utils
 
+import matplotlib.pyplot as plt
+import contextily as cx
+
+
 ###############################
 #
 #
@@ -28,7 +32,7 @@ with open(".//config.json") as f:
 file_datetime_string = config['file_datetime_string']
 file_datetime  =dt.strptime(file_datetime_string, "%Y.%b.%d.%H_%M_%S")
 
-gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\simple_pedestrian_trips"
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\"
 data_dir = config['batch_data_dir']
 img_dir = "..\\output\\img\\"
 l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
@@ -36,7 +40,7 @@ l_re = re.compile(r"(\d+\.\d+),\s(\d+\.\d+)")
 project_crs = {'init': 'epsg:27700'}
 wsg_crs = {'init':'epsg:4326'}
 
-hex_polys_file = os.path.join(gis_data_dir, "hexgrid1m.shp")
+hex_polys_file = os.path.join(gis_data_dir, "simple_pedestrian_trips",  "hexgrid1m.shp")
 
 file_re = bd_utils.get_file_regex("pedestrian_locations", file_datetime = file_datetime)
 ped_locations_file = os.path.join(data_dir, bd_utils.most_recent_directory_file(data_dir, file_re))
@@ -144,9 +148,6 @@ gdf_hex_counts.rename(columns = {'avNVehicle':'avNVehicles'}, inplace=True)
 
 #gdf_hex_counts = gdf_hex_counts.to_crs(project_crs)
 
-
-import matplotlib.pyplot as plt
-import contextily as cx
 
 def batch_run_map(df_data, run_selection_dict, data_col, run_col, rename_dict, title, output_path):
 
@@ -284,7 +285,7 @@ rename_dict = {15:"High Vehicle Flow", 1:"Low Vehicle Flow", 'alpha':r"$\mathrm{
 batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dict, "Beyond Configuration", map_output_path)
 #batch_run_map_single(gdf_hex_counts, 'loc_count', 'run', rename_dict, None, map_output_path)
 
-'''
+
 
 #####################################
 #
@@ -297,9 +298,27 @@ batch_run_map(gdf_hex_counts, run_selection_dict, 'loc_count', 'run', rename_dic
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 plt.rcParams['animation.ffmpeg_path'] = "C:\\Anaconda3\\bin\\ffmpeg"
 
+
+# Select batch runs for animation
+# Read in batch runs metadata
+df_run = pd.read_csv(os.path.join(data_dir, batch_file))
+
+
+selection_columns = ['lambda', 'alpha', 'avNVehicles']
+selction_values = [ [1.0,1.0],
+                    [0.5,0.5],
+                    [15,1]
+                    ]
+
+run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
+
+for col in selection_columns:
+    df_run  = df_run.loc[df_run[col].isin(run_selection_dict[col])]
+
+
 # Get crossing locations and origin and destination
-gdfCA = gpd.read_file(os.path.join(gis_data_dir, "simple_pedestrian_trips", "CrossingAlternatives.shp"))
-gdfOD = gpd.read_file(os.path.join(gis_data_dir, "simple_pedestrian_trips", "OD_pedestrian_nodes.shp"))
+gdfCA = gpd.read_file(os.path.join(gis_data_dir,  "CrossingAlternatives.shp"))
+gdfOD = gpd.read_file(os.path.join(gis_data_dir, "OD_pedestrian_nodes.shp"))
 
 gdfCA = gdfCA.to_crs(epsg=3857)
 gdfOD = gdfOD.to_crs(epsg=3857)
@@ -307,14 +326,19 @@ gdfOD = gdfOD.to_crs(epsg=3857)
 # Get x and y coords to plot at each tick
 gdf_loc = gdf_loc.to_crs(epsg=3857)
 
-gdf_loc['x'] = gdf_loc['geometry'].map(lambda g: g.coords[0][0])
-gdf_loc['y'] = gdf_loc['geometry'].map(lambda g: g.coords[0][1])
-gdf_loc['c'] = gdf_loc['run'].replace({2:0})
+gdf_loc_display = gdf_loc.loc[ gdf_loc['run'].isin(df_run['run'])]
 
-points = gdf_loc.groupby('tick').apply(lambda df: df.loc[:, ['x', 'y', 'c']].values).values
+high_flow_run = df_run.loc[ df_run['avNVehicles']==df_run['avNVehicles'].max(), 'run'].values[0]
+low_flow_run = df_run.loc[ df_run['avNVehicles']==df_run['avNVehicles'].min(), 'run'].values[0]
+
+gdf_loc_display['x'] = gdf_loc_display['geometry'].map(lambda g: g.coords[0][0])
+gdf_loc_display['y'] = gdf_loc_display['geometry'].map(lambda g: g.coords[0][1])
+gdf_loc_display['c'] = gdf_loc_display['run'].replace({high_flow_run:0, low_flow_run:1})
+
+points = gdf_loc_display.groupby('tick').apply(lambda df: df.loc[:, ['x', 'y', 'c']].values).values
 
 # Fine starting tick
-starting_tick = int( max( gdf_loc.loc[gdf_loc['run']==1, 'tick'].min(), gdf_loc.loc[gdf_loc['run']==2, 'tick'].min()) )
+starting_tick = int( max( gdf_loc_display.loc[gdf_loc_display['run']==high_flow_run, 'tick'].min(), gdf_loc_display.loc[gdf_loc_display['run']==low_flow_run, 'tick'].min()) )
 
 points = points[starting_tick:]
 
@@ -325,13 +349,14 @@ for i, p in enumerate(points):
         points_filter.append(p)
 
 # Initialise figure
-fig, ax = plt.subplots(figsize=(20,10))
+fig, ax = plt.subplots(figsize=(10,10))
 xdata, ydata = [], []
 scat = ax.scatter([], [], s=20, vmin=0, vmax=1, cmap=plt.cm.bwr, alpha=0.7)
 scat.cmap = plt.cm.bwr
 
 def init():
-    map_bounds = [-0.13525118, 51.46425201, -0.13335044, 51.46488333]
+    #map_bounds = [-0.13525118, 51.46425201, -0.13335044, 51.46488333]
+    map_bounds = [-0.1351, 51.4643, -0.13425, 51.46465]
     im, bounds = cx.bounds2img(*map_bounds, ll = True, source=cx.providers.Thunderforest.Transport(apikey="ebf9c5aef5b546ab9ea40180032937b5"))
     ax.set_axis_off()
     ax.imshow(im, extent = bounds)
@@ -358,5 +383,4 @@ def update(frame_points):
 ani = FuncAnimation(fig, update, frames = points_filter[:1000], init_func=init, blit=True)
 
 FFwriter = FFMpegWriter()
-ani.save(os.path.join(img_dir, 'simple_paths_animation_final.{}.mp4'.format(file_datetime_string)), writer = FFwriter)
-'''
+ani.save(os.path.join(img_dir, 'lower_level_crossing_animation.{}.mp4'.format(file_datetime_string)), writer = FFwriter)
