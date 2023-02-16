@@ -94,7 +94,7 @@ def multi_paths_heatmap_plot(environment_data_dict, title = "Proportion of pedes
     for i, (k, v) in enumerate(environment_data_dict.items()):
         or_graph, dict_node_pos, edgelist, edgedata, gdfORLinks, gdfORNodes, gdfPaveNodes, gdfStartNodes, gdfEndNodes = v # unpack data from dictionary value
 
-        vmin, vmax = pd.Series(edgedata).quantile([0.0, 0.95])
+        vmin, vmax = pd.Series(edgedata).quantile([0.0, 0.99])
 
         print("N values greater that vmax:{}".format( (pd.Series(edgedata)>vmax).value_counts()[True]))
 
@@ -125,17 +125,17 @@ with open("figure_config.json") as f:
 data_dir = "..\\output\\batch\\model_run_data\\"
 img_dir = "..\\output\\img\\"
 
-toygrid169_timestamp = "2022.Jun.30.09_42_01"
-quadgrid100_timestamp = "2022.Jun.13.21_40_09"
-cc_timestamp = "2022.Jul.13.14_04_01"
+toygrid169_timestamp = "2022.Dec.11.12_56_58"
+quadgrid100_timestamp = "2022.Dec.13.01_40_30"
+cc_timestamp = "2022.Dec.19.16_42_32"
 
-toygrid_config_path = "C:\\Users\\obisargoni\\Documents\\CASA\\OSPavements\\configs\\config_toygrid_block_169nodes.json"
-quadgrid_config_path = "C:\\Users\\obisargoni\\Documents\\CASA\\OSPavements\\configs\\config_quadgrid_block100.json"
-cc_config_path = "C:\\Users\\obisargoni\\Documents\\CASA\\OSPavements\\configs\\config_claphamcommon.json"
+toygrid_config_path = "C:\\Users\\Obi Sargoni\\Documents\\CASA\\OSPavements\\configs\\config_toygrid_block_141nodes_buffered.json"
+quadgrid_config_path = "C:\\Users\\Obi Sargoni\\Documents\\CASA\\OSPavements\\configs\\config_quadgrid_block_145nodes_buffer.json"
+cc_config_path = "C:\\Users\\Obi Sargoni\\Documents\\CASA\\OSPavements\\configs\\config_claphamcommon.json"
 
-environment_details =   {  'ToyGrid169':[toygrid_config_path, "2022.Jun.30.09_42_01"],
-                            'QuadGrid100':[quadgrid_config_path, "2022.Jun.13.21_40_09"],
-                            'ClaphamCommon':[cc_config_path, "2022.Jul.13.14_04_01"]}
+environment_details =   {  'ToyGrid169':[toygrid_config_path, toygrid169_timestamp],
+                            'QuadGrid100':[quadgrid_config_path, quadgrid100_timestamp],
+                            'ClaphamCommon':[cc_config_path, cc_timestamp]}
 
 environment_data_dict = {}
 
@@ -170,4 +170,4 @@ output_road_network_fig_path = os.path.join(img_dir, "paths_heatmap.png")
 #
 #
 #################################
-outpath = multi_paths_heatmap_plot(environment_data_dict, title = "Proportion of pedestrians traversing each road link", title_size=24, cmap = 'plasma', labelsize=15, cbar_pad=0.03, label_pad = 20, figsize=(30,12))
+outpath = multi_paths_heatmap_plot(environment_data_dict, title = "Proportion of pedestrians agents traversing each road link", title_size=24, cmap = 'plasma', labelsize=15, cbar_pad=0.03, label_pad = 20, figsize=(30,12))
