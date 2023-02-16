@@ -1414,8 +1414,8 @@ def figure_rl_paths_heatmap(fig, ax, gdfORLink, gdfStartNodes, gdfEndNodes, grap
     smap = plt.cm.ScalarMappable(cmap=edge_cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
     cbar = fig.colorbar(smap, ax=ax, fraction=0.1, shrink = 0.3, location='bottom', pad = cbar_pad)
     cbar.ax.tick_params(labelsize=labelsize)
-    cbar.ax.set_xticks([vmin, vmax])
-    cbar.ax.set_xticklabels(["{:e}".format(round_sig(vmin, sig=3)).replace("0000",""), "{:e}".format(round_sig(vmax, sig=3)).replace("0000","")])
+    cbar.set_ticks([vmin, vmax])
+    cbar.set_ticklabels(["{:e}".format(round_sig(vmin, sig=3)).replace("0000",""), "{:e}".format(round_sig(vmax, sig=3)).replace("0000","")])
     cbar.ax.set_xlabel(cbar_title) #, rotation=0, labelpad = label_pad)
     return ax
 
