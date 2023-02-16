@@ -8,9 +8,6 @@
     <string>tick</string>
     <string>random_seed</string>
     <string>ID</string>
-    <string>StartJunctionID</string>
-    <string>DestJunctionID</string>
-    <string>FullStrategicPathString</string>
     <string>JourneyDistance</string>
     <string>JourneyDuration</string>
   </sourceIds>

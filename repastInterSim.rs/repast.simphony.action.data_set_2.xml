@@ -25,30 +25,6 @@
       </repast.simphony.data2.engine.MethodDataSourceDefinition>
     </entry>
     <entry>
-      <string>StartJunctionID</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>StartJunctionID</id>
-        <className>repastInterSim.datasources.VehicleRouteData</className>
-        <methodName>getStartJunctionID</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>DestJunctionID</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>DestJunctionID</id>
-        <className>repastInterSim.datasources.VehicleRouteData</className>
-        <methodName>getDestJunctionID</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
-      <string>FullStrategicPathString</string>
-      <repast.simphony.data2.engine.MethodDataSourceDefinition>
-        <id>FullStrategicPathString</id>
-        <className>repastInterSim.datasources.VehicleRouteData</className>
-        <methodName>getFullStrategicPathString</methodName>
-      </repast.simphony.data2.engine.MethodDataSourceDefinition>
-    </entry>
-    <entry>
       <string>JourneyDistance</string>
       <repast.simphony.data2.engine.MethodDataSourceDefinition>
         <id>JourneyDistance</id>
