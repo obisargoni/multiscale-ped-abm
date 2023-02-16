@@ -200,3 +200,103 @@ dfCLEPlot = dfCLE.loc[ dfCLE['cle_quintile_num'].isin([1,3])].groupby('cle_quint
 gdf_hex_counts_plot = pd.merge(gdf_hex_counts, dfCLEPlot.reindex(columns = ['run','mean_link_cross_entropy', 'cle_quintile_num']), on = 'run', how = 'inner')
 
 batch_run_cross_map_single(gdf_hex_counts_plot, 'loc_prop', 'run', rename_dict, 'Crossing Location Entropy', map_output_path, map_bounds =  [-0.1351, 51.4643, -0.13425, 51.46465])
+
+
+
+
+#
+# Animation of road crossing - sigspatial replicate
+#
+
+
+from matplotlib.animation import FuncAnimation, FFMpegWriter
+plt.rcParams['animation.ffmpeg_path'] = "C:\\Anaconda3\\bin\\ffmpeg"
+
+gis_data_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\sigspatial_replicate\\geodata"
+
+
+# Select batch runs for animation
+# Read in batch runs metadata
+df_run = pd.read_csv(os.path.join(data_dir, batch_file))
+
+
+selection_columns = ['lambda', 'alpha', 'avNVehicles']
+selction_values = [ [1.0,1.0],
+                    [0.5,0.5],
+                    [15,1]
+                    ]
+
+run_selection_dict = {selection_columns[i]:selction_values[i] for i in range(len(selection_columns))}
+
+for col in selection_columns:
+    df_run  = df_run.loc[df_run[col].isin(run_selection_dict[col])]
+
+
+# Get crossing locations and origin and destination
+gdfCA = gpd.read_file(os.path.join(gis_data_dir,  "beyond_crossing.shp"))
+gdfOD = gpd.read_file(os.path.join(gis_data_dir, "OD_pedestrian_nodes.shp"))
+
+gdfCA = gdfCA.to_crs(epsg=3857)
+gdfOD = gdfOD.to_crs(epsg=3857)
+
+# Get x and y coords to plot at each tick
+gdf_loc = gdf_loc.to_crs(epsg=3857)
+
+gdf_loc_display = gdf_loc.loc[ gdf_loc['run'].isin(df_run['run'])]
+
+high_flow_run = df_run.loc[ df_run['avNVehicles']==df_run['avNVehicles'].max(), 'run'].values[0]
+low_flow_run = df_run.loc[ df_run['avNVehicles']==df_run['avNVehicles'].min(), 'run'].values[0]
+
+gdf_loc_display['x'] = gdf_loc_display['geometry'].map(lambda g: g.coords[0][0])
+gdf_loc_display['y'] = gdf_loc_display['geometry'].map(lambda g: g.coords[0][1])
+gdf_loc_display['c'] = gdf_loc_display['run'].replace({high_flow_run:0, low_flow_run:1})
+
+points = gdf_loc_display.groupby('tick').apply(lambda df: df.loc[:, ['x', 'y', 'c']].values).values
+
+# Fine starting tick
+starting_tick = int( max( gdf_loc_display.loc[gdf_loc_display['run']==high_flow_run, 'tick'].min(), gdf_loc_display.loc[gdf_loc_display['run']==low_flow_run, 'tick'].min()) )
+
+points = points[starting_tick:]
+
+# filter points to speed up animation
+points_filter = []
+for i, p in enumerate(points):
+    if i%3==0:
+        points_filter.append(p)
+
+# Initialise figure
+fig, ax = plt.subplots(figsize=(7,7))
+xdata, ydata = [], []
+scat = ax.scatter([], [], s=30, vmin=0, vmax=1, cmap=plt.cm.bwr, alpha=0.7)
+scat.cmap = plt.cm.bwr
+
+def init():
+    #map_bounds = [-0.13525118, 51.46425201, -0.13335044, 51.46488333]
+    map_bounds = [-0.1351, 51.4643, -0.13425, 51.46465]
+    im, bounds = cx.bounds2img(*map_bounds, ll = True, source=cx.providers.Thunderforest.Transport(apikey="ebf9c5aef5b546ab9ea40180032937b5"))
+    ax.set_axis_off()
+    ax.imshow(im, extent = bounds)
+
+    gdfCA.plot(ax=ax, color = 'green', linewidth = 1.5)
+    gdfOD.plot(ax=ax, color='black', linewidth=2)
+    return scat,
+
+def update(frame_points):
+    # Set x and y data...
+    scat.set_offsets(frame_points[:, :2])
+    
+    # Set sizes...
+    #sizes = np.array([200]*len(frame_points))
+    #scat.set_sizes(sizes)
+    
+    # Set colors..
+    scat.set_array(frame_points[:, 2])
+
+    # We need to return the updated artist for FuncAnimation to draw..
+    # Note that it expects a sequence of artists, thus the trailing comma.
+    return scat,
+
+ani = FuncAnimation(fig, update, frames = points_filter[:1000], init_func=init, blit=True)
+
+FFwriter = FFMpegWriter()
+ani.save(os.path.join(img_dir, 'lower_level_crossing_animation.{}.mp4'.format(file_datetime_string)), writer = FFwriter)
