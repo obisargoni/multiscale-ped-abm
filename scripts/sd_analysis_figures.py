@@ -735,7 +735,7 @@ dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p_norm', index=False)
 
 t = ['dispersion_norm']
 y = ['speedVeh']
-i = ['informalCrossing_sometimes', 'informalCrossing_never']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
 c = ['avNVehicles_norm','const']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
