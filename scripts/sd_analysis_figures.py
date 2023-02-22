@@ -99,11 +99,20 @@ def hist_plot(ax, data, val_col, group_col, title, nhistbins = 25, palette=['#1b
     ax.set_title(title, fontsize = 24)
     return ax
 
-def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10), ttc_threshold=1):
+def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dict, fig_config, inset_rec, nhistbins = 25, figsize=(20,10), ttc_threshold=1, y_pad = -0.2, y_lims = [0,900]):
     nvars = len(outcome_vars)
     if nvars==4:
         fig, axs = plt.subplots(2, 2, figsize=figsize)
         axs = axs.reshape(1,-1)[0]
+    elif nvars==5:
+        fig = plt.figure(figsize=figsize)
+        ax1 = plt.subplot2grid(shape=(2,6), loc=(0,0), colspan=2, fig=fig)
+        ax2 = plt.subplot2grid((2,6), (0,2), colspan=2, fig=fig)
+        ax3 = plt.subplot2grid((2,6), (0,4), colspan=2, fig=fig)
+        ax4 = plt.subplot2grid((2,6), (1,1), colspan=2, fig=fig)
+        ax5 = plt.subplot2grid((2,6), (1,3), colspan=2, fig=fig)
+        plt.subplots_adjust(wspace=0.4)
+        axs = [ax1,ax2,ax3,ax4,ax5]
     else:
         fig, axs = plt.subplots(1, nvars, figsize=figsize)
 
@@ -111,14 +120,23 @@ def multi_hist_plot(dfDD, gdfORLinks, outcome_vars, policy_col, title_rename_dic
     for i in range(nvars):
         ax0 = hist_plot(axs[i], data, outcome_vars[i], policy_col, title_rename_dict[outcome_vars[i]], nhistbins = nhistbins)
 
+    # set different y_lims on each axis
+    if y_lims is not None:
+        if len(y_lims)==1:
+            for ax in axs:
+                ax.set_ylim(ymin=y_lims[0][0], ymax=y_lims[0][1])
+        else:
+            for i, ax in axs:
+                ax.set_ylim(ymin=y_lims[i][0], ymax=y_lims[i][1])
+
     # add inset showing the road network
     axins = fig.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.3)
+    axins.set_title('Environment', y=y_pad)
     
     # Add legend to bottom of the plot
-    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-1.55,-0.16,1.6,0), loc="lower center", mode='expand', ncol=3)
+    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-0.8,-0.20,1.6,0), loc="lower center", mode='expand', ncol=3)
     axs[0].set_ylabel('count', fontsize = 20)
     plt.margins(x=0)
 
@@ -353,6 +371,11 @@ output_paths = bd_utils.get_ouput_paths(file_datetime_string, data_dir, nbins = 
 output_sd_data = output_paths["output_sd_data"]
 
 palette = ['#1b9e77', '#d95f02', '#7570b3']
+palette_dict = dict(zip(('always','sometimes','never'),palette))
+
+cc_gis_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\Clapham Common\\processed_gis_data\\"
+qg_gis_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\QuadGrid145NodesBuffer\\processed_gis_data\\"
+ug_gis_dir = "S:\\CASA_obits_ucfnoth\\1. PhD Work\\GIS Data\\ToyGrid141\\processed_gis_data\\"
 
 #####################################
 #
@@ -425,6 +448,7 @@ for c in scenario_param_cols:
 ##############################
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from matplotlib import gridspec
 import seaborn as sns
 
@@ -439,7 +463,7 @@ with open("figure_config.json") as f:
 #
 outcome_vars1 = ['route_length_pp','mean_link_cross_entropy']
 outcome_vars2 = ['DistPA','mean_link_cross_entropy']
-outcome_vars3 = ['route_length_pp', 'mean_link_cross_entropy', 'speedVeh']
+outcome_vars3 = ['route_length_pp', 'crossCountPP', 'mean_link_cross_entropy', 'dispersion', 'speedVeh']
 policy_col = 'informalCrossing'
 
 rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
@@ -464,7 +488,13 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
                 "speedVeh":r"$\bar{S^v_r}$",
                 'informalCrossing':'Informal Crossing',
                 "dispersion":r"$\bar{D^x_r}$",
-                "dispersion_conflict":r"$\bar{D^c_r}$"
+                "dispersion_conflict":r"$\bar{D^c_r}$",
+                "dispersion_predict":r"$\hat{CLD}$",
+                "crossCountPP_predict":r"$\hat{N_C}$",
+                "mean_link_cross_entropy_predict":r"$\hat{CLE}$",
+                "dispersion_norm_predict":r"$\hat{CLD}$",
+                "crossCountPP_norm_predict":r"$\hat{N_C}$",
+                "mean_link_cross_entropy_norm_predict":r"$\hat{CLE}$"
                 }
 
 #
@@ -478,7 +508,8 @@ rename_dict = { 'alpha':r"$\mathrm{\alpha}$",
 #
 #plt.style.use('dark_background')
 inset_rec = [0.0, 0.9, 0.13, 0.13]
-multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(18,7), ttc_threshold=ttc_threshold)
+y_lims = [0,1100] # clapham common
+multi_hist_plot(dfDD, gdfORLinks, outcome_vars3, policy_col, rename_dict, fig_config, inset_rec, figsize=(18,13), ttc_threshold=ttc_threshold, y_lims=None)
 
 plt.style.use('default')
 
@@ -502,20 +533,6 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 # Looking at metrics for different levels of vehicle flow
 #
 
-'''
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metric = 'speedVeh'
-title = 'Vehicle speed increases with crossing restrictions'
-f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
-
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metric = 'conflict_count'
-title = 'Conflicts decrease with crossing restrictions'
-f = agg_policy_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metric, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize=(20,10))
-'''
-
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh', 'dispersion', 'mean_link_cross_entropy']
@@ -524,14 +541,6 @@ inset_rec = [-0.015, 0.87, 0.13, 0.13]
 agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
 
 
-'''
-group_param = 'avNVehicles'
-policy_param = 'informalCrossing'
-metrics = ['speedVeh','dispersion_conflict']
-title = 'Comparing vehicle speed and dispersion between policies'
-inset_rec = [-0.02, 0.87, 0.13, 0.13]
-agg_policy_two_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (16,10), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
-'''
 
 #
 # Combining output data into a single dataframe
@@ -688,6 +697,7 @@ dfDDAll['informalCrossing'] = pd.Categorical(dfDDAll['informalCrossing'])
 dfDDAlln = pd.get_dummies(dfDDAll)
 dfDDAlln.drop('informalCrossing_always', axis=1, inplace=True)
 dfDDAlln['informalCrossing_rank'] = dfDDAll['informalCrossing'].replace({'always':1,'sometimes':2,'never':3})
+dfDDAlln['informalCrossing'] = dfDDAll['informalCrossing']
 dfDDAlln[env_col] = dfDDAll[env_col]
 dfDDAlln['const'] = 1
 
@@ -828,10 +838,125 @@ f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
 f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
-
-
 xlWriter.close()
 
+
+
+#
+# Figures showing second stage results
+#
+ts = ['crossCountPP_norm','mean_link_cross_entropy_norm','dispersion_norm']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['const']
+
+def get_predicted_treatment_value(dfDD, y, ts, iv, c):
+    for t in ts:
+        t_pred_col = t+'_predict'
+        first_stage = sm.OLS(endog=dfDD[t], exog=dfDD[iv+c]).fit()
+        dfDD[t_pred_col] = first_stage.predict(dfDD[iv+c])
+
+    return dfDD
+
+dfDDAllnPred = dfDDAlln.groupby(env_col).apply(lambda df: get_predicted_treatment_value(df, y, ts, iv, c))
+
+# load cc and quad grid road networks
+gdfORLinksCC = gpd.read_file(os.path.join(cc_gis_dir, config['openroads_link_processed_file']))
+gdfORLinksQG = gpd.read_file(os.path.join(qg_gis_dir, config['openroads_link_processed_file']))
+
+
+# Now make figures
+f,axs = plt.subplots(2,3,figsize = (30,20))
+for i, env in enumerate(['Clapham Common','Quad Grid']):
+    for j, t in enumerate(ts):
+        t_pred = t+'_predict'
+        ax = axs[i,j]
+
+        # plot all data
+        data =dfDDAllnPred.loc[ dfDDAllnPred[env_col]==env]
+        ax.scatter(data[t_pred],data[y], c = data[policy_col].replace(palette_dict), alpha=0.05, edgecolor='none')
+
+        # plot just the mean values
+        data_mean = data.groupby('informalCrossing').mean().reset_index()
+        ax.scatter(data_mean[t_pred],data_mean[y], c = data_mean[policy_col].replace(palette_dict), marker = '^', s=50, edgecolor='black')
+
+        plt.subplots_adjust(hspace=0.3, wspace=0.2)
+
+        ax.set_xlabel(rename_dict[t_pred], fontsize = 20)
+        ax.xaxis.set_tick_params(labelsize=15)
+        ax.yaxis.set_tick_params(labelsize=15)
+
+        if j==0:
+            ax.set_ylabel(rename_dict[y[0]], fontsize=20)
+        else:
+            ax.set_yticklabels([])
+
+        # Add regression line
+        m = sm.OLS(endog=data[y], exog=data[[t_pred] + c]).fit()
+        cnst = round(m.params['const'], 3)
+        cnst_err = round(m.bse['const'], 3)
+        b = round(m.params[t_pred], 3)
+        b_err = round(m.bse[t_pred], 3)
+        r2 = round(m.rsquared_adj, 3)
+        p = round(m.pvalues[t_pred], 3)
+
+        mx = data_mean[t_pred]
+        my = cnst+b*mx
+        ax.plot(mx,my,linewidth=2, color = 'black', linestyle='-')
+
+        eqn = r"$y = {}*x + {}$".format(b,cnst)+"\n"+r"$Adj. R^2={}$".format(r2)+"\n"+r"p={}".format(p)
+        ax.annotate(eqn, xy = (mx.iloc[-1], my.iloc[-1]) , xytext = (0.1, 0.1), color='black', fontsize = 14, xycoords = 'axes fraction')
+
+# add inset showing the road network
+cc_inset_rec = [-0.003, 0.68, 0.1, 0.1]
+qg_inset_rec = [-0.003, 0.24, 0.1, 0.1]
+
+cc_axins = f.add_axes(cc_inset_rec)
+gdfORLinksCC.plot(ax=cc_axins, color='black')
+cc_axins.set_axis_off()
+cc_axins.set_title('Environment', y=-0.2)
+
+qg_axins = f.add_axes(qg_inset_rec)
+gdfORLinksQG.plot(ax=qg_axins, color='black')
+qg_axins.set_axis_off()
+qg_axins.set_title('Environment', y=-0.2)
+
+# add a legent
+patches = [mpatches.Patch(color=v, label=k) for k,v in palette_dict.items()]
+axs[1, 1].legend(handles = patches, fontsize = 15, bbox_to_anchor=(0.0,-0.25,1.0,0), loc="lower center", mode='expand', ncol=3)
+plt.margins(x=0)
+
+f.savefig(os.path.join(img_dir, "2sls_scatter.{}.png".format(file_datetime_string)))
+
+
+#
+# Only regression analysis, since 
+#
+
+# Check effect of policy, with all params as controls
+constant_params = ['randomSeed','pedODSeed','vehODSeed','nPeds', 'ga','yieldThreshold','updateFactor']
+[scenario_param_cols.remove(i) for i in constant_params]
+
+t = ['speedVeh']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = scenario_param_cols +  ['const']
+
+model = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives the same results as without the other model variables. As expected.
+
+model = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary()
+
+# Effect of policies on crossing metrics
+model = sm.OLS(endog=dfDDAlln_cc[['crossCountPP_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
+
+model = sm.OLS(endog=dfDDAlln_cc[['dispersion_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
+
+model = sm.OLS(endog=dfDDAlln_cc[['mean_link_cross_entropy_norm']], exog=sm.add_constant(dfDDAlln_cc[ ['avNVehicles_norm'] + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
+model.summary() # gives same results as 1st stage regression.
 
 
 # replace policy with crossings metrics

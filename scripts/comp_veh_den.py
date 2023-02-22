@@ -33,9 +33,9 @@ file_datetime_string = config['file_datetime_string']
 
 setting = config['setting']
 
-ug_results = '2023.Feb.15.08_28_59'
-qg_results = '2023.Feb.15.08_49_00'
-cc_results = '2023.Feb.15.09_10_11'
+ug_results = '2023.Feb.15.21_46_53'
+qg_results = '2023.Feb.15.20_37_30'
+cc_results = '2023.Feb.15.16_19_39'
 
 v_param = 'avNVehicles'
 
@@ -137,7 +137,7 @@ dfccv['cap_pcnt'] = (dfccv['AvVehCount'] / dfccv['cap']) * 100.00
 dfqgv['cap_pcnt'] = (dfqgv['AvVehCount'] / dfqgv['cap']) * 100.00
 dfugv['cap_pcnt'] = (dfugv['AvVehCount'] / dfugv['cap']) * 100.00
 
-
+'''
 dfccagg = dfccv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
 dfqgagg = dfqgv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
 dfugagg = dfugv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
@@ -145,24 +145,35 @@ dfugagg = dfugv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].quanti
 dfccaggd = dfccv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].describe()
 dfqgaggd = dfqgv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].describe()
 dfugaggd = dfugv.groupby([v_param,'addPedTicks','randomSeed'])['cap_pcnt'].describe()
+'''
 
+dfccagg = dfccv.groupby([v_param,'randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
+dfqgagg = dfqgv.groupby([v_param,'randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
+dfugagg = dfugv.groupby([v_param,'randomSeed'])['cap_pcnt'].quantile([0.9,0.95,0.99]).unstack()
 
+dfccaggd = dfccv.groupby([v_param,'randomSeed'])['cap_pcnt'].describe()
+dfqgaggd = dfqgv.groupby([v_param,'randomSeed'])['cap_pcnt'].describe()
+dfugaggd = dfugv.groupby([v_param,'randomSeed'])['cap_pcnt'].describe()
+
+# average over random seeds
 dfccagg = pd.merge(dfccagg, dfccaggd, left_index=True, right_index=True).reset_index()
-dfccagg = dfccagg.groupby([v_param,'addPedTicks']).mean().reset_index()
+dfccagg = dfccagg.groupby([v_param]).mean().reset_index()
 dfccagg['environment'] = 'CC'
 
 dfqgagg = pd.merge(dfqgagg, dfqgaggd, left_index=True, right_index=True).reset_index()
-dfqgagg = dfqgagg.groupby([v_param,'addPedTicks']).mean().reset_index()
+dfqgagg = dfqgagg.groupby([v_param]).mean().reset_index()
 dfqgagg['environment'] = 'QG'
 
 dfugagg = pd.merge(dfugagg, dfugaggd, left_index=True, right_index=True).reset_index()
-dfugagg = dfugagg.groupby([v_param,'addPedTicks']).mean().reset_index()
+dfugagg = dfugagg.groupby([v_param]).mean().reset_index()
 dfugagg['environment'] = 'UG'
 
 
 dfagg = pd.concat([dfccagg, dfqgagg, dfugagg]).rename(columns = {0.9:'90%', 0.95:'95%', 0.99:'99%'})
 
-dfagg.reindex(columns = ['environment',v_param,'addPedTicks','50%','75%','90%','95%','99%','max']).to_csv(os.path.join(data_dir, 'av_veh_den.csv'), index=False)
+dfagg = dfagg.reindex(columns = ['environment',v_param,'50%','75%','90%','95%','99%','max']).round(1)
+
+dfagg.sort_values(by = v_param).set_index([v_param, 'environment']).to_csv(os.path.join(data_dir, 'av_veh_den.csv'))
 
 #dfccagg.to_csv(os.path.join(data_dir, 'cc_vehden_agg_{}.csv'.format(config['cc_results'])))
 #dfqgagg.to_csv(os.path.join(data_dir, 'qg_vehden_agg_{}.csv'.format(config['qg_results'])))
