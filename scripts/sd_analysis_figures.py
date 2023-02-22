@@ -10,6 +10,7 @@ import networkx as nx
 import re
 from datetime import datetime as dt
 from sklearn.neighbors import KernelDensity
+from sklearn import preprocessing
 
 import sys
 sys.path.append(".\\sample")
@@ -549,7 +550,7 @@ output_paths = { 'Uniform Grid':    ug_output_path,
                 'Quad Grid':        qg_output_path,
                 'Clapham Common':   cc_output_path}
 
-outcome_vars3 = ['route_length_pp', 'speedVeh','conflict_count','mean_link_cross_entropy']
+outcome_vars3 = ['route_length_pp', "crossCountPP", "dispersion", "mean_link_cross_entropy", 'speedVeh']
 policy_col = 'informalCrossing'
 env_col = 'environment'
 
@@ -570,6 +571,60 @@ dfAgg.set_index([env_col, policy_col], inplace=True)
 import statsmodels.api as sm
 from linearmodels.iv import IV2SLS
 
+def stage_results_df(**models):
+    dfRes = pd.DataFrame()
+    res = {}
+    for name, model in models.items():
+        b = model.params
+
+        e = None
+        if isinstance(model, sm.regression.linear_model.RegressionResultsWrapper):
+            e = model.bse
+        else:
+            e = model.std_errors
+
+        p = model.pvalues
+
+        s = pd.DataFrame({'B':b, 'err':e, 'p':p}).stack()
+        s['r'] = model.rsquared
+        s['adjr'] = model.rsquared_adj
+
+        res[name]=s
+
+    dfRes = pd.DataFrame(res).T.reset_index()
+
+    # remove multi column
+    dfRes.columns = ["_".join(c) for c in dfRes.columns]
+
+    return dfRes
+
+def sm_stage_results_df(**models):
+    dfRes = pd.DataFrame()
+    res = {}
+    for name, model in models.items():
+        b = model.params
+
+        e = None
+        if isinstance(model, sm.regression.linear_model.RegressionResultsWrapper):
+            e = model.bse
+        else:
+            e = model.std_errors
+
+        p = model.pvalues
+
+        s = pd.DataFrame({'B':b, 'err':e, 'p':p}).stack()
+        s['r'] = model.rsquared
+        s['adjr'] = model.rsquared_adj
+
+        res[name]=s
+
+    dfRes = pd.DataFrame(res).T.reset_index()
+
+    # remove multi column
+    dfRes.columns = ["_".join(c) for c in dfRes.columns]
+
+    return dfRes
+
 def iv_models(dfDDAlln, env_col, y, t, i, c):
 
     first_stages = {}
@@ -588,28 +643,6 @@ def iv_models(dfDDAlln, env_col, y, t, i, c):
 
     return first_stages, second_stages
 
-
-def stage_results_df(**models):
-    dfRes = pd.DataFrame()
-    res = {}
-    for name, model in models.items():
-        b = model.params
-        e = model.std_errors
-        p = model.pvalues
-
-        s = pd.DataFrame({'B':b, 'err':e, 'p':p}).stack()
-        s['r'] = model.rsquared
-        s['adjr'] = model.rsquared_adj
-
-        res[name]=s
-
-    dfRes = pd.DataFrame(res).T.reset_index()
-
-    # remove multi column
-    dfRes.columns = ["_".join(c) for c in dfRes.columns]
-
-    return dfRes
-
 def iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = True):
     first_stages, second_stages = iv_models(dfDDAlln, env_col, y, t, i, c)
 
@@ -625,6 +658,21 @@ def iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = True):
         return pd.concat([df1, df2])
     else:
         return df1
+
+def all_env_regression(dfDDAlln, env_col, y, x):
+    results = {}
+    grouped = dfDDAlln.groupby(env_col) 
+    names = list(grouped.groups.keys())
+    for name in names:
+        dfDD = grouped.get_group(name)
+        reg_res = first_stage = sm.OLS(endog=dfDD[y], exog=dfDD[x]).fit()
+
+        results[name] = reg_res
+    
+    dfRes = stage_results_df(**results)
+    dfRes['y'] = y
+
+    return dfRes
 
 def sm_iv_analysis(dfDD, y, t, iv, c):
     first_stage = sm.OLS(endog=dfDD[t], exog=dfDD[iv+c]).fit()
@@ -644,102 +692,80 @@ dfDDAlln[env_col] = dfDDAll[env_col]
 dfDDAlln['const'] = 1
 
 # Normalise vars - should apply min max scaling to parameters bc these are sampled from uniform dist
-to_norm = ['avNVehicles','dispersion_conflict', 'conflict_count', "crossCountPP", "dispersion", "mean_link_cross_entropy"]
-for c in to_norm:
-    dfDDAlln[c+'_norm'] = dfDDAll.groupby(env_col)[c].transform(lambda s: (s-s.mean())/s.std())
+evaluation_metrics = outcome_vars3
+
+constant_params = ['randomSeed','pedODSeed','vehODSeed','nPeds', 'ga','yieldThreshold','updateFactor']
+sim_params = [i for i in scenario_param_cols if i not in constant_params]
+
+# z-score normalisation
+evaluation_metrics_norm = []
+for c in evaluation_metrics:
+    c_norm = c+"_norm"
+    dfDDAlln[c_norm] = dfDDAll.groupby(env_col)[c].transform(lambda s: preprocessing.scale(s, axis=0, with_mean=True, with_std=True, copy=True) )
+    evaluation_metrics_norm.append(c_norm)
+
+
+# min-max rescalling
+sim_params_norm = []
+for c in sim_params:
+    c_norm = c+"_norm"
+    dfDDAlln[c_norm] = dfDDAll.groupby(env_col)[c].transform(lambda s: preprocessing.minmax_scale(s, feature_range=(0, 1), axis=0, copy=True) )
+    sim_params_norm.append(c_norm)
+
 
 dfDDAlln_cc = dfDDAlln.loc[ dfDDAlln[env_col]=='Clapham Common']
 dfDDAlln_qg = dfDDAlln.loc[ dfDDAlln[env_col]=='Quad Grid']
 dfDDAlln_ug = dfDDAlln.loc[ dfDDAlln[env_col]=='Uniform Grid']
 
-output_excel_path = "..\\output\\regression_results.ttc{}.xlsx".format(ttc_threshold)
+output_excel_path = "..\\output\\regression_results.xlsx"
 if os.path.exists(output_excel_path):
     xlWriter = pd.ExcelWriter(output_excel_path, mode='a', engine_kwargs=None, if_sheet_exists='replace')
 else:
     xlWriter = pd.ExcelWriter(output_excel_path, mode='w', engine_kwargs=None)
 
+# Write decriptive stats to file
+dfAgg.to_excel(xlWriter, sheet_name = 'descrp_stats', index=True)
+
 #
-# Analyse effect of policy
+# Analyse effect of policy on evaluation metrics
 #
 
-t = ['speedVeh']
-y = ['speedVeh']
+# without param constrols
+dfNoParams = pd.DataFrame()
 i = ['informalCrossing_sometimes', 'informalCrossing_never']
-c = ['avNVehicles','const']
+for y in evaluation_metrics_norm:
+    dfy = all_env_regression(dfDDAlln, env_col, y, i + ['const'])
+    dfNoParams = pd.concat([dfNoParams, dfy])
 
-dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
-dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p', index=False)
+dfNoParams = dfNoParams.reindex(columns = ['y'] + list(dfNoParams.columns[:-1]))
 
-# Check if effects of the policy differ when controls not included
 
-c = ['const']
+dfWithParams = pd.DataFrame()
+for y in evaluation_metrics_norm:
+    dfy = all_env_regression(dfDDAlln, env_col, y, i + sim_params_norm + ['const'])
+    dfWithParams = pd.concat([dfWithParams, dfy])
 
-first_stage = sm.OLS(endog=dfDDAlln_cc[t], exog=dfDDAlln_cc[i+c]).fit()
-first_stage.summary()
+dfWithParams = dfWithParams.reindex(columns = ['y'] + list(dfWithParams.columns[:-1]))
+
+
+# Save these to the excel
+dfNoParams.to_excel(xlWriter, sheet_name='elav_metric_reg', index=False)
+dfWithParams.to_excel(xlWriter, sheet_name='elav_metric_reg_params', index=False)
+
+
 
 #
-# IV analysis - multiple treatments
+# IV analysis - with controls
+# - not meaningful beacuse 1st stage includes all sources of variation. model is verfit. sm doesn't complain about this but linearmodels does
 #
 '''
-t = ['mean_link_cross_entropy_norm','dispersion_norm', 'crossCountPP_norm']
-y = ['speedVeh']
-iv = ['informalCrossing_sometimes', 'informalCrossing_never']
-c = ['avNVehicles','const']
-
-m = IV2SLS(dfDDAlln_cc[y], dfDDAlln_cc[c], dfDDAlln_cc[t], dfDDAlln_cc[iv])
-second_stage = m.fit()
-
-m = IV2SLS(dfDDAlln_qg[y], dfDDAlln_qg[c], dfDDAlln_qg[t], dfDDAlln_qg[iv])
-second_stage = m.fit()
-
-
-
-first_stage0 = sm.OLS(endog=dfDDAlln_cc[t[0]], exog=dfDDAlln_cc[iv+c]).fit()
-first_stage1 = sm.OLS(endog=dfDDAlln_cc[t[1]], exog=dfDDAlln_cc[iv+c]).fit()
-first_stage2 = sm.OLS(endog=dfDDAlln_cc[t[2]], exog=dfDDAlln_cc[iv+c]).fit()
-dfDDAlln_cc['t_predict0'] = first_stage0.predict(dfDDAlln_cc[iv+c])
-dfDDAlln_cc['t_predict1'] = first_stage1.predict(dfDDAlln_cc[iv+c])
-dfDDAlln_cc['t_predict2'] = first_stage2.predict(dfDDAlln_cc[iv+c])
-
-# Stage 2
-second_stage = sm.OLS(endog=dfDDAlln_cc[y], exog=dfDDAlln_cc[['t_predict0', 't_predict1', 't_predict2'] + c]).fit()
-
-first_stage0 = sm.OLS(endog=dfDDAlln_qg[t[0]], exog=dfDDAlln_qg[iv+c]).fit()
-first_stage1 = sm.OLS(endog=dfDDAlln_qg[t[1]], exog=dfDDAlln_qg[iv+c]).fit()
-dfDDAlln_qg['t_predict0'] = first_stage0.predict(dfDDAlln_qg[iv+c])
-dfDDAlln_qg['t_predict1'] = first_stage1.predict(dfDDAlln_qg[iv+c])
-
-# Stage 2
-second_stage = sm.OLS(endog=dfDDAlln_qg[y], exog=dfDDAlln_qg[['t_predict0', 't_predict1'] + c]).fit()
-'''
-
-
-
-
-#
-# Repeat with normalised varaibles
-#
-
-
-t = ['speedVeh']
-y = ['speedVeh']
-i = ['informalCrossing_sometimes', 'informalCrossing_never']
-c = ['avNVehicles_norm','const']
-
-dfLR = iv_results_df(dfDDAlln, env_col, y, t, i, c, twosls = False)
-dfLR.to_excel(xlWriter, sheet_name='lr_Sv_Nv_p_norm', index=False)
-
-#
-# IV analysis
-#
-
 t = ['dispersion_norm']
 y = ['speedVeh']
-i = ['informalCrossing_sometimes', 'informalCrossing_never']
-c = ['avNVehicles_norm','const']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = sim_params_norm + ['const']
 
 dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
-dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D_norm', index=False)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D_norm_params', index=False)
 
 f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
@@ -748,6 +774,41 @@ f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 print(f_cc.rsquared_adj, s_cc.rsquared_adj)
 print(f_qg.rsquared_adj, s_qg.rsquared_adj)
 print(f_ug.rsquared_adj, s_ug.rsquared_adj)
+
+t = ['crossCountPP_norm']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_C_norm_params', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+
+t = ['mean_link_cross_entropy_norm']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_CLE_norm_params', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
+'''
+
+#
+# IV analysis - no controls
+#
+
+t = ['dispersion_norm']
+y = ['speedVeh']
+iv = ['informalCrossing_sometimes', 'informalCrossing_never']
+c = ['const']
+
+dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
+dfIVRes.to_excel(xlWriter, sheet_name='iv_Sv_D_norm', index=False)
+
+f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
+f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
+f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
 t = ['crossCountPP_norm']
 
@@ -767,46 +828,10 @@ f_cc, s_cc = sm_iv_analysis(dfDDAlln_cc, y, t, iv, c)
 f_qg, s_qg = sm_iv_analysis(dfDDAlln_qg, y, t, iv, c)
 f_ug, s_ug = sm_iv_analysis(dfDDAlln_ug, y, t, iv, c)
 
+
+
 xlWriter.close()
 
-
-# Check with rank
-t = ['dispersion_conflict_norm']
-y = ['speedVeh']
-iv = ['informalCrossing_rank']
-c = ['avNVehicles_norm','const']
-
-dfIVRes = iv_results_df(dfDDAlln, env_col, y, t, iv, c)
-
-
-#
-# Only regression analysis, since 
-#
-
-# Check effect of policy, with all params as controls
-constant_params = ['randomSeed','pedODSeed','vehODSeed','nPeds', 'ga','yieldThreshold','updateFactor']
-[scenario_param_cols.remove(i) for i in constant_params]
-
-t = ['speedVeh']
-y = ['speedVeh']
-iv = ['informalCrossing_sometimes', 'informalCrossing_never']
-c = scenario_param_cols +  ['const']
-
-model = sm.OLS(endog=dfDDAlln_cc[['speedVeh']], exog=sm.add_constant(dfDDAlln_cc[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
-model.summary() # gives the same results as without the other model variables. As expected.
-
-model = sm.OLS(endog=dfDDAlln_qg[['speedVeh']], exog=sm.add_constant(dfDDAlln_qg[scenario_param_cols + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
-model.summary()
-
-# Effect of policies on crossing metrics
-model = sm.OLS(endog=dfDDAlln_cc[['crossCountPP_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
-model.summary() # gives same results as 1st stage regression.
-
-model = sm.OLS(endog=dfDDAlln_cc[['dispersion_norm']], exog=sm.add_constant(dfDDAlln_cc[['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
-model.summary() # gives same results as 1st stage regression.
-
-model = sm.OLS(endog=dfDDAlln_cc[['mean_link_cross_entropy_norm']], exog=sm.add_constant(dfDDAlln_cc[ ['avNVehicles_norm'] + ['informalCrossing_sometimes', 'informalCrossing_never']])).fit()
-model.summary() # gives same results as 1st stage regression.
 
 
 # replace policy with crossings metrics
