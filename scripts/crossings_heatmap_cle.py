@@ -181,8 +181,17 @@ def batch_run_cross_map_single(df_data, data_col, run_col, rename_dict, title, o
         ax = data.to_crs(epsg=3857).plot(column = data_col, alpha = 0.7, cmap = plt.cm.viridis, vmin=0.0, vmax=1.0, edgecolor = 'none', ax = ax, legend = False)
 
         # Add annotation to show CLE value
-        s = r"$CLE_r=$" + str(np.round(data['mean_link_cross_entropy'].unique()[0], 3))
+        s = r"$CLE=$" + str(np.round(data['mean_link_cross_entropy'].unique()[0], 3))
         plt.text(0.45,0.9, s, fontsize = 11, transform = ax.transAxes)
+
+    # add colour bar
+    smap = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=plt.Normalize(vmin=0, vmax=1.0))
+    cbar = f.colorbar(smap, ax=axs[-1], fraction=0.1, shrink = 0.5)
+    cbar.ax.tick_params(labelsize=11)
+    cbar.set_label("% of road crossings", x=0, rotation=270)
+    cbar.set_ticks([0,0.2,0.4,0.6,0.8,1.0])
+    cbar.set_ticklabels([0,20,40,60,80,100])
+
 
     if title is not None:
         f.suptitle(title, fontsize=16, y = 0.8)
