@@ -175,6 +175,16 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     if nvars==4:
         f, axs = plt.subplots(2,2, figsize=(20,20), constrained_layout = constrained_layout)
         axs = axs.reshape(1,-1)[0]
+    elif nvars==5:
+        figsize=(18,17)
+        f = plt.figure(figsize=figsize)
+        ax1 = plt.subplot2grid(shape=(2,6), loc=(0,0), colspan=2, fig=f)
+        ax2 = plt.subplot2grid((2,6), (0,2), colspan=2, fig=f)
+        ax3 = plt.subplot2grid((2,6), (0,4), colspan=2, fig=f)
+        ax4 = plt.subplot2grid((2,6), (1,1), colspan=2, fig=f)
+        ax5 = plt.subplot2grid((2,6), (1,3), colspan=2, fig=f)
+        plt.subplots_adjust(wspace=0.4, hspace=0.2)
+        axs = [ax1,ax2,ax3,ax4,ax5]
     else:
         f, axs = plt.subplots(1,nvars, figsize=(fig_width*nvars,fig_height), constrained_layout = constrained_layout)
 
@@ -204,10 +214,11 @@ def sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars
     axins = f.add_axes(inset_rec)
     gdfORLinks.plot(ax=axins, color='black')
     axins.set_axis_off()
-    axins.set_title('Environment', y=-0.3)
+    axins.set_title('Environment', y=-0.15)
     
     # Add legend to bottom of the plot
-    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-1.55,-0.25,1.6,0), loc="lower center", mode='expand', ncol=3)
+    #axs[-1].legend(fontsize = 15, bbox_to_anchor=(-1.55,-0.25,1.6,0), loc="lower center", mode='expand', ncol=3)
+    axs[-1].legend(fontsize = 15, bbox_to_anchor=(-0.8,-0.20,1.6,-0.5), loc="lower center", mode='expand', ncol=3)
     plt.margins(x=0)
 
 
@@ -532,14 +543,14 @@ sobol_si_figure(dfSIs, gdfORLinks, policy_param, policy_values, outcome_vars3, r
 #
 # Looking at metrics for different levels of vehicle flow
 #
-
+'''
 group_param = 'avNVehicles'
 policy_param = 'informalCrossing'
 metrics = ['speedVeh', 'dispersion', 'mean_link_cross_entropy']
 title = 'Comparing vehicle speed to crossing metrics between policies'
 inset_rec = [-0.015, 0.87, 0.13, 0.13]
 agg_policy_n_metric_comparison_figure(dfDD, gdfORLinks, group_param, policy_param, metrics, rename_dict, inset_rec, title, colors = ['#1b9e77', '#d95f02', '#7570b3'], figsize = (19,13), quantile_groups = (0.25,0.5,0.75,1.0), quantile_labels = ("Quartile 1", "Quartile 2", "Quartile 3", "Quartile 4"), ttc_threshold=ttc_threshold )
-
+'''
 
 
 #
@@ -932,7 +943,7 @@ f.savefig(os.path.join(img_dir, "2sls_scatter.{}.png".format(file_datetime_strin
 #
 # Only regression analysis, since 
 #
-
+'''
 # Check effect of policy, with all params as controls
 constant_params = ['randomSeed','pedODSeed','vehODSeed','nPeds', 'ga','yieldThreshold','updateFactor']
 [scenario_param_cols.remove(i) for i in constant_params]
@@ -974,7 +985,7 @@ model_cross.summary()
 # since change in speed is greatest in this env.
 # with just a straight regression with all params, D and CLE act in different directions. 
 # Other params also vary these metrics, so could be picking up effect of those as well.
-
+'''
 
 
 
