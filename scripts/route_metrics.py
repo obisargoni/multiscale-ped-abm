@@ -993,7 +993,7 @@ if 'variance_comparison' in setting:
     f_path_comp.savefig(output_single_pad_paths)
 
     # Now compare path length varaition for just the paths being plotted
-    clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutes.loc[ dfPedRoutes['ID']==ped_id_simple_paths, 'node_path']]
+    clt_path_lengths = [nx.path_weight(pavement_graph, p, 'length') for p in dfPedRoutesAlways.loc[ dfPedRoutesAlways['ID']==ped_id_simple_paths, 'node_path']]
     s_clt = pd.Series(clt_path_lengths)
 
     print(s_clt.describe())
