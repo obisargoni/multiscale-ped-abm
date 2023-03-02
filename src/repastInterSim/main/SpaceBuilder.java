@@ -577,6 +577,13 @@ public class SpaceBuilder extends DefaultContext<Object> implements ContextBuild
 		Geography<OD> vehicleDestinationGeography = SpaceBuilder.getGeography(GlobalVars.CONTEXT_NAMES.VEHICLE_DESTINATION_GEOGRAPHY);
 		List<OD[]> ods = mobileAgentODs(vehicleDestinationGeography, odData, "vehODThresholds");
 		
+		if (ods.size()<nVehicles) {
+			List<OD[]> ods2 = mobileAgentODs(vehicleDestinationGeography, odData, "vehODThresholds");
+			for ( int i=0; i<ods2.size();i++){
+				ods.add(ods2.get(i));
+			}
+		}
+		
 		while (ods.size()>nVehicles) {
 			// Randomly remove some trips
 			int removeInd = RandomHelper.nextIntFromTo(0, ods.size()-1);
