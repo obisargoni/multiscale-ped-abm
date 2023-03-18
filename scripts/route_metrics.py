@@ -871,9 +871,6 @@ if "epsilon_gamma_scatter" in setting:
     groupby_columns = ['avNVehicles', 'lambda']
     parameter_sweep_columns = ['epsilon', 'gamma']
 
-    output_path = os.path.join(img_dir, "fract_competed_eg.{}.png".format(file_datetime_string))
-    fig_title = "Route Completions\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
-
     rename_dict = { 'avNVehicles':"Ticks\nBetween\nVehicle\nAddition",
                 'alpha':r"$\mathrm{\alpha}$",
                 'lambda':r"$\mathrm{\lambda}$",
@@ -881,14 +878,12 @@ if "epsilon_gamma_scatter" in setting:
                 "gamma":r"$\mathrm{\gamma}$",
                 0.5: r"$\mathrm{\lambda}=0.5$",
                 1.5:r"$\mathrm{\lambda}=1.5$",
-                5:"High\nVehicle\nFlow",
-                50:"Low\nVehicle\nFlow",
+                15:"High\nVehicle\nFlow",
+                1:"Low\nVehicle\nFlow",
                 'frac_target_cross': 'Postpone crossing proportion',
                 'frac_completed_journeys': 'Complete journey proportion'
                 }
-
-    f, ax = batch_run_scatter(dfRouteCompletion, groupby_columns, parameter_sweep_columns, metric, rename_dict, 'viridis', title = fig_title, cbarlabel = None, output_path = output_path)
-
+                
     # Measure numbers of agents crossing at a particular link
     target_links = ['pave_link_218_219', 'pave_link_217_219']
 
@@ -899,7 +894,10 @@ if "epsilon_gamma_scatter" in setting:
 
     # Need to select based on run and ID
     dfCrossEvents['run_ID'] = dfCrossEvents.apply(lambda row: (row['run'], row['ID']), axis=1)
-    dfPedRoutes_removedpeds['run_ID'] = dfPedRoutes_removedpeds.apply(lambda row: (row['run'], row['ID']), axis=1)
+    if dfPedRoutes_removedpeds.shape[0]==0:
+        dfPedRoutes_removedpeds['run_ID'] = np.nan
+    else:
+        dfPedRoutes_removedpeds['run_ID'] = dfPedRoutes_removedpeds.apply(lambda row: (row['run'], row['ID']), axis=1)
 
     dfCrossEventsCompleteJourney = dfCrossEvents.loc[ ~dfCrossEvents['run_ID'].isin(dfPedRoutes_removedpeds['run_ID'])]
 
@@ -915,12 +913,25 @@ if "epsilon_gamma_scatter" in setting:
     dfCrossAtTarget['n_target_cross'] = dfCrossAtTarget['n_target_cross'].fillna(0)
     dfCrossAtTarget['frac_target_cross'] = dfCrossAtTarget['n_target_cross'] / dfCrossAtTarget['nPedsComplete']
 
+    # Sort so that subplots are in correct order
+    dfCrossAtTarget.sort_values(by = ['avNVehicles', 'lambda'], ascending = [False, True], inplace=True)
+
     # Now plot
     metric = 'frac_target_cross'
     output_path = os.path.join(img_dir, "postpone_crossing_eg.{}.png".format(file_datetime_string))
     fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
 
     f, ax = batch_run_tile_plot(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, plt.cm.viridis, title = fig_title, cbarlabel = None, output_path = output_path, figsize=(20,5))
+
+
+    metric = 'frac_target_cross'
+    groupby_columns = ['avNVehicles', 'lambda']
+    parameter_sweep_columns = ['epsilon', 'gamma']
+
+    output_path = os.path.join(img_dir, "postpone_crossing_eg_coarse.{}.png".format(file_datetime_string))
+    fig_title = "Postpone Crossings\n{} and {} parameter sweep".format(r"$\mathrm{\epsilon}$", r"$\mathrm{\gamma}$")
+
+    f, ax = batch_run_scatter(dfCrossAtTarget, groupby_columns, parameter_sweep_columns, metric, rename_dict, 'viridis', title = fig_title, cbarlabel = None, output_path = output_path)
 
 if 'variance_comparison' in setting:
     print("\nRunning variance comparison")
