@@ -68,18 +68,20 @@ def heatmap(data, row_labels, col_labels, ax = None, x_label = None, y_label = N
     # Plot the heatmap
     im = ax.imshow(data, **kwargs)
 
+    fs = 16
+
     # We want to show all ticks...
     ax.set_xticks(np.arange(data.shape[1]))
     ax.set_yticks(np.arange(data.shape[0]))
     # ... and label them with the respective list entries.
-    ax.set_xticklabels(col_labels)
-    ax.set_yticklabels(row_labels)
+    ax.set_xticklabels(col_labels, fontsize=fs-3)
+    ax.set_yticklabels(row_labels, fontsize=fs-3)
 
     if x_label is not None:
-        ax.set_xlabel(x_label)
+        ax.set_xlabel(x_label, fontsize=fs)
 
     if y_label is not None:
-        ax.set_ylabel(y_label)
+        ax.set_ylabel(y_label, fontsize=fs)
 
     # Let the horizontal axes labeling appear on top.
     ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
@@ -195,8 +197,10 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
             if annotate_col is not None:
                 annotate_data = df_group.reindex(columns = [parameter_sweep_columns[0], parameter_sweep_columns[1], annotate_col]).set_index([parameter_sweep_columns[0], parameter_sweep_columns[1]]).unstack().values
                 colour_data = df_group.reindex(columns = [parameter_sweep_columns[0], parameter_sweep_columns[1], value_col]).set_index([parameter_sweep_columns[0], parameter_sweep_columns[1]]).unstack().values
-                texts = annotate_heatmap(im, data=annotate_data, value_data = colour_data, exclude = [0, 40], fontweight='bold')
+                texts = annotate_heatmap(im, data=annotate_data, value_data = colour_data, exclude = [0, 40], fontweight='bold', fontsize=14)
 
+    # fontsize
+    fs = 16
 
     # Adjust the plot to make space for the colourbar axis
     plt.subplots_adjust(right=0.8, wspace = 0.1)
@@ -205,6 +209,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
     cax = f.add_axes([0.82, 0.2, 0.03, 0.6])
     # Create colorbar
     cbar = f.colorbar(im, cax=cax, anchor = (0,0.7), cmap = cmap)
+    cbar.ax.tick_params(labelsize=14) 
 
     # Now add text annotations to indicate the scenario
     for i in range(p):
@@ -213,7 +218,7 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
         ax = axs[i, 0]
 
         s = "{}".format(rename_dict[group_key[0]])
-        plt.text(-0.4,0.5, s, fontsize = 11, transform = ax.transAxes)
+        plt.text(-0.45,0.5, s, fontsize = fs, transform = ax.transAxes)
 
 
     for j in range(q):
@@ -223,12 +228,12 @@ def batch_run_heatmap(df_data, groupby_columns, parameter_sweep_columns, value_c
         ax = axs[-1, j]
 
         s = "{}".format(rename_dict[group_key[1]])
-        plt.text(0.3,-0.1, s, fontsize = 11, transform = ax.transAxes)
+        plt.text(0.16,-0.1, s, fontsize = fs, transform = ax.transAxes)
 
     if title is not None:
-        f.suptitle(title, fontsize=16, y = 1)
+        f.suptitle(title, fontsize=fs+2, y = 0.99)
     if cbarlabel is not None:
-        cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
+        cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom", fontsize=fs)
     if output_path is not None:
         plt.savefig(output_path)
 
